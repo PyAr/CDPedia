@@ -1,0 +1,19 @@
+El mwlib tiene las siguientes 3 putas dependencias:
+
+*latex*
+  latex is used for rendering of mathematical formulas
+
+*perl*
+  perl is used to drive the timeline.pl script, which produces
+  timeline images.
+
+*PIL*
+ PIL is the Python Imaging Library and is used for image handling
+ (http://www.pythonware.com/products/pil/).
+
+
+Resolvemos:
+
+latex: entregaríamos al usuario las páginas con MathML, el firefox las muestra lindo (ver Pitágoras)
+
+perl: no encontramos una timeline... en direstraits (ver ambos files) debería estar...
