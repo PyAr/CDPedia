@@ -1,0 +1,4 @@
+[autorun]
+open=WikipediaOffLine.exe
+icon=WikipediaOffLine.ico
+useautoplay=1
