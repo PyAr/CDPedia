@@ -1,0 +1,39 @@
+
+
+
+
+
+
+Creación de la imagen
+---------------------
+
+1. Bajar el dump estático
+2. Analizar y determinar qué queda
+    - Revisar el dump y sacar distribuciones de peso
+    - Analizar las distribuciones y decidir qué queda
+        * Opt: Decidir qué articulos van en función de estadística de maś visitados
+        * Opt: Decidir qué articulos van en función de PageRank
+        * Opt: Poner todo, pero en muchos volúmenes
+
+
+3. Limpiar
+    - Borrar todas las páginas que no queremos
+    - Limpiar toda lo que sobra de cada página
+4. Ver las imágenes a meter
+5. Armar la estructura de datos
+6. Meter todo en un .iso
+
+Falta: servidor
+
+Uso directamente desde el CD
+----------------------------
+
+
+
+
+
+Instalación
+-----------
+
+
+
