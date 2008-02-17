@@ -2,6 +2,11 @@
 
 import sys, os, subprocess, re, urllib
 
+"""
+	Metricas a aplicar para determinar el valor de una pagina.
+	1.Cantidad de referencias. Ver como se pondera despues.
+	2.Tamanio de la pagina. Ver como se pondera despues.
+"""
 usage = """
 Usar: peishranc.py <nombre_archivo>
 
@@ -13,7 +18,7 @@ Usar: peishranc.py <nombre_archivo>
 """
 
 PASOSHOW = 1000
-CARAJO = open('/dev/null', 'w')
+CARAJO = open('c:/wikipediaOffLine/Error.txt', 'w')
 
 def getLineas(nomarch):
     p = subprocess.Popen(("7z l %s" % nomarch).split(), stdout=subprocess.PIPE)
@@ -45,33 +50,47 @@ class GetArchs(object):
 reenlac = re.compile("\.\.\/.*?\.html")
 #reenlac = re.compile("def .*:")
 
-def main(nomarch):
-    print "Analizando %r..." % nomarch
+def getReferencias(objLineas, nomarch, acum):
+    print "Analizando referencias %r..." % nomarch
     pasoant = 0
     total = 0
     garchs = GetArchs(nomarch)
-    acum = {}
-    for (tamanio, nombre) in getLineas(nomarch):
+    for (tamanio, nombre) in objLineas:
         # vamos mostrando de a tantos
         total += 1
         if total // PASOSHOW > pasoant:
             sys.stdout.write("\r%d...     " % total)
             sys.stdout.flush()
             pasoant = total // PASOSHOW
-        
         arch = garchs(tamanio)
-
         for enlace in reenlac.findall(arch):
-            enlace = urllib.unquote(enlace)
-            acum[enlace] = acum.get(enlace, 0) + 1
+            enlace = urllib.unquote(enlace).split('/')      #con el split y el [-1] de la linea de abajo, lo que hacemos es sacar la mugre de las referencias absolutas de una pagina.
+            acum[enlace[-1]] = acum.get(enlace[-1], 0) + 1
+        if total > 10000:
+            return
+    return
 
-                
-    print "\nMostrando los resultados para un total de %d archivos\n" % total
-    maslargo = max([len(x) for x in acum.keys()])
-    for nombre,cant in sorted(acum.items(), key=lambda x: x[1], reverse=True)[:30]:
-        print "  %s  %7d" % (nombre.ljust(maslargo), cant)
+def main(nomarch):
+    total = 0
+    lineas = getLineas(nomarch) #De aca se va a obtener nombre y tamanio del articulo
+    acum = {}
+    getReferencias(lineas, nomarch, acum)   #De aca se va a obtener nombre y cantidad de referencias.
+    dicFinal = {}
+    for (tamanio, nombre) in lineas:
+        dicFinal[nombre] = (acum.get(nombre,0),tamanio)
+    dicFinal = filter(lambda x:(x[1][0] > 1000), dicFinal.items())
+    #dicFinal = sorted(dicFinal, key=lambda x: x[1][1], reverse=True)
+    dicFinal.sort(key=lambda x: x[1][1], reverse=True)
+    i=0
+    while (total < 600*1024*1024) and i < len(dicFinal):
+        total += dicFinal[i][1][1]
+        print dicFinal[i]
+        i+=1
+        
 
-
+#def filterReferencias():
+#    return (x[1][0] > 5)
+   
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print usage
