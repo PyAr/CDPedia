@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # 1. Baja el archivo de Wikipedia
 # 2. Lo descomprime con el 7z
@@ -9,10 +10,12 @@ import os, re
 import sys, urllib, urllib2, time
 import config
 import subprocess
+import shutil
 
 def limpiaTodo(directorio):
     # deberia dar algo como... "(Usuario.*|Imagen.*|Discusi.*|MediaWiki.*|Plantilla.*)~.*"
-    target = "(%s)~.*" % "|".join([x+".*" for x in config.palabras])
+    # borro las categorías que *terminan* en x (esto es ad-hoc para las páginas de Discusión (ver lista de categorías) ~ Roberto
+    target = "(%s)~.*" % "|".join([".*"+x for x in config.palabras])
     print "  Borrando segun la siguiente regexp:", target
 
     reMacheo = re.compile (target)
@@ -24,7 +27,15 @@ def limpiaTodo(directorio):
             if reMacheo.match (filename) is not None:
                 f = os.path.join (dirpath,filename)
                 suma += os.stat(f).st_size
-                os.unlink (f)
+                #en vez de borrar los archivos, los traslado al directorio "borrados"
+                #os.unlink (f)
+                newfile = os.path.join ("borrados",dirpath,filename)
+                newpath = os.path.dirname(newfile)
+                if not os.path.exists(newpath):
+                    os.makedirs(newpath)
+                shutil.move(f, newfile)
+                            
+                            
                 borrados.write(f+"\n")
     print "  Borramos %.2f MB de archivos que no incluiremos, la lista está en '%s'" % (suma/1048576.0, config.logborrado)
     return
@@ -93,12 +104,6 @@ def main():
     # lo limpia todo
     limpiaTodo("./%s" % config.idioma)
 
-    # y lo recomprime
-    nomzip = "%s.zip"%config.idioma
-    retcode = subprocess.call("zip -r -9 %s %s"%(nomzip, config.idioma),shell=True)
-    if retcode < 0:
-        print "Hubo un problema al recomprimir, zip devolvió %r" % retcode
-        sys.exit(1)
     return
 
 if __name__ == "__main__":
