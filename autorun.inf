@@ -1,4 +1,4 @@
 [autorun]
-open=WikipediaOffLine.exe
-icon=WikipediaOffLine.ico
+open=CDPedia.exe
+icon=CDPedia.ico
 useautoplay=1
