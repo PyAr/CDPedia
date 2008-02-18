@@ -1,13 +1,13 @@
 import os
 import struct
-import pickle
+import cPickle as pickle
 from os import path
-from gzip import GzipFile as compressor
-#from bz2 import BZ2File as compressor
+#from gzip import GzipFile as compressor
+from bz2 import BZ2File as compressor
 
 ARTICLES_PER_BLOCK=1000
 #ARTICLES_PER_BLOCK=20
-PATH = "es"
+PATH = "es/u"
 
 """
 Formato del bloque:

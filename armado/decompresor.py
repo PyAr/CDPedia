@@ -1,11 +1,11 @@
 import os
 import struct
-import pickle
+import cPickle as pickle
 from os import path
-from gzip import GzipFile as compressor
-#from bz2 import BZ2File as compressor
+#from gzip import GzipFile as compressor
+from bz2 import BZ2File as compressor
 
-numBloques = 113
+numBloques = 9
 from compresor import ARTICLES_PER_BLOCK
 
 """
