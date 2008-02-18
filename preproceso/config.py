@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 idioma = "es"
+directorio = idioma + '/u'
+redirects_filename = 'redirects.txt'
+dir_recortado = "recortados"
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:

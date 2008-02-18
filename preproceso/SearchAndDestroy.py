@@ -22,7 +22,7 @@ def limpiaTodo(directorio):
     borrados = open(config.logborrado, "w")
     suma = 0
 
-    for dirpath, dirnames, filenames in os.walk ("."):
+    for dirpath, dirnames, filenames in os.walk (directorio):
         for filename in filenames:
             if reMacheo.match (filename) is not None:
                 f = os.path.join (dirpath,filename)
@@ -102,7 +102,7 @@ def main():
         sys.exit(1)
     
     # lo limpia todo
-    limpiaTodo("./%s" % config.idioma)
+    limpiaTodo("./%s" % config.directorio)
 
     return
 
