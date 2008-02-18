@@ -5,9 +5,9 @@ from os import path
 #from gzip import GzipFile as compressor
 from bz2 import BZ2File as compressor
 
-ARTICLES_PER_BLOCK=1000
+ARTICLES_PER_BLOCK=100
 #ARTICLES_PER_BLOCK=20
-PATH = "es/u"
+PATH = "es/q"
 
 """
 Formato del bloque:
@@ -42,13 +42,16 @@ def generar():
 		print "procesando bloque", bloqNum, "de", numBloques
 
 		# armo el header
-		header=[]
-		origin = 0
+                if bloqNum==3:
+                    header= {"a.html": "Quintana_y_Congosto_3e17.html"}
+                else:
+                    header= {}
+		seek = 0
 		for root, fileName in fileNames:
 			fullName = path.join(root, fileName)
 			size = path.getsize(fullName)
-			header.append( (fileName, origin, size) )
-			origin += size
+			header[fileName]= (seek, size)
+			seek += size
 		headerBytes = pickle.dumps(header)
 		
 		# abro el archivo a comprimir

@@ -4,8 +4,9 @@ import cPickle as pickle
 from os import path
 #from gzip import GzipFile as compressor
 from bz2 import BZ2File as compressor
+import types
 
-numBloques = 9
+numBloques = 17
 from compresor import ARTICLES_PER_BLOCK
 
 """
@@ -21,14 +22,24 @@ Articulos, uno detras del otro
 def getArticle(fileName):
 	bloqNum = hash(fileName)%numBloques
 	bloqName = "%08x"%bloqNum
+        print bloqName
 	f = compressor("salida/bloques/%s.cdp"%bloqName, "rb")
 	headerSize = struct.unpack("<l", f.read(4))[0]
 	headerBytes = f.read(headerSize)
-	header = pickle.loads(headerBytes)
-	for name, origin, size in header:
-		if name == fileName:
-			f.seek(4+headerSize+origin)
-			return f.read(size)
+        header = pickle.loads(headerBytes)
+        print 
+        data= header[fileName]
+        if type (data) in types.StringTypes:
+            fileName= data
+            data= getArticle (fileName)
+        else:
+            (seek, size)= data
+            f.seek(4+headerSize+seek)
+            data= f.read(size)
+        return data
 
 if __name__ == "__main__":
-	print getArticle("Queso_de_Vidiago_cbab.html")
+	print getArticle("Quintana_y_Congosto_3e17.html")
+	print getArticle("a.html")
+
+# end
