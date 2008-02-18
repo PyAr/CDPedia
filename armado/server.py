@@ -49,37 +49,52 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         """Serve a GET request."""
         tipo, data = self.getfile(self.path)
-        self.send_response(200)
-        #self.send_header("Content-type", tipo)
-        self.send_header("Content-Length", len(data))
-        self.end_headers()
-        self.wfile.write(data)
+        if data is not None:
+            self.send_response(200)
+            #self.send_header("Content-type", tipo)
+            self.send_header("Content-Length", len(data))
+            self.end_headers()
+            self.wfile.write(data)
+        else:
+            self.send_response (404)
+            self.end_headers ()
+            self.wfile.write ("URL not found: %s" % self.path)
         
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
+        print path
         if path == "/search":
             return self.search()
         if path == "/dosearch":
             return self.dosearch(query)
         if path[0] == "/":
             path = path[1:]
+        print path
+
         if path.split("/")[0] in ("images","raw","skins"):
-            return "", open("salida/assets/"+path).read()
+            return "image/%s"%path[-3:], open("salida/assets/"+path).read()
         if path=="":
             return self.search()
-            path = "index.html"
         path =  self.root + path
+        print path
+        
         match = re.match(".\/.\/.\/(.*)", path)
         if match is not None:
             path = match.group(1)
-            print path
+        print path
+
         try:
-            if path[-4:]=="html": print "!!!!", path
-            data = decompresor.getArticle(path)
+            if path[-4:]=="html": 
+                print "!!!!", path
+                data = decompresor.getArticle(path)
+            else:
+                # TODO: fire up the search "didn't you really mean <this>?"
+                return (None, None)
         except:
             print "ERROR: not found:", path
             data = wikipedia.read(self.root + "index.html")
+            
         return "text/html",data
 
     def search(self):
