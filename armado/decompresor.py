@@ -6,7 +6,7 @@ from os import path
 from bz2 import BZ2File as compressor
 import types
 
-numBloques = 17
+numBloques = 7
 from compresor import ARTICLES_PER_BLOCK
 
 """
