@@ -64,19 +64,13 @@ def getReferencias(path):
         for nombre in archs:
             if not nombre in acum.keys():
                 acum[nombre] = 0
-            acum[nombre] = (acum[nombre],getsize(join(dirpath, nombre)))
-#        print type(tam),"TAMANIOTAMANIOTAMANIO"            
-    #print acum
-#                f.write(str(enlace)+','+str(acum[enlace][0])+','+str(acum[enlace][1])+'\n')
-#                print enlace,'PPPPPPPPPPPPPP'
-#    f.write(str(acum.items()[0]) + ',' + str(acum.items()[1]) + '\n')
-#    print acum
+            acum[nombre] = [acum[nombre],getsize(join(dirpath, nombre))]
+
     for key,value in acum.iteritems():
-        info= "%s,%s" % (key,value)
+        info= "%s %d %d" % (key,value[0],value[1])
         f.write(info+"\n")
-#    f.write(str(acum.items())+'\n')
     f.close()
-    #esto habria que bajarlo a un archivo de texto, para que no sea necesario volver a procesar cuando se quieran aplicar estas metricas.
+
 
 def getTamanios(path):
     #Esta funcion devuelve HASTA AHORA (TODO hay que derivarlo a un archivo de texto) un diccionario con nombre de articulo y tamanio del mismo.
