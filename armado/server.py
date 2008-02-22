@@ -108,7 +108,7 @@ from StringIO import StringIO
 
 
 import cPickle, re
-import cdpindex
+#import cdpindex
 import decompresor
 
 
