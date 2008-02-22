@@ -240,5 +240,5 @@ def run(HandlerClass = WikiHTTPRequestHandler,
 
 
 if __name__ == '__main__':
-	#index = cdpindex.Index(indexfilename)
-	run()
+    #index = cdpindex.Index(indexfilename)
+    run()

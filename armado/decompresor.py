@@ -6,7 +6,7 @@ from os import path
 from bz2 import BZ2File as compressor
 import types
 
-directorio="salida/bloques"
+directorio="bloques"
 
 numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
 from compresor import ARTICLES_PER_BLOCK
