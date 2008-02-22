@@ -31,7 +31,7 @@ def omitir_namespaces(p_nombre, resultados, html, config, nombre_archivo, url_ar
 
     """
     if config.buscar_namespaces_omisibles(nombre_archivo):
-        print "Omitido (namespace filtrado)"
+        #print "Omitido (namespace filtrado)"
         open(config.salida_omitido, "a").write(url_archivo + "\n")
         return None #el archivo se omite
 
@@ -41,7 +41,7 @@ def omitir_redirects(p_nombre, resultados, html, config, url_archivo, **kwargs):
     #redirect:
     match = config.buscar_redirects(html)
     if match:
-        print "Redirect"
+        #print "Redirect"
         url_redirect = urljoin(url_archivo, unquote(match.groups()[0]))
         open(config.salida_redirects, "a").write("%s %s\n" % (url_archivo, url_redirect))
         return None # el archivo se omite
@@ -51,11 +51,12 @@ def omitir_redirects(p_nombre, resultados, html, config, url_archivo, **kwargs):
 def extraer_contenido(p_nombre, resultados, html, config, url_archivo, **kwargs):
     contenido = config.buscar_contenido(html)
     if contenido:
-        print "Articulo"
+        #print "Articulo"
         return "\n".join(contenido.groups())
 
-    #si estamos acá, algo salió mal. Que se sepa.
-    raise "Formato de articulo desconocido", url_archivo
+    #si no se encuentra contenido, es algun otro tipo de archivo (ej: imagenes).
+    #Hay que ignorarlo
+    return None
 
 def peishranc(p_nombre, p_inicial, resultados, html, config, url_archivo, **kwargs):
     """
@@ -64,7 +65,7 @@ def peishranc(p_nombre, p_inicial, resultados, html, config, url_archivo, **kwar
     """
     for enlace in config.buscar_enlaces(html):
         url_enlace = urljoin(url_archivo, unquote(enlace))
-        print "  *", url_enlace
+        #print "  *", url_enlace
         r_enlace = resultados.setdefault(url_enlace, {})
         r_enlace[p_nombre] = r_enlace.get(p_nombre, p_inicial) +1
         
@@ -76,7 +77,7 @@ def tamanio(p_nombre, resultados, html, url_archivo, **kwargs):
 
     """
     tamanio = len(html)
-    print "-- Tamaño útil: %d --\n" % tamanio
+    #print "-- Tamaño útil: %d --\n" % tamanio
     resultados[url_archivo][p_nombre] = tamanio
     
     return html

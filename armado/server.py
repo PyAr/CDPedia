@@ -14,7 +14,7 @@ header = """
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (Español)" />
         <link rel="copyright" href="../../../COPYING.html" />
-    <title>Universidad - Wikipedia, la enciclopedia libre</title>
+    <title>[TITLE_GOES_HERE] - Wikipedia, la enciclopedia libre</title>
     <style type="text/css">/*<![CDATA[*/ @import "../../../skins/htmldump/main.css"; /*]]>*/</style>
     <link rel="stylesheet" type="text/css" media="print" href="../../../skins/common/commonPrint.css" />
     <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
@@ -117,6 +117,16 @@ __version__ = "0.1.1.1.1.1"
 indexfilename = "indexes/wikiindex"
 
 reg = re.compile("\<title\>([^\<]*)\</title\>")
+reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
+
+def getTitleFromData(data):
+    if data is None:
+        return ""
+    match = reHeader1.search(data)
+    if match is not None:
+        return match.group(1)
+    return ""
+
 def gettitle(zf, name):
     data = open(name).read()
     title_list = reg.findall(data)
@@ -170,7 +180,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         path =  self.root + path
         print path
         
-        match = re.match(".\/.\/.\/(.*)", path)
+        match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
         if match is not None:
             path = match.group(1)
         print path
@@ -179,13 +189,16 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if path[-4:]=="html": 
                 print "!!!!", path
                 data = decompresor.getArticle(path)
-                data = header + data + footer
+                title = getTitleFromData(data)
+                data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
             else:
                 # TODO: fire up the search "didn't you really mean <this>?"
                 return (None, None)
         except:
             print "ERROR: not found:", path
-            data = wikipedia.read(self.root + "index.html")
+            data = decompresor.getArticle("index.html")
+            title = getTitleFromData(data)
+            data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
             
         return "text/html",data
 

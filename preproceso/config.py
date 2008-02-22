@@ -7,7 +7,7 @@ from re import compile, MULTILINE, DOTALL
 idioma = "es"
 
 dir_raiz = "es"
-dir_origen = "es/u"
+dir_origen = "es"
 dir_procesado = "procesado"
 
 salida_redirects = "redirects.txt"
