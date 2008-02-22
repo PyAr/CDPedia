@@ -2,20 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import preprocesadores as pr
-from re import compile, MULTILINE,DOTALL
+from re import compile, MULTILINE, DOTALL
 
 idioma = "es"
+
 dir_raiz = "es"
 dir_origen = "es/u"
 dir_procesado = "procesado"
+
 salida_redirects = "redirects.txt"
 salida_omitido = "omitido.txt"
 salida_preproceso = "procesado.txt"
+
 preprocesadores = [
     pr.omitir_namespaces,
     pr.omitir_redirects,
     pr.extraer_contenido,
-    pr.pagerank,
+    pr.peishranc,
     pr.tamanio
 ]
 namespaces_a_omitir = [
@@ -30,9 +33,9 @@ namespaces_a_omitir = [
 buscar_namespaces_omisibles = compile(r'(?:%s)[^~]*~' % '|'.join(namespaces_a_omitir)).match
 buscar_redirects = compile(r'<meta http-equiv="Refresh" content="\d;url=([^"]+)" />').search
 buscar_contenido = compile(r'(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->', MULTILINE|DOTALL).search
-
 buscar_enlaces = compile(r'<a\s+[^>]*?href="(\.\.\/[^"]+\.html)"').findall
 
+urlwikipedia = "http://download.wikimedia.org/static/"
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
@@ -86,4 +89,3 @@ buscar_enlaces = compile(r'<a\s+[^>]*?href="(\.\.\/[^"]+\.html)"').findall
 
 
 # Ojo que tiene que tener la barra al final
-urlwikipedia = "http://download.wikimedia.org/static/"

@@ -31,7 +31,14 @@ def main(config):
                 if html is None: break
 
             # Si el html es None, descartamos el archivo
-            if html is None: continue
+            if html is None:
+                try:
+                    del resultados[url_archivo]
+                except KeyError:
+                    pass
+                
+                print ' *** Omitido ***'
+                continue
             
             ruta_dir_destino = join(config.dir_procesado, cwd)
             ruta_archivo_nuevo = join(config.dir_procesado, ruta_archivo)
@@ -50,7 +57,8 @@ def main(config):
             columnas = " ".join(str(v) for v in valores.values())
             info = "%s %s\n" % (pagina, columnas)
             salida.write(info)
-
+    print
+    print '***** FIN *****'
     return resultados
 
 if __name__ == "__main__":

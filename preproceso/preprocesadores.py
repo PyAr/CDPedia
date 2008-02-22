@@ -39,7 +39,7 @@ def omitir_namespaces(resultados, html, config, nombre_archivo, url_archivo, **k
     """
     if config.buscar_namespaces_omisibles(nombre_archivo):
         print "Omitido (namespace filtrado)"
-        open(config.salida_omitido, "w").write(url_archivo + "\n")
+        open(config.salida_omitido, "a").write(url_archivo + "\n")
         return None #el archivo se omite
 
     return html
@@ -49,7 +49,7 @@ def omitir_redirects(resultados, html, config, url_archivo, **kwargs):
     match = config.buscar_redirects(html)
     if match:
         print "Redirect"
-        open(config.salida_redirects, 'w').write("%s %s\n" % (url_archivo, match.groups()[0]))
+        open(config.salida_redirects, "a").write("%s %s\n" % (url_archivo, match.groups()[0]))
         return None # el archivo se omite
 
     return html
@@ -63,7 +63,7 @@ def extraer_contenido(resultados, html, config, url_archivo, **kwargs):
     #si estamos acá, algo salió mal. Que se sepa.
     raise "Formato de articulo desconocido", url_archivo
 
-def pagerank(resultados, html, config, url_archivo, **kwargs):
+def peishranc(resultados, html, config, url_archivo, **kwargs):
     """
     califica las páginas según la cantidad veces que son referidas por otras páginas
 
@@ -72,7 +72,7 @@ def pagerank(resultados, html, config, url_archivo, **kwargs):
         url_enlace = urljoin(url_archivo, unquote(enlace))
         print "  *", url_enlace
         _iniciar_valor(resultados, url_enlace)
-        resultados[url_enlace]['pagerank'] = resultados[url_enlace].get('pagerank', 0) +1
+        resultados[url_enlace]['peishranc'] = resultados[url_enlace].get('peishranc', 0) +1
         
     return html
 
