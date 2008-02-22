@@ -24,15 +24,8 @@ referencia.
 from urllib2 import unquote
 from urlparse import urljoin
 
-# Utiles:
-def _iniciar_valor(resultados, pagina):
-    if not pagina in resultados:
-        resultados[pagina] = {}
-
-    return resultados[pagina]
-
 # Procesadores:
-def omitir_namespaces(resultados, html, config, nombre_archivo, url_archivo, **kwargs):
+def omitir_namespaces(p_nombre, resultados, html, config, nombre_archivo, url_archivo, **kwargs):
     """
     Se omiten las páginas pertenecientes a namespaces terminados de cierta manera.
 
@@ -44,7 +37,7 @@ def omitir_namespaces(resultados, html, config, nombre_archivo, url_archivo, **k
 
     return html
 
-def omitir_redirects(resultados, html, config, url_archivo, **kwargs):
+def omitir_redirects(p_nombre, resultados, html, config, url_archivo, **kwargs):
     #redirect:
     match = config.buscar_redirects(html)
     if match:
@@ -54,7 +47,7 @@ def omitir_redirects(resultados, html, config, url_archivo, **kwargs):
 
     return html
 
-def extraer_contenido(resultados, html, config, url_archivo, **kwargs):
+def extraer_contenido(p_nombre, resultados, html, config, url_archivo, **kwargs):
     contenido = config.buscar_contenido(html)
     if contenido:
         print "Articulo"
@@ -63,7 +56,7 @@ def extraer_contenido(resultados, html, config, url_archivo, **kwargs):
     #si estamos acá, algo salió mal. Que se sepa.
     raise "Formato de articulo desconocido", url_archivo
 
-def peishranc(resultados, html, config, url_archivo, **kwargs):
+def peishranc(p_nombre, p_inicial, resultados, html, config, url_archivo, **kwargs):
     """
     califica las páginas según la cantidad veces que son referidas por otras páginas
 
@@ -71,19 +64,18 @@ def peishranc(resultados, html, config, url_archivo, **kwargs):
     for enlace in config.buscar_enlaces(html):
         url_enlace = urljoin(url_archivo, unquote(enlace))
         print "  *", url_enlace
-        _iniciar_valor(resultados, url_enlace)
-        resultados[url_enlace]['peishranc'] = resultados[url_enlace].get('peishranc', 0) +1
+        r_enlace = resultados.setdefault(url_enlace, {})
+        r_enlace[p_nombre] = r_enlace.get(p_nombre, p_inicial) +1
         
     return html
 
-def tamanio(resultados, html, url_archivo, **kwargs):
+def tamanio(p_nombre, resultados, html, url_archivo, **kwargs):
     """
     califica las páginas según su tamaño
 
     """
     tamanio = len(html)
     print "-- Tamaño útil: %d --\n" % tamanio
-    _iniciar_valor(resultados, url_archivo)
-    resultados[url_archivo]['tamanio'] = tamanio
+    resultados[url_archivo][p_nombre] = tamanio
     
     return html

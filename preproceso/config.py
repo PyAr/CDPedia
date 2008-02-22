@@ -14,12 +14,16 @@ salida_redirects = "redirects.txt"
 salida_omitido = "omitido.txt"
 salida_preproceso = "procesado.txt"
 
+separador_columnas = '\t'
+separador_filas = '\n'
+
+# [(Función, Nombre, Valor inicial), ...]
 preprocesadores = [
-    pr.omitir_namespaces,
-    pr.omitir_redirects,
-    pr.extraer_contenido,
-    pr.peishranc,
-    pr.tamanio
+    (pr.omitir_namespaces, 'NS-', None),
+    (pr.omitir_redirects, 'Redirects-', None),
+    (pr.extraer_contenido, 'Contenido', None),
+    (pr.peishranc, 'PR', 0),
+    (pr.tamanio, 'Tamaño', 0),
 ]
 namespaces_a_omitir = [
     "Usuario",

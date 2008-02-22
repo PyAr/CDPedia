@@ -26,8 +26,13 @@ def main(config):
             print 'Procesando: %s' % url_archivo
             html = open(ruta_archivo, 'r').read()
 
-            for pp in config.preprocesadores:
-                html = pp(**vars()) #implícito es más corto que explícito...
+            # Creamos la entrada para la página actual
+            resultados.setdefault(url_archivo, {})
+            
+            for (procesador, p_nombre, p_inicial) in config.preprocesadores:
+                resultados[url_archivo].setdefault(p_nombre, p_inicial)
+                # Ad-hoc Zen: implícito es más corto que explícito...
+                html = procesador(**vars()) # sí, soy un asco
                 if html is None: break
 
             # Si el html es None, descartamos el archivo
@@ -51,11 +56,14 @@ def main(config):
     # Esto se procesa solo si queremos una salida en modo de texto (salida_ranking != None)
     # actualmente la cantidad de columnas puede variar, habría que considerar implementar csv
     if config.salida_preproceso:
+        sep_cols = config.separador_columnas
+        sep_filas = config.separador_filas
         salida = open(config.salida_preproceso, "w")
+        salida.write('Página' + sep_cols + sep_cols.join(p_nombre for (procesador, p_nombre, p_inicial) in config.preprocesadores) + sep_filas)
         for pagina, valores in resultados.iteritems():
             #los rankings deben ser convertidos en str para evitar literales como 123456L
-            columnas = " ".join(str(v) for v in valores.values())
-            info = "%s %s\n" % (pagina, columnas)
+            columnas = [str(valores.get(p_nombre, None)) for (procesador, p_nombre, p_inicial) in config.preprocesadores]
+            info = pagina + sep_cols + sep_cols.join(columnas) + sep_filas
             salida.write(info)
     print
     print '***** FIN *****'
