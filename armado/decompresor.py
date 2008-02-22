@@ -9,7 +9,7 @@ import types
 directorio="bloques"
 
 numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
-from compresor import ARTICLES_PER_BLOCK
+ARTICLES_PER_BLOCK=1000
 
 """
 Formato del bloque:

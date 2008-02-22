@@ -174,7 +174,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print path
 
         if path.split("/")[0] in ("images","raw","skins"):
-            return "image/%s"%path[-3:], open("salida/assets/"+path).read()
+            return "image/%s"%path[-3:], open("assets/"+path).read()
         if path=="":
             return self.search()
         path =  self.root + path
