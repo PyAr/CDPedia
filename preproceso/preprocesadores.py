@@ -42,7 +42,8 @@ def omitir_redirects(p_nombre, resultados, html, config, url_archivo, **kwargs):
     match = config.buscar_redirects(html)
     if match:
         print "Redirect"
-        open(config.salida_redirects, "a").write("%s %s\n" % (url_archivo, match.groups()[0]))
+        url_redirect = urljoin(url_archivo, unquote(match.groups()[0]))
+        open(config.salida_redirects, "a").write("%s %s\n" % (url_archivo, url_redirect))
         return None # el archivo se omite
 
     return html
