@@ -6,7 +6,9 @@ from os import path
 from bz2 import BZ2File as compressor
 import types
 
-numBloques = 345
+directorio="salida/bloques"
+
+numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
 from compresor import ARTICLES_PER_BLOCK
 
 """
@@ -22,7 +24,7 @@ Articulos, uno detras del otro
 def getArticle(fileName):
     bloqNum = hash(fileName)%numBloques
     bloqName = "%08x"%bloqNum
-    f = compressor("salida/bloques/%s.cdp"%bloqName, "rb")
+    f = compressor((directorio+"/%s.cdp")%bloqName, "rb")
     headerSize = struct.unpack("<l", f.read(4))[0]
     headerBytes = f.read(headerSize)
     header = pickle.loads(headerBytes)
