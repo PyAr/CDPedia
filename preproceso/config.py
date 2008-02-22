@@ -1,11 +1,38 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import preprocesadores as pr
+from re import compile, MULTILINE,DOTALL
+
 idioma = "es"
-directorio = idioma + '/u'
-redirects_filename = 'redirects.txt'
-dir_recortado = "recortados"
-ranking_filename = "preproceso/refList.txt"
+dir_raiz = "es"
+dir_origen = "es/u"
+dir_procesado = "procesado"
+salida_redirects = "redirects.txt"
+salida_omitido = "omitido.txt"
+salida_preproceso = "procesado.txt"
+preprocesadores = [
+    pr.omitir_namespaces,
+    pr.omitir_redirects,
+    pr.extraer_contenido,
+    pr.pagerank,
+    pr.tamanio
+]
+namespaces_a_omitir = [
+    "Usuario",
+    "Imagen",
+    "Discusión",
+    #"MediaWiki", # -- por ahora no va, porque entre estos items se encuentran los .css, algunas imagenes y .js
+    "Plantilla",
+]
+
+# deberia dar algo como "(?:Usuario.*|Imagen[^~]*|Discusi.*|MediaWiki.*|Plantilla.*)~"
+buscar_namespaces_omisibles = compile(r'(?:%s)[^~]*~' % '|'.join(namespaces_a_omitir)).match
+buscar_redirects = compile(r'<meta http-equiv="Refresh" content="\d;url=([^"]+)" />').search
+buscar_contenido = compile(r'(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->', MULTILINE|DOTALL).search
+
+buscar_enlaces = compile(r'<a\s+[^>]*?href="(\.\.\/[^"]+\.html)"').findall
+
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
@@ -56,15 +83,7 @@ ranking_filename = "preproceso/refList.txt"
 # Imagen : Historial de las imagenes, tipo de copyright, etc
 # Usuario : Contiene informacion de los usuarios, lo que les interesa, etc
 # Plantilla : Plantillas :), de ejemplo para hacer los articulos.
-palabras = (
-    "Usuario",
-    "Imagen",
-    "Discusión",
-    #"MediaWiki", # -- por ahora no va, porque entre estos items se encuentran los .css, algunas imagenes y .js
-    "Plantilla",
-)
 
-logborrado = "archivosBorrados.log"
 
 # Ojo que tiene que tener la barra al final
 urlwikipedia = "http://download.wikimedia.org/static/"
