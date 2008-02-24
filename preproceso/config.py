@@ -18,7 +18,7 @@ DIR_A_PROCESAR = "z"
 
 # Directorio destino de los archivos preprocesados.
 # Puede ser relativo o absoluto
-DIR_PREPROCESADO = "PROCESADO"
+DIR_PREPROCESADO = "PREPROCESADO"
 
 # USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
 # Si es falso (False), las urls tendrán el formato del 7z,
