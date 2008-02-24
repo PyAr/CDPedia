@@ -3,81 +3,176 @@
 
 """
 Funciones para generar los ránkings de las páginas.
-Todas reciben como primer argumento "resultados", un diccionario
-donde se guardará cada subtotal en una clave propia de la función
-que la creó.
-El segundo argumento es el html del archivo siendo procesado.
-El tercero, es el archivo de configuracion (config.py).
-Los restantes argumentos varían, salvo el último que es siempre
-**kwargs.
-
-La función debe devolver el conenido de la página (html). Si
-devuelve None, se asume que el archivo no debe ser incluído en
-la compilación.
+Todas reciben como argumento una WikiPagina.
 
 Más tarde otra funcion se encargará del algoritmo que produce el
 ordenamiento final de las páginas, tomando estos subtotales como
 referencia.
 
 """
-
+from re import compile, MULTILINE, DOTALL
 from urllib2 import unquote
 from urlparse import urljoin
 
 # Procesadores:
-def omitir_namespaces(p_nombre, resultados, html, config, nombre_archivo, url_archivo, **kwargs):
+class Procesador(object):
     """
-    Se omiten las páginas pertenecientes a namespaces terminados de cierta manera.
-
-    """
-    if config.buscar_namespaces_omisibles(nombre_archivo):
-        #print "Omitido (namespace filtrado)"
-        open(config.salida_omitido, "a").write(url_archivo + "\n")
-        return None #el archivo se omite
-
-    return html
-
-def omitir_redirects(p_nombre, resultados, html, config, url_archivo, **kwargs):
-    #redirect:
-    match = config.buscar_redirects(html)
-    if match:
-        #print "Redirect"
-        url_redirect = urljoin(url_archivo, unquote(match.groups()[0]))
-        open(config.salida_redirects, "a").write("%s %s\n" % (url_archivo, url_redirect))
-        return None # el archivo se omite
-
-    return html
-
-def extraer_contenido(p_nombre, resultados, html, config, url_archivo, **kwargs):
-    contenido = config.buscar_contenido(html)
-    if contenido:
-        #print "Articulo"
-        return "\n".join(contenido.groups())
-
-    #si no se encuentra contenido, es algun otro tipo de archivo (ej: imagenes).
-    #Hay que ignorarlo
-    return None
-
-def peishranc(p_nombre, p_inicial, resultados, html, config, url_archivo, **kwargs):
-    """
-    califica las páginas según la cantidad veces que son referidas por otras páginas
+    Procesador Genérico, no usar diréctamente
 
     """
-    for enlace in config.buscar_enlaces(html):
-        url_enlace = urljoin(url_archivo, unquote(enlace))
-        #print "  *", url_enlace
-        r_enlace = resultados.setdefault(url_enlace, {})
-        r_enlace[p_nombre] = r_enlace.get(p_nombre, p_inicial) +1
+    def __init__(self, wikisitio):
+        """
+        Instancia el procesador con los datos necesarios.
+
+        """
+        self.valor_inicial = ''
+        self.nombre = 'Procesador Genérico'
+        self.config = wikisitio.config
+        self.resultados = wikisitio.resultados
+        self.log = None # ej.: open("archivo.log", "w")
         
-    return html
+    def __call__(self, wikiarchivo):
+        """
+        Aplica el procesador a una instancia de WikiArchivo.
 
-def tamanio(p_nombre, resultados, html, url_archivo, **kwargs):
+        """
+        # Ejemplo:
+        self.resultados[wikiarchivo.url][self.nombre] = 123456
+
+
+class Namespaces(Procesador):
     """
-    califica las páginas según su tamaño
+    Se registra el namespace de la página al mismo tiempo que
+    se descartan las páginas de namespaces declarados inválidos.
 
     """
-    tamanio = len(html)
-    #print "-- Tamaño útil: %d --\n" % tamanio
-    resultados[url_archivo][p_nombre] = tamanio
+    def __init__(self, wikisitio):
+        super(Namespaces, self).__init__(wikisitio)
+        self.nombre = "Namespaces"
+        self.log = open(self.config.LOG_OMITIDO, "w")
+        # Deberia dar algo como ".*?(Usuario|Imagen|Discusión|Plantilla)[^~]*~"
+        self.regex = r'(%s)~' % '|'.join(self.config.NAMESPACES)
+        self.captura_namespace = compile(self.regex).search
+
+        
+    def __call__(self, wikiarchivo):
+        config = self.config
+        captura = self.captura_namespace(wikiarchivo.ruta)
+        if captura is None:
+            namespace = '' # Namespace Principal
+        else:
+            namespace = captura.groups()[0]
+
+        print 'Namespace:', namespace or '(Principal)', 
+        if namespace in config.NAMESPACES_INVALIDOS:
+            print '[ inválido ]'
+            self.log.write(wikiarchivo.url + config.SEPARADOR_FILAS)
+            wikiarchivo.omitir=True
+            return
+
+        print '[ valido ]'
+        self.resultados[wikiarchivo.url][self.nombre] = namespace
+
+
+class OmitirRedirects(Procesador):
+    """
+    Procesa y omite de la compilación a los redirects
+
+    """
+    def __init__(self, wikisitio):
+        super(OmitirRedirects, self).__init__(wikisitio)
+        self.nombre = "Redirects-"
+        self.log = open(self.config.LOG_REDIRECTS, "w")
+        if wikisitio.wikiurls:
+            self.regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
+        else:
+            self.regex = r'<meta http-equiv="Refresh" content="\d*;?url=([^">]+)"'
+
+        self.capturar = compile(self.regex).search
+
+    def __call__(self, wikiarchivo):
+        config = self.config
+        captura = self.capturar(wikiarchivo.html)
+        if captura:
+            url_redirect = urljoin(wikiarchivo.url, unquote(captura.groups()[0]))
+            print "Redirect ->", url_redirect
+            self.log.write(wikiarchivo.url + config.SEPARADOR_COLUMNAS + url_redirect + config.SEPARADOR_FILAS)
+            wikiarchivo.omitir=True
+
+
+class ExtraerContenido(Procesador):
+    """
+    Extrae el contenido principal del html de un artículo
+
+    """
+    def __init__(self, wikisitio):
+        super(ExtraerContenido, self).__init__(wikisitio)
+        self.nombre = "Contenido"
+        self.valor_inicial = 0
+        self.capturar = compile(r'(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->', MULTILINE|DOTALL).search
+        
+    def __call__(self, wikiarchivo):
+        # Sólo procesamos html
+        if wikiarchivo.url.endswith('.html'):
+            html = wikiarchivo.html
+            encontrado = self.capturar(html)
+            if encontrado:
+                print "Articulo -",
+                wikiarchivo.html = "\n".join(encontrado.groups())
+                tamanio = len(wikiarchivo.html)
+                self.resultados[wikiarchivo.url][self.nombre] = tamanio
+                print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
+                
+            else:
+                # Si estamos acá, el html tiene un formato diferente.
+                # Por el momento queremos que se sepa.
+                raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
+
+class Peishranc(Procesador):
+    """
+    Registra las veces que una página es referida por las demás páginas.
+    Ignora las auto-referencias y los duplicados
     
-    return html
+    """
+    def __init__(self, wikisitio):
+        super(Peishranc, self).__init__(wikisitio)
+        self.nombre = "Peishranc"
+        self.valor_inicial = 0
+        if wikisitio.wikiurls:
+            regex = r'<a\s+[^>]*?href="\.\.\/.*?([^/>"]+\.html)"'
+        else:
+            regex = r'<a\s+[^>]*?href="(\.\.\/[^">]+\.html)"'
+        self.capturar = compile(regex).findall
+
+    def __call__(self, wikiarchivo):
+        enlaces = self.capturar(wikiarchivo.html)
+        enlaces_vistos = set([wikiarchivo.url])
+        if enlaces:
+            print "Enlaces:"
+            for enlace in enlaces:
+                url_enlace = urljoin(wikiarchivo.url, unquote(enlace))
+                if not enlace in enlaces_vistos:
+                    enlaces_vistos.add(enlace)
+                    print "  *", url_enlace
+                    resultado = self.resultados.setdefault(url_enlace, {self.nombre: 0})
+                    resultado[self.nombre] += 1
+
+
+class Longitud(Procesador):
+    """
+    Califica las páginas según la longitud del contenido (html).
+    Actualmente es innecesario si se usa ExtraerContenido, pero es
+    hipotéticamente útil si otros (futuros) procesadores alteraran
+    el html de forma significativa.
+    
+    """
+    def __init__(self, wikisitio):
+        super(Longitud, self).__init__(wikisitio)
+        self.nombre = "Longitud"
+        self.valor_inicial = 0
+        
+    def __call__(self, wikiarchivo):
+        largo = len(wikiarchivo.html)
+        print "-- Tamaño útil: %d --\n" % largo
+        self.resultados[wikiarchivo.url][self.nombre] = largo
+        

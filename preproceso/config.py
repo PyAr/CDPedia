@@ -1,45 +1,107 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import preprocesadores as pr
-from re import compile, MULTILINE, DOTALL
+import preprocesadores as pp
 
-idioma = "es"
+# Ubicación de los archivos estáticos online
+# Debe tener la barra al final
+URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
+IDIOMA = "es"
 
-dir_raiz = "es"
-dir_origen = "es"
-dir_procesado = "procesado"
+# Directorio donde está la raíz del idioma que vamos a procesar.
+# Puede ser absoluto o relativo (típicamente relativo a generar.sh)
+DIR_RAIZ = IDIOMA
 
-salida_redirects = "redirects.txt"
-salida_omitido = "omitido.txt"
-salida_preproceso = "procesado.txt"
+# Subdirectorio del raíz que queremos procesar.
+# '' (string vacía) procesa todo el contenido
+DIR_A_PROCESAR = "z"
 
-separador_columnas = '\t'
-separador_filas = '\n'
+# Directorio destino de los archivos preprocesados.
+# Puede ser relativo o absoluto
+DIR_PREPROCESADO = "PROCESADO"
 
-# [(Función, Nombre, Valor inicial), ...]
-preprocesadores = [
-    (pr.omitir_namespaces, 'NS-', None),
-    (pr.omitir_redirects, 'Redirects-', None),
-    (pr.extraer_contenido, 'Contenido', None),
-    (pr.peishranc, 'PR', 0),
-    (pr.tamanio, 'Tamaño', 0),
+# USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
+# Si es falso (False), las urls tendrán el formato del 7z,
+# por ej.: /z/o/o/Zoo_TV_Tour_9bdd.html
+# Si es verdadero, no se incluirán los directorios, pero (por ahora)
+# sí el sufijo .html y demás metadata, por ej.: Zoo_TV_Tour_9bdd.html
+USAR_WIKIURLS = True
+
+# Logs varios:
+LOG_REDIRECTS = "redirects.txt"
+LOG_OMITIDO = "omitido.txt"
+LOG_PREPROCESADO = "preprocesado.txt"
+
+# Formato general de los logs:
+SEPARADOR_COLUMNAS = '\t'
+SEPARADOR_FILAS = '\n'
+
+# Clases que serán utilizadas para el preprocesamiento
+# de cada una de las páginas, en orden de ejecución.
+PREPROCESADORES = [
+    pp.Namespaces,
+    pp.OmitirRedirects,
+    pp.ExtraerContenido,
+    pp.Peishranc,
+    #pp.Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
 ]
-namespaces_a_omitir = [
-    "Usuario",
-    "Imagen",
-    "Discusión",
-    #"MediaWiki", # -- por ahora no va, porque entre estos items se encuentran los .css, algunas imagenes y .js
-    "Plantilla",
+
+# "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
+# Por una cuestión de practicidad conviene comentar las lineas de los namespaces
+# que SÍ queremos que entren.
+# Lo que está ahora es súmamente arbitrario, no tengo idea de qué es lo mejor
+# Referencia rápida: http://es.wikipedia.org/wiki/Especial:Prefixindex
+NAMESPACES_INVALIDOS = [
+    # 'Media',
+    'Especial',
+    'Discusión',
+    'Usuario',
+    'Usuario_Discusión',
+    #'Wikipedia',
+    'Wikipedia_Discusión',
+    'Imagen',
+    'Imagen_Discusión',
+    'MediaWiki',
+    'MediaWiki_Discusión',
+    'Plantilla',
+    'Plantilla_Discusión',
+    #'Ayuda',
+    'Ayuda_Discusión',
+    #'Categoría',
+    'Categoría_Discusión',
+    #'Portal',
+    'Portal_Discusión',
+    #'Wikiproyecto',
+    'Wikiproyecto_Discusión',
+    #'Anexo',
+    'Anexo_Discusión',
 ]
 
-# deberia dar algo como "(?:Usuario.*|Imagen[^~]*|Discusi.*|MediaWiki.*|Plantilla.*)~"
-buscar_namespaces_omisibles = compile(r'(?:%s)[^~]*~' % '|'.join(namespaces_a_omitir)).match
-buscar_redirects = compile(r'<meta http-equiv="Refresh" content="\d;url=([^"]+)" />').search
-buscar_contenido = compile(r'(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->', MULTILINE|DOTALL).search
-buscar_enlaces = compile(r'<a\s+[^>]*?href="(\.\.\/[^"]+\.html)"').findall
-
-urlwikipedia = "http://download.wikimedia.org/static/"
+NAMESPACES = [
+    'Media',
+    'Especial',
+    'Discusión',
+    'Usuario',
+    'Usuario_Discusión',
+    'Wikipedia',
+    'Wikipedia_Discusión',
+    'Imagen',
+    'Imagen_Discusión',
+    'MediaWiki',
+    'MediaWiki_Discusión',
+    'Plantilla',
+    'Plantilla_Discusión',
+    'Ayuda',
+    'Ayuda_Discusión',
+    'Categoría',
+    'Categoría_Discusión',
+    'Portal',
+    'Portal_Discusión',
+    'Wikiproyecto',
+    'Wikiproyecto_Discusión',
+    'Anexo',
+    'Anexo_Discusión',
+]
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
@@ -83,13 +145,3 @@ urlwikipedia = "http://download.wikimedia.org/static/"
 #   Wikiproyecto                                       97   0 %    1 MB   0 %
 #   Plantilla_Discusión                               170   0 %    1 MB   0 %
 #   Wikiproyecto_Discusión                             49   0 %    1 MB   0 %
-#
-# MediaWiki - Por lo que se ve son mensajes de administracion interna de MediaWiki (errores
-#   de que falta un comando, de que se marco como revisado un articulo, etc).
-# Discusi.* : Discusion del articulo y usuarios
-# Imagen : Historial de las imagenes, tipo de copyright, etc
-# Usuario : Contiene informacion de los usuarios, lo que les interesa, etc
-# Plantilla : Plantillas :), de ejemplo para hacer los articulos.
-
-
-# Ojo que tiene que tener la barra al final
