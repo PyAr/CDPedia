@@ -14,7 +14,7 @@ DIR_RAIZ = IDIOMA
 
 # Subdirectorio del raíz que queremos procesar.
 # '' (string vacía) procesa todo el contenido
-DIR_A_PROCESAR = "z"
+DIR_A_PROCESAR = "z/u"
 
 # Directorio destino de los archivos preprocesados.
 # Puede ser relativo o absoluto

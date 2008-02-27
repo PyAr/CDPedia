@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, re
+import codecs
 from os.path import join, abspath, sep, dirname
 from urllib2 import urlparse
 """
@@ -51,9 +52,9 @@ class WikiSitio:
     def __init__(self, config=None):
         if not config: import config
         self.config = config
-        self.ruta = abspath(config.DIR_RAIZ)
-        self.origen = abspath(config.DIR_RAIZ + sep + config.DIR_A_PROCESAR)
-        self.destino = abspath(config.DIR_PREPROCESADO)
+        self.ruta = unicode(abspath(config.DIR_RAIZ))
+        self.origen = unicode(abspath(config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
+        self.destino = unicode(abspath(config.DIR_PREPROCESADO))
         self.wikiurls = config.USAR_WIKIURLS
         self.resultados = {}
         self.preprocesadores = [ proc(self) for proc in config.PREPROCESADORES ]
@@ -67,12 +68,13 @@ class WikiSitio:
         
         for cwd, directorios, archivos in os.walk(self.origen):
             for nombre_archivo in archivos:
+                print nombre_archivo.encode("latin1", "replace")
                 wikiarchivo = self.Archivo(join(cwd, nombre_archivo))
                 url = wikiarchivo.url
                 ruta = wikiarchivo.ruta
                 resultados.setdefault(url, {})
                 
-                print 'Procesando: %s' % ruta
+                print 'Procesando: %s' % ruta.encode("latin1", "replace"), repr(url)
                 for procesador in self.preprocesadores:
                     resultados[url].setdefault(procesador.nombre, procesador.valor_inicial)
                     procesador(wikiarchivo)
@@ -98,13 +100,14 @@ class WikiSitio:
         config = self.config
         if config.LOG_PREPROCESADO:
             log = abspath(config.LOG_PREPROCESADO)
-            sep_cols = config.SEPARADOR_COLUMNAS
-            sep_filas = config.SEPARADOR_FILAS
-            salida = open(log, "w")
+            sep_cols = unicode(config.SEPARADOR_COLUMNAS)
+            sep_filas = unicode(config.SEPARADOR_FILAS)
+            salida = codecs.open(log, "w", "utf-8")
 
             # Encabezado:
-            columnas = ['Página'] + [procesador.nombre for procesador in self.preprocesadores]
-            plantilla = sep_cols.join(['%s'] * len(columnas)) + sep_filas
+            columnas = [u'Página'] + [procesador.nombre for procesador in self.preprocesadores]
+            plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
+            print columnas
             salida.write(plantilla % tuple(columnas))
 
             # Contenido:
@@ -116,7 +119,10 @@ class WikiSitio:
             print 'Registro guardado en %s' % log
 
 
-if __name__ == "__main__":
+def run():
     wikisitio = WikiSitio()
     wikisitio.procesar()
     wikisitio.guardar()
+
+if __name__ == "__main__":
+    run()

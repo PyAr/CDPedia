@@ -13,6 +13,7 @@ referencia.
 from re import compile, MULTILINE, DOTALL
 from urllib2 import unquote
 from urlparse import urljoin
+import codecs
 
 # Procesadores:
 class Procesador(object):
@@ -49,7 +50,7 @@ class Namespaces(Procesador):
     def __init__(self, wikisitio):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
-        self.log = open(self.config.LOG_OMITIDO, "w")
+        self.log = codecs.open(self.config.LOG_OMITIDO, "w", "utf-8")
         # Deberia dar algo como ".*?(Usuario|Imagen|Discusión|Plantilla)[^~]*~"
         self.regex = r'(%s)~' % '|'.join(self.config.NAMESPACES)
         self.captura_namespace = compile(self.regex).search
@@ -82,7 +83,7 @@ class OmitirRedirects(Procesador):
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects-"
-        self.log = open(self.config.LOG_REDIRECTS, "w")
+        self.log = codecs.open(self.config.LOG_REDIRECTS, "w", "utf-8")
         if wikisitio.wikiurls:
             self.regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
         else:
@@ -94,9 +95,10 @@ class OmitirRedirects(Procesador):
         config = self.config
         captura = self.capturar(wikiarchivo.html)
         if captura:
-            url_redirect = urljoin(wikiarchivo.url, unquote(captura.groups()[0]))
-            print "Redirect ->", url_redirect
-            self.log.write(wikiarchivo.url + config.SEPARADOR_COLUMNAS + url_redirect + config.SEPARADOR_FILAS)
+            url_redirect = urljoin(wikiarchivo.url, unquote(captura.groups()[0])).decode("utf-8")
+            print "Redirect ->", url_redirect.encode("latin1","replace")
+            linea = wikiarchivo.url + config.SEPARADOR_COLUMNAS + url_redirect + config.SEPARADOR_FILAS
+            self.log.write(linea)
             wikiarchivo.omitir=True
 
 
@@ -150,10 +152,10 @@ class Peishranc(Procesador):
         if enlaces:
             print "Enlaces:"
             for enlace in enlaces:
-                url_enlace = urljoin(wikiarchivo.url, unquote(enlace))
+                url_enlace = urljoin(wikiarchivo.url, unquote(enlace)).decode("utf-8")
                 if not enlace in enlaces_vistos:
                     enlaces_vistos.add(enlace)
-                    print "  *", url_enlace
+                    print "  *", repr(url_enlace)
                     resultado = self.resultados.setdefault(url_enlace, {self.nombre: 0})
                     resultado[self.nombre] += 1
 
