@@ -6,7 +6,7 @@ from os import path
 from bz2 import BZ2File as compressor
 
 from decompresor import ARTICLES_PER_BLOCK
-PATH = "procesado/es"
+dirbase = u"PREPROCESADO"
 
 """
 Formato del bloque:
@@ -24,7 +24,7 @@ def recortar(seudopath):
 def generar():
     # recorrer todos los nombres de articulos, y ordenarlos en un dict por su numero de bloque, segun el hash
     fileNames = []
-    for root, dirs, files in os.walk(PATH):
+    for root, dirs, files in os.walk(dirbase):
         for fileName in files:
             fileNames.append( (root, fileName) )
             if len(fileNames)%10000 == 0:

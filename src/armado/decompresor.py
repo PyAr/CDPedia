@@ -8,7 +8,6 @@ import types
 
 directorio="bloques"
 
-numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
 ARTICLES_PER_BLOCK=1000
 
 """
@@ -20,8 +19,12 @@ Header: pickle de una lista de tuplas (nombre_articulo, origen, tamanio)
 
 Articulos, uno detras del otro
 """
+numBloques = None
 
 def getArticle(fileName):
+    global numBloques
+    if numBloques is None:
+        numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
     bloqNum = hash(fileName)%numBloques
     bloqName = "%08x"%bloqNum
     f = compressor((directorio+"/%s.cdp")%bloqName, "rb")
