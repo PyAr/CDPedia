@@ -5,9 +5,9 @@ from os import path
 import shutil
 
 # trabajar desde el directorio de la cdpedia
-basedir = path.dirname(sys.argv[0])
+basedir = path.abspath(path.dirname(sys.argv[0]))
 os.chdir(basedir)
-# agregar al path
+# agregar modulos al path de python
 sys.path.extend( path.join(basedir, n) for n in "src/armado src/preproceso".split() )
 import config
 
@@ -41,12 +41,21 @@ def generarBloques(dest):
     import compresor
     compresor.generar()
 
+def armarEjecutable():
+    pass
+
+def armarIso(dest):
+    pass
+
 copiarAssets("salida/assets")
 copiarSources("salida/source")
+if sys.platform == "win32":
+    armarEjecutable()
 
 preprocesar()
-#borrarBloques("salida/bloques")
+borrarBloques("salida/bloques")
 generarBloques("salida/bloques")
+armarIso("cdpedia.iso")
 
 print "presione enter"
 a=raw_input()
