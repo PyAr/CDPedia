@@ -187,8 +187,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         try:
             if path[-4:]=="html": 
-                print "!!!!", path
-                data = decompresor.getArticle(path)
+                print "!!!!", repr(path)
+                data = decompresor.getArticle(path.decode("utf-8"))
                 title = getTitleFromData(data)
                 data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
             else:

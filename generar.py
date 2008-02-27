@@ -48,8 +48,7 @@ def armarEjecutable():
     pass
 
 def armarIso(dest):
-    "mkisofs -o " + dest + " -R -J " + config.DIR_CDBASE
-    pass
+    os.system("mkisofs -o " + dest + " -R -J " + config.DIR_CDBASE)
 
 copiarAssets( config.DIR_CDBASE + "/" + config.DIR_ASSETS)
 copiarSources( config.DIR_CDBASE + "/src")
