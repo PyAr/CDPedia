@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import struct
 import cPickle as pickle
@@ -31,7 +32,7 @@ def generar():
                 print "encontrados %d articulos" % len(fileNames)
 
     print "procesando", len(fileNames), "articulos"
-    numBloques= len(fileNames) / ARTICLES_PER_BLOCK
+    numBloques= max(len(fileNames) // ARTICLES_PER_BLOCK, 1)
     bloques = {}
     for root, fileName in fileNames:
         bloqNum = hash(fileName)%numBloques
