@@ -16,9 +16,18 @@ DIR_RAIZ = IDIOMA
 # '' (string vacía) procesa todo el contenido
 DIR_A_PROCESAR = "z/u"
 
+# Directorio de archivos temporales
+DIR_TEMP = "temp"
+
 # Directorio destino de los archivos preprocesados.
 # Puede ser relativo o absoluto
-DIR_PREPROCESADO = "PREPROCESADO"
+DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
+
+# Directorio raiz de los archivos que van al CD
+DIR_CDBASE = "cdroot"
+
+# Directorio de los archivos est�ticos: imagenes, hojas de estilo, etc
+DIR_ASSETS = "assets"
 
 # USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
 # Si es falso (False), las urls tendrán el formato del 7z,
@@ -28,9 +37,9 @@ DIR_PREPROCESADO = "PREPROCESADO"
 USAR_WIKIURLS = True
 
 # Logs varios:
-LOG_REDIRECTS = "redirects.txt"
-LOG_OMITIDO = "omitido.txt"
-LOG_PREPROCESADO = "preprocesado.txt"
+LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
+LOG_OMITIDO = DIR_TEMP + "/omitido.txt"
+LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '\t'
@@ -53,54 +62,54 @@ PREPROCESADORES = [
 # Referencia rápida: http://es.wikipedia.org/wiki/Especial:Prefixindex
 NAMESPACES_INVALIDOS = [
     # 'Media',
-    'Especial',
-    'Discusión',
-    'Usuario',
-    'Usuario_Discusión',
+    u'Especial',
+    u'Discusión',
+    u'Usuario',
+    u'Usuario_Discusión',
     #'Wikipedia',
-    'Wikipedia_Discusión',
-    'Imagen',
-    'Imagen_Discusión',
-    'MediaWiki',
-    'MediaWiki_Discusión',
-    'Plantilla',
-    'Plantilla_Discusión',
+    u'Wikipedia_Discusión',
+    u'Imagen',
+    u'Imagen_Discusión',
+    u'MediaWiki',
+    u'MediaWiki_Discusión',
+    u'Plantilla',
+    u'Plantilla_Discusión',
     #'Ayuda',
-    'Ayuda_Discusión',
+    u'Ayuda_Discusión',
     #'Categoría',
-    'Categoría_Discusión',
+    u'Categoría_Discusión',
     #'Portal',
-    'Portal_Discusión',
+    u'Portal_Discusión',
     #'Wikiproyecto',
-    'Wikiproyecto_Discusión',
+    u'Wikiproyecto_Discusión',
     #'Anexo',
-    'Anexo_Discusión',
+    u'Anexo_Discusión',
 ]
 
 NAMESPACES = [
-    'Media',
-    'Especial',
-    'Discusión',
-    'Usuario',
-    'Usuario_Discusión',
-    'Wikipedia',
-    'Wikipedia_Discusión',
-    'Imagen',
-    'Imagen_Discusión',
-    'MediaWiki',
-    'MediaWiki_Discusión',
-    'Plantilla',
-    'Plantilla_Discusión',
-    'Ayuda',
-    'Ayuda_Discusión',
-    'Categoría',
-    'Categoría_Discusión',
-    'Portal',
-    'Portal_Discusión',
-    'Wikiproyecto',
-    'Wikiproyecto_Discusión',
-    'Anexo',
-    'Anexo_Discusión',
+    u'Media',
+    u'Especial',
+    u'Discusión',
+    u'Usuario',
+    u'Usuario_Discusión',
+    u'Wikipedia',
+    u'Wikipedia_Discusión',
+    u'Imagen',
+    u'Imagen_Discusión',
+    u'MediaWiki',
+    u'MediaWiki_Discusión',
+    u'Plantilla',
+    u'Plantilla_Discusión',
+    u'Ayuda',
+    u'Ayuda_Discusión',
+    u'Categoría',
+    u'Categoría_Discusión',
+    u'Portal',
+    u'Portal_Discusión',
+    u'Wikiproyecto',
+    u'Wikiproyecto_Discusión',
+    u'Anexo',
+    u'Anexo_Discusión',
 ]
 
 # Dump de Septiembre 2007

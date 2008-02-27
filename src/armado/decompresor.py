@@ -2,12 +2,11 @@ import os
 import struct
 import cPickle as pickle
 from os import path
-#from gzip import GzipFile as compressor
-from bz2 import BZ2File as compressor
+#from gzip import GzipFile as CompressedFile
+from bz2 import BZ2File as CompressedFile
 import types
 
-directorio="bloques"
-
+DIR_BLOQUES="bloques"
 ARTICLES_PER_BLOCK=1000
 
 """
@@ -24,10 +23,10 @@ numBloques = None
 def getArticle(fileName):
     global numBloques
     if numBloques is None:
-        numBloques = len([n for n in os.listdir(directorio) if n[-4:]==".cdp"])
+        numBloques = len([n for n in os.listdir(DIR_BLOQUES) if n[-4:]==".cdp"])
     bloqNum = hash(fileName)%numBloques
     bloqName = "%08x"%bloqNum
-    f = compressor((directorio+"/%s.cdp")%bloqName, "rb")
+    f = CompressedFile((DIR_BLOQUES+"/%s.cdp")%bloqName, "rb")
     headerSize = struct.unpack("<l", f.read(4))[0]
     headerBytes = f.read(headerSize)
     header = pickle.loads(headerBytes)
@@ -42,7 +41,7 @@ def getArticle(fileName):
     return data
 
 if __name__ == "__main__":
-    print getArticle("Unix-like.html")
-    print getArticle("Python.html")
+    print repr(getArticle(u"Zumaia.html".encode("utf-8")))
+    print repr(getArticle(u'Discusi\xf3n~Zurdo_ce85.html'.encode("utf-8")))
 
 # end

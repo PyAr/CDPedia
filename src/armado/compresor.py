@@ -1,19 +1,17 @@
 from __future__ import division
 import os
+import codecs
 import struct
 import cPickle as pickle
 from os import path
-#from gzip import GzipFile as compressor
-from bz2 import BZ2File as compressor
-
-from decompresor import ARTICLES_PER_BLOCK
-dirbase = u"PREPROCESADO"
+from decompresor import ARTICLES_PER_BLOCK, CompressedFile, DIR_BLOQUES
+from config import DIR_PREPROCESADO, DIR_CDBASE, LOG_REDIRECTS, LOG_OMITIDO
 
 """
 Formato del bloque:
 
 4 bytes: Longitud del header
-Header: pickle de una lista de tuplas (nombre_articulo, origen, tamanio)
+Header: pickle de un diccionario de tuplas {nombre_articulo: (origen, tamanio)}
     (el origen es 0 despues del header)
 
 Articulos, uno detras del otro
@@ -25,7 +23,7 @@ def recortar(seudopath):
 def generar():
     # recorrer todos los nombres de articulos, y ordenarlos en un dict por su numero de bloque, segun el hash
     fileNames = []
-    for root, dirs, files in os.walk(dirbase):
+    for root, dirs, files in os.walk(unicode(DIR_PREPROCESADO)):
         for fileName in files:
             fileNames.append( (root, fileName) )
             if len(fileNames)%10000 == 0:
@@ -42,7 +40,7 @@ def generar():
     
     # armo el diccionario de redirects
     redirects = dict( (n,{}) for n in range(numBloques) )
-    for linea in open("redirects.txt"):
+    for linea in codecs.open(LOG_REDIRECTS, "r", "utf-8"):
         desde, hasta = linea.split()
         desde = recortar(desde)
         hasta = recortar(hasta)
@@ -58,14 +56,14 @@ def generar():
         for root, fileName in fileNames:
             fullName = path.join(root, fileName)
             size = path.getsize(fullName)
-            header[fileName]= (seek, size)
+            header[fileName.encode("utf-8")]= (seek, size)
             seek += size
         headerBytes = pickle.dumps(header)
         
         print "procesando bloque", bloqNum, "de", numBloques, "(header size=%d)"%len(headerBytes)
         # abro el archivo a comprimir
         bloqName = "%08x"%bloqNum
-        f = compressor("salida/bloques/%s.cdp"%bloqName, "wb")
+        f = CompressedFile( DIR_CDBASE + "/" + DIR_BLOQUES + "/" + "%s.cdp"%bloqName, "wb")
 
         # grabo la longitud del header, y el header
         f.write( struct.pack("<l", len(headerBytes) ) )
@@ -74,7 +72,7 @@ def generar():
         # grabo cada uno de los articulos
         for root, fileName in fileNames:
             fullName = path.join(root, fileName)
-            f.write(open( fullName ).read())
+            f.write(open( fullName, "rb" ).read())
 
         f.close()
 

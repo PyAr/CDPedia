@@ -8,8 +8,9 @@ import shutil
 basedir = path.abspath(path.dirname(sys.argv[0]))
 os.chdir(basedir)
 # agregar modulos al path de python
-sys.path.extend( path.join(basedir, n) for n in "src/armado src/preproceso".split() )
+sys.path.extend( path.join(basedir, n) for n in ". src/armado src/preproceso".split() )
 import config
+from decompresor import DIR_BLOQUES
 
 
 def copiarAssets(dest):
@@ -27,6 +28,8 @@ def copiarSources(dest):
         shutil.copy(f, dest)
 
 def preprocesar():
+    if not path.exists(config.DIR_TEMP):
+        os.makedirs(config.DIR_TEMP)
     import preprocesar
     preprocesar.run()
 
@@ -45,16 +48,17 @@ def armarEjecutable():
     pass
 
 def armarIso(dest):
+    "mkisofs -o " + dest + " -R -J " + config.DIR_CDBASE
     pass
 
-copiarAssets("salida/assets")
-copiarSources("salida/source")
+copiarAssets( config.DIR_CDBASE + "/" + config.DIR_ASSETS)
+copiarSources( config.DIR_CDBASE + "/src")
 if sys.platform == "win32":
     armarEjecutable()
 
 preprocesar()
-borrarBloques("salida/bloques")
-generarBloques("salida/bloques")
+borrarBloques( config.DIR_CDBASE + "/" + DIR_BLOQUES)
+generarBloques( config.DIR_CDBASE + "/" + DIR_BLOQUES)
 armarIso("cdpedia.iso")
 
 print "presione enter"
