@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import preprocesadores as pp
@@ -26,7 +25,7 @@ DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "cdroot"
 
-# Directorio de los archivos est�ticos: imagenes, hojas de estilo, etc
+# Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
 DIR_ASSETS = "assets"
 
 # USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
@@ -57,8 +56,8 @@ PREPROCESADORES = [
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces
-# que SÍ queremos que entren.
-# Lo que está ahora es súmamente arbitrario, no tengo idea de qué es lo mejor
+# que sí queremos que entren.
+# Lo que está ahora es sumamente arbitrario, no tengo idea de qué es lo mejor
 # Referencia rápida: http://es.wikipedia.org/wiki/Especial:Prefixindex
 NAMESPACES_INVALIDOS = [
     # 'Media',
@@ -114,8 +113,8 @@ NAMESPACES = [
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
-# 
-#   Raiz                                                   Cant      Cant%  Tamaño   Tamaño%
+#
+#   Raiz                                                   Cant      Cant%  TamaÃ±o   TamaÃ±o%
 #   None                                                  459793     60.61%  4730 MB    54.02%
 #   Usuario_Discusión                                     125147     16.50%  1736 MB    19.83%
 #   Usuario                                                35891      4.73%  701 MB     8.01%
@@ -137,7 +136,7 @@ NAMESPACES = [
 #
 # Dump de Noviembre 2006
 # Mostrando los resultados para un total de 171007 archivos que ocupan 1559.29 MB:
-# 
+#
 #   Raiz                                             Cant Cant%  Tamaño Tamaño%
 #   Imagen                                          24832  15 %  200 MB  13 %
 #   Usuario_Discusión                                9107   5 %  107 MB   7 %

@@ -16,7 +16,7 @@ será (o no) incluída en la compilación.
 class WikiArchivo:
     def __init__(self, wikisitio, ruta):
         self.ruta = ruta = abspath(ruta)
-        
+
         if not ruta.startswith(wikisitio.ruta):
             raise AttributeError, "%s no pertenece al sitio en %s" % (ruta, wikisitio.ruta)
 
@@ -33,7 +33,7 @@ class WikiArchivo:
         self.omitir = False
         self.html = open(ruta).read()
         #raise 'ruta: %s, url: %s' % (self.ruta, self.url)
-    
+
     def resethtml(self):
         self.html = open(self.ruta).read()
         return self.html
@@ -42,10 +42,10 @@ class WikiArchivo:
         destino = self.destino
         if self.ruta == destino:
             raise ValueError, "Intento de guardar el archivo en si mismo"
-        
+
         try: os.makedirs(dirname(destino))
         except os.error: pass
-        
+
         open(destino, 'w').write(self.html)
 
 class WikiSitio:
@@ -61,37 +61,37 @@ class WikiSitio:
 
     def Archivo(self, ruta):
         return WikiArchivo(self, ruta)
-    
+
     def procesar(self):
         config = self.config
         resultados = self.resultados
-        
+
         for cwd, directorios, archivos in os.walk(self.origen):
             for nombre_archivo in archivos:
-                print nombre_archivo.encode("latin1", "replace")
+                print repr(nombre_archivo)
                 wikiarchivo = self.Archivo(join(cwd, nombre_archivo))
                 url = wikiarchivo.url
                 ruta = wikiarchivo.ruta
                 resultados.setdefault(url, {})
-                
-                print 'Procesando: %s' % ruta.encode("latin1", "replace"), repr(url)
+
+                print 'Procesando: %r' % ruta, repr(url)
                 for procesador in self.preprocesadores:
                     resultados[url].setdefault(procesador.nombre, procesador.valor_inicial)
                     procesador(wikiarchivo)
                     if wikiarchivo.omitir: break
 
-                
+
                 if wikiarchivo.omitir:
                     try: del resultados[wikiarchivo.url]
                     except KeyError: pass
-                    
+
                     print '*** Omitido ***'
                     print
                     continue
 
                 print
                 wikiarchivo.guardar()
-            
+
         print 'Total: %s páginas' % len(resultados)
         print '***** Fin Procesado *****'
 
@@ -115,7 +115,7 @@ class WikiSitio:
                 #los rankings deben ser convertidos en str para evitar literales como 123456L
                 columnas = [pagina] + [valores.get(procesador.nombre, procesador.valor_inicial) for procesador in self.preprocesadores]
                 salida.write(plantilla % tuple(columnas))
-            
+
             print 'Registro guardado en %s' % log
 
 

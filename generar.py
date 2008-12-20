@@ -15,6 +15,7 @@ from decompresor import DIR_BLOQUES
 
 def copiarAssets(dest):
     """copiar los assets, si no estaban"""
+    print "Copiando los assets"
     if not path.exists(dest):
         os.makedirs(dest)
         for d in ["es/skins", "es/images", "es/raw"]:
@@ -22,12 +23,14 @@ def copiarAssets(dest):
 
 def copiarSources(dest):
     """copiar los fuentes"""
+    print "Copiando los fuentes"
     if not path.exists(dest):
         os.makedirs(dest)
     for f in "src/armado/main.py src/armado/server.py src/armado/decompresor.py".split():
         shutil.copy(f, dest)
 
 def preprocesar():
+    print "Prepocesando"
     if not path.exists(config.DIR_TEMP):
         os.makedirs(config.DIR_TEMP)
     import preprocesar
@@ -35,10 +38,12 @@ def preprocesar():
 
 def borrarBloques(dest):
     """borrar el directorio de bloques existente y volver a crearlo vacío"""
+    print "Limpiando bloques viejos"
     shutil.rmtree(dest, ignore_errors=True)
     os.makedirs(dest)
 
 def generarBloques(dest):
+    print "Generando los bloques"
     if not path.exists(dest):
         os.makedirs(dest)
     import compresor
@@ -48,17 +53,16 @@ def armarEjecutable():
     pass
 
 def armarIso(dest):
+    print "Armando el ISO"
     os.system("mkisofs -o " + dest + " -R -J " + config.DIR_CDBASE)
 
-copiarAssets( config.DIR_CDBASE + "/" + config.DIR_ASSETS)
-copiarSources( config.DIR_CDBASE + "/src")
+copiarAssets(config.DIR_CDBASE + "/" + config.DIR_ASSETS)
+copiarSources(config.DIR_CDBASE + "/src")
 if sys.platform == "win32":
     armarEjecutable()
 
 preprocesar()
-borrarBloques( config.DIR_CDBASE + "/" + DIR_BLOQUES)
-generarBloques( config.DIR_CDBASE + "/" + DIR_BLOQUES)
+borrarBloques(config.DIR_CDBASE + "/" + DIR_BLOQUES)
+generarBloques(config.DIR_CDBASE + "/" + DIR_BLOQUES)
 armarIso("cdpedia.iso")
-
-print "presione enter"
-a=raw_input()
+print "Todo terminado!"
