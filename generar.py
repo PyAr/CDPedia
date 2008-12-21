@@ -1,68 +1,88 @@
-# -- encoding: latin1 --
+# -- encoding: utf-8 --
+
 import sys
 import os
 from os import path
 import shutil
+import time
 
-# trabajar desde el directorio de la cdpedia
-basedir = path.abspath(path.dirname(sys.argv[0]))
-os.chdir(basedir)
-# agregar modulos al path de python
-sys.path.extend( path.join(basedir, n) for n in ". src/armado src/preproceso".split() )
+### trabajar desde el directorio de la cdpedia
+##basedir = path.abspath(path.dirname(sys.argv[0]))
+##os.chdir(basedir)
+### agregar modulos al path de python
+##sys.path.extend( path.join(basedir, n) for n in ". src/armado src/preproceso".split() )
+
 import config
-from decompresor import DIR_BLOQUES
+from src.preproceso import preprocesar
+from src.armado import compresor
+from src.armado.decompresor import DIR_BLOQUES
 
+def mensaje(texto):
+    fh = time.strftime("%Y-%m-%d %H:%M:%S")
+    print "%-40s (%s)" % (texto, fh)
 
-def copiarAssets(dest):
-    """copiar los assets, si no estaban"""
-    print "Copiando los assets"
-    if not path.exists(dest):
-        os.makedirs(dest)
-        for d in ["es/skins", "es/images", "es/raw"]:
-            shutil.copytree(d, path.join(dest, path.split(d)[-1]))
-
-def copiarSources(dest):
-    """copiar los fuentes"""
-    print "Copiando los fuentes"
-    if not path.exists(dest):
-        os.makedirs(dest)
-    for f in "src/armado/main.py src/armado/server.py src/armado/decompresor.py".split():
-        shutil.copy(f, dest)
-
-def preprocesar():
-    print "Prepocesando"
-    if not path.exists(config.DIR_TEMP):
-        os.makedirs(config.DIR_TEMP)
-    import preprocesar
-    preprocesar.run()
-
-def borrarBloques(dest):
-    """borrar el directorio de bloques existente y volver a crearlo vac�o"""
-    print "Limpiando bloques viejos"
-    shutil.rmtree(dest, ignore_errors=True)
+def copiarAssets(src_info, dest):
+    """Copiar los assets."""
     os.makedirs(dest)
+    for d in ["skins", "images", "raw"]:
+        src_dir = path.join(src_info, d)
+        dst_dir = path.join(dest, d)
+        if not os.path.exists(src_dir):
+            print "\nERROR: No se encuentra el directorio %r" % src_dir
+            print "Este directorio es obligatorio para el procesamiento general"
+            sys.exit()
+        shutil.copytree(src_dir, dst_dir)
 
-def generarBloques(dest):
-    print "Generando los bloques"
-    if not path.exists(dest):
-        os.makedirs(dest)
-    import compresor
-    compresor.generar()
+def copiarSources(fuente, dest):
+    """Copiar los fuentes."""
+    os.makedirs(dest)
+    for name in "main.py server.py decompresor.py".split():
+        fullname = path.join(fuente, name)
+        shutil.copy(fullname, dest)
 
 def armarEjecutable():
     pass
 
 def armarIso(dest):
-    print "Armando el ISO"
     os.system("mkisofs -o " + dest + " -R -J " + config.DIR_CDBASE)
 
-copiarAssets(config.DIR_CDBASE + "/" + config.DIR_ASSETS)
-copiarSources(config.DIR_CDBASE + "/src")
-if sys.platform == "win32":
-    armarEjecutable()
+def main(src_info):
+    mensaje("Comenzando!")
 
-preprocesar()
-borrarBloques(config.DIR_CDBASE + "/" + DIR_BLOQUES)
-generarBloques(config.DIR_CDBASE + "/" + DIR_BLOQUES)
-armarIso("cdpedia.iso")
-print "Todo terminado!"
+    # limpiamos el directorio temporal
+    shutil.rmtree(config.DIR_TEMP, ignore_errors=True)
+    os.makedirs(config.DIR_TEMP)
+
+    mensaje("Copiando los assets")
+    destino = path.join(config.DIR_CDBASE, config.DIR_ASSETS)
+    copiarAssets(src_info, destino)
+
+    mensaje("Copiando las fuentes")
+    destino = path.join(config.DIR_CDBASE, "src")
+    copiarSources("src/armado", destino)
+
+    # FIXME: ¿esto al final se hace por afuera?
+    if sys.platform == "win32":
+        armarEjecutable()
+
+    mensaje("Preprocesando")
+    preprocesar.run(src_info)
+
+    mensaje("Generando los bloques")
+    dest = path.join(config.DIR_CDBASE, DIR_BLOQUES)
+    os.makedirs(dest)
+    compresor.generar()
+
+    mensaje("Armamos el ISO")
+    armarIso("cdpedia.iso")
+
+    mensaje("Todo terminado!")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print "Usar generar.py <directorio>"
+        print "  donde directorio es el lugar donde está la info"
+        sys.exit()
+
+    main(sys.argv[1])

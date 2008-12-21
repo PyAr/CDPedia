@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import preprocesadores as pp
+import src.preproceso.preprocesadores as pp
 
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
 URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
 IDIOMA = "es"
 
-# Directorio donde está la raíz del idioma que vamos a procesar.
-# Puede ser absoluto o relativo (típicamente relativo a generar.sh)
-DIR_RAIZ = IDIOMA
+# # FIXME: esto no sirve mas
+# # Directorio donde está la raíz del idioma que vamos a procesar.
+# # Puede ser absoluto o relativo (típicamente relativo a generar.sh)
+# DIR_RAIZ = IDIOMA
 
-# Subdirectorio del raíz que queremos procesar.
-# '' (string vacía) procesa todo el contenido
-DIR_A_PROCESAR = "z/u"
+# # FIXME: esto no sirve mas
+# # Subdirectorio del raíz que queremos procesar.
+# # '' (string vacía) procesa todo el contenido
+# DIR_A_PROCESAR = "z/u"
 
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
@@ -23,7 +25,7 @@ DIR_TEMP = "temp"
 DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
 
 # Directorio raiz de los archivos que van al CD
-DIR_CDBASE = "cdroot"
+DIR_CDBASE = "temp/cdroot"
 
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
 DIR_ASSETS = "assets"

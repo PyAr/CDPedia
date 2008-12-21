@@ -7,6 +7,8 @@
 Creación de la imagen
 ---------------------
 
+(Nota 21/12/08: Esto está en general correcto, pero no hay que hacerlo a mano, sino ejecutar el generar.py)
+
 1. Bajar el dump estático
 2. Analizar y determinar qué queda
     - Revisar el dump y sacar distribuciones de peso

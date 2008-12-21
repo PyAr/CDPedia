@@ -48,12 +48,12 @@ class WikiArchivo:
 
         open(destino, 'w').write(self.html)
 
-class WikiSitio:
-    def __init__(self, config=None):
+class WikiSitio(object):
+    def __init__(self, dir_raiz, config=None):
         if not config: import config
         self.config = config
-        self.ruta = unicode(abspath(config.DIR_RAIZ))
-        self.origen = unicode(abspath(config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
+        self.ruta = unicode(abspath(dir_raiz))
+        self.origen = unicode(abspath(dir_raiz)) # config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
         self.destino = unicode(abspath(config.DIR_PREPROCESADO))
         self.wikiurls = config.USAR_WIKIURLS
         self.resultados = {}
@@ -119,8 +119,8 @@ class WikiSitio:
             print 'Registro guardado en %s' % log
 
 
-def run():
-    wikisitio = WikiSitio()
+def run(dir_raiz):
+    wikisitio = WikiSitio(dir_raiz)
     wikisitio.procesar()
     wikisitio.guardar()
 
