@@ -5,6 +5,7 @@ import os
 from os import path
 import shutil
 import time
+import optparse
 
 import config
 from src.preproceso import preprocesar
@@ -55,7 +56,7 @@ def genera_run_config():
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.close()
 
-def main(src_info):
+def main(src_info, evitar_iso):
     mensaje("Comenzando!")
 
     # limpiamos el directorio temporal
@@ -83,19 +84,34 @@ def main(src_info):
     os.makedirs(dest)
     compresor.generar()
 
-    mensaje("Generamos la config para runtime")
-    genera_run_config()
+    if not evitar_iso:
+        mensaje("Generamos la config para runtime")
+        genera_run_config()
 
-    mensaje("Armamos el ISO")
-    armarIso("cdpedia.iso")
+        mensaje("Armamos el ISO")
+        armarIso("cdpedia.iso")
 
     mensaje("Todo terminado!")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usar generar.py <directorio>"
-        print "  donde directorio es el lugar donde está la info"
-        sys.exit()
+    msg = u"""
+  generar.py [--no-iso] <directorio>
+    donde directorio es el lugar donde está la info
+"""
 
-    main(sys.argv[1])
+    parser = optparse.OptionParser()
+    parser.set_usage(msg)
+    parser.add_option("-n", "--no-iso", action="store_true",
+                      dest="create_iso", help="evita crear el ISO al final")
+
+    (options, args) = parser.parse_args()
+
+    if len(args) != 1:
+        parser.print_help()
+        exit()
+
+    direct = args[0]
+    evitar_iso = bool(options.create_iso)
+
+    main(args[0], evitar_iso)
