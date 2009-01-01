@@ -9,19 +9,18 @@ para crear el índice.
 
 #from __future__ import division
 import shelve, time, sys, os.path, re, codecs
+import config
 
 usage = """Indice de títulos de la CDPedia
 
 Para generar el archivo de indice hacer:
 
-  cdpindex.py fuente destino [max]
+  cdpindex.py fuente destino [max] [dirbase]
 
     fuente: archivo con los títulos
     destino: en donde se guardará el índice
     max: cantidad máxima de títulos a indizar
-
-  La fuente tiene que estar en el directorio donde arranca el
-  la estructura con el dir "es/"
+    dirbase: de dónde dependen los archivos
 """
 
 #def getsubstrings(source, minim=3):
@@ -34,14 +33,14 @@ Para generar el archivo de indice hacer:
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 
 def _getHTMLTitle(arch):
-    # Todavia no soportamos redirect, asi que todos los archivos son 
+    # Todavia no soportamos redirect, asi que todos los archivos son
     # válidos y debería tener TITLE en ellos
     try:
         html = codecs.open(arch, "r", "utf8").read()
     except IOError:
-        # a veces el path esta mal formado, porque adivinamos los 
+        # a veces el path esta mal formado, porque adivinamos los
         # dirs a partir del filename, y hay algunos en los que no
-        # se puede, ej: ./3/2F/4/3_4_4073.html 
+        # se puede, ej: ./3/2F/4/3_4_4073.html
         return u"<sin título>"
     m = SACATIT.match(html)
     if m:
@@ -63,7 +62,12 @@ class Index(object):
     def __init__(self, filename=None):
         if filename is not None:
             self.open(filename)
-        
+
+    def listar(self):
+        id_shelf = self.id_shelf
+        for palabra, docids in sorted(self.word_shelf.items()):
+            print "%s: %s" % (palabra, [id_shelf[str(x)][1] for x in docids])
+
     def search(self, words):
         result = None
         words = words.encode("utf8") # shelve no soporta unicode
@@ -80,7 +84,7 @@ class Index(object):
                 else:
                     result.intersection_update(set(docids))
 
-        if result is None: 
+        if result is None:
             return []
         return [self.id_shelf[str(x)] for x in result]
 
@@ -91,7 +95,7 @@ class Index(object):
 
         # fill them
         for docid, (nomhtml, titulo) in enumerate(fuente):
-#            print "Agregando [%s]  (%s)" % (titulo, nomhtml)
+            print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
             # docid -> info final
             self.id_shelf[str(docid)] = (nomhtml, titulo)
 
@@ -121,14 +125,14 @@ class Index(object):
 #        result = []
 #        for p in parts:
 #            result += p.split(" ")
-#            
+#
 #        result = [ w.lower() for w in result ]
 #        result = set(result)
 #        words = set(result)
 #        for w in result:
 #            res = list(getsubstrings(w))
 #            words.update(res)
-#            
+#
 #        for word in words:
 #            s = self.word_shelf.get(word, set())
 #            s.add( iid )
@@ -137,7 +141,7 @@ class Index(object):
 #    def flush(self):
 #        self.word_shelf.sync()
 #        self.id_shelf.sync()
-            
+
     def open(self, filename):
         wordsfilename = filename + ".words"
         idsfilename = filename + ".ids"
@@ -161,7 +165,11 @@ class Index(object):
 #            self.flush()
 #            print 'Done'
 
-def _create_index(fuente, salida, max=None):
+def generar(src_info):
+    _create_index(
+            config.LOG_PREPROCESADO, config.PREFIJO_INDICE, dirbase=src_info)
+
+def _create_index(fuente, salida, max=None, dirbase=""):
     if max is not None:
         max = int(max)
 
@@ -179,15 +187,20 @@ def _create_index(fuente, salida, max=None):
         return map(fix, arch)
 
     def gen():
-        basepath = os.path.split(fuente)[0]
-        for i,arch in enumerate(codecs.open(fuente, "r", "utf8")):
-            arch = arch.strip()
-#            print "Procesando", i, arch
+        fh = codecs.open(fuente, "r", "utf8")
+        fh.next() # título
+        for i,linea in enumerate(fh):
+            arch = linea.split()[0].strip()
+            if not arch.endswith(".html"):
+                continue
+
+            print "Indizando [%d] %s" % (i, arch.encode("utf8"))
             # info auxiliar
             a,b,c = get3letras(arch)
-            nomhtml = "%s/es/%s/%s/%s/%s" % (basepath,a,b,c,arch)
-            if os.access(nomhtml, os.F_OK):
-                titulo = _getHTMLTitle(nomhtml)
+            nomhtml = os.path.join(a, b, c, arch)
+            nomreal = os.path.join(dirbase, nomhtml)
+            if os.access(nomreal, os.F_OK):
+                titulo = _getHTMLTitle(nomreal)
             else:
                 titulo = ""
 
@@ -195,7 +208,7 @@ def _create_index(fuente, salida, max=None):
             if max is not None and i > max:
                 raise StopIteration
             yield (nomhtml, titulo)
-        
+
     cant = index.create(salida, gen())
     return cant
 
@@ -209,12 +222,12 @@ if __name__ == "__main__":
     delta = time.time()-tini
     print "Indice creado! (%.2fs)" % delta
     print "Archs: %d  (%.2f mseg/arch)" % (cant, 1000*delta/cant)
-    
+
 
 #    parsed_file = "parsed/parsefile.cpkl"
 #
 #    print "Opening Index:", indexfilename
-#    index = cdpindex.Index(indexfilename) 
+#    index = cdpindex.Index(indexfilename)
 #    print "Opening contents:", zipfilename
 #    wikipedia = zipfile.ZipFile(zipfilename)
 #    print "Stage 1:"
@@ -235,13 +248,13 @@ if __name__ == "__main__":
 #            if maxitems and i>maxitems: break
 #            if i%50==0:
 #                timer.tick(50)
-#                
+#
 #            if name.endswith(".html"):
 #                title = gettitle(wikipedia, name)
 #                all.append( (name, title) )
 #        cPickle.dump( all, open(parsed_file, "w") )
-#    print "Done." 
-#            
+#    print "Done."
+#
 #    timer = Timer()
 #    timer.start(len(all))
 #    for i,(name, title) in enumerate(all):

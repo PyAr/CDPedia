@@ -2,23 +2,23 @@
 
 import src.preproceso.preprocesadores as pp
 
+# el server
+from src.armado import server
+
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
 URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
 IDIOMA = "es"
 
-# # FIXME: esto no sirve mas
-# # Directorio donde está la raíz del idioma que vamos a procesar.
-# # Puede ser absoluto o relativo (típicamente relativo a generar.sh)
-# DIR_RAIZ = IDIOMA
-
-# # FIXME: esto no sirve mas
-# # Subdirectorio del raíz que queremos procesar.
-# # '' (string vacía) procesa todo el contenido
-# DIR_A_PROCESAR = "z/u"
+# info para el compresor / decompresor
+ARTICLES_PER_BLOCK = 1000
+DIR_BLOQUES = "temp/cdroot/bloques"
 
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
+
+# Los índices generados (a esto se le agrega las dos terminaciones)
+PREFIJO_INDICE = "temp/wikiindex"
 
 # Directorio destino de los archivos preprocesados.
 # Puede ser relativo o absoluto
@@ -55,6 +55,10 @@ PREPROCESADORES = [
     pp.Peishranc,
     #pp.Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
 ]
+
+# Directorios especiales con metadata y cosas que no son los HTMLs de las
+# páginas en sí
+ASSETS = ["skins", "images", "raw"]
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces

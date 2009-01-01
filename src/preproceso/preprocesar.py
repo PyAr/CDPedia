@@ -1,10 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, re
-import codecs
-from os.path import join, abspath, sep, dirname
-from urllib2 import urlparse
 """
 Uso: preprocesar.py
 
@@ -13,6 +9,13 @@ una de las páginas, para producir la prioridad con la que página
 será (o no) incluída en la compilación.
 
 """
+
+import os, re
+import codecs
+from os.path import join, abspath, sep, dirname
+from urllib2 import urlparse
+import config
+
 class WikiArchivo:
     def __init__(self, wikisitio, ruta):
         self.ruta = ruta = abspath(ruta)
@@ -30,7 +33,6 @@ class WikiArchivo:
         #esto podría cambiar (ej. para que sea igual a como está en el sitio):
         self.wikiurl = wikiurl = self.pagina
         self.url = wikisitio.wikiurls and wikiurl or absurl
-        self.omitir = False
         self.html = open(ruta).read()
         #raise 'ruta: %s, url: %s' % (self.ruta, self.url)
 
@@ -41,7 +43,7 @@ class WikiArchivo:
     def guardar(self):
         destino = self.destino
         if self.ruta == destino:
-            raise ValueError, "Intento de guardar el archivo en si mismo"
+            raise ValueError("Intento de guardar el archivo en si mismo")
 
         try: os.makedirs(dirname(destino))
         except os.error: pass
@@ -55,6 +57,7 @@ class WikiSitio(object):
         self.ruta = unicode(abspath(dir_raiz))
         self.origen = unicode(abspath(dir_raiz)) # config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
         self.destino = unicode(abspath(config.DIR_PREPROCESADO))
+        self.assets = [join(abspath(dir_raiz), x) for x in config.ASSETS]
         self.wikiurls = config.USAR_WIKIURLS
         self.resultados = {}
         self.preprocesadores = [ proc(self) for proc in config.PREPROCESADORES ]
@@ -62,61 +65,94 @@ class WikiSitio(object):
     def Archivo(self, ruta):
         return WikiArchivo(self, ruta)
 
+    def _es_asset(self, direct):
+        for ass in self.assets:
+            if direct.startswith(ass):
+                return True
+        return False
+
     def procesar(self):
         config = self.config
         resultados = self.resultados
+        puntaje_extra = {}
 
         for cwd, directorios, archivos in os.walk(self.origen):
+            # No entramos en los directorios que no son de HTMLs
+            if self._es_asset(cwd):
+                continue
+
             for nombre_archivo in archivos:
-                print repr(nombre_archivo)
                 wikiarchivo = self.Archivo(join(cwd, nombre_archivo))
                 url = wikiarchivo.url
-                ruta = wikiarchivo.ruta
-                resultados.setdefault(url, {})
+                if url in resultados:
+                    raise ValueError("queloqué?")
+#                    resultados.setdefault(url, {})
+                resultados[url] = {}
 
-                print 'Procesando: %r' % ruta, repr(url)
+                print 'Procesando: %s' % url.encode("utf8")
                 for procesador in self.preprocesadores:
-                    resultados[url].setdefault(procesador.nombre, procesador.valor_inicial)
-                    procesador(wikiarchivo)
-                    if wikiarchivo.omitir: break
+                    (puntaje, otras_pags) = procesador(wikiarchivo)
 
+                    # None significa que el procesador lo marcó para omitir
+                    if puntaje is None:
+                        del resultados[url]
+                        print '  omitido!'
+                        break
 
-                if wikiarchivo.omitir:
-                    try: del resultados[wikiarchivo.url]
-                    except KeyError: pass
+                    # ponemos el puntaje
+                    resultados[url][procesador.nombre] = puntaje
 
-                    print '*** Omitido ***'
-                    print
-                    continue
+                    # agregamos el puntaje extra
+                    for extra_pag, extra_ptje in otras_pags:
+                        ant = puntaje_extra.setdefault(extra_pag, {})
+                        ant[procesador.nombre] = puntaje_extra.get(
+                                            procesador.nombre, 0) + extra_ptje
+                else:
+                    print "  puntaje:", resultados[url]
 
-                print
                 wikiarchivo.guardar()
+                print
 
-        print 'Total: %s páginas' % len(resultados)
+        # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
+        perdidos = []
+        for (pag, puntajes) in puntaje_extra.items():
+            if pag in resultados:
+                for (proc, ptje) in puntajes.items():
+                    resultados[pag][proc] += ptje
+            else:
+                perdidos.append((pag, puntajes))
+        if perdidos:
+            print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
+#            print perdidos
+
+        print 'Total: %s páginas procesadas' % len(resultados)
         print '***** Fin Procesado *****'
 
     def guardar(self):
         # Esto se procesa solo si queremos una salida en modo de texto (LOG_PREPROCESADO != None)
         config = self.config
-        if config.LOG_PREPROCESADO:
-            log = abspath(config.LOG_PREPROCESADO)
-            sep_cols = unicode(config.SEPARADOR_COLUMNAS)
-            sep_filas = unicode(config.SEPARADOR_FILAS)
-            salida = codecs.open(log, "w", "utf-8")
+        if not config.LOG_PREPROCESADO:
+            print "WARNING: no se generó el log porque falta la variable "\
+                  "LOG_PREPROCESADO en config.py"
+            return
 
-            # Encabezado:
-            columnas = [u'Página'] + [procesador.nombre for procesador in self.preprocesadores]
-            plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
-            print columnas
+        log = abspath(config.LOG_PREPROCESADO)
+        sep_cols = unicode(config.SEPARADOR_COLUMNAS)
+        sep_filas = unicode(config.SEPARADOR_FILAS)
+        salida = codecs.open(log, "w", "utf-8")
+
+        # Encabezado:
+        columnas = [u'Página'] + [procesador.nombre for procesador in self.preprocesadores]
+        plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
+        salida.write(plantilla % tuple(columnas))
+
+        # Contenido:
+        for pagina, valores in self.resultados.iteritems():
+            #los rankings deben ser convertidos en str para evitar literales como 123456L
+            columnas = [pagina] + [valores.get(procesador.nombre, procesador.valor_inicial) for procesador in self.preprocesadores]
             salida.write(plantilla % tuple(columnas))
 
-            # Contenido:
-            for pagina, valores in self.resultados.iteritems():
-                #los rankings deben ser convertidos en str para evitar literales como 123456L
-                columnas = [pagina] + [valores.get(procesador.nombre, procesador.valor_inicial) for procesador in self.preprocesadores]
-                salida.write(plantilla % tuple(columnas))
-
-            print 'Registro guardado en %s' % log
+        print 'Registro guardado en %s' % log
 
 
 def run(dir_raiz):

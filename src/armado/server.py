@@ -5,6 +5,9 @@
 
 from __future__ import division
 
+class ContentNotFound(Exception):
+    """No se encontró la página requerida!"""
+
 header = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
@@ -108,13 +111,12 @@ from StringIO import StringIO
 
 
 import cPickle, re
-#import cdpindex
+import cdpindex
 import decompresor
+import config
 
 
 __version__ = "0.1.1.1.1.1"
-
-indexfilename = "indexes/wikiindex"
 
 reg = re.compile("\<title\>([^\<]*)\</title\>")
 reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
@@ -140,13 +142,12 @@ def gettitle(zf, name):
     if not soup("title"):
         return ""
     return str(soup("title")[0].contents[0])
-   
+
 class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
-    
+
     root = ""
-    #index = cdpindex.Index(indexfilename)
-        
+
     def do_GET(self):
         """Serve a GET request."""
         tipo, data = self.getfile(self.path)
@@ -158,87 +159,98 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(data)
         else:
             self.send_response (404)
-            self.end_headers ()
+            self.end_headers()
             self.wfile.write ("URL not found: %s" % self.path)
-        
+
+    def _get_contenido(self, path):
+        print "=== 4", path
+        match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
+        if match is not None:
+            path = match.group(1)
+
+        print "======== contenido", path
+        if path[-4:] != "html":
+            raise ContentNotFound("Sólo buscamos páginas HTML!")
+
+        try:
+            data = decompresor.getArticle(path.decode("utf-8"))
+        except Exception, e:
+            msg = "Error interno al buscar contenido: %s" % e
+            raise ContentNotFound(msg)
+
+        if data is None:
+            raise ContentNotFound("No se encontró la página '%s'" % path)
+
+        title = getTitleFromData(data)
+
+        pag = header.replace("[TITLE_GOES_HERE]",title) + data + footer
+        return pag
+
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
-        print path
+        print "get file:", path
         if path == "/search":
             return self.search()
         if path == "/dosearch":
             return self.dosearch(query)
         if path[0] == "/":
             path = path[1:]
-        print path
 
         if path.split("/")[0] in ("images","raw","skins"):
+            print "====== asset", path
             return "image/%s"%path[-3:], open("assets/"+path).read()
         if path=="":
             return self.search()
         path =  self.root + path
-        print path
-        
-        match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
-        if match is not None:
-            path = match.group(1)
-        print path
 
         try:
-            if path[-4:]=="html": 
-                print "!!!!", repr(path)
-                data = decompresor.getArticle(path.decode("utf-8"))
-                title = getTitleFromData(data)
-                data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
-            else:
-                # TODO: fire up the search "didn't you really mean <this>?"
-                return (None, None)
-        except:
-            print "ERROR: not found:", path
+            data = self._get_contenido(path)
+        except ContentNotFound, e:
+            print "ERROR: '%s' not found (%s)" % (path, e)
+            print "FIXME: tomar este index.html del disco, crudo"
             data = decompresor.getArticle("index.html")
             title = getTitleFromData(data)
             data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
-            
         return "text/html",data
 
     def search(self):
         return "text/html", """
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head><body>
         <form method="get" action="/dosearch">
         <input name="keywords"></input>
         <input type="submit">
         </form></body></html>"""
-        
+
     def dosearch(self, query):
         params = cgi.parse_qs(query)
         if not "keywords" in params:
             return self.search()
         keywords = params["keywords"][0]
-        candidatos = index.search( keywords )
+        candidatos = self.index.search( keywords )
+        print "===== 1", candidatos
         res = []
-        for c,t in candidatos:
+        for camino, titulo in candidatos:
             #link =  urllib.quote(unicode(c[len(self.root):], 'utf-8')).encode('ascii')
-            link=c[len(self.root):]
-            print link
-            res.append('<tr><td><a href="%s">%s</a></td></tr>'%(link,t))
-        
-        return "text/html", """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+            link = camino[len(self.root):]
+            print "===== 2", link
+            res.append('<tr><td><a href="%s">%s</a></td></tr>' % (link, titulo))
+
+        return "text/html", """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head><body>
         <table>
         %s
         </table>
         </body></html>"""%( "\n".join( res ) )
-        
-    
+
+
 def run(HandlerClass = WikiHTTPRequestHandler,
          ServerClass = BaseHTTPServer.HTTPServer,
          build_index=False, maxitems=50):
-    #WikiHTTPRequestHandler.index = index
+    WikiHTTPRequestHandler.index = cdpindex.Index(config.PREFIJO_INDICE)
     BaseHTTPServer.test(HandlerClass, ServerClass)
 
 
 if __name__ == '__main__':
-    #index = cdpindex.Index(indexfilename)
     run()
