@@ -51,6 +51,7 @@ def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "config.py"), "w")
     f.write('from src import server\n')
     f.write('DIR_BLOQUES = "../bloques"\n')
+    f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.close()
 
@@ -62,8 +63,7 @@ def main(src_info):
     os.makedirs(config.DIR_TEMP)
 
     mensaje("Copiando los assets")
-    destino = path.join(config.DIR_CDBASE, config.DIR_ASSETS)
-    copiarAssets(src_info, destino)
+    copiarAssets(src_info, config.DIR_ASSETS)
 
     mensaje("Copiando las fuentes")
     copiarSources()

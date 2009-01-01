@@ -163,12 +163,11 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write ("URL not found: %s" % self.path)
 
     def _get_contenido(self, path):
-        print "=== 4", path
+#        print "======== contenido", path
         match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
         if match is not None:
             path = match.group(1)
 
-        print "======== contenido", path
         if path[-4:] != "html":
             raise ContentNotFound("Sólo buscamos páginas HTML!")
 
@@ -198,8 +197,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             path = path[1:]
 
         if path.split("/")[0] in ("images","raw","skins"):
-            print "====== asset", path
-            return "image/%s"%path[-3:], open("assets/"+path).read()
+            asset_file = os.path.join(config.DIR_ASSETS, path)
+            asset_data = open(asset_file).read()
+            return "image/%s"%path[-3:], asset_data
         if path=="":
             return self.search()
         path =  self.root + path
@@ -210,8 +210,11 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             print "ERROR: '%s' not found (%s)" % (path, e)
             print "FIXME: tomar este index.html del disco, crudo"
             data = decompresor.getArticle("index.html")
-            title = getTitleFromData(data)
-            data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
+            if data is None:
+                data = "Internal error!"
+            else:
+                title = getTitleFromData(data)
+                data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
         return "text/html",data
 
     def search(self):

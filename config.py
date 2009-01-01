@@ -28,7 +28,7 @@ DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
 DIR_CDBASE = "temp/cdroot"
 
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
-DIR_ASSETS = "assets"
+DIR_ASSETS = "temp/cdroot/assets"
 
 # USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
 # Si es falso (False), las urls tendrán el formato del 7z,
