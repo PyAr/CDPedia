@@ -98,6 +98,72 @@ Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a c
 </html>
 """
 
+mainpage_header = """
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>CDPedia - PyAr</title>
+</head><body><br>
+<center>
+<font color="#0000ff" size="+3">CD Pedia<br>
+<br>
+
+<font color="#ff0000" size="+2">
+"""
+
+mainpage_footer = """
+<br>
+
+<br>
+<font color="#000000" size="+2">Buscar en los títulos<br><br>
+
+<table>
+<tr>
+ <td valign="top">Palabras completas</td>
+ <td>
+    <form method="get" action="/dosearch">
+    <input name="keywords"></input>
+    <input type="submit" value="Buscar">
+    </form>
+ </td>
+</tr>
+<tr>
+ <td valign="top">Búsqueda detallada</td>
+ <td>
+    <form method="get" action="/detallada">
+    <input name="keywords"></input>
+    <input type="submit" value="Buscar">
+    </form>
+ </td>
+</tr>
+</table>
+
+<br>
+<font color="#000000" size="+2">Ver páginas<br><br>
+<table>
+<tr>
+ <td>
+    <form method="get" action="/listfull">
+    <input type="submit" value="Listado completo"></input>
+    </form>
+ </td>
+ <td>
+    <form method="get" action="/al_azar">
+    <input type="submit" value="Alguna al azar"></input>
+    </form>
+ </td>
+</tr>
+</table>
+
+<font size="-1">
+<br>
+- - - <br>
+Otro desarrollo de PyAr - Python Argentina
+</font>
+</center>
+ </body></html>
+"""
+
+
 import BaseHTTPServer
 import cgi
 import mimetypes
@@ -169,30 +235,38 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             path = match.group(1)
 
         if path[-4:] != "html":
-            raise ContentNotFound("Sólo buscamos páginas HTML!")
+            raise ContentNotFound(u"Sólo buscamos páginas HTML!")
 
         try:
             data = decompresor.getArticle(path.decode("utf-8"))
         except Exception, e:
-            msg = "Error interno al buscar contenido: %s" % e
+            msg = u"Error interno al buscar contenido: %s" % e
             raise ContentNotFound(msg)
 
         if data is None:
-            raise ContentNotFound("No se encontró la página '%s'" % path)
+            raise ContentNotFound(u"No se encontró la página '%s'" % path)
 
         title = getTitleFromData(data)
 
         pag = header.replace("[TITLE_GOES_HERE]",title) + data + footer
         return pag
 
+    def _main_page(self, msg=u"¡Bienvenido!"):
+        pag = mainpage_header + msg.encode("utf8") + mainpage_footer
+        return "text/html", pag
+
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
         print "get file:", path
-        if path == "/search":
-            return self.search()
         if path == "/dosearch":
             return self.dosearch(query)
+        if path == "/detallada":
+            return self.detallada(query)
+        if path == "/listfull":
+            return self.listfull(query)
+        if path == "/al_azar":
+            return self.al_azar(query)
         if path[0] == "/":
             path = path[1:]
 
@@ -201,30 +275,25 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             asset_data = open(asset_file).read()
             return "image/%s"%path[-3:], asset_data
         if path=="":
-            return self.search()
+            return self._main_page()
         path =  self.root + path
 
         try:
             data = self._get_contenido(path)
         except ContentNotFound, e:
-            print "ERROR: '%s' not found (%s)" % (path, e)
-            print "FIXME: tomar este index.html del disco, crudo"
-            data = decompresor.getArticle("index.html")
-            if data is None:
-                data = "Internal error!"
-            else:
-                title = getTitleFromData(data)
-                data = header.replace("[TITLE_GOES_HERE]",title) + data + footer
+            msg = u"ERROR: '%s' not found (%s)" % (path, e.message)
+            return self._main_page(msg)
+
         return "text/html",data
 
-    def search(self):
-        return "text/html", """
-        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-</head><body>
-        <form method="get" action="/dosearch">
-        <input name="keywords"></input>
-        <input type="submit">
-        </form></body></html>"""
+    def detallada(self, query):
+        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
+
+    def listfull(self, query):
+        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
+
+    def al_azar(self, query):
+        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
 
     def dosearch(self, query):
         params = cgi.parse_qs(query)
@@ -232,12 +301,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.search()
         keywords = params["keywords"][0]
         candidatos = self.index.search( keywords )
-        print "===== 1", candidatos
+        if not candidatos:
+            return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
         for camino, titulo in candidatos:
             #link =  urllib.quote(unicode(c[len(self.root):], 'utf-8')).encode('ascii')
             link = camino[len(self.root):]
-            print "===== 2", link
             res.append('<tr><td><a href="%s">%s</a></td></tr>' % (link, titulo))
 
         return "text/html", """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
