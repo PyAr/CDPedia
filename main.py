@@ -2,7 +2,7 @@ import thread
 import time
 import webbrowser
 
-from config import server
+from src.armado import server
 
 def sleepAndBrowse():
     time.sleep(1)

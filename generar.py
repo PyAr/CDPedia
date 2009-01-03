@@ -5,6 +5,7 @@ import os
 from os import path
 import shutil
 import time
+import glob
 import optparse
 
 import config
@@ -30,17 +31,29 @@ def copiarAssets(src_info, dest):
 
 def copiarSources():
     """Copiar los fuentes."""
-    orig_src = "src/armado"
+    # el src
     dest_src = path.join(config.DIR_CDBASE, "src")
+    os.makedirs(dest_src)
+    shutil.copy(path.join("src", "__init__.py"), dest_src)
 
     # las fuentes
+    orig_src = path.join("src", "armado")
+    dest_src = path.join(config.DIR_CDBASE, "src", "armado")
     os.makedirs(dest_src)
-    for name in "server.py decompresor.py".split():
+    for name in "server.py decompresor.py cdpindex.py __init__.py".split():
         fullname = path.join(orig_src, name)
         shutil.copy(fullname, dest_src)
 
     # el main va al root
     shutil.copy("main.py", config.DIR_CDBASE)
+
+def copiarIndices():
+    """Copiar los indices."""
+    # las fuentes
+    dest_src = path.join(config.DIR_CDBASE, "indice")
+    os.makedirs(dest_src)
+    for name in glob.glob("%s.*" % config.PREFIJO_INDICE):
+        shutil.copy(name, dest_src)
 
 def armarEjecutable():
     pass
@@ -50,10 +63,10 @@ def armarIso(dest):
 
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "config.py"), "w")
-    f.write('from src import server\n')
-    f.write('DIR_BLOQUES = "../bloques"\n')
+    f.write('DIR_BLOQUES = "bloques"\n')
     f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
+    f.write('PREFIJO_INDICE = "indice/wikiindex"\n')
     f.close()
 
 def main(src_info, evitar_iso):
@@ -65,13 +78,6 @@ def main(src_info, evitar_iso):
 
     mensaje("Copiando los assets")
     copiarAssets(src_info, config.DIR_ASSETS)
-
-    mensaje("Copiando las fuentes")
-    copiarSources()
-
-    # FIXME: ¿esto al final se hace por afuera?
-    if sys.platform == "win32":
-        armarEjecutable()
 
     mensaje("Preprocesando")
     preprocesar.run(src_info)
@@ -85,6 +91,16 @@ def main(src_info, evitar_iso):
     compresor.generar()
 
     if not evitar_iso:
+        mensaje("Copiando las fuentes")
+        copiarSources()
+
+        mensaje("Copiando los indices")
+        copiarIndices()
+
+        # FIXME: ¿esto al final se hace por afuera?
+        if sys.platform == "win32":
+            armarEjecutable()
+
         mensaje("Generamos la config para runtime")
         genera_run_config()
 

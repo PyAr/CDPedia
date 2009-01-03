@@ -2,9 +2,6 @@
 
 import src.preproceso.preprocesadores as pp
 
-# el server
-from src.armado import server
-
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
 URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
