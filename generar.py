@@ -40,9 +40,17 @@ def copiarSources():
     orig_src = path.join("src", "armado")
     dest_src = path.join(config.DIR_CDBASE, "src", "armado")
     os.makedirs(dest_src)
-    for name in "server.py decompresor.py cdpindex.py __init__.py".split():
+    for name in os.listdir(orig_src):
         fullname = path.join(orig_src, name)
-        shutil.copy(fullname, dest_src)
+        if os.path.isfile(fullname):
+            shutil.copy(fullname, dest_src)
+
+    # los templates
+    orig_src = path.join("src", "armado", "templates")
+    dest_src = path.join(config.DIR_CDBASE, orig_src)
+    os.makedirs(dest_src)
+    for name in glob.glob(path.join(orig_src, "*.tpl")):
+        shutil.copy(name, dest_src)
 
     # el main va al root
     shutil.copy("main.py", config.DIR_CDBASE)
