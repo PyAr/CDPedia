@@ -57,7 +57,6 @@ class WikiSitio(object):
         self.ruta = unicode(abspath(dir_raiz))
         self.origen = unicode(abspath(dir_raiz)) # config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
         self.destino = unicode(abspath(config.DIR_PREPROCESADO))
-        self.assets = [join(abspath(dir_raiz), x) for x in config.ASSETS]
         self.wikiurls = config.USAR_WIKIURLS
         self.resultados = {}
         self.preprocesadores = [ proc(self) for proc in config.PREPROCESADORES ]
@@ -65,22 +64,12 @@ class WikiSitio(object):
     def Archivo(self, ruta):
         return WikiArchivo(self, ruta)
 
-    def _es_asset(self, direct):
-        for ass in self.assets:
-            if direct.startswith(ass):
-                return True
-        return False
-
     def procesar(self):
         config = self.config
         resultados = self.resultados
         puntaje_extra = {}
 
         for cwd, directorios, archivos in os.walk(self.origen):
-            # No entramos en los directorios que no son de HTMLs
-            if self._es_asset(cwd):
-                continue
-
             for nombre_archivo in archivos:
                 wikiarchivo = self.Archivo(join(cwd, nombre_archivo))
                 url = wikiarchivo.url

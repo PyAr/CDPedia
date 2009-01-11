@@ -35,13 +35,7 @@ SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 def _getHTMLTitle(arch):
     # Todavia no soportamos redirect, asi que todos los archivos son
     # válidos y debería tener TITLE en ellos
-    try:
-        html = codecs.open(arch, "r", "utf8").read()
-    except IOError:
-        # a veces el path esta mal formado, porque adivinamos los
-        # dirs a partir del filename, y hay algunos en los que no
-        # se puede, ej: ./3/2F/4/3_4_4073.html
-        return u"<sin título>"
+    html = codecs.open(arch, "r", "utf8").read()
     m = SACATIT.match(html)
     if m:
         tit = m.groups()[0]
@@ -203,6 +197,7 @@ def _create_index(fuente, salida, max=None, dirbase=""):
                 titulo = _getHTMLTitle(nomreal)
             else:
                 titulo = ""
+                print "WARNING: Archivo no encontrado:", nomreal
 
             # si tenemos max, lo respetamos y entregamos la info
             if max is not None and i > max:

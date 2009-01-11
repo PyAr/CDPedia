@@ -88,10 +88,15 @@ def main(src_info, evitar_iso):
     copiarAssets(src_info, config.DIR_ASSETS)
 
     mensaje("Preprocesando")
-    preprocesar.run(src_info)
+    articulos = path.join(src_info, "articles")
+    if not path.exists(articulos):
+        print "\nERROR: No se encuentra el directorio %r" % articulos
+        print "Este directorio es obligatorio para el procesamiento general"
+        sys.exit()
+    preprocesar.run(articulos)
 
     mensaje("Generando el índice")
-    cdpindex.generar(src_info)
+    cdpindex.generar(articulos)
 
     mensaje("Generando los bloques")
     dest = path.join(config.DIR_BLOQUES)

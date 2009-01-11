@@ -55,7 +55,7 @@ PREPROCESADORES = [
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
-ASSETS = ["skins", "images", "raw"]
+ASSETS = ["skins", "misc", "raw"]
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces

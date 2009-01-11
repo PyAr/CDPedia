@@ -43,7 +43,7 @@
           </div><!-- end of the left (by default at least) column -->
       <div class="visualClear"></div>
       <div id="footer">
-    <div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="../../../skins/common/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" /></a></div>  <div id="f-copyrightico"><a href="http://wikimediafoundation.org/"><img src="../../../images/wikimedia-button.png" border="0" alt="Wikimedia Foundation"/></a></div>    <ul id="f-list">
+    <div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="../../../skins/common/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" /></a></div>  <div id="f-copyrightico"><a href="http://wikimediafoundation.org/"><img src="../../../misc/wikimedia-button.png" border="0" alt="Wikimedia Foundation"/></a></div>    <ul id="f-list">
                  <li id="f-copyright">Contenido disponible bajo los términos de la <a class="internal" href="/wiki/Wikipedia:Texto_de_la_Licencia_de_documentación_libre_de_GNU">Licencia de documentación libre de GNU</a> (véase <b><a class="internal" href="/wiki/Wikipedia:Derechos_de_autor">Derechos de autor</a></b>).<br />
 Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a class="internal" href="http://wikimediafoundation.org/wiki/Portada">Wikimedia Foundation, Inc.</a><br /></li>     <li id="f-about"><a href="../../../a/c/e/Wikipedia%7EAcerca_de_959f.html" title="Wikipedia:Acerca de">Acerca de Wikipedia</a></li>      <li id="f-disclaimer"><a href="../../../l/i/m/Wikipedia%7ELimitaci%C3%B3n_general_de_responsabilidad_a0a2.html" title="Wikipedia:Limitación general de responsabilidad">Aviso legal</a></li>      </ul>
       </div>
