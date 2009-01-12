@@ -7,29 +7,24 @@ Muestra info del archivo comprimido.
 from __future__ import division
 from __future__ import with_statement
 
-import struct
-import cPickle as pickle
-from bz2 import BZ2File as CompressedFile
 import operator
 import sys
 import os
+sys.path.append(os.getcwd())
+from src.armado import compresor
 
 def main(fname, a_extraer):
     fsize = os.stat(fname).st_size
     print "Mostrando info del archivo %r (tamaño: %d bytes)" % (fname, fsize)
-
-    fh = CompressedFile(fname, "rb")
-    header_size = struct.unpack("<l", fh.read(4))[0]
-    header_bytes = fh.read(header_size)
-    header = pickle.loads(header_bytes)
+    c = compresor.Comprimido(fname)
     print "Del header (%d bytes): %d archivos en total" % (
-                                                    header_size, len(header))
+                                                  c.header_size, len(c.header))
 
     # header: dict con k -> filename
     #                  v -> (seek, size) o el nombre del apuntado
     archivos = []
     redirects = 0
-    for name, info in header.items():
+    for name, info in c.header.items():
         if isinstance(info, basestring):
             redirects += 1
         else:
@@ -39,7 +34,7 @@ def main(fname, a_extraer):
     archivos.sort(key=operator.itemgetter(1))
     size_archs = archivos[-1][1] + archivos[-1][2] # del último, posic + largo
 
-    print "Overhead header: %.1f%%" % (100 * (4 + header_size) / size_archs)
+    print "Overhead header: %.1f%%" % (100 * (4 + c.header_size) / size_archs)
     print "Compresión neta: al %.2f%%" % (100 * fsize / size_archs)
 
     if not a_extraer:
@@ -51,19 +46,9 @@ def main(fname, a_extraer):
         # extraemos los archivos indicados
         for arch in a_extraer:
             print "Extrayendo", arch
-            info = header[arch]
-            while isinstance(info, basestring):
-                print "  redirigido a", info
-                arch = info
-                info = header[arch]
-            (seek, size) = info
-            print "    seek %d   size %d" % (seek, size)
-            fh.seek(4 + header_size + seek)
-            data = fh.read(size)
-            print "    extrayendo", arch
+            data = c.get_articulo(arch)
             with open(arch, "wb") as fdest:
                 fdest.write(data)
-
 
 
 if __name__ == "__main__":

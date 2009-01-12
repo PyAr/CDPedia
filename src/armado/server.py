@@ -15,7 +15,7 @@ import string
 import re
 
 import cdpindex
-import decompresor
+import compresor
 import config
 
 
@@ -101,7 +101,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ContentNotFound(u"Sólo buscamos páginas HTML!")
 
         try:
-            data = decompresor.getArticle(path.decode("utf-8"))
+            data = compresor.getArticle(path.decode("utf-8"))
         except Exception, e:
             msg = u"Error interno al buscar contenido: %s" % e
             raise ContentNotFound(msg)

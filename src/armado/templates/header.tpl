@@ -7,7 +7,7 @@
         <link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (Español)" />
         <link rel="copyright" href="../../../COPYING.html" />
     <title>$titulo - Wikipedia, la enciclopedia libre</title>
-    <style type="text/css">/*<![CDATA[*/ @import "../../../skins/htmldump/main.css"; /*]]>*/</style>
+    <style type="text/css">/*<![CDATA[*/ @import "../../../skins/offline/main.css"; /*]]>*/</style>
     <link rel="stylesheet" type="text/css" media="print" href="../../../skins/common/commonPrint.css" />
     <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
     <!--[if IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE55Fixes.css";</style><![endif]-->
@@ -15,9 +15,9 @@
     <!--[if IE]><script type="text/javascript" src="../../../skins/common/IEFixes.js"></script>
     <meta http-equiv="imagetoolbar" content="no" /><![endif]-->
     <script type="text/javascript" src="../../../skins/common/wikibits.js"></script>
-    <script type="text/javascript" src="../../../skins/htmldump/md5.js"></script>
-    <script type="text/javascript" src="../../../skins/htmldump/utf8.js"></script>
-    <script type="text/javascript" src="../../../skins/htmldump/lookup.js"></script>
+    <script type="text/javascript" src="../../../skins/offline/md5.js"></script>
+    <script type="text/javascript" src="../../../skins/offline/utf8.js"></script>
+    <script type="text/javascript" src="../../../skins/offline/lookup.js"></script>
     <script type="text/javascript" src="../../../raw/gen.js"></script>        <style type="text/css">/*<![CDATA[*/
 @import "../../../raw/MediaWiki%7ECommon.css";
 @import "../../../raw/MediaWiki%7EMonobook.css";
