@@ -25,22 +25,26 @@ from os import path
 from bz2 import BZ2File as CompressedFile
 import config
 
-_num_bloques = None
-
-# FIXME: poner un caché acá, que sea manejado por una clase, y que de paso
-# recuerde ese num_bloques
-
-def getArticle(fileName):
-    global _num_bloques
-    if _num_bloques is None:
-        _num_bloques = len(
+class ArticleManager(object):
+    def __init__(self):
+        self.num_bloques = len(
             [n for n in os.listdir(config.DIR_BLOQUES) if n[-4:]==".cdp"])
+        self.cache = {}
 
-    bloqNum = hash(fileName) % _num_bloques
-    bloqName = "%08x" % bloqNum
+    def getComprimido(self, nombre):
+        try:
+            comp = self.cache[nombre]
+        except KeyError:
+            comp = Comprimido(config.DIR_BLOQUES + nombre)
+            self.cache[nombre] = comp
+        return comp
 
-    c = Comprimido(config.DIR_BLOQUES + "/%s.cdp" % bloqName)
-    return c.get_articulo(fileName)
+    def getArticle(self, fileName):
+        bloqNum = hash(fileName) % self.num_bloques
+        bloqName = "%08x" % bloqNum
+        comp = self.getComprimido("/%s.cdp" % bloqName)
+        art = comp.get_articulo(fileName)
+        return art
 
 
 class Comprimido(object):

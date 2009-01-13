@@ -77,6 +77,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     _tpl_mngr = TemplateManager(os.path.join("src", "armado", "templates"))
 
+    _art_mngr = compresor.ArticleManager()
+
     def do_GET(self):
         """Serve a GET request."""
         tipo, data = self.getfile(self.path)
@@ -101,7 +103,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ContentNotFound(u"Sólo buscamos páginas HTML!")
 
         try:
-            data = compresor.getArticle(path.decode("utf-8"))
+            data = self._art_mngr.getArticle(path.decode("utf-8"))
         except Exception, e:
             msg = u"Error interno al buscar contenido: %s" % e
             raise ContentNotFound(msg)
@@ -124,6 +126,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
         print "get file:", path
+        if path == "/index.html":
+            return self._main_page()
         if path == "/dosearch":
             return self.dosearch(query)
         if path == "/detallada":
