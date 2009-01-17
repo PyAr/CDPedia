@@ -16,6 +16,8 @@ from os.path import join, abspath, sep, dirname
 from urllib2 import urlparse
 import config
 
+from src.preproceso import preprocesadores
+
 class WikiArchivo:
     def __init__(self, wikisitio, ruta):
         self.ruta = ruta = abspath(ruta)
@@ -51,7 +53,7 @@ class WikiArchivo:
         open(destino, 'w').write(self.html)
 
 class WikiSitio(object):
-    def __init__(self, dir_raiz, config=None):
+    def __init__(self, dir_raiz, config=None, verbose=False):
         if not config: import config
         self.config = config
         self.ruta = unicode(abspath(dir_raiz))
@@ -59,7 +61,8 @@ class WikiSitio(object):
         self.destino = unicode(abspath(config.DIR_PREPROCESADO))
         self.wikiurls = config.USAR_WIKIURLS
         self.resultados = {}
-        self.preprocesadores = [ proc(self) for proc in config.PREPROCESADORES ]
+        self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
+        self.verbose = verbose
 
     def Archivo(self, ruta):
         return WikiArchivo(self, ruta)
@@ -78,14 +81,16 @@ class WikiSitio(object):
 #                    resultados.setdefault(url, {})
                 resultados[url] = {}
 
-                print 'Procesando: %s' % url.encode("utf8")
+                if self.verbose:
+                    print 'Procesando: %s' % url.encode("utf8")
                 for procesador in self.preprocesadores:
                     (puntaje, otras_pags) = procesador(wikiarchivo)
 
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
                         del resultados[url]
-                        print '  omitido!'
+                        if self.verbose:
+                            print '  omitido!'
                         break
 
                     # ponemos el puntaje
@@ -97,10 +102,12 @@ class WikiSitio(object):
                         ant[procesador.nombre] = puntaje_extra.get(
                                             procesador.nombre, 0) + extra_ptje
                 else:
-                    print "  puntaje:", resultados[url]
+                    if self.verbose:
+                        print "  puntaje:", resultados[url]
 
                 wikiarchivo.guardar()
-                print
+                if self.verbose:
+                    print
 
         # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
         perdidos = []
@@ -114,8 +121,7 @@ class WikiSitio(object):
             print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
 #            print perdidos
 
-        print 'Total: %s páginas procesadas' % len(resultados)
-        print '***** Fin Procesado *****'
+        return len(resultados)
 
     def guardar(self):
         # Esto se procesa solo si queremos una salida en modo de texto (LOG_PREPROCESADO != None)
@@ -131,23 +137,27 @@ class WikiSitio(object):
         salida = codecs.open(log, "w", "utf-8")
 
         # Encabezado:
-        columnas = [u'Página'] + [procesador.nombre for procesador in self.preprocesadores]
+        columnas = [u'Página'] + [p.nombre for p in self.preprocesadores]
         plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
         salida.write(plantilla % tuple(columnas))
 
         # Contenido:
         for pagina, valores in self.resultados.iteritems():
-            #los rankings deben ser convertidos en str para evitar literales como 123456L
-            columnas = [pagina] + [valores.get(procesador.nombre, procesador.valor_inicial) for procesador in self.preprocesadores]
+            #los rankings deben ser convertidos en str para evitar
+            # literales como 123456L
+            columnas = [pagina] + [valores.get(p.nombre, p.valor_inicial)
+                                                for p in self.preprocesadores]
             salida.write(plantilla % tuple(columnas))
 
-        print 'Registro guardado en %s' % log
+        if self.verbose:
+            print 'Registro guardado en %s' % log
 
 
-def run(dir_raiz):
-    wikisitio = WikiSitio(dir_raiz)
-    wikisitio.procesar()
+def run(dir_raiz, verbose=False):
+    wikisitio = WikiSitio(dir_raiz, verbose=verbose)
+    cant = wikisitio.procesar()
     wikisitio.guardar()
+    return cant
 
 if __name__ == "__main__":
     run()

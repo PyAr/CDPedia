@@ -77,7 +77,7 @@ def genera_run_config():
     f.write('PREFIJO_INDICE = "indice/wikiindex"\n')
     f.close()
 
-def main(src_info, evitar_iso):
+def main(src_info, evitar_iso, verbose):
     mensaje("Comenzando!")
 
     # limpiamos el directorio temporal
@@ -93,15 +93,16 @@ def main(src_info, evitar_iso):
         print "\nERROR: No se encuentra el directorio %r" % articulos
         print "Este directorio es obligatorio para el procesamiento general"
         sys.exit()
-    preprocesar.run(articulos)
+    cant = preprocesar.run(articulos, verbose)
+    print '  total: %d páginas procesadas' % cant
 
     mensaje("Generando el índice")
-    cdpindex.generar(articulos)
+    cdpindex.generar(articulos, verbose)
 
     mensaje("Generando los bloques")
     dest = path.join(config.DIR_BLOQUES)
     os.makedirs(dest)
-    compresor.generar()
+    compresor.generar(verbose)
 
     if not evitar_iso:
         mensaje("Copiando las fuentes")
@@ -133,6 +134,8 @@ if __name__ == "__main__":
     parser.set_usage(msg)
     parser.add_option("-n", "--no-iso", action="store_true",
                       dest="create_iso", help="evita crear el ISO al final")
+    parser.add_option("-v", "--verbose", action="store_true",
+                  dest="verbose", help="muestra info de lo que va haciendo")
 
     (options, args) = parser.parse_args()
 
@@ -142,5 +145,6 @@ if __name__ == "__main__":
 
     direct = args[0]
     evitar_iso = bool(options.create_iso)
+    verbose = bool(options.verbose)
 
-    main(args[0], evitar_iso)
+    main(args[0], evitar_iso, verbose)

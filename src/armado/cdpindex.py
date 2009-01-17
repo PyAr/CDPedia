@@ -7,9 +7,10 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
-#from __future__ import division
 import shelve, time, sys, os.path, re, codecs
 import config
+
+from src import utiles
 
 usage = """Indice de títulos de la CDPedia
 
@@ -22,11 +23,6 @@ Para generar el archivo de indice hacer:
     max: cantidad máxima de títulos a indizar
     dirbase: de dónde dependen los archivos
 """
-
-#def getsubstrings(source, minim=3):
-#    for size in range(minim, len(source)+1):
-#        for pos in range(0, len(source)-size+1):
-#            yield source[pos:pos+size]
 
 # Buscamos todo hasta el último guión no inclusive, porque los
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
@@ -43,17 +39,9 @@ def _getHTMLTitle(arch):
         tit = u"<sin título>"
     return tit
 
-# Esto es porque shelve NO soporte unicode en las keys, veremos que hacemos luego
-#import cPickle
-#class MyShelve(dict):
-#    def __init__(self, filename):
-#        self.filename = filename
-#    def close(self):
-#        f = open(self.filename, "w")
-#        cPickle.dump(self)
-
 class Index(object):
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, verbose=False):
+        self.verbose = verbose
         if filename is not None:
             self.open(filename)
 
@@ -89,7 +77,8 @@ class Index(object):
 
         # fill them
         for docid, (nomhtml, titulo) in enumerate(fuente):
-            print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
+            if self.verbose:
+                print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
             # docid -> info final
             self.id_shelf[str(docid)] = (nomhtml, titulo)
 
@@ -112,62 +101,25 @@ class Index(object):
         self.word_shelf.close()
         return docid
 
-#    def index(self, item, description):
-#        iid = hash(item)
-#        self.id_shelf[ str(iid) ] = item,description
-#        parts = description.split(":")
-#        result = []
-#        for p in parts:
-#            result += p.split(" ")
-#
-#        result = [ w.lower() for w in result ]
-#        result = set(result)
-#        words = set(result)
-#        for w in result:
-#            res = list(getsubstrings(w))
-#            words.update(res)
-#
-#        for word in words:
-#            s = self.word_shelf.get(word, set())
-#            s.add( iid )
-#            self.word_shelf[word]=s
-
-#    def flush(self):
-#        self.word_shelf.sync()
-#        self.id_shelf.sync()
-
     def open(self, filename):
         wordsfilename = filename + ".words"
         idsfilename = filename + ".ids"
-        print "Opening", wordsfilename
+        if self.verbose:
+            print "Opening", wordsfilename
         self.word_shelf = shelve.open(wordsfilename)
-        print "Opening", idsfilename
+        if self.verbose:
+            print "Opening", idsfilename
         self.id_shelf = shelve.open(idsfilename)
 
-#    def save(self):
-#        if self.todisk:
-#            self.flush()
-#        else:
-#            wshelf = self.word_shelf
-#            ishelf = self.id_shelf
-#            self.open()
-#            print "Updating word shelf"
-#            self.word_shelf.update(wshelf)
-#            print "Updating id shelf"
-#            self.id_shelf.update(ishelf)
-#            print "Syncing"
-#            self.flush()
-#            print 'Done'
+def generar(src_info, verbose):
+    _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
+                                    dirbase=src_info, verbose=verbose)
 
-def generar(src_info):
-    _create_index(
-            config.LOG_PREPROCESADO, config.PREFIJO_INDICE, dirbase=src_info)
-
-def _create_index(fuente, salida, max=None, dirbase=""):
+def _create_index(fuente, salida, max=None, dirbase="", verbose=False):
     if max is not None:
         max = int(max)
 
-    index = Index()
+    index = Index(verbose=verbose)
 
     def fix(letra):
         if letra == " ":
@@ -177,7 +129,7 @@ def _create_index(fuente, salida, max=None, dirbase=""):
     def get3letras(arch):
         arch = arch[:-5] # le sacamos el .html
         arch = arch.lower()
-        arch = (arch+"   ")[:3] # nos quedamos con las primeras 3 llenando con espacios
+        arch = (arch+"   ")[:3] # queremos las primeras 3 llenando con espacios
         return map(fix, arch)
 
     def gen():
@@ -188,9 +140,11 @@ def _create_index(fuente, salida, max=None, dirbase=""):
             if not arch.endswith(".html"):
                 continue
 
-            print "Indizando [%d] %s" % (i, arch.encode("utf8"))
+            (categoria, restonom) = utiles.separaNombre(arch)
+            if verbose:
+                print "Indizando [%d] %s" % (i, arch.encode("utf8"))
             # info auxiliar
-            a,b,c = get3letras(arch)
+            a,b,c = get3letras(restonom)
             nomhtml = os.path.join(a, b, c, arch)
             nomreal = os.path.join(dirbase, nomhtml)
             if os.access(nomreal, os.F_OK):
@@ -217,49 +171,3 @@ if __name__ == "__main__":
     delta = time.time()-tini
     print "Indice creado! (%.2fs)" % delta
     print "Archs: %d  (%.2f mseg/arch)" % (cant, 1000*delta/cant)
-
-
-#    parsed_file = "parsed/parsefile.cpkl"
-#
-#    print "Opening Index:", indexfilename
-#    index = cdpindex.Index(indexfilename)
-#    print "Opening contents:", zipfilename
-#    wikipedia = zipfile.ZipFile(zipfilename)
-#    print "Stage 1:"
-#    try:
-#        f = open(parsed_file)
-#        print "Loading parsed pages"
-#        all = cPickle.load(f)
-#    except IOError:
-#        print "Creating parsed pages"
-#        timer = Timer()
-#        print "Generating namelist"
-#        namelist = list(wikipedia.namelist())
-#        total = len(namelist)
-#        print "Done with namelist"
-#        timer.start(len(namelist))
-#        all = []
-#        for i,name in enumerate(namelist):
-#            if maxitems and i>maxitems: break
-#            if i%50==0:
-#                timer.tick(50)
-#
-#            if name.endswith(".html"):
-#                title = gettitle(wikipedia, name)
-#                all.append( (name, title) )
-#        cPickle.dump( all, open(parsed_file, "w") )
-#    print "Done."
-#
-#    timer = Timer()
-#    timer.start(len(all))
-#    for i,(name, title) in enumerate(all):
-#        if maxitems and i>maxitems: break
-#        if i%50==0:
-#            timer.tick(50)
-#        if name.endswith(".html"):
-#            index.index(name, title)
-#        if i%50==0:
-#            index.flush()
-#    index.save()
-#    print "Exiting..."
-

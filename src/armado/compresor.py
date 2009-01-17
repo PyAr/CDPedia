@@ -55,9 +55,10 @@ class Comprimido(object):
         self.header = pickle.loads(header_bytes)
 
     @classmethod
-    def crear(self, redirects, bloqNum, fileNames):
+    def crear(self, redirects, bloqNum, fileNames, verbose=False):
         '''Genera el comprimido.'''
-        print "Procesando el bloque", bloqNum
+        if verbose:
+            print "Procesando el bloque", bloqNum
 
         # armo el header con un ejemplo de redirect
         header = redirects[bloqNum]
@@ -68,12 +69,14 @@ class Comprimido(object):
             header[fileName.encode("utf-8")] = (seek, size)
             seek += size
         headerBytes = pickle.dumps(header)
-        print "  archivos: %d   seek total: %d   largo header: %d" % (
+        if verbose:
+            print "  archivos: %d   seek total: %d   largo header: %d" % (
                                     len(fileNames), seek, len(headerBytes))
 
         # abro el archivo a comprimir
         nomfile = path.join(config.DIR_BLOQUES, "%08x.cdp" % bloqNum)
-        print "  grabando en", nomfile
+        if verbose:
+            print "  grabando en", nomfile
         f = CompressedFile(nomfile, "wb")
 
         # grabo la longitud del header, y el header
@@ -102,22 +105,26 @@ class Comprimido(object):
 
 
 
-def generar():
+def generar(verbose):
     # recorrer todos los nombres de articulos, y ordenarlos en un dict por
     # su numero de bloque, segun el hash
     fileNames = []
-    print "Buscando los artículos"
+    if verbose:
+        print "Buscando los artículos"
     for root, dirs, files in os.walk(unicode(config.DIR_PREPROCESADO)):
         for fileName in files:
             fileNames.append( (root, fileName) )
             if len(fileNames)%10000 == 0:
-                print "  encontrados %d artículos" % len(fileNames)
+                if verbose:
+                    print "  encontrados %d artículos" % len(fileNames)
 
-    print "Procesando", len(fileNames), "articulos"
+    if verbose:
+        print "Procesando", len(fileNames), "articulos"
     numBloques= max(len(fileNames) // config.ARTICLES_PER_BLOCK, 1)
     bloques = {}
     for root, fileName in fileNames:
-        print "  archs:", root, fileName
+        if verbose:
+            print "  archs:", root, fileName
         bloqNum = hash(fileName) % numBloques
         if bloqNum not in bloques:
             bloques[bloqNum] = []
@@ -129,13 +136,14 @@ def generar():
         desde, hasta = linea.split()
         desde = path.basename(desde)
         hasta = path.basename(hasta)
-        print "  redirs:", desde, hasta
+        if verbose:
+            print "  redirs:", desde, hasta
         bloqNum = hash(desde) % numBloques
         redirects[bloqNum][desde] = hasta
 
     # armamos cada uno de los comprimidos
     for bloqNum, fileNames in bloques.items():
-        Comprimido.crear(redirects, bloqNum, fileNames)
+        Comprimido.crear(redirects, bloqNum, fileNames, verbose)
 
 if __name__ == "__main__":
     generar()

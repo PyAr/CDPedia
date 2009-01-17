@@ -24,6 +24,8 @@ from urllib2 import unquote
 from urlparse import urljoin
 import codecs
 
+from src import utiles
+
 # Procesadores:
 class Procesador(object):
     """
@@ -60,18 +62,11 @@ class Namespaces(Procesador):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
         self.log = codecs.open(self.config.LOG_OMITIDO, "w", "utf-8")
-        # Deberia dar algo como ".*?(Usuario|Imagen|Discusión|Plantilla)[^~]*~"
-        self.regex = r'(%s)~' % '|'.join(self.config.NAMESPACES)
-        self.captura_namespace = compile(self.regex).search
 
 
     def __call__(self, wikiarchivo):
         config = self.config
-        captura = self.captura_namespace(wikiarchivo.ruta)
-        if captura is None:
-            namespace = '' # Namespace Principal
-        else:
-            namespace = captura.groups()[0]
+        (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
 
 #        print 'Namespace:', repr(namespace) or '(Principal)',
         # no da puntaje per se, pero invalida segun namespace
@@ -196,3 +191,13 @@ class Longitud(Procesador):
 #        print "-- Tamaño útil: %d --\n" % largo
         return (largo, [])
 
+
+# Clases que serán utilizadas para el preprocesamiento
+# de cada una de las páginas, en orden de ejecución.
+TODOS = [
+    Namespaces,
+    OmitirRedirects,
+    ExtraerContenido,
+    Peishranc,
+    #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
+]

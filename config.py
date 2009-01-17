@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import src.preproceso.preprocesadores as pp
-
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
 URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
@@ -42,16 +40,6 @@ LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '\t'
 SEPARADOR_FILAS = '\n'
-
-# Clases que serán utilizadas para el preprocesamiento
-# de cada una de las páginas, en orden de ejecución.
-PREPROCESADORES = [
-    pp.Namespaces,
-    pp.OmitirRedirects,
-    pp.ExtraerContenido,
-    pp.Peishranc,
-    #pp.Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
-]
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
