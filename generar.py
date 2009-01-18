@@ -102,7 +102,8 @@ def main(src_info, evitar_iso, verbose):
     mensaje("Generando los bloques")
     dest = path.join(config.DIR_BLOQUES)
     os.makedirs(dest)
-    compresor.generar(verbose)
+    result = compresor.generar(verbose)
+    print '  total: %d bloques con %d archivos' % result
 
     if not evitar_iso:
         mensaje("Copiando las fuentes")

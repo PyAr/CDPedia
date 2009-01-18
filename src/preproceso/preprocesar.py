@@ -4,7 +4,7 @@
 """
 Uso: preprocesar.py
 
-Aplica los procesadores definidos en config.preprocesadores a cada
+Aplica los procesadores definidos en preprocesadores a cada
 una de las páginas, para producir la prioridad con la que página
 será (o no) incluída en la compilación.
 
@@ -20,23 +20,14 @@ from src.preproceso import preprocesadores
 
 class WikiArchivo:
     def __init__(self, wikisitio, ruta):
-        self.ruta = ruta = abspath(ruta)
+        self.ruta = ruta
 
-        if not ruta.startswith(wikisitio.ruta):
-            raise AttributeError, "%s no pertenece al sitio en %s" % (ruta, wikisitio.ruta)
-
-        # La ruta podría ser algo como 'P:\\cdpedia\\es\\sub\\pagina.html'...
-        # Ojo: ruta_relativa *siempre* empieza con '/' (es relativa a la raíz del sitio)
-        self.ruta_relativa = ruta_relativa = ruta[len(wikisitio.ruta):]
-        self.destino = wikisitio.destino + ruta_relativa
-        self.wikisitio = wikisitio
-        self.absurl = absurl = urlparse.urljoin('/', '/'.join(ruta_relativa.split(sep)))
-        self.pagina = absurl.rsplit('/', 1)[-1]
-        #esto podría cambiar (ej. para que sea igual a como está en el sitio):
-        self.wikiurl = wikiurl = self.pagina
-        self.url = wikisitio.wikiurls and wikiurl or absurl
+        # Ojo: ruta_relativa *siempre* empieza con '/' (es relativa a la raíz
+        # del sitio)
+        ruta_relativa = ruta[len(wikisitio.origen):]
+        self.destino = config.DIR_PREPROCESADO + ruta_relativa
+        self.url = os.path.basename(ruta_relativa)
         self.html = open(ruta).read()
-        #raise 'ruta: %s, url: %s' % (self.ruta, self.url)
 
     def resethtml(self):
         self.html = open(self.ruta).read()
@@ -53,28 +44,19 @@ class WikiArchivo:
         open(destino, 'w').write(self.html)
 
 class WikiSitio(object):
-    def __init__(self, dir_raiz, config=None, verbose=False):
-        if not config: import config
-        self.config = config
-        self.ruta = unicode(abspath(dir_raiz))
-        self.origen = unicode(abspath(dir_raiz)) # config.DIR_RAIZ + sep + config.DIR_A_PROCESAR))
-        self.destino = unicode(abspath(config.DIR_PREPROCESADO))
-        self.wikiurls = config.USAR_WIKIURLS
+    def __init__(self, dir_raiz, verbose=False):
+        self.origen = unicode(abspath(dir_raiz))
         self.resultados = {}
         self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
         self.verbose = verbose
 
-    def Archivo(self, ruta):
-        return WikiArchivo(self, ruta)
-
     def procesar(self):
-        config = self.config
         resultados = self.resultados
         puntaje_extra = {}
 
         for cwd, directorios, archivos in os.walk(self.origen):
             for nombre_archivo in archivos:
-                wikiarchivo = self.Archivo(join(cwd, nombre_archivo))
+                wikiarchivo = WikiArchivo(self, join(cwd, nombre_archivo))
                 url = wikiarchivo.url
                 if url in resultados:
                     raise ValueError("queloqué?")
@@ -125,7 +107,6 @@ class WikiSitio(object):
 
     def guardar(self):
         # Esto se procesa solo si queremos una salida en modo de texto (LOG_PREPROCESADO != None)
-        config = self.config
         if not config.LOG_PREPROCESADO:
             print "WARNING: no se generó el log porque falta la variable "\
                   "LOG_PREPROCESADO en config.py"

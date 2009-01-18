@@ -25,13 +25,6 @@ DIR_CDBASE = "temp/cdroot"
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
 DIR_ASSETS = "temp/cdroot/assets"
 
-# USAR_WIKIURLS: Por el momento aplica solamente al preprocesado.
-# Si es falso (False), las urls tendrán el formato del 7z,
-# por ej.: /z/o/o/Zoo_TV_Tour_9bdd.html
-# Si es verdadero, no se incluirán los directorios, pero (por ahora)
-# sí el sufijo .html y demás metadata, por ej.: Zoo_TV_Tour_9bdd.html
-USAR_WIKIURLS = True
-
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
 LOG_OMITIDO = DIR_TEMP + "/omitido.txt"

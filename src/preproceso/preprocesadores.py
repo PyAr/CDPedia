@@ -25,6 +25,7 @@ from urlparse import urljoin
 import codecs
 
 from src import utiles
+import config
 
 # Procesadores:
 class Procesador(object):
@@ -39,7 +40,6 @@ class Procesador(object):
         """
         self.valor_inicial = ''
         self.nombre = 'Procesador Genérico'
-        self.config = wikisitio.config
         self.log = None # ej.: open("archivo.log", "w")
 
     def __call__(self, wikiarchivo):
@@ -61,11 +61,10 @@ class Namespaces(Procesador):
     def __init__(self, wikisitio):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
-        self.log = codecs.open(self.config.LOG_OMITIDO, "w", "utf-8")
+        self.log = codecs.open(config.LOG_OMITIDO, "w", "utf-8")
 
 
     def __call__(self, wikiarchivo):
-        config = self.config
         (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
 
 #        print 'Namespace:', repr(namespace) or '(Principal)',
@@ -87,16 +86,11 @@ class OmitirRedirects(Procesador):
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects-"
-        self.log = codecs.open(self.config.LOG_REDIRECTS, "w", "utf-8")
-        if wikisitio.wikiurls:
-            self.regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
-        else:
-            self.regex = r'<meta http-equiv="Refresh" content="\d*;?url=([^">]+)"'
-
-        self.capturar = compile(self.regex).search
+        self.log = codecs.open(config.LOG_REDIRECTS, "w", "utf-8")
+        regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
+        self.capturar = compile(regex).search
 
     def __call__(self, wikiarchivo):
-        config = self.config
         captura = self.capturar(wikiarchivo.html)
 
         # no da puntaje per se, pero invalida segun namespace
@@ -150,10 +144,7 @@ class Peishranc(Procesador):
         super(Peishranc, self).__init__(wikisitio)
         self.nombre = "Peishranc"
         self.valor_inicial = 0
-        if wikisitio.wikiurls:
-            regex = r'<a\s+[^>]*?href="\.\.\/.*?([^/>"]+\.html)"'
-        else:
-            regex = r'<a\s+[^>]*?href="(\.\.\/[^">]+\.html)"'
+        regex = r'<a\s+[^>]*?href="\.\.\/.*?([^/>"]+\.html)"'
         self.capturar = compile(regex).findall
 
     def __call__(self, wikiarchivo):

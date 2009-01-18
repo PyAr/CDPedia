@@ -10,8 +10,6 @@ para crear el índice.
 import shelve, time, sys, os.path, re, codecs
 import config
 
-from src import utiles
-
 usage = """Indice de títulos de la CDPedia
 
 Para generar el archivo de indice hacer:
@@ -116,6 +114,9 @@ def generar(src_info, verbose):
                                     dirbase=src_info, verbose=verbose)
 
 def _create_index(fuente, salida, max=None, dirbase="", verbose=False):
+    # lo importamos acá porque no es necesario en producción
+    from src import utiles
+
     if max is not None:
         max = int(max)
 

@@ -142,8 +142,11 @@ def generar(verbose):
         redirects[bloqNum][desde] = hasta
 
     # armamos cada uno de los comprimidos
+    tot = 0
     for bloqNum, fileNames in bloques.items():
+        tot += len(fileNames)
         Comprimido.crear(redirects, bloqNum, fileNames, verbose)
+    return (len(bloques), tot)
 
 if __name__ == "__main__":
     generar()
