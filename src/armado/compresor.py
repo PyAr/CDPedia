@@ -23,6 +23,8 @@ import struct
 import cPickle as pickle
 from os import path
 from bz2 import BZ2File as CompressedFile
+import random
+
 import config
 
 class ArticleManager(object):
@@ -44,6 +46,13 @@ class ArticleManager(object):
         bloqName = "%08x" % bloqNum
         comp = self.getComprimido("/%s.cdp" % bloqName)
         art = comp.get_articulo(fileName)
+        return art
+
+    def getRandom(self):
+        bloqNum = int(random.random() * self.num_bloques)
+        bloqName = "%08x" % bloqNum
+        comp = self.getComprimido("/%s.cdp" % bloqName)
+        art = comp.get_random()
         return art
 
 
@@ -103,6 +112,18 @@ class Comprimido(object):
             data = self.fh.read(size)
         return data
 
+    def get_random(self):
+        '''Devuelve un artículo al azar.'''
+        while True:
+            info = random.choice(self.header.values())
+            if not isinstance(info, basestring):
+                # info real, no un redirect
+                break
+
+        (seek, size) = info
+        self.fh.seek(4 + self.header_size + seek)
+        data = self.fh.read(size)
+        return data
 
 
 def generar(verbose):

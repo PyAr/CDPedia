@@ -111,12 +111,14 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if data is None:
             raise ContentNotFound(u"No se encontró la página '%s'" % path)
 
-        title = getTitleFromData(data)
+        return self._arma_pagina(data)
 
+    def _arma_pagina(self, contenido):
+        title = getTitleFromData(contenido)
         header = self.templates("header", titulo=title)
         footer = self.templates("footer")
-        pag = header + data + footer
-        return pag
+        pag = header + contenido + footer
+        return "text/html", pag
 
     def _main_page(self, msg=u"¡Bienvenido!"):
         pag = self.templates("mainpage", mensaje=msg.encode("utf8"))
@@ -153,7 +155,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             msg = u"ERROR: '%s' not found (%s)" % (path, e.message)
             return self._main_page(msg)
 
-        return "text/html",data
+        return data
 
     def detallada(self, query):
         return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
@@ -162,7 +164,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
 
     def al_azar(self, query):
-        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
+        data = self._art_mngr.getRandom()
+        return self._arma_pagina(data)
 
     def dosearch(self, query):
         params = cgi.parse_qs(query)
