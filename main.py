@@ -1,13 +1,15 @@
-import thread
-import time
+import threading
 import webbrowser
 
 from src.armado import server
 
+event = threading.Event()
+
 def sleepAndBrowse():
-    time.sleep(1)
+    event.wait()
     webbrowser.open("http://localhost:8000/")
 
-thread.start_new(sleepAndBrowse, ())
-server.run()
-print "terminado, saliendo."
+threading.Thread(target=sleepAndBrowse).start()
+print "Levantando el server..."
+server.run(event)
+print "Terminado, saliendo."

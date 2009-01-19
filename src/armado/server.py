@@ -187,12 +187,14 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return r
 
 
-def run(HandlerClass = WikiHTTPRequestHandler,
-         ServerClass = BaseHTTPServer.HTTPServer,
-         build_index=False, maxitems=50):
+def run(event):
     WikiHTTPRequestHandler.index = cdpindex.Index(config.PREFIJO_INDICE)
-    BaseHTTPServer.test(HandlerClass, ServerClass)
+    WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"
+    httpd = BaseHTTPServer.HTTPServer(('', 8000), WikiHTTPRequestHandler)
 
+    print "Sirviendo HTTP en localhost, puerto 8000..."
+    event.set()
+    httpd.serve_forever()
 
 if __name__ == '__main__':
     run()
