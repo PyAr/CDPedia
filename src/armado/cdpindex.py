@@ -8,6 +8,8 @@ para crear el índice.
 """
 
 import shelve, time, sys, os.path, re, codecs
+import random
+
 import config
 
 usage = """Indice de títulos de la CDPedia
@@ -48,6 +50,12 @@ class Index(object):
         for palabra, docids in sorted(self.word_shelf.items()):
             print "%s: %s" % (palabra, [id_shelf[str(x)][1] for x in docids])
 
+    def listado_completo(self):
+        return sorted(self.id_shelf.values())
+
+    def get_random(self):
+        return random.choice(self.id_shelf.values())
+
     def search(self, words):
         result = None
         words = words.encode("utf8") # shelve no soporta unicode
@@ -67,7 +75,6 @@ class Index(object):
         if result is None:
             return []
         return [self.id_shelf[str(x)] for x in result]
-
 
     def create(self, salida, fuente):
         # initalize own shelves

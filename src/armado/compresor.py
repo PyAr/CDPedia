@@ -48,13 +48,6 @@ class ArticleManager(object):
         art = comp.get_articulo(fileName)
         return art
 
-    def getRandom(self):
-        bloqNum = int(random.random() * self.num_bloques)
-        bloqName = "%08x" % bloqNum
-        comp = self.getComprimido("/%s.cdp" % bloqName)
-        art = comp.get_random()
-        return art
-
 
 class Comprimido(object):
     def __init__(self, fname):
@@ -75,7 +68,7 @@ class Comprimido(object):
         for root, fileName in fileNames:
             fullName = path.join(root, fileName)
             size = path.getsize(fullName)
-            header[fileName.encode("utf-8")] = (seek, size)
+            header[fileName] = (seek, size)
             seek += size
         headerBytes = pickle.dumps(header)
         if verbose:
@@ -110,19 +103,6 @@ class Comprimido(object):
             (seek, size) = info
             self.fh.seek(4 + self.header_size + seek)
             data = self.fh.read(size)
-        return data
-
-    def get_random(self):
-        '''Devuelve un artículo al azar.'''
-        while True:
-            info = random.choice(self.header.values())
-            if not isinstance(info, basestring):
-                # info real, no un redirect
-                break
-
-        (seek, size) = info
-        self.fh.seek(4 + self.header_size + seek)
-        data = self.fh.read(size)
         return data
 
 

@@ -73,8 +73,6 @@ def gettitle(zf, name):
 class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
 
-    root = ""
-
     _tpl_mngr = TemplateManager(os.path.join("src", "armado", "templates"))
 
     _art_mngr = compresor.ArticleManager()
@@ -147,7 +145,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return "image/%s"%path[-3:], asset_data
         if path=="":
             return self._main_page()
-        path =  self.root + path
 
         try:
             data = self._get_contenido(path)
@@ -161,11 +158,19 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
 
     def listfull(self, query):
-        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
+        articulos = self.index.listado_completo()
+        res = []
+        for link, titulo in articulos:
+            linea = '<br/><a href="%s">%s</a>' % (
+                                link.encode("utf8"), titulo.encode("utf8"))
+            res.append(linea)
+
+        pag = self.templates("listadofull", lineas="\n".join(res))
+        return "text/html", pag
 
     def al_azar(self, query):
-        data = self._art_mngr.getRandom()
-        return self._arma_pagina(data)
+        link, tit = self.index.get_random()
+        return self._get_contenido(link.encode("utf8"))
 
     def dosearch(self, query):
         params = cgi.parse_qs(query)
@@ -176,9 +181,10 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
-        for camino, titulo in candidatos:
-            link = camino[len(self.root):]
-            res.append('<tr><td><a href="%s">%s</a></td></tr>' % (link, titulo))
+        for link, titulo in candidatos:
+            linea = '<tr><td><a href="%s">%s</a></td></tr>' % (
+                                link.encode("utf8"), titulo.encode("utf8"))
+            res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
         return "text/html", pag
