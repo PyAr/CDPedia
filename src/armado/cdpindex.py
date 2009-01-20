@@ -40,23 +40,32 @@ def _getHTMLTitle(arch):
     return tit
 
 class Index(object):
+    '''Maneja todo el índice.
+
+    La idea es ofrecer funcionalidad, después vemos tamaño y tiempos.
+    '''
+
     def __init__(self, filename=None, verbose=False):
         self.verbose = verbose
         if filename is not None:
             self.open(filename)
 
     def listar(self):
+        '''Muestra en stdout las palabras y los artículos referenciados.'''
         id_shelf = self.id_shelf
         for palabra, docids in sorted(self.word_shelf.items()):
             print "%s: %s" % (palabra, [id_shelf[str(x)][1] for x in docids])
 
     def listado_completo(self):
+        '''Devuelve la info de todos los artículos.'''
         return sorted(self.id_shelf.values())
 
     def get_random(self):
+        '''Devuelve un artículo al azar.'''
         return random.choice(self.id_shelf.values())
 
     def search(self, words):
+        '''Busca palabras completas en el índice.'''
         result = None
         words = words.encode("utf8") # shelve no soporta unicode
         words = words.lower().split()
@@ -76,7 +85,39 @@ class Index(object):
             return []
         return [self.id_shelf[str(x)] for x in result]
 
+    def detailed_search(self, words):
+        '''Busca palabras parciales en el índice.'''
+        result = None
+        words = words.encode("utf8") # shelve no soporta unicode
+        words = words.lower().split()
+        for word in words:
+            print "======= 1", word
+            resultword = set()
+            for guardada in self.word_shelf:
+                if word in guardada:
+                    print "encontramos en", guardada
+                    break
+            else:
+                print "nopo!"
+                continue
+
+            # word forma parte de guardada
+            docids = self.word_shelf[guardada]
+            print "======= 2", docids
+
+            # first time, create with found, else the intersection
+            # of previously found with what is found now
+            if result is None:
+                result = set(docids)
+            else:
+                result.intersection_update(set(docids))
+
+        if result is None:
+            return []
+        return [self.id_shelf[str(x)] for x in result]
+
     def create(self, salida, fuente):
+        '''Crea los índices.'''
         # initalize own shelves
         self.open(salida)
 
@@ -107,6 +148,7 @@ class Index(object):
         return docid
 
     def open(self, filename):
+        '''Abre los archivos.'''
         wordsfilename = filename + ".words"
         idsfilename = filename + ".ids"
         if self.verbose:

@@ -155,7 +155,22 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return data
 
     def detallada(self, query):
-        return self._main_page(u"Todavía no codeamos esa funcionalidad, :s")
+        params = cgi.parse_qs(query)
+        if not "keywords" in params:
+            return self._main_page(u"¡Búsqueda mal armada!")
+        keywords = params["keywords"][0]
+
+        candidatos = self.index.detailed_search(keywords)
+        if not candidatos:
+            return self._main_page(u"No se encontró nada para lo ingresado!")
+        res = []
+        for link, titulo in candidatos:
+            linea = '<tr><td><a href="%s">%s</a></td></tr>' % (
+                                link.encode("utf8"), titulo.encode("utf8"))
+            res.append(linea)
+
+        pag = self.templates("searchres", results="\n".join(res))
+        return "text/html", pag
 
     def listfull(self, query):
         articulos = self.index.listado_completo()
@@ -175,9 +190,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def dosearch(self, query):
         params = cgi.parse_qs(query)
         if not "keywords" in params:
-            return self.search()
+            return self._main_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
-        candidatos = self.index.search( keywords )
+        candidatos = self.index.search(keywords)
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
