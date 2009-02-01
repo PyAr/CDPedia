@@ -29,6 +29,7 @@ DIR_ASSETS = "temp/cdroot/assets"
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
 LOG_OMITIDO = DIR_TEMP + "/omitido.txt"
 LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
+LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '\t'

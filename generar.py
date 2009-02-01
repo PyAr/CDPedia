@@ -12,6 +12,7 @@ import config
 from src.preproceso import preprocesar
 from src.armado import compresor
 from src.armado import cdpindex
+from src.imagenes import extraer, download
 
 def mensaje(texto):
     fh = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -96,8 +97,16 @@ def main(src_info, evitar_iso, verbose):
     cant = preprocesar.run(articulos, verbose)
     print '  total: %d páginas procesadas' % cant
 
+    mensaje("Generando el log de imágenes")
+    result = extraer.run(verbose)
+    print '  total: %d imágenes sacadas de %d archivos' % result
+
+    mensaje("Descargando las imágenes de la red")
+    download.traer(verbose)
+
     mensaje("Generando el índice")
-    cdpindex.generar(articulos, verbose)
+    result = cdpindex.generar(articulos, verbose)
+    print '  total: %d archivos' % result
 
     mensaje("Generando los bloques")
     dest = path.join(config.DIR_BLOQUES)

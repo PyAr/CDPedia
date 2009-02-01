@@ -103,7 +103,6 @@ class Index(object):
 
             # word forma parte de guardada
             docids = self.word_shelf[guardada]
-            print "======= 2", docids
 
             # first time, create with found, else the intersection
             # of previously found with what is found now
@@ -159,7 +158,7 @@ class Index(object):
         self.id_shelf = shelve.open(idsfilename)
 
 def generar(src_info, verbose):
-    _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
+    return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
                                     dirbase=src_info, verbose=verbose)
 
 def _create_index(fuente, salida, max=None, dirbase="", verbose=False):
