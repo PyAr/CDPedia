@@ -139,7 +139,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if path[0] == "/":
             path = path[1:]
 
-        if path.split("/")[0] in ("images","raw","skins"):
+        if path.split("/")[0] in ("images", "raw", "skins", "misc"):
             asset_file = os.path.join(config.DIR_ASSETS, path)
             asset_data = open(asset_file).read()
             return "image/%s"%path[-3:], asset_data

@@ -12,7 +12,7 @@
                    ><a href="http://es.wikipedia.org/wiki/Universidad">Revisión actual</a></li>   </ul>
     </div>
     <div class="portlet" id="p-logo">
-      <a style="background-image: url(http://upload.wikimedia.org/wikipedia/commons/7/74/Wikipedia-logo-es.png);"
+      <a style="background-image: url(../../../misc/Wikipedia-logo-es.png);"
         href="../../../index.html"
         title="Portada"></a>
     </div>

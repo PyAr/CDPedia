@@ -12,7 +12,7 @@ import config
 from src.preproceso import preprocesar
 from src.armado import compresor
 from src.armado import cdpindex
-from src.imagenes import extraer, download
+from src.imagenes import extraer, download, reducir
 
 def mensaje(texto):
     fh = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -78,12 +78,22 @@ def genera_run_config():
     f.write('PREFIJO_INDICE = "indice/wikiindex"\n')
     f.close()
 
+def preparaTemporal():
+    dtemp = config.DIR_TEMP
+    if os.path.exists(dtemp):
+        # borramos los dirs (excepto imagenes)
+        shutil.rmtree(os.path.join(dtemp,"cdroot"), ignore_errors=True)
+        shutil.rmtree(os.path.join(dtemp,"preprocesado"), ignore_errors=True)
+        # borramos los archivos
+        for arch in glob.glob(os.path.join(dtemp, "*.txt")):
+            os.unlink(arch)
+    else:
+        os.makedirs(dtemp)
+
+
 def main(src_info, evitar_iso, verbose):
     mensaje("Comenzando!")
-
-    # limpiamos el directorio temporal
-    shutil.rmtree(config.DIR_TEMP, ignore_errors=True)
-    os.makedirs(config.DIR_TEMP)
+    preparaTemporal()
 
     mensaje("Copiando los assets")
     copiarAssets(src_info, config.DIR_ASSETS)
@@ -103,6 +113,7 @@ def main(src_info, evitar_iso, verbose):
 
     mensaje("Descargando las imágenes de la red")
     download.traer(verbose)
+    reducir.run(verbose)
 
     mensaje("Generando el índice")
     result = cdpindex.generar(articulos, verbose)
