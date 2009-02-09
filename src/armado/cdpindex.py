@@ -9,6 +9,7 @@ para crear el índice.
 
 import shelve, time, sys, os.path, re, codecs
 import random
+import unicodedata
 
 import config
 
@@ -27,6 +28,51 @@ Para generar el archivo de indice hacer:
 # Buscamos todo hasta el último guión no inclusive, porque los
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
+
+_cache = {}
+def _norm_car(car):
+    # devolvemos lo cacheado, si podemos
+    try:
+        return _cache[car]
+    except KeyError:
+        pass
+
+    # si es una letra simple, no hace falta normalización, nos fijamos
+    # primero porque es más rápido
+    if ord(car) < 128:
+        _cache[car] = car
+        return car
+
+    # descomponemos y vemos en qué caso estamos
+    decomp = unicodedata.decomposition(car)
+    if decomp == "":
+        # no tiene
+        res = car
+    elif decomp.startswith("<compat>"):
+        # compatibilidad
+        utiles = [x for x in decomp.split()][1:]
+        res = u"".join(unichr(int(x, 16)) for x in utiles)
+    else:
+        # nos quedamos con el primero
+        prim = decomp.split()[0]
+        res = unichr(int(prim, 16))
+
+    # guardamos en el caché y volvemos
+    _cache[car] = res
+    return res
+
+
+def normaliza(frase):
+    '''Recibe una frase y devuelve sus palabras ya normalizadas.'''
+    print "\n=========", frase
+    frase = frase.lower()
+    newpals = []
+    for pal in set(frase.split()):
+        print "== 1", pal
+        newpal = u"".join(_norm_car(c) for c in pal)
+        print "== 2", newpal
+        newpals.append(newpal.encode("utf8")) # shelve no soporta unicode
+    return newpals
 
 def _getHTMLTitle(arch):
     # Todavia no soportamos redirect, asi que todos los archivos son
@@ -67,10 +113,7 @@ class Index(object):
     def search(self, words):
         '''Busca palabras completas en el índice.'''
         result = None
-        words = words.encode("utf8") # shelve no soporta unicode
-        words = words.lower().split()
-        for word in words:
-            resultword = set()
+        for word in normaliza(words):
             if word in self.word_shelf:
                 docids = self.word_shelf[word]
 
@@ -88,28 +131,26 @@ class Index(object):
     def detailed_search(self, words):
         '''Busca palabras parciales en el índice.'''
         result = None
-        words = words.encode("utf8") # shelve no soporta unicode
-        words = words.lower().split()
-        for word in words:
-            print "======= 1", word
-            resultword = set()
+        for word in normaliza(words):
+            resultword = []
             for guardada in self.word_shelf:
                 if word in guardada:
-                    print "encontramos en", guardada
-                    break
-            else:
-                print "nopo!"
+                    resultword.append(guardada)
+            if not resultword:
                 continue
 
             # word forma parte de guardada
-            docids = self.word_shelf[guardada]
+            docids = set()
+            for res in resultword:
+                ids = self.word_shelf[res]
+                docids.update(ids)
 
             # first time, create with found, else the intersection
             # of previously found with what is found now
             if result is None:
-                result = set(docids)
+                result = docids
             else:
-                result.intersection_update(set(docids))
+                result.intersection_update(docids)
 
         if result is None:
             return []
@@ -128,10 +169,7 @@ class Index(object):
             self.id_shelf[str(docid)] = (nomhtml, titulo)
 
             # palabras -> docid
-            titulo = titulo.encode("utf8") # shelve no soporta unicode
-            titulo = titulo.lower()
-            pals = set(titulo.split())
-            for pal in pals:
+            for pal in normaliza(titulo):
                 # parece no andar el setdefault del shelve
 #                self.word_shelf.setdefault(pal, set()).add(docid)
                 if pal in self.word_shelf:

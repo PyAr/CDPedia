@@ -160,7 +160,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._main_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
 
-        candidatos = self.index.detailed_search(keywords)
+        candidatos = self.index.detailed_search(keywords.decode("utf8"))
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
@@ -192,7 +192,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not "keywords" in params:
             return self._main_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
-        candidatos = self.index.search(keywords)
+        candidatos = self.index.search(keywords.decode("utf8"))
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
