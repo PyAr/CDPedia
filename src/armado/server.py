@@ -107,7 +107,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ContentNotFound(msg)
 
         if data is None:
-            raise ContentNotFound(u"No se encontró la página '%s'" % path)
+            raise ContentNotFound(
+                        u"No se encontró la página '%s'" % path.decode("utf8"))
 
         return self._arma_pagina(data)
 
@@ -149,7 +150,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             data = self._get_contenido(path)
         except ContentNotFound, e:
-            msg = u"ERROR: '%s' not found (%s)" % (path, e.message)
+            msg = u"ERROR: '%s' not found (%s)" % (
+                                        path.decode("utf8"), e.message)
             return self._main_page(msg)
 
         return data

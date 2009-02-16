@@ -32,7 +32,8 @@ SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 
 def normaliza(txt):
     '''Recibe una frase y devuelve sus palabras ya normalizadas.'''
-    return unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
+    return txt.split()
 
 def _getHTMLTitle(arch):
     # Todavia no soportamos redirect, asi que todos los archivos son
