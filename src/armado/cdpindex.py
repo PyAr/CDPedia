@@ -29,50 +29,10 @@ Para generar el archivo de indice hacer:
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 
-_cache = {}
-def _norm_car(car):
-    # devolvemos lo cacheado, si podemos
-    try:
-        return _cache[car]
-    except KeyError:
-        pass
 
-    # si es una letra simple, no hace falta normalización, nos fijamos
-    # primero porque es más rápido
-    if ord(car) < 128:
-        _cache[car] = car
-        return car
-
-    # descomponemos y vemos en qué caso estamos
-    decomp = unicodedata.decomposition(car)
-    if decomp == "":
-        # no tiene
-        res = car
-    elif decomp.startswith("<compat>"):
-        # compatibilidad
-        utiles = [x for x in decomp.split()][1:]
-        res = u"".join(unichr(int(x, 16)) for x in utiles)
-    else:
-        # nos quedamos con el primero
-        prim = decomp.split()[0]
-        res = unichr(int(prim, 16))
-
-    # guardamos en el caché y volvemos
-    _cache[car] = res
-    return res
-
-
-def normaliza(frase):
+def normaliza(txt):
     '''Recibe una frase y devuelve sus palabras ya normalizadas.'''
-    print "\n=========", frase
-    frase = frase.lower()
-    newpals = []
-    for pal in set(frase.split()):
-        print "== 1", pal
-        newpal = u"".join(_norm_car(c) for c in pal)
-        print "== 2", newpal
-        newpals.append(newpal.encode("utf8")) # shelve no soporta unicode
-    return newpals
+    return unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
 
 def _getHTMLTitle(arch):
     # Todavia no soportamos redirect, asi que todos los archivos son
