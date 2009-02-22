@@ -30,6 +30,11 @@ def copiarAssets(src_info, dest):
             sys.exit()
         shutil.copytree(src_dir, dst_dir)
 
+    # externos (de nosotros, bah)
+    dst_dir = path.join(dest, "extern")
+    shutil.copytree("src/armado/external_assets", dst_dir)
+
+
 def copiarSources():
     """Copiar los fuentes."""
     # el src
