@@ -80,19 +80,19 @@ def main(arch_ind):
     pals = [azar() for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a una", BLOQUE):
         for p in pals:
-            indice.search(p)
+            indice.detailed_search(p)
 
     # palabras parciales, de a 2
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a 2", BLOQUE):
         for p in pals:
-            indice.search(p)
+            indice.detailed_search(p)
 
     # palabras parciales, de a 5
     pals = [("%s "*5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a 5", BLOQUE):
         for p in pals:
-            indice.search(p)
+            indice.detailed_search(p)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

@@ -121,7 +121,7 @@ def main(src_info, evitar_iso, verbose):
     reducir.run(verbose)
 
     mensaje("Generando el índice")
-    result = cdpindex.generar(articulos, verbose)
+    result = cdpindex.generar(articulos, verbose, full_text=True)
     print '  total: %d archivos' % result
 
     mensaje("Generando los bloques")

@@ -166,9 +166,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
-        for link, titulo in candidatos:
-            linea = '<tr><td><a href="%s">%s</a></td></tr>' % (
-                                link.encode("utf8"), titulo.encode("utf8"))
+        for link, titulo, ptje in candidatos:
+            linea = '<tr><td><a href="%s">%s</a><small><i>  (%s)</small></i></td></tr> ' % (
+                                link.encode("utf8"), titulo.encode("utf8"), ptje)
             res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
@@ -197,8 +197,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         candidatos = self.index.search(keywords.decode("utf8"))
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
+        print "==== cand", candidatos
         res = []
-        for link, titulo in candidatos:
+        for link, titulo, ptje in candidatos:
             linea = '<tr><td><a href="%s">%s</a></td></tr>' % (
                                 link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
