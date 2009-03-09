@@ -36,8 +36,8 @@ Para generar el archivo de indice hacer:
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 
-# separamos por palabras, tomando las de más de 3 letras
-PALABRAS = re.compile("\w{3,}", re.UNICODE)
+# separamos por palabras
+PALABRAS = re.compile("\w+", re.UNICODE)
 
 def normaliza(txt):
     '''Recibe una frase y devuelve sus palabras ya normalizadas.'''
