@@ -12,8 +12,9 @@ import os
 import time
 import random
 import functools
-sys.path.append(os.path.abspath("."))
+import subprocess
 
+sys.path.append(os.path.abspath("."))
 from src.armado.cdpindex import Index
 
 BLOQUE = 100
@@ -32,12 +33,25 @@ class Timer(object):
         print "%8.1fms  %s" % (mseg, self.msg)
         self.t = tnow
 
+def usoMemoria():
+    pid = os.getpid()
+    cmd = "ps -o vsize=,rss= -p " + str(pid)
+    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    info = p.stdout.read()
+    v,r = map(int, info.strip().split())
+    return v + r
+
 def main(arch_ind):
+    memant = usoMemoria()
     with Timer("Start up"):
         indice = Index(arch_ind)
+    memdesp = usoMemoria()
+
+    print "               cant palabras:", len(indice.listado_palabras())
+    print "               ocupa memoria:  %d KB" % (memdesp - memant)
 
     with Timer("Listado completo"):
-        listado = indice.listado_completo()
+        listado = indice.listado_valores()
 
     palabras = set()
     for (pag, tit) in listado:

@@ -17,7 +17,7 @@ import unicodedata
 import operator
 import glob
 import config
-import HTMLParser
+import subprocess
 import re
 
 usage = """Indice de títulos de la CDPedia
@@ -55,31 +55,13 @@ def _getHTMLTitle(arch):
         tit = u"<sin título>"
     return tit
 
-
-class _MyHTMLParser(HTMLParser.HTMLParser):
-
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.all_words = []
-        self.inbody = False
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'body':
-            self.inbody = True
-
-    def handle_endtag(self, tag):
-        if tag == 'body':
-            self.inbody = False
-
-    def handle_data(self, data):
-        if self.inbody:
-            self.all_words.append(data)
-
 def _getPalabrasHTML(arch):
-    html = codecs.open(arch, "r", "utf8").read()
-    mhp = _MyHTMLParser()
-    mhp.feed(html)
-    return " ".join(mhp.all_words)
+    arch = os.path.abspath(arch)
+    cmd = "lynx -nolist -dump -display_charset=UTF-8 %s" % arch
+    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    txt = p.stdout.read()
+    txt = txt.decode("utf8")
+    return txt
 
 class Index(object):
     '''Maneja todo el índice.
@@ -99,9 +81,13 @@ class Index(object):
             docids = [x[0] for x in docid_ptje] # le sacamos la cant
             print "%s: %s" % (palabra, [id_shelf[str(x)][1] for x in docids])
 
-    def listado_completo(self):
+    def listado_valores(self):
         '''Devuelve la info de todos los artículos.'''
         return sorted(self.id_shelf.values())
+
+    def listado_palabras(self):
+        '''Devuelve las palabras indexadas.'''
+        return sorted(self.word_shelf.keys())
 
     def get_random(self):
         '''Devuelve un artículo al azar.'''

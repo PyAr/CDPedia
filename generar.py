@@ -96,7 +96,7 @@ def preparaTemporal():
         os.makedirs(dtemp)
 
 
-def main(src_info, evitar_iso, verbose):
+def main(src_info, evitar_iso, verbose, desconectado):
     mensaje("Comenzando!")
     preparaTemporal()
 
@@ -116,9 +116,10 @@ def main(src_info, evitar_iso, verbose):
     result = extraer.run(verbose)
     print '  total: %d imágenes sacadas de %d archivos' % result
 
-    mensaje("Descargando las imágenes de la red")
-    download.traer(verbose)
-    reducir.run(verbose)
+    if not desconectado:
+        mensaje("Descargando las imágenes de la red")
+        download.traer(verbose)
+        reducir.run(verbose)
 
     mensaje("Generando el índice")
     result = cdpindex.generar(articulos, verbose, full_text=True)
@@ -162,6 +163,8 @@ if __name__ == "__main__":
                       dest="create_iso", help="evita crear el ISO al final")
     parser.add_option("-v", "--verbose", action="store_true",
                   dest="verbose", help="muestra info de lo que va haciendo")
+    parser.add_option("-d", "--desconectado", action="store_true",
+                  dest="desconectado", help="no intentar conectarse a la red")
 
     (options, args) = parser.parse_args()
 
@@ -172,5 +175,6 @@ if __name__ == "__main__":
     direct = args[0]
     evitar_iso = bool(options.create_iso)
     verbose = bool(options.verbose)
+    desconectado = bool(options.desconectado)
 
-    main(args[0], evitar_iso, verbose)
+    main(args[0], evitar_iso, verbose, desconectado)
