@@ -8,7 +8,7 @@ import urllib2
 
 import config
 
-WIKIMEDIA = "http://upload.wikimedia.org/wikipedia"
+WIKIMEDIA = "http://upload.wikimedia.org/"
 HEADERS = {'User-Agent':
     'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
     'Ubuntu/8.10 (intrepid) Firefox/3.0.5'

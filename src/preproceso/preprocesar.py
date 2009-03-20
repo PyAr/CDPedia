@@ -57,26 +57,26 @@ class WikiSitio(object):
         for cwd, directorios, archivos in os.walk(self.origen):
             for nombre_archivo in archivos:
                 wikiarchivo = WikiArchivo(self, join(cwd, nombre_archivo))
-                url = wikiarchivo.url
-                if url in resultados:
-                    raise ValueError("queloqué?")
-#                    resultados.setdefault(url, {})
-                resultados[url] = {}
+                partes_dir = cwd.split(os.path.sep)
+                ult3dirs = os.path.join(*partes_dir[-3:])
+                pag = wikiarchivo.url
+                resultados[pag] = {}
+                resultados[pag]["dir3"] = ult3dirs
 
                 if self.verbose:
-                    print 'Procesando: %s' % url.encode("utf8")
+                    print 'Procesando: %s' % pag.encode("utf8")
                 for procesador in self.preprocesadores:
                     (puntaje, otras_pags) = procesador(wikiarchivo)
 
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
-                        del resultados[url]
+                        del resultados[pag]
                         if self.verbose:
                             print '  omitido!'
                         break
 
                     # ponemos el puntaje
-                    resultados[url][procesador.nombre] = puntaje
+                    resultados[pag][procesador.nombre] = puntaje
 
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
@@ -85,7 +85,7 @@ class WikiSitio(object):
                                             procesador.nombre, 0) + extra_ptje
                 else:
                     if self.verbose:
-                        print "  puntaje:", resultados[url]
+                        print "  puntaje:", resultados[pag]
 
                 wikiarchivo.guardar()
                 if self.verbose:
@@ -118,7 +118,8 @@ class WikiSitio(object):
         salida = codecs.open(log, "w", "utf-8")
 
         # Encabezado:
-        columnas = [u'Página'] + [p.nombre for p in self.preprocesadores]
+        preprocs = self.preprocesadores
+        columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
         plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
         salida.write(plantilla % tuple(columnas))
 
@@ -126,8 +127,9 @@ class WikiSitio(object):
         for pagina, valores in self.resultados.iteritems():
             #los rankings deben ser convertidos en str para evitar
             # literales como 123456L
-            columnas = [pagina] + [valores.get(p.nombre, p.valor_inicial)
-                                                for p in self.preprocesadores]
+            columnas = [pagina, valores["dir3"]]
+            columnas += [valores.get(p.nombre, p.valor_inicial)
+                                                        for p in preprocs]
             salida.write(plantilla % tuple(columnas))
 
         if self.verbose:

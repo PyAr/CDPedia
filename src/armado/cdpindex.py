@@ -214,22 +214,12 @@ def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
 
     index = Index(verbose=verbose)
 
-    def fix(letra):
-        if letra == " ":
-            letra = "_"
-        return letra
-
-    def get3letras(arch):
-        arch = arch[:-5] # le sacamos el .html
-        arch = arch.lower()
-        arch = (arch+"   ")[:3] # queremos las primeras 3 llenando con espacios
-        return map(fix, arch)
-
     def gen():
         fh = codecs.open(fuente, "r", "utf8")
         fh.next() # título
         for i,linea in enumerate(fh):
-            arch = linea.split()[0].strip()
+            partes = linea.split()
+            arch, dir3 = partes[:2]
             if not arch.endswith(".html"):
                 continue
 
@@ -237,8 +227,7 @@ def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
             if verbose:
                 print "Indizando [%d] %s" % (i, arch.encode("utf8"))
             # info auxiliar
-            a,b,c = get3letras(restonom)
-            nomhtml = os.path.join(a, b, c, arch)
+            nomhtml = os.path.join(dir3, arch)
             nomreal = os.path.join(dirbase, nomhtml)
             if os.access(nomreal, os.F_OK):
                 titulo = _getHTMLTitle(nomreal)

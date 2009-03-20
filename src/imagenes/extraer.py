@@ -59,27 +59,33 @@ class ParseaImagenes(object):
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
-            web_url = "/commons/%s" % img[26:]
+            web_url = "wikipedia/commons/%s" % img[26:]
 
             partes = img.split("/")
             if len(partes) != 11:
                 raise ValueError("Formato de imagen feo! %r" % partes)
             del partes[9]
             dsk_url = "/".join(partes)
+
+        elif img.startswith("../../../../math/"):
+            # ../../../../math/5/9/6/596cd268dabd23b450bcbf069f733e4a.png
+            web_url = img[12:]
+            dsk_url="../../../../images/" + img[12:]
+
         elif img.startswith("../../../../images/shared"):
             # ../../../../images/shared/b/ba/LocatieZutphen.png
-            web_url = "/commons/%s" % img[26:]
+            web_url = "wikipedia/commons/%s" % img[26:]
             dsk_url = img
 
         elif img.startswith("../../../../images/timeline"):
             # ../../../../images/timeline/8f9a24cab55663baf5110f82ebb97d17.png
-            web_url = "/es/timeline/%s" % img[27:]
+            web_url = "wikipedia/es/timeline/%s" % img[27:]
             dsk_url = img
 
         elif img.startswith("http://upload.wikimedia.org/wikipedia/commons/"):
             # http://upload.wikimedia.org/wikipedia/commons/
             #   thumb/2/22/Heckert_GNU_white.svg/64px-Heckert_GNU_white.svg.png
-            web_url = img[37:]
+            web_url = img[27:]
 
             partes = img[46:].split("/")
             if len(partes) != 5:
@@ -99,7 +105,7 @@ class ParseaImagenes(object):
 
 #        print "web url:", web_url
 #        print "htm url:", htm_url
-#        print "htm url:", dsk_url
+#        print "dsk url:", dsk_url
 
         # guardamos las imágenes a bajar, y devolvemos lo cambiado para el html
         # le sacamos el "../../../../images/"
@@ -108,22 +114,12 @@ class ParseaImagenes(object):
         return htm_url
 
 def run(verbose):
-    def fix(letra):
-        if letra == " ":
-            letra = "_"
-        return letra
-
-    def get3letras(arch):
-        arch = arch[:-5] # le sacamos el .html
-        arch = arch.lower()
-        arch = (arch+"   ")[:3] # queremos las primeras 3 llenando con espacios
-        return map(fix, arch)
-
     def gen():
         fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
         fh.next() # título
         for i,linea in enumerate(fh):
-            arch = linea.split()[0].strip()
+            partes = linea.split()
+            arch, dir3 = partes[:2]
             if not arch.endswith(".html"):
                 continue
 
@@ -131,8 +127,7 @@ def run(verbose):
             if verbose:
                 print "Extrayendo imgs de [%d] %s" % (i, arch.encode("utf8"))
 
-            a,b,c = get3letras(restonom)
-            nomreal = os.path.join(config.DIR_PREPROCESADO, a, b, c, arch)
+            nomreal = os.path.join(config.DIR_PREPROCESADO, dir3, arch)
             yield nomreal
 
     pi = ParseaImagenes()
