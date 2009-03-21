@@ -29,33 +29,38 @@ import shutil
 import config
 
 class ArticleManager(object):
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.num_bloques = len(
             [n for n in os.listdir(config.DIR_BLOQUES) if n[-4:]==".cdp"])
         self.cache = {}
+        self.verbose = verbose
 
     def getComprimido(self, nombre):
         try:
             comp = self.cache[nombre]
         except KeyError:
-            comp = Comprimido(config.DIR_BLOQUES + nombre)
+            comp = Comprimido(config.DIR_BLOQUES + nombre, self.verbose, self)
             self.cache[nombre] = comp
         return comp
 
     def getArticle(self, fileName):
         bloqNum = hash(fileName) % self.num_bloques
         bloqName = "%08x" % bloqNum
+        if self.verbose:
+            print "bloque:", bloqName
         comp = self.getComprimido("/%s.cdp" % bloqName)
         art = comp.get_articulo(fileName)
         return art
 
 
 class Comprimido(object):
-    def __init__(self, fname):
+    def __init__(self, fname, verbose=False, artcl_mger=None):
         self.fh = CompressedFile(fname, "rb")
         self.header_size = struct.unpack("<l", self.fh.read(4))[0]
         header_bytes = self.fh.read(self.header_size)
         self.header = pickle.loads(header_bytes)
+        self.verbose = verbose
+        self.artcl_mger = artcl_mger
 
     @classmethod
     def crear(self, redirects, bloqNum, fileNames, verbose=False):
@@ -97,9 +102,13 @@ class Comprimido(object):
             return None
 
         info = self.header[fileName]
+        if self.verbose:
+            print "encontrado:", info
         if isinstance(info, basestring):
             # info es un link a lo real, hacemos semi-recursivo
-            data = getArticle(info)
+            if self.verbose:
+                print "redirect!"
+            data = self.artcl_mger.getArticle(info)
         else:
             (seek, size) = info
             self.fh.seek(4 + self.header_size + seek)
