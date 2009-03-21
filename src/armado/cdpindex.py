@@ -72,7 +72,7 @@ class Index(object):
     def __init__(self, filename=None, verbose=False):
         self.verbose = verbose
         if filename is not None:
-            self.open(filename)
+            self.open(filename, readonly=True)
 
     def listar(self):
         '''Muestra en stdout las palabras y los artículos referenciados.'''
@@ -193,16 +193,17 @@ class Index(object):
         self.word_shelf.close()
         return docid
 
-    def open(self, filename):
+    def open(self, filename, readonly=False):
         '''Abre los archivos.'''
+        mode = 'r' if readonly else 'c'
         wordsfilename = filename + ".words"
         idsfilename = filename + ".ids"
         if self.verbose:
             print "Opening", wordsfilename
-        self.word_shelf = shelve.open(wordsfilename)
+        self.word_shelf = shelve.open(wordsfilename,mode)
         if self.verbose:
             print "Opening", idsfilename
-        self.id_shelf = shelve.open(idsfilename)
+        self.id_shelf = shelve.open(idsfilename,mode)
 
 def generar(src_info, verbose, full_text=False):
     return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
