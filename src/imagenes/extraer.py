@@ -46,7 +46,11 @@ class ParseaImagenes(object):
             oldhtml = fh.read()
 
         # sacamos imágenes y reemplazamos paths
-        newhtml = self.regex.sub(self._reemplaza, oldhtml)
+        try :
+          newhtml = self.regex.sub(self._reemplaza, oldhtml)
+        except Exception,e:
+          print "Path del html", arch
+          raise e
 
         # si cambió, lo grabamos nuevamente
         if oldhtml != newhtml:
@@ -55,11 +59,13 @@ class ParseaImagenes(object):
 
     def _reemplaza(self, m):
         p1, img, p3 = m.groups()
+        WIKIMEDIA = "http://upload.wikimedia.org/"
+        WIKIPEDIA = "http://es.wikipedia.org/"
 #        print "img", img
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
-            web_url = "wikipedia/commons/%s" % img[26:]
+            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
 
             partes = img.split("/")
             if len(partes) != 11:
@@ -69,23 +75,27 @@ class ParseaImagenes(object):
 
         elif img.startswith("../../../../math/"):
             # ../../../../math/5/9/6/596cd268dabd23b450bcbf069f733e4a.png
-            web_url = img[12:]
+            web_url = WIKIMEDIA + img[12:]
             dsk_url="../../../../images/" + img[12:]
+
+        elif img.startswith("../../../../extensions/"):
+            web_url = WIKIPEDIA + "w/" + img[12:]
+            dsk_url = "../../../../images/" + img[12:]
 
         elif img.startswith("../../../../images/shared"):
             # ../../../../images/shared/b/ba/LocatieZutphen.png
-            web_url = "wikipedia/commons/%s" % img[26:]
+            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
             dsk_url = img
 
         elif img.startswith("../../../../images/timeline"):
             # ../../../../images/timeline/8f9a24cab55663baf5110f82ebb97d17.png
-            web_url = "wikipedia/es/timeline/%s" % img[27:]
+            web_url = WIKIMEDIA + "wikipedia/es/timeline/%s" % img[27:]
             dsk_url = img
 
         elif img.startswith("http://upload.wikimedia.org/wikipedia/commons/"):
             # http://upload.wikimedia.org/wikipedia/commons/
             #   thumb/2/22/Heckert_GNU_white.svg/64px-Heckert_GNU_white.svg.png
-            web_url = img[27:]
+            web_url = WIKIMEDIA + img[27:]
 
             partes = img[46:].split("/")
             if len(partes) != 5:

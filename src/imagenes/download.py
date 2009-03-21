@@ -8,7 +8,6 @@ import urllib2
 
 import config
 
-WIKIMEDIA = "http://upload.wikimedia.org/"
 HEADERS = {'User-Agent':
     'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
     'Ubuntu/8.10 (intrepid) Firefox/3.0.5'
@@ -45,7 +44,6 @@ def traer(verbose):
     for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
         arch, url = linea.split()
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
-        url = WIKIMEDIA + url
 
         def msg(*t):
             if verbose:
