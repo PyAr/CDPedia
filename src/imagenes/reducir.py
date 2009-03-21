@@ -1,6 +1,7 @@
+# -*- coding: utf8 -*-
+
 import os
 import shutil
-
 import config
 
 def run(verbose):
@@ -8,5 +9,10 @@ def run(verbose):
 
     src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_ASSETS, "images")
+
+    if os.path.exists(dst):
+        print "Borramos las imágenes reducidas anteriores"
+        shutil.rmtree(dst)
+
     print "Llevando imgs de %s a %s" % (src, dst)
     shutil.copytree(src, dst)

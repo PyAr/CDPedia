@@ -24,6 +24,7 @@ import cPickle as pickle
 from os import path
 from bz2 import BZ2File as CompressedFile
 import random
+import shutil
 
 import config
 
@@ -107,6 +108,12 @@ class Comprimido(object):
 
 
 def generar(verbose):
+    # preparamos el dir destino
+    dest = path.join(config.DIR_BLOQUES)
+    if os.path.exists(dest):
+        shutil.rmtree(dest)
+    os.makedirs(dest)
+
     # recorrer todos los nombres de articulos, y ordenarlos en un dict por
     # su numero de bloque, segun el hash
     fileNames = []

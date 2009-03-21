@@ -39,13 +39,13 @@ def copiarSources():
     """Copiar los fuentes."""
     # el src
     dest_src = path.join(config.DIR_CDBASE, "src")
-    os.makedirs(dest_src)
+    dir_a_cero(dest_src)
     shutil.copy(path.join("src", "__init__.py"), dest_src)
 
     # las fuentes
     orig_src = path.join("src", "armado")
     dest_src = path.join(config.DIR_CDBASE, "src", "armado")
-    os.makedirs(dest_src)
+    dir_a_cero(dest_src)
     for name in os.listdir(orig_src):
         fullname = path.join(orig_src, name)
         if os.path.isfile(fullname):
@@ -54,7 +54,7 @@ def copiarSources():
     # los templates
     orig_src = path.join("src", "armado", "templates")
     dest_src = path.join(config.DIR_CDBASE, orig_src)
-    os.makedirs(dest_src)
+    dir_a_cero(dest_src)
     for name in glob.glob(path.join(orig_src, "*.tpl")):
         shutil.copy(name, dest_src)
 
@@ -65,12 +65,17 @@ def copiarIndices():
     """Copiar los indices."""
     # las fuentes
     dest_src = path.join(config.DIR_CDBASE, "indice")
-    os.makedirs(dest_src)
+    dir_a_cero(dest_src)
     for name in glob.glob("%s.*" % config.PREFIJO_INDICE):
         shutil.copy(name, dest_src)
 
 def armarEjecutable():
     pass
+
+def dir_a_cero(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.makedirs(path)
 
 def armarIso(dest):
     os.system("mkisofs -quiet -o " + dest + " -R -J " + config.DIR_CDBASE)
@@ -96,38 +101,42 @@ def preparaTemporal():
         os.makedirs(dtemp)
 
 
-def main(src_info, evitar_iso, verbose, desconectado):
-    mensaje("Comenzando!")
-    preparaTemporal()
+def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
 
-    mensaje("Copiando los assets")
-    copiarAssets(src_info, config.DIR_ASSETS)
-
-    mensaje("Preprocesando")
     articulos = path.join(src_info, "articles")
-    if not path.exists(articulos):
-        print "\nERROR: No se encuentra el directorio %r" % articulos
-        print "Este directorio es obligatorio para el procesamiento general"
-        sys.exit()
-    cant = preprocesar.run(articulos, verbose)
-    print '  total: %d páginas procesadas' % cant
 
-    mensaje("Generando el log de imágenes")
-    result = extraer.run(verbose)
-    print '  total: %d imágenes sacadas de %d archivos' % result
+    if not preprocesado:
+        mensaje("Comenzando!")
+        preparaTemporal()
+
+        mensaje("Copiando los assets")
+        copiarAssets(src_info, config.DIR_ASSETS)
+
+        mensaje("Preprocesando")
+        if not path.exists(articulos):
+            print "\nERROR: No se encuentra el directorio %r" % articulos
+            print "Este directorio es obligatorio para el procesamiento general"
+            sys.exit()
+        cant = preprocesar.run(articulos, verbose)
+        print '  total: %d páginas procesadas' % cant
+
+        mensaje("Generando el log de imágenes")
+        result = extraer.run(verbose)
+        print '  total: %d imágenes sacadas de %d archivos' % result
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
         download.traer(verbose)
-        reducir.run(verbose)
+
+    # de acá para adelante es posterior al pre-procesado
+    mensaje("Reduciendo las imágenes descargadas")
+    reducir.run(verbose)
 
     mensaje("Generando el índice")
     result = cdpindex.generar(articulos, verbose, full_text=True)
     print '  total: %d archivos' % result
 
     mensaje("Generando los bloques")
-    dest = path.join(config.DIR_BLOQUES)
-    os.makedirs(dest)
     result = compresor.generar(verbose)
     print '  total: %d bloques con %d archivos' % result
 
@@ -165,6 +174,9 @@ if __name__ == "__main__":
                   dest="verbose", help="muestra info de lo que va haciendo")
     parser.add_option("-d", "--desconectado", action="store_true",
                   dest="desconectado", help="no intentar conectarse a la red")
+    parser.add_option("-p", "--preprocesado", action="store_true",
+                  dest="preprocesado",
+                  help="arranca el laburo con lo preprocesado de antes")
 
     (options, args) = parser.parse_args()
 
@@ -176,5 +188,6 @@ if __name__ == "__main__":
     evitar_iso = bool(options.create_iso)
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
+    preprocesado = bool(options.preprocesado)
 
-    main(args[0], evitar_iso, verbose, desconectado)
+    main(args[0], evitar_iso, verbose, desconectado, preprocesado)
