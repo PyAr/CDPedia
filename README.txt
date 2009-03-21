@@ -4,10 +4,10 @@ Creación de la imagen
 1. Bajar el dump estático
 
 2. Crear un directorio fuente (por ejemplo, "fuentes"), y poner ahí los 
-   archivos del dump estático que querramos usar, más los siguientes
-   directorios obligatorios:
+   archivos del dump estático que querramos usar (adentro del dir 'articles',
+   más los siguientes directorios obligatorios:
      
-      - images
+      - misc
       - raw
       - skins
 
