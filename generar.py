@@ -169,14 +169,18 @@ if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.set_usage(msg)
     parser.add_option("-n", "--no-iso", action="store_true",
-                      dest="create_iso", help="evita crear el ISO al final")
+                  dest="create_iso", help="evita crear el ISO al final", 
+                  default = "False")
     parser.add_option("-v", "--verbose", action="store_true",
-                  dest="verbose", help="muestra info de lo que va haciendo")
+                  dest="verbose", help="muestra info de lo que va haciendo",
+                  default="False")
     parser.add_option("-d", "--desconectado", action="store_true",
-                  dest="desconectado", help="no intentar conectarse a la red")
+                  dest="verbose", help="muestra info de lo que va haciendo",
+                  default="False")
     parser.add_option("-p", "--preprocesado", action="store_true",
                   dest="preprocesado",
-                  help="arranca el laburo con lo preprocesado de antes")
+                  help="arranca el laburo con lo preprocesado de antes",
+                  default="False")
 
     (options, args) = parser.parse_args()
 
@@ -185,9 +189,5 @@ if __name__ == "__main__":
         exit()
 
     direct = args[0]
-    evitar_iso = bool(options.create_iso)
-    verbose = bool(options.verbose)
-    desconectado = bool(options.desconectado)
-    preprocesado = bool(options.preprocesado)
 
-    main(args[0], evitar_iso, verbose, desconectado, preprocesado)
+    main(args[0], options.create_iso, options.verbose, options.desconectado, options.preprocesado)
