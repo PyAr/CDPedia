@@ -175,7 +175,7 @@ if __name__ == "__main__":
                   dest="verbose", help="muestra info de lo que va haciendo",
                   default="False")
     parser.add_option("-d", "--desconectado", action="store_true",
-                  dest="verbose", help="muestra info de lo que va haciendo",
+                  dest="desconectado", help="muestra info de lo que va haciendo",
                   default="False")
     parser.add_option("-p", "--preprocesado", action="store_true",
                   dest="preprocesado",
