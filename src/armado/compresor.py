@@ -68,18 +68,20 @@ class Comprimido(object):
         if verbose:
             print "Procesando el bloque", bloqNum
 
-        # arrancamos el header tomando la info de los redirects, lo que
-        # nos da la pag como clave, y la pag a la que redirige como valor
-        header = redirects[bloqNum]
+        header = {}
 
-        # seguimos llenando el header con archivos reales, con la pag como
-        # clave, y la posición/tamaño como valor
+        # Llenamos el header con archivos reales, con la pag como
+        # clave, y la posición/tamaño como valor, a menos que sea un
+        # redirect (en ese caso, ponemos el nombre de la página a la que
+        # se redirecciona
         seek = 0
         for root, fileName in fileNames:
-            # si ya lo pusimos como redirect, no lo ponemos como archivo real
-            if fileName in header:
+            # si es redirect, sólo el nombre
+            if fileName in redirects:
+                header[fileName] = redirects[fileName]
                 continue
 
+            # si es real, info del archivo real
             fullName = path.join(root, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
@@ -102,6 +104,8 @@ class Comprimido(object):
 
         # grabo cada uno de los articulos
         for root, fileName in fileNames:
+            if fileName in redirects:
+                continue
             fullName = path.join(root, fileName)
             f.write(open( fullName, "rb" ).read())
 
@@ -157,15 +161,14 @@ def generar(verbose):
         bloques[bloqNum].append((root,fileName))
 
     # armo el diccionario de redirects
-    redirects = dict( (n,{}) for n in range(numBloques) )
+    redirects = {}
     for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
         desde, hasta = linea.split()
         desde = path.basename(desde)
         hasta = path.basename(hasta)
         if verbose:
             print "  redirs:", desde, hasta
-        bloqNum = hash(desde) % numBloques
-        redirects[bloqNum][desde] = hasta
+        redirects[desde] = hasta
 
     # armamos cada uno de los comprimidos
     tot = 0

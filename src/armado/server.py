@@ -141,10 +141,21 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if path[0] == "/":
             path = path[1:]
 
-        if path.split("/")[0] in ("images", "raw", "skins", "misc", "extern"):
+        arranque = path.split("/")[0]
+
+        # los links internos apuntan a algo arrancando con articles, se lo
+        # sacamos y tenemos el path que nos sirve
+        if arranque == "articles":
+            path = path[9:]
+            arranque = path.split("/")[0]
+
+        # a todo lo que está afuera de los artículos, en assets, lo tratamos
+        # diferente
+        if arranque in ("images", "raw", "skins", "misc", "extern"):
             asset_file = os.path.join(config.DIR_ASSETS, path)
             asset_data = open(asset_file).read()
             return "image/%s"%path[-3:], asset_data
+
         if path=="":
             return self._main_page()
 
@@ -176,7 +187,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return "text/html", pag
 
     def listfull(self, query):
-        articulos = self.index.listado_completo()
+        articulos = self.index.listado_valores()
         res = []
         for link, titulo in articulos:
             linea = '<br/><a href="%s">%s</a>' % (
