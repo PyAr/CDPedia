@@ -68,14 +68,23 @@ class Comprimido(object):
         if verbose:
             print "Procesando el bloque", bloqNum
 
-        # armo el header con un ejemplo de redirect
+        # arrancamos el header tomando la info de los redirects, lo que
+        # nos da la pag como clave, y la pag a la que redirige como valor
         header = redirects[bloqNum]
+
+        # seguimos llenando el header con archivos reales, con la pag como
+        # clave, y la posición/tamaño como valor
         seek = 0
         for root, fileName in fileNames:
+            # si ya lo pusimos como redirect, no lo ponemos como archivo real
+            if fileName in header:
+                continue
+
             fullName = path.join(root, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
             seek += size
+
         headerBytes = pickle.dumps(header)
         if verbose:
             print "  archivos: %d   seek total: %d   largo header: %d" % (
