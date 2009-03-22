@@ -7,7 +7,9 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
-import shelve
+from __future__ import with_statement
+
+import cPickle
 import time
 import sys
 import os
@@ -69,10 +71,20 @@ class Index(object):
     La idea es ofrecer funcionalidad, después vemos tamaño y tiempos.
     '''
 
-    def __init__(self, filename=None, verbose=False):
-        self.verbose = verbose
-        if filename is not None:
-            self.open(filename, readonly=True)
+    def __init__(self, filename, verbose=False):
+        wordsfilename = filename + ".words"
+        idsfilename = filename + ".ids"
+
+        if verbose:
+            print "Abriendo", wordsfilename
+        with open(wordsfilename, "rb") as fh:
+            self.word_shelf = cPickle.load(fh)
+
+        if verbose:
+            print "Abriendo", idsfilename
+        with open(idsfilename, "rb") as fh:
+            self.id_shelf = cPickle.load(fh)
+
 
     def listar(self):
         '''Muestra en stdout las palabras y los artículos referenciados.'''
@@ -148,32 +160,30 @@ class Index(object):
 
         return self._merge_results(results)
 
-    def create(self, salida, fuente):
+    @classmethod
+    def create(cls, filename, fuente, verbose):
         '''Crea los índices.'''
+        id_shelf = {}
+        word_shelf = {}
+        wordsfilename = filename + ".words"
+        idsfilename = filename + ".ids"
+
         # borramos lo viejo y arrancamos
-        viejos = glob.glob("%s*" % salida)
-        for arch in viejos:
-            os.remove(arch)
-        self.open(salida)
+        for arch in (wordsfilename, idsfilename):
+            if os.path.exists(arch):
+                os.remove(arch)
 
         # fill them
         for docid, (nomhtml, titulo, palabras_texto) in enumerate(fuente):
-            if self.verbose:
+            if verbose:
                 print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
             # docid -> info final
-            self.id_shelf[str(docid)] = (nomhtml, titulo)
+            id_shelf[str(docid)] = (nomhtml, titulo)
 
             # palabras -> docid
             # a las palabras del título le damos mucha importancia: 50
             for pal in PALABRAS.findall(normaliza(titulo)):
-                # parece no andar el setdefault del shelve
-#                self.word_shelf.setdefault(pal, set()).add(docid)
-                if pal in self.word_shelf:
-                    info = self.word_shelf[pal]
-                    info.append((docid, 50))
-                    self.word_shelf[pal] = info
-                else:
-                    self.word_shelf[pal] = [(docid, 50)]
+                word_shelf.setdefault(pal, []).append((docid, 50))
 
             # las palabras del texto importan tanto como las veces que están
             all_words = {}
@@ -181,29 +191,20 @@ class Index(object):
                 all_words[pal] = all_words.get(pal, 0) + 1
 
             for pal, cant in all_words.items():
-                if pal in self.word_shelf:
-                    info = self.word_shelf[pal]
-                    info.append((docid, cant))
-                    self.word_shelf[pal] = info
-                else:
-                    self.word_shelf[pal] = [(docid, cant)]
+                word_shelf.setdefault(pal, []).append((docid, cant))
 
-        # close everything
-        self.id_shelf.close()
-        self.word_shelf.close()
+        # grabamos
+        if verbose:
+            print "Grabando", wordsfilename
+        with open(wordsfilename, "wb") as fh:
+            cPickle.dump(word_shelf, fh, 2)
+
+        if verbose:
+            print "Grabando", idsfilename
+        with open(idsfilename, "wb") as fh:
+            cPickle.dump(id_shelf, fh, 2)
+
         return docid
-
-    def open(self, filename, readonly=False):
-        '''Abre los archivos.'''
-        mode = 'r' if readonly else 'c'
-        wordsfilename = filename + ".words"
-        idsfilename = filename + ".ids"
-        if self.verbose:
-            print "Opening", wordsfilename
-        self.word_shelf = shelve.open(wordsfilename,mode)
-        if self.verbose:
-            print "Opening", idsfilename
-        self.id_shelf = shelve.open(idsfilename,mode)
 
 def generar(src_info, verbose, full_text=False):
     return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
@@ -212,8 +213,6 @@ def generar(src_info, verbose, full_text=False):
 def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
     # lo importamos acá porque no es necesario en producción
     from src import utiles
-
-    index = Index(verbose=verbose)
 
     def gen():
         fh = codecs.open(fuente, "r", "utf8")
@@ -245,7 +244,7 @@ def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
                 raise StopIteration
             yield (nomhtml, titulo, palabras)
 
-    cant = index.create(salida, gen())
+    cant = Index.create(salida, gen(), verbose)
     return cant
 
 if __name__ == "__main__":
