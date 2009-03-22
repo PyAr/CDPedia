@@ -41,11 +41,11 @@ def main(fname, a_extraer):
         # mostramos los archivos que hay adentro
         print "Archivos:"
         for name, seek, size in archivos:
-            print "  ", name
+            print "  ", name.encode("utf8")
     else:
         # extraemos los archivos indicados
         for arch in a_extraer:
-            print "Extrayendo", arch
+            print "Extrayendo", arch.encode("utf8")
             data = c.get_articulo(arch)
             with open(arch, "wb") as fdest:
                 fdest.write(data)

@@ -35,7 +35,7 @@ if __name__ == "__main__":
         parser.print_help()
         exit()
 
-    nomart = args[0]
+    nomart = args[0].decode("utf8")
     verbose = bool(options.verbose)
 
     main(nomart, verbose)
