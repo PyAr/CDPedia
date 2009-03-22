@@ -206,16 +206,51 @@ class Index(object):
 
         return docid
 
-def generar(src_info, verbose, full_text=False):
-    return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
-                        dirbase=src_info, verbose=verbose, full_text=full_text)
+# Lo dejamos comentado para despues, para hacer el full_text desde los bloques
+#
+# def generar(src_info, verbose, full_text=False):
+#     return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
+#                         dirbase=src_info, verbose=verbose, full_text=full_text)
+#
+#     def gen():
+#         fh = codecs.open(fuente, "r", "utf8")
+#         fh.next() # título
+#         for i,linea in enumerate(fh):
+#             partes = linea.split()
+#             arch, dir3 = partes[:2]
+#             if not arch.endswith(".html"):
+#                 continue
+#
+#             (categoria, restonom) = utiles.separaNombre(arch)
+#             if verbose:
+#                 print "Indizando [%d] %s" % (i, arch.encode("utf8"))
+#             # info auxiliar
+#             nomhtml = os.path.join(dir3, arch)
+#             nomreal = os.path.join(dirbase, nomhtml)
+#             if os.access(nomreal, os.F_OK):
+#                 titulo = _getHTMLTitle(nomreal)
+#                 if full_text:
+#                     palabras = _getPalabrasHTML(nomreal)
+#                 else:
+#                     palabras = []
+#             else:
+#                 titulo = ""
+#                 print "WARNING: Archivo no encontrado:", nomreal
+#
+#             # si tenemos max, lo respetamos y entregamos la info
+#             if max is not None and i > max:
+#                 raise StopIteration
+#             yield (nomhtml, titulo, palabras)
+#
+#     cant = Index.create(salida, gen(), verbose)
+#     return cant
 
-def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
+def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
     from src import utiles
 
     def gen():
-        fh = codecs.open(fuente, "r", "utf8")
+        fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
         fh.next() # título
         for i,linea in enumerate(fh):
             partes = linea.split()
@@ -231,10 +266,7 @@ def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
             nomreal = os.path.join(dirbase, nomhtml)
             if os.access(nomreal, os.F_OK):
                 titulo = _getHTMLTitle(nomreal)
-                if full_text:
-                    palabras = _getPalabrasHTML(nomreal)
-                else:
-                    palabras = []
+                palabras = u""
             else:
                 titulo = ""
                 print "WARNING: Archivo no encontrado:", nomreal
@@ -244,7 +276,7 @@ def _create_index(fuente, salida, dirbase="", verbose=False, full_text=False):
                 raise StopIteration
             yield (nomhtml, titulo, palabras)
 
-    cant = Index.create(salida, gen(), verbose)
+    cant = Index.create(config.PREFIJO_INDICE, gen(), verbose)
     return cant
 
 if __name__ == "__main__":

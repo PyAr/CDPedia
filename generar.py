@@ -133,7 +133,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
     reducir.run(verbose)
 
     mensaje("Generando el índice")
-    result = cdpindex.generar(articulos, verbose, full_text=True)
+    result = cdpindex.generar_de_html(articulos, verbose)
     print '  total: %d archivos' % result
 
     mensaje("Generando los bloques")
