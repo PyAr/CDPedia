@@ -96,12 +96,20 @@ NAMESPACES = [
     u'Anexo_Discusión',
 ]
 
+# Comando externo para convertir en HTML en texto, para extraer las palabras
+# del documento. Lynx es el default, pero requiere que esté instalado en el host.
+# W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
+#
+CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
+# CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
+
+
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
 #
-#   Raiz                                                   Cant      Cant%  TamaÃ±o   TamaÃ±o%
-#   None                                                  459793     60.61%  4730 MB    54.02%
-#   Usuario_Discusión                                     125147     16.50%  1736 MB    19.83%
+#   Raiz                                                   Cant      Cant%  Tamaño      Tam.%
+#   None                                                  459793     60.61%  4730 MB   54.02%
+#   Usuario_Discusión                                     125147     16.50%  1736 MB   19.83%
 #   Usuario                                                35891      4.73%  701 MB     8.01%
 #   Discusión                                              58106      7.66%  487 MB     5.56%
 #   Categoría                                              46642      6.15%  481 MB     5.50%

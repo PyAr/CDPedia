@@ -59,7 +59,7 @@ def _getHTMLTitle(arch):
 
 def _getPalabrasHTML(arch):
     arch = os.path.abspath(arch)
-    cmd = "lynx -nolist -dump -display_charset=UTF-8 %s" % arch
+    cmd = config.CMD_HTML_A_TEXTO % arch
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     txt = p.stdout.read()
     txt = txt.decode("utf8")
