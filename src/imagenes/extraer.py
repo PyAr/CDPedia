@@ -37,7 +37,7 @@ class ParseaImagenes(object):
     def dump(self, dest):
         # guardamos en el log
         with open(dest, "w") as fh:
-            info = "\n".join(("%s %s" % x) for x in self.to_log.items())
+            info = "\n".join(("%s%s%s" % (k, config.SEPARADOR_COLUMNAS, v)) for (k, v) in self.to_log.items())
             fh.write(info + "\n")
 
     def parsea(self, arch):
@@ -128,7 +128,7 @@ def run(verbose):
         fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
         fh.next() # título
         for i,linea in enumerate(fh):
-            partes = linea.split()
+            partes = linea.split(config.SEPARADOR_COLUMNAS)
             arch, dir3 = partes[:2]
             if not arch.endswith(".html"):
                 continue

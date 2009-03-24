@@ -42,7 +42,7 @@ def _descargar(url, fullpath, msg):
 def traer(verbose):
     errores = 0
     for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
-        arch, url = linea.split()
+        arch, url = linea.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
 
         def msg(*t):

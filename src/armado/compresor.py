@@ -163,7 +163,7 @@ def generar(verbose):
     # armo el diccionario de redirects
     redirects = {}
     for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
-        desde, hasta = linea.split()
+        desde, hasta = linea.split(config.SEPARADOR_COLUMNAS)
         desde = path.basename(desde)
         hasta = path.basename(hasta)
         if verbose:

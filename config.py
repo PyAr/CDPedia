@@ -6,7 +6,7 @@ URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
 IDIOMA = "es"
 
 # info para el compresor / decompresor
-ARTICLES_PER_BLOCK = 1000
+ARTICLES_PER_BLOCK = 2000
 DIR_BLOQUES = "temp/cdroot/bloques"
 
 # Directorio de archivos temporales
@@ -32,7 +32,7 @@ LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 
 # Formato general de los logs:
-SEPARADOR_COLUMNAS = '\t'
+SEPARADOR_COLUMNAS = '|'
 SEPARADOR_FILAS = '\n'
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
