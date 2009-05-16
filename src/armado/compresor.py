@@ -150,7 +150,7 @@ def generar(verbose):
 
     if verbose:
         print "Procesando", len(fileNames), "articulos"
-    numBloques= max(len(fileNames) // config.ARTICLES_PER_BLOCK, 1)
+    numBloques = len(fileNames) // config.ARTICLES_PER_BLOCK + 1
     bloques = {}
     for root, fileName in fileNames:
         if verbose:
