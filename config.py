@@ -39,6 +39,11 @@ SEPARADOR_FILAS = '\n'
 # páginas en sí
 ASSETS = ["skins", "misc", "raw"]
 
+# Límites de cantidades de páginas a incluir, y de cuantas páginas con
+# imágenes incluir
+LIMITE_PAGINAS = 100
+LIMITE_IMAGENES = 20
+
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces
 # que sí queremos que entren.

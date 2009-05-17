@@ -24,6 +24,7 @@ import codecs
 
 import config
 from src import utiles
+from src.preproceso import preprocesar
 
 class ParseaImagenes(object):
     """
@@ -125,13 +126,12 @@ class ParseaImagenes(object):
 
 def run(verbose):
     def gen():
-        fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-        fh.next() # título
-        for i,linea in enumerate(fh):
-            partes = linea.split(config.SEPARADOR_COLUMNAS)
-            arch, dir3 = partes[:2]
-            if not arch.endswith(".html"):
-                continue
+        preprocesados = preprocesar.get_top_htmls(config.LIMITE_IMAGENES)
+        # FIXME: acá hay que pedir LIMITE_PAGINAS, a las primeras LIMITE_IMAGENES
+        # procesarlas para incluir las imágenes, y al resto tocarle los htmls
+        # para que quede una "bogus image" (iconito nuestro, con link a la imagen
+        # y alt-text explicando por qué no está)
+        for i, (dir3, arch) in enumerate(preprocesados):
 
             (categoria, restonom) = utiles.separaNombre(arch)
             if verbose:
@@ -146,7 +146,7 @@ def run(verbose):
         pi.parsea(arch)
 
     pi.dump(config.LOG_IMAGENES)
-    return len(pi.to_log), cant
+    return len(pi.to_log), cant+1
 
 
 if __name__ == "__main__":

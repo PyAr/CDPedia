@@ -27,6 +27,7 @@ import random
 import shutil
 
 import config
+from src.preproceso import preprocesar
 
 class ArticleManager(object):
     def __init__(self, verbose=False):
@@ -75,14 +76,14 @@ class Comprimido(object):
         # redirect (en ese caso, ponemos el nombre de la página a la que
         # se redirecciona
         seek = 0
-        for root, fileName in fileNames:
+        for dir3, fileName in fileNames:
             # si es redirect, sólo el nombre
             if fileName in redirects:
                 header[fileName] = redirects[fileName]
                 continue
 
             # si es real, info del archivo real
-            fullName = path.join(root, fileName)
+            fullName = path.join(config.DIR_PREPROCESADO, dir3, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
             seek += size
@@ -103,10 +104,10 @@ class Comprimido(object):
         f.write( headerBytes )
 
         # grabo cada uno de los articulos
-        for root, fileName in fileNames:
+        for dir3, fileName in fileNames:
             if fileName in redirects:
                 continue
-            fullName = path.join(root, fileName)
+            fullName = path.join(config.DIR_PREPROCESADO, dir3, fileName)
             f.write(open( fullName, "rb" ).read())
 
     def get_articulo(self, fileName):
@@ -136,29 +137,21 @@ def generar(verbose):
         shutil.rmtree(dest)
     os.makedirs(dest)
 
-    # recorrer todos los nombres de articulos, y ordenarlos en un dict por
+    # pedir todos los articulos, y ordenarlos en un dict por
     # su numero de bloque, segun el hash
-    fileNames = []
-    if verbose:
-        print "Buscando los artículos"
-    for root, dirs, files in os.walk(unicode(config.DIR_PREPROCESADO)):
-        for fileName in files:
-            fileNames.append( (root, fileName) )
-            if len(fileNames)%10000 == 0:
-                if verbose:
-                    print "  encontrados %d artículos" % len(fileNames)
-
+    fileNames = list(preprocesar.get_top_htmls(config.LIMITE_PAGINAS))
     if verbose:
         print "Procesando", len(fileNames), "articulos"
+
     numBloques = len(fileNames) // config.ARTICLES_PER_BLOCK + 1
     bloques = {}
-    for root, fileName in fileNames:
+    for dir3, fileName in fileNames:
         if verbose:
-            print "  archs:", root, fileName
+            print "  archs:", repr(dir3), repr(fileName)
         bloqNum = hash(fileName) % numBloques
         if bloqNum not in bloques:
             bloques[bloqNum] = []
-        bloques[bloqNum].append((root,fileName))
+        bloques[bloqNum].append((dir3,fileName))
 
     # armo el diccionario de redirects
     redirects = {}

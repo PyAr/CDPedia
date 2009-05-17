@@ -136,6 +136,28 @@ class WikiSitio(object):
             print 'Registro guardado en %s' % log
 
 
+def get_top_htmls(limite):
+    '''Devuelve los htmls con más puntaje.'''
+    # leemos el archivo de preprocesado y calculamos puntaje
+    fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
+    fh.next() # título
+    data = []
+    for linea in fh:
+        partes = linea.split(config.SEPARADOR_COLUMNAS)
+        arch, dir3, _, _, ptj_content, ptj_peishranc = partes
+        ptj_content = int(ptj_content)
+        ptj_peishranc = int(ptj_peishranc)
+
+        # cálculo de puntaje, mezclando y ponderando los individuales
+        puntaje = ptj_content + ptj_peishranc * 5000
+
+        data.append((puntaje, dir3, arch))
+
+    # ordenamos y devolvemos los primeros N
+    data.sort(reverse=True)
+    data = (x[1:] for x in data[:limite])
+    return data
+
 def run(dir_raiz, verbose=False):
     wikisitio = WikiSitio(dir_raiz, verbose=verbose)
     cant = wikisitio.procesar()

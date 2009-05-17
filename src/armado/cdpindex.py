@@ -22,6 +22,8 @@ import config
 import subprocess
 import re
 
+from src.preproceso import preprocesar
+
 usage = """Indice de títulos de la CDPedia
 
 Para generar el archivo de indice hacer:
@@ -204,7 +206,7 @@ class Index(object):
         with open(idsfilename, "wb") as fh:
             cPickle.dump(id_shelf, fh, 2)
 
-        return docid
+        return docid+1
 
 # Lo dejamos comentado para despues, para hacer el full_text desde los bloques
 #
@@ -250,15 +252,9 @@ def generar_de_html(dirbase, verbose):
     from src import utiles
 
     def gen():
-        fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-        fh.next() # título
-        for i,linea in enumerate(fh):
-            partes = linea.split(config.SEPARADOR_COLUMNAS)
-            arch, dir3 = partes[:2]
-            if not arch.endswith(".html"):
-                continue
+        fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
-            (categoria, restonom) = utiles.separaNombre(arch)
+        for i, (dir3, arch) in enumerate(fileNames):
             if verbose:
                 print "Indizando [%d] %s" % (i, arch.encode("utf8"))
             # info auxiliar
