@@ -21,10 +21,13 @@ import sys
 import re
 import os
 import codecs
+import functools
 
 import config
 from src import utiles
 from src.preproceso import preprocesar
+
+BOGUS_IMAGE = "../../../extern/sinimagen.png"
 
 class ParseaImagenes(object):
     """
@@ -34,6 +37,7 @@ class ParseaImagenes(object):
     def __init__(self):
         self.regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.to_log = {}
+        self.imag_seguro = set()
 
     def dump(self, dest):
         # guardamos en el log
@@ -41,14 +45,15 @@ class ParseaImagenes(object):
             info = "\n".join(("%s%s%s" % (k, config.SEPARADOR_COLUMNAS, v)) for (k, v) in self.to_log.items())
             fh.write(info + "\n")
 
-    def parsea(self, arch):
+    def parsea(self, arch, bogus=False):
         # leemos la info original
         with open(arch) as fh:
             oldhtml = fh.read()
 
         # sacamos imágenes y reemplazamos paths
+        reemplaza = functools.partial(self._reemplaza, bogus)
         try :
-          newhtml = self.regex.sub(self._reemplaza, oldhtml)
+          newhtml = self.regex.sub(reemplaza, oldhtml)
         except Exception,e:
           print "Path del html", arch
           raise e
@@ -58,7 +63,7 @@ class ParseaImagenes(object):
             with open(arch, "w") as fh:
                 fh.write(newhtml)
 
-    def _reemplaza(self, m):
+    def _reemplaza(self, bogus, m):
         p1, img, p3 = m.groups()
         WIKIMEDIA = "http://upload.wikimedia.org/"
         WIKIPEDIA = "http://es.wikipedia.org/"
@@ -112,6 +117,13 @@ class ParseaImagenes(object):
         else:
             raise ValueError("Formato de imagen no soportado! %r" % img)
 
+        if bogus:
+            # si la imagen a reemplazar la teníamos de antes, adelante!
+            if dsk_url not in self.imag_seguro:
+                dsk_url = BOGUS_IMAGE
+        else:
+            self.imag_seguro.add(dsk_url)
+
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
 
 #        print "web url:", web_url
@@ -126,11 +138,10 @@ class ParseaImagenes(object):
 
 def run(verbose):
     def gen():
-        preprocesados = preprocesar.get_top_htmls(config.LIMITE_IMAGENES)
-        # FIXME: acá hay que pedir LIMITE_PAGINAS, a las primeras LIMITE_IMAGENES
-        # procesarlas para incluir las imágenes, y al resto tocarle los htmls
-        # para que quede una "bogus image" (iconito nuestro, con link a la imagen
-        # y alt-text explicando por qué no está)
+        # pedimos LIMITE_PAGINAS porque a todas hay que hacerle algo, ya sea
+        # procesar las imágenes o ponerles una bogus
+        preprocesados = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
+
         for i, (dir3, arch) in enumerate(preprocesados):
 
             (categoria, restonom) = utiles.separaNombre(arch)
@@ -143,7 +154,10 @@ def run(verbose):
     pi = ParseaImagenes()
 
     for cant,arch in enumerate(gen()):
-        pi.parsea(arch)
+        if cant < config.LIMITE_IMAGENES:
+            pi.parsea(arch)
+        else:
+            pi.parsea(arch, bogus=True)
 
     pi.dump(config.LOG_IMAGENES)
     return len(pi.to_log), cant+1

@@ -160,7 +160,7 @@ def generar(verbose):
         desde = path.basename(desde)
         hasta = path.basename(hasta)
         if verbose:
-            print "  redirs:", desde, hasta
+            print "  redirs:", repr(desde), repr(hasta)
         redirects[desde] = hasta
 
     # armamos cada uno de los comprimidos
