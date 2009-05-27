@@ -27,7 +27,6 @@ import random
 import shutil
 
 import config
-from src.preproceso import preprocesar
 
 class ArticleManager(object):
     def __init__(self, verbose=False):
@@ -131,6 +130,9 @@ class Comprimido(object):
 
 
 def generar(verbose):
+    # lo importamos acá porque no es necesario en producción
+    from src.preproceso import preprocesar
+
     # preparamos el dir destino
     dest = path.join(config.DIR_BLOQUES)
     if os.path.exists(dest):

@@ -22,8 +22,6 @@ import config
 import subprocess
 import re
 
-from src.preproceso import preprocesar
-
 usage = """Indice de títulos de la CDPedia
 
 Para generar el archivo de indice hacer:
@@ -250,6 +248,7 @@ class Index(object):
 def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
     from src import utiles
+    from src.preproceso import preprocesar
 
     def gen():
         fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)

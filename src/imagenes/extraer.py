@@ -38,6 +38,7 @@ class ParseaImagenes(object):
         self.regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.to_log = {}
         self.imag_seguro = set()
+        self.cant = 0
 
     def dump(self, dest):
         # guardamos en el log
@@ -123,6 +124,7 @@ class ParseaImagenes(object):
                 dsk_url = BOGUS_IMAGE
         else:
             self.imag_seguro.add(dsk_url)
+            self.cant += 1
 
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
 
@@ -153,14 +155,14 @@ def run(verbose):
 
     pi = ParseaImagenes()
 
-    for cant,arch in enumerate(gen()):
-        if cant < config.LIMITE_IMAGENES:
+    for arch in gen():
+        if pi.cant < config.LIMITE_IMAGENES:
             pi.parsea(arch)
         else:
             pi.parsea(arch, bogus=True)
 
     pi.dump(config.LOG_IMAGENES)
-    return len(pi.to_log), cant+1
+    return len(pi.to_log), pi.cant
 
 
 if __name__ == "__main__":
