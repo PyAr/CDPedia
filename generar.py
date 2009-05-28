@@ -122,7 +122,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
 
         mensaje("Generando el log de imágenes")
         result = extraer.run(verbose)
-        print '  total: %d imágenes sacadas de %d archivos' % result
+        print '  total: %d imágenes extraídas' % result
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")

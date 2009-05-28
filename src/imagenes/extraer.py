@@ -119,12 +119,9 @@ class ParseaImagenes(object):
             raise ValueError("Formato de imagen no soportado! %r" % img)
 
         if bogus:
-            # si la imagen a reemplazar la teníamos de antes, adelante!
+            # si la imagen a reemplazar no la teníamos de antes, bogus!
             if dsk_url not in self.imag_seguro:
                 dsk_url = BOGUS_IMAGE
-        else:
-            self.imag_seguro.add(dsk_url)
-            self.cant += 1
 
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
 
@@ -134,8 +131,10 @@ class ParseaImagenes(object):
 
         # guardamos las imágenes a bajar, y devolvemos lo cambiado para el html
         # le sacamos el "../../../../images/"
-        if web_url is not None:
+        if web_url is not None and dsk_url not in self.imag_seguro:
             self.to_log[dsk_url[19:]] = web_url
+            self.imag_seguro.add(dsk_url)
+            self.cant += 1
         return htm_url
 
 def run(verbose):
@@ -145,11 +144,7 @@ def run(verbose):
         preprocesados = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
         for i, (dir3, arch) in enumerate(preprocesados):
-
             (categoria, restonom) = utiles.separaNombre(arch)
-            if verbose:
-                print "Extrayendo imgs de [%d] %s" % (i, arch.encode("utf8"))
-
             nomreal = os.path.join(config.DIR_PREPROCESADO, dir3, arch)
             yield nomreal
 
@@ -157,12 +152,16 @@ def run(verbose):
 
     for arch in gen():
         if pi.cant < config.LIMITE_IMAGENES:
+            if verbose:
+                print "Extrayendo imgs de %s" % arch.encode("utf8")
             pi.parsea(arch)
         else:
+            if verbose:
+                print "Corrigiendo imgs a bogus en %s" % arch.encode("utf8")
             pi.parsea(arch, bogus=True)
 
     pi.dump(config.LOG_IMAGENES)
-    return len(pi.to_log), pi.cant
+    return pi.cant
 
 
 if __name__ == "__main__":

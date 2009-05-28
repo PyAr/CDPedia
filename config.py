@@ -42,7 +42,7 @@ ASSETS = ["skins", "misc", "raw"]
 # Límites de cantidades de páginas a incluir, y de cuantas páginas con
 # imágenes incluir
 LIMITE_PAGINAS = 10000
-LIMITE_IMAGENES = 1000
+LIMITE_IMAGENES = 2000
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces
@@ -55,7 +55,7 @@ NAMESPACES_INVALIDOS = [
     u'Discusión',
     u'Usuario',
     u'Usuario_Discusión',
-    #'Wikipedia',
+    u'Wikipedia',
     u'Wikipedia_Discusión',
     u'Imagen',
     u'Imagen_Discusión',
