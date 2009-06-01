@@ -40,14 +40,31 @@ class ParseaImagenes(object):
         self.imag_seguro = set()
         self.cant = 0
 
+        # levantamos cuales archivos ya habíamos procesado para las imágenes
+        self.imag_proc = os.path.join(config.DIR_TEMP, "imag_proc.txt")
+        self.preproc_recorridos = set()
+        if os.path.exists(self.imag_proc):
+            with codecs.open(self.imag_proc, "r", "utf-8") as fh:
+                for l in fh.readlines():
+                    self.preproc_recorridos.add(l.strip())
+
     def dump(self, dest):
-        # guardamos en el log
-        with open(dest, "w") as fh:
-            info = "\n".join(("%s%s%s" % (k, config.SEPARADOR_COLUMNAS, v)) for (k, v) in self.to_log.items())
-            fh.write(info + "\n")
+        # appendeamos en el log de imágenes
+        with open(dest, "a") as fh:
+            for k, v in self.to_log.items():
+                fh.write("%s%s%s\n" % (k, config.SEPARADOR_COLUMNAS, v))
+
+        # reescribimos todos los preproc que recorrimos
+        with codecs.open(self.imag_proc, "w", "utf-8") as fh:
+            for name in self.preproc_recorridos:
+                fh.write(name + "\n")
 
     def parsea(self, arch, bogus=False):
+        if arch in self.preproc_recorridos:
+            return
+
         # leemos la info original
+        self.preproc_recorridos.add(arch)
         with open(arch) as fh:
             oldhtml = fh.read()
 

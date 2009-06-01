@@ -93,10 +93,9 @@ def preparaTemporal():
     if os.path.exists(dtemp):
         # borramos los dirs (excepto imagenes)
         shutil.rmtree(os.path.join(dtemp,"cdroot"), ignore_errors=True)
-        shutil.rmtree(os.path.join(dtemp,"preprocesado"), ignore_errors=True)
         # borramos los archivos
-        for arch in glob.glob(os.path.join(dtemp, "*.txt")):
-            os.unlink(arch)
+        for arch in "omitido.txt redirects.txt".split():
+            os.unlink(os.path.join(dtemp, arch))
     else:
         os.makedirs(dtemp)
 
@@ -117,12 +116,13 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
             print "\nERROR: No se encuentra el directorio %r" % articulos
             print "Este directorio es obligatorio para el procesamiento general"
             sys.exit()
-        cant = preprocesar.run(articulos, verbose)
-        print '  total: %d páginas procesadas' % cant
+        cantnew, cantold = preprocesar.run(articulos, verbose)
+        print '  total %d páginas procesadas' % cantnew
+        print '      y %d que ya estaban de antes' % cantold
 
         mensaje("Generando el log de imágenes")
         result = extraer.run(verbose)
-        print '  total: %d imágenes extraídas' % result
+        print '  total: %d nuevas imágenes extraídas' % result
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")

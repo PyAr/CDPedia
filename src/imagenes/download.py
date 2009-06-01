@@ -14,16 +14,7 @@ HEADERS = {'User-Agent':
 }
 
 def _descargar(url, fullpath, msg):
-    msg("Verificando", repr(fullpath))
-
-    ya_estaba = os.path.exists(fullpath)
-    msg("  ", "ya estaba" if ya_estaba else "nop")
-
-    if ya_estaba:
-        return
-
     # descargamos!
-    print "Descargando", url
     basedir, _ = os.path.split(fullpath)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
@@ -41,13 +32,26 @@ def _descargar(url, fullpath, msg):
 
 def traer(verbose):
     errores = 0
+    lista_descargar = []
     for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
+        linea = linea.strip()
+        if not linea:
+            continue
+
         arch, url = linea.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
 
-        def msg(*t):
-            if verbose:
-                print " ".join(str(x) for x in t)
+        if not os.path.exists(fullpath):
+            lista_descargar.append((url, fullpath))
+
+
+    def msg(*t):
+        if verbose:
+            print " ".join(str(x) for x in t)
+
+    tot = len(lista_descargar)
+    for i, (url, fullpath) in enumerate(lista_descargar):
+        print "Descargando (%d/%d)  %s" % (i, tot, url)
 
         try:
             _descargar(url, fullpath, msg)

@@ -33,7 +33,6 @@ LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
-SEPARADOR_FILAS = '\n'
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí

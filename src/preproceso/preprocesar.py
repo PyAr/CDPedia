@@ -20,24 +20,14 @@ from src.preproceso import preprocesadores
 
 class WikiArchivo:
     def __init__(self, wikisitio, ruta):
-        self.ruta = ruta
-
         # Ojo: ruta_relativa *siempre* empieza con '/' (es relativa a la raíz
         # del sitio)
-        ruta_relativa = ruta[len(wikisitio.origen):]
-        self.destino = config.DIR_PREPROCESADO + ruta_relativa
-        self.url = os.path.basename(ruta_relativa)
+        self.ruta_relativa = ruta[len(wikisitio.origen):]
+        self.url = os.path.basename(self.ruta_relativa)
         self.html = open(ruta).read()
 
-    def resethtml(self):
-        self.html = open(self.ruta).read()
-        return self.html
-
     def guardar(self):
-        destino = self.destino
-        if self.ruta == destino:
-            raise ValueError("Intento de guardar el archivo en si mismo")
-
+        destino = config.DIR_PREPROCESADO + self.ruta_relativa
         try: os.makedirs(dirname(destino))
         except os.error: pass
 
@@ -50,9 +40,21 @@ class WikiSitio(object):
         self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
         self.verbose = verbose
 
+        # vemos que habíamos preocesado de antes
+        self.procesados_antes = set()
+        if os.path.exists(config.LOG_PREPROCESADO):
+            fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
+            fh.next() # título
+            for linea in fh:
+                partes = linea.split(config.SEPARADOR_COLUMNAS)
+                arch, dir3, _, _, _, _ = partes
+                self.procesados_antes.add((dir3, arch))
+
+
     def procesar(self):
         resultados = self.resultados
         puntaje_extra = {}
+        de_antes = 0
 
         for cwd, directorios, archivos in os.walk(self.origen):
             for nombre_archivo in archivos:
@@ -60,6 +62,12 @@ class WikiSitio(object):
                 partes_dir = cwd.split(os.path.sep)
                 ult3dirs = os.path.join(*partes_dir[-3:])
                 pag = wikiarchivo.url
+
+                # vemos si lo teníamos de antes
+                if ((ult3dirs, pag)) in self.procesados_antes:
+                    de_antes += 1
+                    continue
+
                 resultados[pag] = {}
                 resultados[pag]["dir3"] = ult3dirs
 
@@ -103,25 +111,23 @@ class WikiSitio(object):
             print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
 #            print perdidos
 
-        return len(resultados)
+        return len(resultados), de_antes
 
     def guardar(self):
-        # Esto se procesa solo si queremos una salida en modo de texto (LOG_PREPROCESADO != None)
-        if not config.LOG_PREPROCESADO:
-            print "WARNING: no se generó el log porque falta la variable "\
-                  "LOG_PREPROCESADO en config.py"
-            return
-
         log = abspath(config.LOG_PREPROCESADO)
-        sep_cols = unicode(config.SEPARADOR_COLUMNAS)
-        sep_filas = unicode(config.SEPARADOR_FILAS)
-        salida = codecs.open(log, "w", "utf-8")
-
-        # Encabezado:
         preprocs = self.preprocesadores
-        columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
-        plantilla = sep_cols.join([u'%s'] * len(columnas)) + sep_filas
-        salida.write(plantilla % tuple(columnas))
+        sep_cols = unicode(config.SEPARADOR_COLUMNAS)
+        plantilla = sep_cols.join([u'%s'] * (len(preprocs) + 2)) + "\n"
+
+        # inicializamos el log (que ya puede estar de antes)
+        if os.path.exists(log):
+            salida = codecs.open(log, "a", "utf-8")
+        else:
+            salida = codecs.open(log, "w", "utf-8")
+
+            # encabezado
+            columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
+            salida.write(plantilla % tuple(columnas))
 
         # Contenido:
         for pagina, valores in self.resultados.iteritems():
@@ -159,10 +165,11 @@ def get_top_htmls(limite):
     return data
 
 def run(dir_raiz, verbose=False):
+    import cProfile
     wikisitio = WikiSitio(dir_raiz, verbose=verbose)
-    cant = wikisitio.procesar()
+    cantnew, cantold = wikisitio.procesar()
     wikisitio.guardar()
-    return cant
+    return cantnew, cantold
 
 if __name__ == "__main__":
     run()
