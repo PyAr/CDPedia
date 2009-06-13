@@ -19,15 +19,13 @@ import config
 from src.preproceso import preprocesadores
 
 class WikiArchivo:
-    def __init__(self, wikisitio, ruta):
-        # Ojo: ruta_relativa *siempre* empieza con '/' (es relativa a la raíz
-        # del sitio)
-        self.ruta_relativa = ruta[len(wikisitio.origen):]
-        self.url = os.path.basename(self.ruta_relativa)
-        self.html = open(ruta).read()
+    def __init__(self, cwd, ult3dirs, nombre_archivo):
+        self.ruta_relativa = join(ult3dirs, nombre_archivo)
+        self.url = nombre_archivo
+        self.html = open(join(cwd, nombre_archivo)).read()
 
     def guardar(self):
-        destino = config.DIR_PREPROCESADO + self.ruta_relativa
+        destino = join(config.DIR_PREPROCESADO, self.ruta_relativa)
         try: os.makedirs(dirname(destino))
         except os.error: pass
 
@@ -57,17 +55,16 @@ class WikiSitio(object):
         de_antes = 0
 
         for cwd, directorios, archivos in os.walk(self.origen):
-            for nombre_archivo in archivos:
-                wikiarchivo = WikiArchivo(self, join(cwd, nombre_archivo))
+            for pag in archivos:
                 partes_dir = cwd.split(os.path.sep)
-                ult3dirs = os.path.join(*partes_dir[-3:])
-                pag = wikiarchivo.url
+                ult3dirs = join(*partes_dir[-3:])
 
                 # vemos si lo teníamos de antes
                 if ((ult3dirs, pag)) in self.procesados_antes:
                     de_antes += 1
                     continue
 
+                wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
                 resultados[pag] = {}
                 resultados[pag]["dir3"] = ult3dirs
 

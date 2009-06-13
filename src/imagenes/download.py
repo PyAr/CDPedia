@@ -56,8 +56,8 @@ def traer(verbose):
         try:
             _descargar(url, fullpath, msg)
         except urllib2.HTTPError, err:
-            if err.code == 404:
-                msg("  error 404!")
+            if err.code in (404, 500):
+                msg("  error %d!" % err.code)
                 errores += 1
             else:
                 raise
