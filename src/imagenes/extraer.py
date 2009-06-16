@@ -146,10 +146,10 @@ class ParseaImagenes(object):
         else:
             raise ValueError("Formato de imagen no soportado! %r" % img)
 
-        if bogus:
-            # si la imagen a reemplazar no la teníamos de antes, bogus!
-            if dsk_url not in self.imag_seguro:
-                dsk_url = BOGUS_IMAGE
+        # si bogus mode y la imagen a reemplazar no la teníamos de antes,
+        # efectivamente metemos la bogus image y ni seguimos
+        if bogus and dsk_url not in self.imag_seguro:
+            return '<img%ssrc="%s"%s/>' % (p1, BOGUS_IMAGE, p3)
 
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
 
