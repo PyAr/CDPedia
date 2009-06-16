@@ -34,14 +34,15 @@ class ParseaImagenes(object):
     Tenemos que loguear únicas, ya que tenemos muchísimos, muchísimos
     duplicados: en las pruebas, logueamos 28723 imágenes, que eran 203 únicas!
     """
-    def __init__(self):
+    def __init__(self, test=False):
         self.regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.to_log = {}
+        self.test = test
 
         # levantamos las imágenes ya procesadas
         self.imag_seguro = set()
         self.cant = 0
-        if os.path.exists(config.LOG_IMAGENES):
+        if not test and os.path.exists(config.LOG_IMAGENES):
             with codecs.open(config.LOG_IMAGENES, "r", "utf-8") as fh:
                 for l in fh.readlines():
                     dsk_url, _ = l.split(config.SEPARADOR_COLUMNAS)
@@ -52,7 +53,7 @@ class ParseaImagenes(object):
         # levantamos cuales archivos ya habíamos procesado para las imágenes
         self.imag_proc = os.path.join(config.DIR_TEMP, "imag_proc.txt")
         self.preproc_recorridos = set()
-        if os.path.exists(self.imag_proc):
+        if not test and os.path.exists(self.imag_proc):
             with codecs.open(self.imag_proc, "r", "utf-8") as fh:
                 for l in fh.readlines():
                     self.preproc_recorridos.add(l.strip())
@@ -86,7 +87,7 @@ class ParseaImagenes(object):
           raise e
 
         # si cambió, lo grabamos nuevamente
-        if oldhtml != newhtml:
+        if not self.test and oldhtml != newhtml:
             with open(arch, "w") as fh:
                 fh.write(newhtml)
 
@@ -94,7 +95,8 @@ class ParseaImagenes(object):
         p1, img, p3 = m.groups()
         WIKIMEDIA = "http://upload.wikimedia.org/"
         WIKIPEDIA = "http://es.wikipedia.org/"
-#        print "img", img
+        if self.test:
+            print "img", img
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
@@ -151,9 +153,10 @@ class ParseaImagenes(object):
 
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
 
-#        print "web url:", web_url
-#        print "htm url:", htm_url
-#        print "dsk url:", dsk_url
+        if self.test:
+            print "  web url:", web_url
+            print "  htm url:", htm_url
+            print "  dsk url:", dsk_url
 
         # guardamos las imágenes a bajar, y devolvemos lo cambiado para el html
         # le sacamos el "../../../../images/"
