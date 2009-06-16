@@ -37,8 +37,17 @@ class ParseaImagenes(object):
     def __init__(self):
         self.regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.to_log = {}
+
+        # levantamos las imágenes ya procesadas
         self.imag_seguro = set()
         self.cant = 0
+        if os.path.exists(config.LOG_IMAGENES):
+            with codecs.open(config.LOG_IMAGENES, "r", "utf-8") as fh:
+                for l in fh.readlines():
+                    dsk_url, _ = l.split(config.SEPARADOR_COLUMNAS)
+                    dsk_url = "../../../../images/" + dsk_url.strip()
+                    self.imag_seguro.add(dsk_url)
+                    self.cant += 1
 
         # levantamos cuales archivos ya habíamos procesado para las imágenes
         self.imag_proc = os.path.join(config.DIR_TEMP, "imag_proc.txt")
@@ -48,9 +57,9 @@ class ParseaImagenes(object):
                 for l in fh.readlines():
                     self.preproc_recorridos.add(l.strip())
 
-    def dump(self, dest):
+    def dump(self):
         # appendeamos en el log de imágenes
-        with open(dest, "a") as fh:
+        with open(config.LOG_IMAGENES, "a") as fh:
             for k, v in self.to_log.items():
                 fh.write("%s%s%s\n" % (k, config.SEPARADOR_COLUMNAS, v))
 
@@ -177,7 +186,7 @@ def run(verbose):
                 print "Corrigiendo imgs a bogus en %s" % arch.encode("utf8")
             pi.parsea(arch, bogus=True)
 
-    pi.dump(config.LOG_IMAGENES)
+    pi.dump()
     return pi.cant
 
 

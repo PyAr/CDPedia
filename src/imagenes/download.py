@@ -31,7 +31,7 @@ def _descargar(url, fullpath, msg):
 
 
 def traer(verbose):
-    errores = 0
+    errores = {}
     lista_descargar = []
     for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
         linea = linea.strip()
@@ -56,10 +56,9 @@ def traer(verbose):
         try:
             _descargar(url, fullpath, msg)
         except urllib2.HTTPError, err:
-            if err.code in (404, 500):
-                msg("  error %d!" % err.code)
-                errores += 1
-            else:
-                raise
+            msg("  error %d!" % err.code)
+            errores[err.code] = errores.get(err.code, 0) + 1
     if errores:
-        print "WARNING! Tuvimos %d errores 404" % errores
+        print "WARNING! Tuvimos errores:"
+        for code, cant in errores.items():
+            print "       %d %5d" % (code, cant)

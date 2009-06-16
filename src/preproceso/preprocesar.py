@@ -48,6 +48,15 @@ class WikiSitio(object):
                 arch, dir3, _, _, _, _ = partes
                 self.procesados_antes.add((dir3, arch))
 
+        # vemos que habíamos descartado antes
+        self.descartados_antes = set()
+        self._descart = join(config.DIR_TEMP, "descartados.txt")
+        if os.path.exists(self._descart):
+            fh = codecs.open(self._descart, "r", "utf8")
+            for linea in fh:
+                dir3, arch = linea.strip().split(" ")
+                self.descartados_antes.add((dir3, arch))
+
 
     def procesar(self):
         resultados = self.resultados
@@ -62,6 +71,8 @@ class WikiSitio(object):
                 # vemos si lo teníamos de antes
                 if ((ult3dirs, pag)) in self.procesados_antes:
                     de_antes += 1
+                    continue
+                if ((ult3dirs, pag)) in self.descartados_antes:
                     continue
 
                 wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
@@ -78,6 +89,7 @@ class WikiSitio(object):
                         del resultados[pag]
                         if self.verbose:
                             print '  omitido!'
+                        self.descartados_antes.add((ult3dirs, pag))
                         break
 
                     # ponemos el puntaje
@@ -135,6 +147,11 @@ class WikiSitio(object):
                                                         for p in preprocs]
             salida.write(plantilla % tuple(columnas))
 
+        # descartados
+        fh = codecs.open(self._descart, "w", "utf8")
+        for dir3, arch in self.descartados_antes:
+            fh.write("%s %s\n" % (dir3, arch))
+
         if self.verbose:
             print 'Registro guardado en %s' % log
 
@@ -164,6 +181,7 @@ def get_top_htmls(limite):
 def run(dir_raiz, verbose=False):
     import cProfile
     wikisitio = WikiSitio(dir_raiz, verbose=verbose)
+#    cProfile.runctx("wikisitio.procesar()", globals(), locals(), "/tmp/procesar.stat")
     cantnew, cantold = wikisitio.procesar()
     wikisitio.guardar()
     return cantnew, cantold
