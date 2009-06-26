@@ -33,6 +33,15 @@ def _descargar(url, fullpath, msg):
 def traer(verbose):
     errores = {}
     lista_descargar = []
+
+    # vemos cuales tuvieron problemas antes
+    log_errores = os.path.join(config.DIR_TEMP, "imagenes_neterror.txt")
+    if os.path.exists(log_errores):
+        with codecs.open(log_errores, "r", "utf8") as fh:
+            imgs_problemas = set(x.strip() for x in fh)
+    else:
+        imgs_problemas = set()
+
     for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
         linea = linea.strip()
         if not linea:
@@ -41,9 +50,8 @@ def traer(verbose):
         arch, url = linea.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
 
-        if not os.path.exists(fullpath):
+        if url not in imgs_problemas and not os.path.exists(fullpath):
             lista_descargar.append((url, fullpath))
-
 
     def msg(*t):
         if verbose:
@@ -58,6 +66,9 @@ def traer(verbose):
         except urllib2.HTTPError, err:
             msg("  error %d!" % err.code)
             errores[err.code] = errores.get(err.code, 0) + 1
+            with codecs.open(log_errores, "a", "utf8") as fh:
+                fh.write(url + "\n")
+
     if errores:
         print "WARNING! Tuvimos errores:"
         for code, cant in errores.items():
