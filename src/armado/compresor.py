@@ -82,7 +82,7 @@ class Comprimido(object):
                 continue
 
             # si es real, info del archivo real
-            fullName = path.join(config.DIR_PREPROCESADO, dir3, fileName)
+            fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
             seek += size
@@ -106,7 +106,7 @@ class Comprimido(object):
         for dir3, fileName in fileNames:
             if fileName in redirects:
                 continue
-            fullName = path.join(config.DIR_PREPROCESADO, dir3, fileName)
+            fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
             f.write(open( fullName, "rb" ).read())
 
     def get_articulo(self, fileName):

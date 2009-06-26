@@ -16,8 +16,10 @@ DIR_TEMP = "temp"
 PREFIJO_INDICE = "temp/wikiindex"
 
 # Directorio destino de los archivos preprocesados.
-# Puede ser relativo o absoluto
 DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
+
+# Directorio de los archivos ya listos para inclusión
+DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "temp/cdroot"
@@ -40,8 +42,8 @@ ASSETS = ["skins", "misc", "raw"]
 
 # Límites de cantidades de páginas a incluir, y de cuantas páginas con
 # imágenes incluir
-LIMITE_PAGINAS = 40000
-LIMITE_IMAGENES = 6000
+LIMITE_PAGINAS = 20000
+LIMITE_IMAGENES = 4000
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces

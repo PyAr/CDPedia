@@ -91,11 +91,14 @@ def genera_run_config():
 def preparaTemporal():
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
-        # borramos los dirs (excepto imagenes)
+        # borramos el cdroot
         shutil.rmtree(os.path.join(dtemp,"cdroot"), ignore_errors=True)
+
         # borramos los archivos
         for arch in "omitido.txt redirects.txt".split():
-            os.unlink(os.path.join(dtemp, arch))
+            fullname = os.path.join(dtemp, arch)
+            if os.path.exists(fullname):
+                os.unlink(fullname)
     else:
         os.makedirs(dtemp)
 
@@ -122,7 +125,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
 
         mensaje("Generando el log de imágenes")
         result = extraer.run(verbose)
-        print '  total: %d nuevas imágenes extraídas' % result
+        print '  total: %d imágenes extraídas' % result
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
