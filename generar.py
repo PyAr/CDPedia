@@ -93,12 +93,6 @@ def preparaTemporal():
     if os.path.exists(dtemp):
         # borramos el cdroot
         shutil.rmtree(os.path.join(dtemp,"cdroot"), ignore_errors=True)
-
-        # borramos los archivos
-        for arch in "omitido.txt redirects.txt".split():
-            fullname = os.path.join(dtemp, arch)
-            if os.path.exists(fullname):
-                os.unlink(fullname)
     else:
         os.makedirs(dtemp)
 

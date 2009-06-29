@@ -60,8 +60,6 @@ class Namespaces(Procesador):
     def __init__(self, wikisitio):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
-        self.log = codecs.open(config.LOG_OMITIDO, "w", "utf-8")
-
 
     def __call__(self, wikiarchivo):
         (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
@@ -70,7 +68,6 @@ class Namespaces(Procesador):
         # no da puntaje per se, pero invalida segun namespace
         if namespace in config.NAMESPACES_INVALIDOS:
 #            print '[inválido]'
-            self.log.write(wikiarchivo.url + "\n")
             return (None, [])
         else:
 #            print '[válido]'
@@ -85,7 +82,7 @@ class OmitirRedirects(Procesador):
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects-"
-        self.log = codecs.open(config.LOG_REDIRECTS, "w", "utf-8")
+        self.log = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
         self.capturar = compile(regex).search
 

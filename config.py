@@ -29,7 +29,6 @@ DIR_ASSETS = "temp/cdroot/assets"
 
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
-LOG_OMITIDO = DIR_TEMP + "/omitido.txt"
 LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 
@@ -42,8 +41,8 @@ ASSETS = ["skins", "misc", "raw"]
 
 # Límites de cantidades de páginas a incluir, y de cuantas páginas con
 # imágenes incluir
-LIMITE_PAGINAS = 20000
-LIMITE_IMAGENES = 4000
+LIMITE_PAGINAS = 60000
+LIMITE_IMAGENES = 10000
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces

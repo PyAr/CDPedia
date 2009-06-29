@@ -133,6 +133,8 @@ def generar(verbose):
     # lo importamos acá porque no es necesario en producción
     from src.preproceso import preprocesar
 
+    import cProfile
+
     # preparamos el dir destino
     dest = path.join(config.DIR_BLOQUES)
     if os.path.exists(dest):
@@ -170,6 +172,7 @@ def generar(verbose):
     for bloqNum, fileNames in bloques.items():
         tot += len(fileNames)
         Comprimido.crear(redirects, bloqNum, fileNames, verbose)
+
     return (len(bloques), tot)
 
 if __name__ == "__main__":

@@ -179,7 +179,7 @@ def get_top_htmls(limite):
     return data
 
 def run(dir_raiz, verbose=False):
-    import cProfile
+#    import cProfile
     wikisitio = WikiSitio(dir_raiz, verbose=verbose)
 #    cProfile.runctx("wikisitio.procesar()", globals(), locals(), "/tmp/procesar.stat")
     cantnew, cantold = wikisitio.procesar()
