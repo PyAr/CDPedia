@@ -149,7 +149,7 @@ class Peishranc(Procesador):
         enlaces = self.capturar(wikiarchivo.html)
         if not enlaces:
             return (0, [])
-        enlaces = set(unquote(x).decode("utf-8") for x in enlaces)
+        enlaces = set(unquote(x).decode("utf-8", "replace") for x in enlaces)
 
         # sacamos el "auto-bombo"
         if wikiarchivo.url in enlaces:

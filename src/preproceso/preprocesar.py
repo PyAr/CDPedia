@@ -39,23 +39,27 @@ class WikiSitio(object):
         self.verbose = verbose
 
         # vemos que habíamos preocesado de antes
-        self.procesados_antes = set()
         if os.path.exists(config.LOG_PREPROCESADO):
             fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
             fh.next() # título
+            procs = [p.nombre for p in self.preprocesadores]
             for linea in fh:
                 partes = linea.split(config.SEPARADOR_COLUMNAS)
-                arch, dir3, _, _, _, _ = partes
-                self.procesados_antes.add((dir3, arch))
+                arch = partes[0]
+                dir3 = partes[1]
+                d = {}
+                self.resultados[arch] = d
+                d["dir3"] = dir3
+                for proc, ptje in zip(procs, map(int, partes[2:])):
+                    d[proc] = ptje
 
         # vemos que habíamos descartado antes
-        self.descartados_antes = set()
+        self.descartados = set()
         self._descart = join(config.DIR_TEMP, "descartados.txt")
         if os.path.exists(self._descart):
             fh = codecs.open(self._descart, "r", "utf8")
             for linea in fh:
-                dir3, arch = linea.strip().split(" ")
-                self.descartados_antes.add((dir3, arch))
+                self.descartados.add(linea.strip())
 
 
     def procesar(self):
@@ -69,10 +73,10 @@ class WikiSitio(object):
                 ult3dirs = join(*partes_dir[-3:])
 
                 # vemos si lo teníamos de antes
-                if ((ult3dirs, pag)) in self.procesados_antes:
+                if pag in resultados:
                     de_antes += 1
                     continue
-                if ((ult3dirs, pag)) in self.descartados_antes:
+                if pag in self.descartados:
                     continue
 
                 wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
@@ -89,7 +93,7 @@ class WikiSitio(object):
                         del resultados[pag]
                         if self.verbose:
                             print '  omitido!'
-                        self.descartados_antes.add((ult3dirs, pag))
+                        self.descartados.add(pag)
                         break
 
                     # ponemos el puntaje
@@ -120,7 +124,7 @@ class WikiSitio(object):
             print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
 #            print perdidos
 
-        return len(resultados), de_antes
+        return len(resultados)-de_antes, de_antes
 
     def guardar(self):
         log = abspath(config.LOG_PREPROCESADO)
@@ -128,15 +132,10 @@ class WikiSitio(object):
         sep_cols = unicode(config.SEPARADOR_COLUMNAS)
         plantilla = sep_cols.join([u'%s'] * (len(preprocs) + 2)) + "\n"
 
-        # inicializamos el log (que ya puede estar de antes)
-        if os.path.exists(log):
-            salida = codecs.open(log, "a", "utf-8")
-        else:
-            salida = codecs.open(log, "w", "utf-8")
-
-            # encabezado
-            columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
-            salida.write(plantilla % tuple(columnas))
+        # inicializamos el log
+        salida = codecs.open(log, "w", "utf-8")
+        columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
+        salida.write(plantilla % tuple(columnas))
 
         # Contenido:
         for pagina, valores in self.resultados.iteritems():
@@ -148,9 +147,9 @@ class WikiSitio(object):
             salida.write(plantilla % tuple(columnas))
 
         # descartados
-        fh = codecs.open(self._descart, "w", "utf8")
-        for dir3, arch in self.descartados_antes:
-            fh.write("%s %s\n" % (dir3, arch))
+        with codecs.open(self._descart, "w", "utf8") as fh:
+            for arch in self.descartados:
+                fh.write("%s\n" % arch)
 
         if self.verbose:
             print 'Registro guardado en %s' % log
