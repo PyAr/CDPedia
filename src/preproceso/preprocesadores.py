@@ -130,6 +130,8 @@ class ExtraerContenido(Procesador):
 
             # damos puntaje en función del tamaño del contenido
             return (tamanio, [])
+        else:
+            print "WARNING: no recibimos un html:", wikiarchivo.url
 
 
 class Peishranc(Procesador):
@@ -149,15 +151,18 @@ class Peishranc(Procesador):
         enlaces = self.capturar(wikiarchivo.html)
         if not enlaces:
             return (0, [])
-        enlaces = set(unquote(x).decode("utf-8", "replace") for x in enlaces)
-
-        # sacamos el "auto-bombo"
-        if wikiarchivo.url in enlaces:
-            enlaces.remove(wikiarchivo.url)
+        enlaces = [unquote(x).decode("utf-8", "replace") for x in enlaces]
 
         # no damos puntaje a la página recibida, sino a todos sus apuntados
-        puntajes = [(x, 1) for x in enlaces]
-        return (0, puntajes)
+        puntajes = {}
+        for lnk in enlaces:
+            puntajes[lnk] = puntajes.get(lnk, 0) + 1
+
+        # sacamos el "auto-bombo"
+        if wikiarchivo.url in puntajes:
+            del puntajes[wikiarchivo.url]
+
+        return (0, puntajes.items())
 
 class Longitud(Procesador):
     """

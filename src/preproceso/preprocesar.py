@@ -102,7 +102,7 @@ class WikiSitio(object):
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
                         ant = puntaje_extra.setdefault(extra_pag, {})
-                        ant[procesador.nombre] = puntaje_extra.get(
+                        ant[procesador.nombre] = ant.get(
                                             procesador.nombre, 0) + extra_ptje
                 else:
                     if self.verbose:
