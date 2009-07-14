@@ -31,6 +31,8 @@ DIR_ASSETS = "temp/cdroot/assets"
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
 LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
+LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
+LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
@@ -39,12 +41,18 @@ SEPARADOR_COLUMNAS = '|'
 # páginas en sí
 ASSETS = ["skins", "misc", "raw"]
 
-# Límites de cantidades de páginas a incluir, y de cuantas páginas con
-# imágenes incluir
-#LIMITE_PAGINAS = 120000
-#LIMITE_IMAGENES = 13000
+# Límites de cantidades de páginas a incluir
 LIMITE_PAGINAS = 60000
-LIMITE_IMAGENES = 6500
+
+# Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
+# tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
+# (ordenados),  y los porcentajes de cantidad tienen que sumar 100
+ESCALA_IMAGS = [
+    (30, 100),
+    (25,  75),
+    (25,  50),
+    (20,   0),
+]
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
 # Por una cuestión de practicidad conviene comentar las lineas de los namespaces

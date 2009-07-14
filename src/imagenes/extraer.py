@@ -9,6 +9,7 @@ venir en el dump).
 """
 
 from __future__ import with_statement
+from __future__ import division
 
 usage = """Extractor de URLs de imágenes.
 
@@ -36,21 +37,22 @@ class ParseaImagenes(object):
     """
     def __init__(self, test=False):
         self.test = test
-        self.regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
+        self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
+        self.anchalt_regex = re.compile('width="\d+" height="\d+"')
         self.a_descargar = {}
         self.proces_ahora = {}
 
         # levantamos cuales archivos ya habíamos procesado para las imágenes
-        self.imag_proc_arch = os.path.join(config.DIR_TEMP, "imag_proc.txt")
         self.proces_antes = {}
-        if not test and os.path.exists(self.imag_proc_arch):
-            with codecs.open(self.imag_proc_arch, "r", "utf-8") as fh:
+        if not test and os.path.exists(config.LOG_IMAGPROC):
+            with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
                 for linea in fh:
                     partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
-                    pag = partes[0]
-                    bogus = bool(int(partes[1]))
-                    dskurls = partes[2:]
-                    self.proces_antes[pag] = (bogus, dskurls)
+                    dir3 = partes[0]
+                    fname = partes[1]
+                    bogus = bool(int(partes[2]))
+                    dskurls = partes[3:]
+                    self.proces_antes[dir3, fname] = (bogus, dskurls)
 
         # levantamos la info de lo planeado a descargar
         self.descarg_antes = {}
@@ -71,35 +73,33 @@ class ParseaImagenes(object):
                 fh.write("%s%s%s\n" % (k, separador, v))
 
         # reescribimos todos los preproc que recorrimos
-        with codecs.open(self.imag_proc_arch, "w", "utf-8") as fh:
-            for pag, (bogus, dskurls) in self.proces_ahora.items():
+        with codecs.open(config.LOG_IMAGPROC, "w", "utf-8") as fh:
+            for (dir3, fname), (bogus, dskurls) in self.proces_ahora.items():
                 if bogus:
-                    linea = separador.join((pag, "1"))
+                    linea = separador.join((dir3, fname, "1"))
                 else:
                     if dskurls:
                         dskurls = separador.join(dskurls)
-                        linea = separador.join((pag, "0", dskurls))
+                        linea = separador.join((dir3, fname, "0", dskurls))
                     else:
-                        linea = separador.join((pag, "0"))
+                        linea = separador.join((dir3, fname, "0"))
                 fh.write(linea + "\n")
 
-    def parsea(self, info, bogus=False):
-        dir3, filename = info
-        arch = os.path.join(config.DIR_PREPROCESADO, dir3, filename)
-
-        if arch in self.proces_antes:
-            prev_bogus, prev_dskurls = self.proces_antes[arch]
+    def parsea(self, dir3, fname, bogus=False):
+        if (dir3, fname) in self.proces_antes:
+            prev_bogus, prev_dskurls = self.proces_antes[dir3, fname]
             if not prev_bogus and not bogus:
                 # procesado antes como real, y ahora también es real
                 # no hacemos nada, pero sabemos que las imágenes que
                 # tenía van ok
-                self.proces_ahora[arch] = (prev_bogus, prev_dskurls)
+                self.proces_ahora[dir3, fname] = (prev_bogus, prev_dskurls)
                 for dsk_url in prev_dskurls:
                     web_url = self.descarg_antes[dsk_url]
                     self.a_descargar[dsk_url] = web_url
                 return
 
         # leemos la info original
+        arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
         with codecs.open(arch, "r", "utf-8") as fh:
             oldhtml = fh.read()
 
@@ -107,7 +107,7 @@ class ParseaImagenes(object):
         newimgs = []
         reemplaza = functools.partial(self._reemplaza, bogus, newimgs)
         try:
-            newhtml = self.regex.sub(reemplaza, oldhtml)
+            newhtml = self.img_regex.sub(reemplaza, oldhtml)
         except Exception, e:
             print "Path del html", arch
             raise e
@@ -120,7 +120,7 @@ class ParseaImagenes(object):
                 os.makedirs(destdir)
 
             # escribimos el archivo
-            newpath = os.path.join(destdir, filename)
+            newpath = os.path.join(destdir, fname)
             with codecs.open(newpath, "w", "utf-8") as fh:
                 fh.write(newhtml)
 
@@ -130,7 +130,7 @@ class ParseaImagenes(object):
         else:
             # tomamos la dsk_url, sin el path relativo
             imgs = [x[0][19:] for x in newimgs]
-        self.proces_ahora[arch] = (bogus, imgs)
+        self.proces_ahora[dir3, fname] = (bogus, imgs)
 
         if not bogus:
             # guardamos las imágenes nuevas
@@ -144,6 +144,10 @@ class ParseaImagenes(object):
         WIKIPEDIA = "http://es.wikipedia.org/"
         if self.test:
             print "img", img
+
+        # recortamos ancho y alto
+        if not bogus:
+            p3 = self.anchalt_regex.sub("", p3)
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
@@ -211,22 +215,58 @@ class ParseaImagenes(object):
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
         return htm_url
 
+
+class Escalador(object):
+    '''Indica en que escala dejar la imágen.'''
+    def __init__(self):
+        # validamos porcentajes de la config
+        porc_escala = [x[1] for x in config.ESCALA_IMAGS]
+        if max(porc_escala) != 100 or min(porc_escala) != 0:
+            raise ValueError(u"Error en los extremos de config.ESCALA_IMAGS")
+        if sorted(porc_escala, reverse=True) != porc_escala:
+            raise ValueError(u"Los % de escala no están ordenados")
+        if sum(x[0] for x in config.ESCALA_IMAGS) != 100:
+            raise ValueError(
+                        u"Los % de cant de config.ESCALA_IMAGS no suman 100")
+
+        # preparamos nuestro generador de límites
+        vals = []
+        base = 0
+        for (porc_cant, escala) in config.ESCALA_IMAGS:
+            cant = config.LIMITE_PAGINAS * porc_cant / 100
+            vals.append((cant + base, escala))
+            base += cant
+
+        self.limite = 0
+        self.gen_pares = (x for x in vals)
+
+    def __call__(self, nro):
+        if nro >= self.limite:
+            # pasamos al próximo valor
+            (self.limite, self.escala) = self.gen_pares.next()
+        return self.escala
+
+
 def run(verbose):
     # pedimos LIMITE_PAGINAS porque a todas hay que hacerle algo, ya sea
     # procesar las imágenes o ponerles una bogus
     preprocesados = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
     pi = ParseaImagenes()
+    escalador = Escalador()
 
-    for info in preprocesados:
-        if pi.cant < config.LIMITE_IMAGENES:
-            if verbose:
-                print "Extrayendo imgs de %s" % info
-            pi.parsea(info, bogus=False)
+    log_fh = codecs.open(config.LOG_REDUCCION, "w", "utf8")
+
+    for i, (dir3, fname) in enumerate(preprocesados):
+        escala = escalador(i)
+        if verbose:
+            print "Extrayendo imgs (al {0}) de {1}/{2}".format(
+                                           escala, dir3.encode("utf8"), fname.encode("utf8"))
+        if escala != 0:
+            log_fh.write("%d %s %s\n" % (escala, dir3, fname))
+            pi.parsea(dir3, fname, bogus=False)
         else:
-            if verbose:
-                print "Corrigiendo imgs a bogus en %s" % info
-            pi.parsea(info, bogus=True)
+            pi.parsea(dir3, fname, bogus=True)
 
     pi.dump()
     return pi.cant
