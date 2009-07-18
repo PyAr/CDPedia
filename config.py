@@ -48,10 +48,10 @@ LIMITE_PAGINAS = 60000
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ESCALA_IMAGS = [
-    (30, 100),
-    (25,  75),
-    (25,  50),
-    (20,   0),
+    ( 3, 100),
+    ( 5,  75),
+    ( 7,  50),
+    (85,   0),
 ]
 
 # "Namespaces" (espacios de nombres) que queremos excluir de la compilación.

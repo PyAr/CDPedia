@@ -257,11 +257,11 @@ def run(verbose):
 
     log_fh = codecs.open(config.LOG_REDUCCION, "w", "utf8")
 
-    for i, (dir3, fname) in enumerate(preprocesados):
+    for i, (dir3, fname, _) in enumerate(preprocesados):
         escala = escalador(i)
         if verbose:
             print "Extrayendo imgs (al {0}) de {1}/{2}".format(
-                                           escala, dir3.encode("utf8"), fname.encode("utf8"))
+                             escala, dir3.encode("utf8"), fname.encode("utf8"))
         if escala != 0:
             log_fh.write("%d %s %s\n" % (escala, dir3, fname))
             pi.parsea(dir3, fname, bogus=False)

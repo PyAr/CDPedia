@@ -15,6 +15,7 @@ import codecs
 from os.path import join, abspath, sep, dirname
 from urllib2 import urlparse
 import config
+import operator
 
 from src.preproceso import preprocesadores
 
@@ -170,11 +171,10 @@ def get_top_htmls(limite):
         # cálculo de puntaje, mezclando y ponderando los individuales
         puntaje = ptj_content + ptj_peishranc * 5000
 
-        data.append((puntaje, dir3, arch))
+        data.append((dir3, arch, puntaje))
 
     # ordenamos y devolvemos los primeros N
-    data.sort(reverse=True)
-    data = (x[1:] for x in data[:limite])
+    data.sort(key=operator.itemgetter(2), reverse=True)
     return data
 
 def run(dir_raiz, verbose=False):

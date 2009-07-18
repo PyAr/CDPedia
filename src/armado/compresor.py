@@ -149,7 +149,7 @@ def generar(verbose):
 
     numBloques = len(fileNames) // config.ARTICLES_PER_BLOCK + 1
     bloques = {}
-    for dir3, fileName in fileNames:
+    for dir3, fileName, _ in fileNames:
         if verbose:
             print "  archs:", repr(dir3), repr(fileName)
         bloqNum = hash(fileName) % numBloques

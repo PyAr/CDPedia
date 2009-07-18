@@ -61,13 +61,20 @@ def traer(verbose):
     for i, (url, fullpath) in enumerate(lista_descargar):
         print "Descargando (%d/%d)  %s" % (i, tot, url)
 
-        try:
-            _descargar(url, fullpath, msg)
-        except urllib2.HTTPError, err:
-            msg("  error %d!" % err.code)
-            errores[err.code] = errores.get(err.code, 0) + 1
-            with codecs.open(log_errores, "a", "utf8") as fh:
-                fh.write(url + "\n")
+        retries = 3
+        while retries:
+            try:
+                _descargar(url, fullpath, msg)
+                break
+            except urllib2.HTTPError, err:
+                msg("  error %d!" % err.code)
+                errores[err.code] = errores.get(err.code, 0) + 1
+                with codecs.open(log_errores, "a", "utf8") as fh:
+                    fh.write(url + "\n")
+                break
+            except Exception, e:
+                print "Uh...", e
+                retries -= 1
 
     if errores:
         print "WARNING! Tuvimos errores:"

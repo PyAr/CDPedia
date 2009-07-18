@@ -174,20 +174,21 @@ class Index(object):
                 os.remove(arch)
 
         # fill them
-        for docid, (nomhtml, titulo, palabras_texto) in enumerate(fuente):
+        for docid, (nomhtml, titulo, palabs_texto, ptje) in enumerate(fuente):
             if verbose:
                 print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
             # docid -> info final
             id_shelf[str(docid)] = (nomhtml, titulo)
 
             # palabras -> docid
-            # a las palabras del título le damos mucha importancia: 50
+            # a las palabras del título le damos mucha importancia: 50, más
+            # el puntaje original sobre 1000, como desempatador
             for pal in PALABRAS.findall(normaliza(titulo)):
-                word_shelf.setdefault(pal, []).append((docid, 50))
+                word_shelf.setdefault(pal, []).append((docid, 50 + ptje//1000))
 
             # las palabras del texto importan tanto como las veces que están
             all_words = {}
-            for pal in PALABRAS.findall(normaliza(palabras_texto)):
+            for pal in PALABRAS.findall(normaliza(palabs_texto)):
                 all_words[pal] = all_words.get(pal, 0) + 1
 
             for pal, cant in all_words.items():
@@ -253,7 +254,7 @@ def generar_de_html(dirbase, verbose):
     def gen():
         fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
-        for i, (dir3, arch) in enumerate(fileNames):
+        for i, (dir3, arch, puntaje) in enumerate(fileNames):
             if verbose:
                 print "Indizando [%d] %s" % (i, arch.encode("utf8"))
             # info auxiliar
@@ -269,7 +270,7 @@ def generar_de_html(dirbase, verbose):
             # si tenemos max, lo respetamos y entregamos la info
             if max is not None and i > max:
                 raise StopIteration
-            yield (nomhtml, titulo, palabras)
+            yield (nomhtml, titulo, palabras, puntaje)
 
     cant = Index.create(config.PREFIJO_INDICE, gen(), verbose)
     return cant
