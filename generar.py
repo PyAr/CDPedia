@@ -7,6 +7,7 @@ import shutil
 import time
 import glob
 import optparse
+import cPickle
 
 import config
 from src.preproceso import preprocesar
@@ -97,9 +98,28 @@ def preparaTemporal():
         os.makedirs(dtemp)
 
 
+class Estadisticas(object):
+    '''Junta los nros de todo lo hecho.'''
+    def __init__(self):
+        self._attrs = "pags_total", "pags_incl", "imgs_incl", "imgs_bogus"
+        for attr in self._attrs:
+            setattr(self, attr, None)
+
+    def dump(self, nomarch):
+        '''Baja la info a un pickle'''
+        for attr in self._attrs:
+            if attr is None:
+                raise ValueError("{0} en None al hacer el dump!".format(attr))
+
+        obj = dict((x, getattr(self, x)) for x in self._attrs)
+        with open(nomarch, "w") as fh:
+            cPickle.dump(obj, fh)
+
+
 def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
 
     articulos = path.join(src_info, "articles")
+    estad = Estadisticas()
 
     if not preprocesado:
         mensaje("Comenzando!")
@@ -116,10 +136,19 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         cantnew, cantold = preprocesar.run(articulos, verbose)
         print '  total %d páginas procesadas' % cantnew
         print '      y %d que ya estaban de antes' % cantold
+        estad.pags_total = cantnew + cantold
 
         mensaje("Generando el log de imágenes")
-        result = extraer.run(verbose)
-        print '  total: %d imágenes extraídas' % result
+        taken, bogus, adesc = extraer.run(verbose)
+        print '  total: %5d imágenes extraídas' % taken
+        print '         %5d marcadas como bogus' % bogus
+        print '         %5d a descargar' % adesc
+        estad.imgs_incl = taken
+        estad.imgs_bogus = bogus
+    else:
+        estad.pags_total = "?"
+        estad.imgs_incl = "?"
+        estad.imgs_bogus = "?"
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
@@ -127,11 +156,16 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
 
     # de acá para adelante es posterior al pre-procesado
     mensaje("Reduciendo las imágenes descargadas")
-    reducir.run(verbose)
+    notfound = reducir.run(verbose)
+
+    # esto no es lo más exacto, pero good enough
+    estad.imgs_incl -= notfound
+    estad.imgs_bogus += notfound
 
     mensaje("Generando el índice")
     result = cdpindex.generar_de_html(articulos, verbose)
     print '  total: %d archivos' % result
+    estad.pags_incl = result
 
     mensaje("Generando los bloques")
     result = compresor.generar(verbose)
@@ -154,6 +188,8 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         mensaje("Armamos el ISO")
         armarIso("cdpedia.iso")
 
+    estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
+    estad.dump("estad.pkl")
     mensaje("Todo terminado!")
 
 

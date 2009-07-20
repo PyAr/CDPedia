@@ -21,8 +21,12 @@ def _descargar(url, fullpath, msg):
 
     req = urllib2.Request(url.encode("utf8"), headers=HEADERS)
     u = urllib2.urlopen(req)
-    largo = int(u.headers["content-length"]) / 1024.0
-    msg("  %d KB" % round(largo))
+    content_length = u.headers.get("content-length")
+    if content_length is None:
+        msg("  %?? KB")
+    else:
+        largo = int(content_length) / 1024.0
+        msg("  %d KB" % round(largo))
 
     img = u.read()
     with open(fullpath, "wb") as fh:

@@ -62,6 +62,9 @@ class ParseaImagenes(object):
                     dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
                     self.descarg_antes[dsk] = web
 
+        self.imgs_ok = 0
+        self.imgs_bogus = 0
+
     # la cantidad es cuantas tenemos en a_descargar
     cant = property(lambda s: len(s.a_descargar))
 
@@ -96,6 +99,7 @@ class ParseaImagenes(object):
                 for dsk_url in prev_dskurls:
                     web_url = self.descarg_antes[dsk_url]
                     self.a_descargar[dsk_url] = web_url
+                    self.imgs_ok += 1
                 return
 
         # leemos la info original
@@ -207,9 +211,11 @@ class ParseaImagenes(object):
             if bogus:
                 # apunta a bogus!
                 dsk_url = BOGUS_IMAGE
+                self.imgs_bogus += 1
             else:
                 # es útil!
                 newimgs.append((dsk_url, web_url))
+                self.imgs_ok += 1
 
         # devolvemos lo cambiado para el html
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
@@ -269,7 +275,7 @@ def run(verbose):
             pi.parsea(dir3, fname, bogus=True)
 
     pi.dump()
-    return pi.cant
+    return pi.imgs_ok, pi.imgs_bogus, pi.cant
 
 
 if __name__ == "__main__":
