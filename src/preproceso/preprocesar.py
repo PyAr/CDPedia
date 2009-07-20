@@ -175,6 +175,7 @@ def get_top_htmls(limite):
 
     # ordenamos y devolvemos los primeros N
     data.sort(key=operator.itemgetter(2), reverse=True)
+    data = data[:limite]
     return data
 
 def run(dir_raiz, verbose=False):

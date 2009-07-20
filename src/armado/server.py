@@ -24,7 +24,7 @@ __version__ = "0.1.1.1.1.1"
 reg = re.compile("\<title\>([^\<]*)\</title\>")
 reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
 
-FMT_BUSQ = '<tr><td><a href="%s">%s</a><small><i>  (%s)</small></i></td></tr> '
+FMT_BUSQ = '<tr><td><a href="%s">%s</a></td></tr> '
 
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
@@ -179,8 +179,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
         for link, titulo, ptje in candidatos:
-            linea = FMT_BUSQ % (
-                            link.encode("utf8"), titulo.encode("utf8"), ptje)
+            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
@@ -212,8 +211,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print "==== cand", candidatos
         res = []
         for link, titulo, ptje in candidatos:
-            linea = FMT_BUSQ % (
-                            link.encode("utf8"), titulo.encode("utf8"), ptje)
+            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
