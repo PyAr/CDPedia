@@ -208,7 +208,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         candidatos = self.index.search(keywords.decode("utf8"))
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
-        print "==== cand", candidatos
         res = []
         for link, titulo, ptje in candidatos:
             linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
