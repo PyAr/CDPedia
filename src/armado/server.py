@@ -13,6 +13,7 @@ import urllib   # .quote, .unquote
 import urllib2  # .urlparse
 import string
 import re
+import cPickle
 
 import cdpindex
 import compresor
@@ -71,12 +72,21 @@ def gettitle(zf, name):
         return ""
     return str(soup("title")[0].contents[0])
 
+def get_stats():
+    d = cPickle.load(open("estad.pkl"))
+    pag = "%5d (%2d%%)" % (d['pags_incl'], 100 * d['pags_incl'] / d['pags_total'])
+    i_tot = d['imgs_incl'] + d['imgs_bogus']
+    img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
+    return pag, img
+
 class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
 
     _tpl_mngr = TemplateManager(os.path.join("src", "armado", "templates"))
 
     _art_mngr = compresor.ArticleManager()
+
+    _stt_pag, _stt_img = get_stats()
 
     def do_GET(self):
         """Serve a GET request."""
@@ -116,12 +126,14 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def _arma_pagina(self, contenido):
         title = getTitleFromData(contenido)
         header = self.templates("header", titulo=title)
-        footer = self.templates("footer")
+        footer = self.templates("footer",
+                                stt_pag=self._stt_pag, stt_img=self._stt_img)
         pag = header + contenido + footer
         return "text/html", pag
 
     def _main_page(self, msg=u"¡Bienvenido!"):
-        pag = self.templates("mainpage", mensaje=msg.encode("utf8"))
+        pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
+                                stt_pag=self._stt_pag, stt_img=self._stt_img)
         return "text/html", pag
 
     def getfile(self, path):

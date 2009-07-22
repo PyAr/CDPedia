@@ -30,6 +30,21 @@
         <input type="submit" value="Buscar">
       </div>
     <br/>
+    <h5>Estadísticas:</h5>
+        <br/> <small>
+          <center>
+            <table>
+            <tr>
+             <td>Páginas</td>
+             <td>$stt_pag</td>
+            </tr>
+            <tr>
+             <td>Imágenes</td>
+             <td>$stt_img</td>
+            </tr>
+            </table>
+          </center>
+        <br/> </small>
     <h5>Presentada por</h5>
         <center>
         <br/>

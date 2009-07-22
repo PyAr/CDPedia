@@ -51,6 +51,21 @@ $mensaje
 </tr>
 </table>
 
+<br>
+<font color="#000000" size="+1">Estadísticas<br></font>
+<font size="-1">
+<table>
+<tr>
+ <td>Páginas</td>
+ <td>$stt_pag</td>
+</tr>
+<tr>
+ <td>Imágenes</td>
+ <td>$stt_img</td>
+</tr>
+</table>
+</font>
+
 <font size="-1">
 <br>
 - - - <br>
