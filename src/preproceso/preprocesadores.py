@@ -64,14 +64,14 @@ class Namespaces(Procesador):
     def __call__(self, wikiarchivo):
         (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
 
-#        print 'Namespace:', repr(namespace) or '(Principal)',
+#        print 'Namespace:', repr(namespace)
         # no da puntaje per se, pero invalida segun namespace
-        if namespace in config.NAMESPACES_INVALIDOS:
-#            print '[inválido]'
-            return (None, [])
-        else:
+        if namespace is None or config.NAMESPACES[namespace]:
 #            print '[válido]'
             return (0, [])
+        else:
+#            print '[inválido]'
+            return (None, [])
 
 
 class OmitirRedirects(Procesador):

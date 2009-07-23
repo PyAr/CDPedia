@@ -41,6 +41,13 @@ SEPARADOR_COLUMNAS = '|'
 # páginas en sí
 ASSETS = ["skins", "misc", "raw"]
 
+# Comando externo para convertir en HTML en texto, para extraer las palabras
+# del documento. Lynx es el default, pero requiere que esté instalado en el host.
+# W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
+#
+CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
+# CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
+
 # Límites de cantidades de páginas a incluir
 LIMITE_PAGINAS = 60000
 
@@ -54,70 +61,53 @@ ESCALA_IMAGS = [
     (85,   0),
 ]
 
-# "Namespaces" (espacios de nombres) que queremos excluir de la compilación.
-# Por una cuestión de practicidad conviene comentar las lineas de los namespaces
-# que sí queremos que entren.
+# "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
+# mayoría de las páginas no tienen namespace, esas entran todas)
 # Lo que está ahora es sumamente arbitrario, no tengo idea de qué es lo mejor
 # Referencia rápida: http://es.wikipedia.org/wiki/Especial:Prefixindex
-NAMESPACES_INVALIDOS = [
-    # 'Media',
-    u'Especial',
-    u'Discusión',
-    u'Usuario',
-    u'Usuario_Discusión',
-    u'Wikipedia',
-    u'Wikipedia_Discusión',
-    u'Imagen',
-    u'Imagen_Discusión',
-    u'MediaWiki',
-    u'MediaWiki_Discusión',
-    u'Plantilla',
-    u'Plantilla_Discusión',
-    #'Ayuda',
-    u'Ayuda_Discusión',
-    #'Categoría',
-    u'Categoría_Discusión',
-    #'Portal',
-    u'Portal_Discusión',
-    #'Wikiproyecto',
-    u'Wikiproyecto_Discusión',
-    #'Anexo',
-    u'Anexo_Discusión',
-]
 
-NAMESPACES = [
-    u'Media',
-    u'Especial',
-    u'Discusión',
-    u'Usuario',
-    u'Usuario_Discusión',
-    u'Wikipedia',
-    u'Wikipedia_Discusión',
-    u'Imagen',
-    u'Imagen_Discusión',
-    u'MediaWiki',
-    u'MediaWiki_Discusión',
-    u'Plantilla',
-    u'Plantilla_Discusión',
-    u'Ayuda',
-    u'Ayuda_Discusión',
-    u'Categoría',
-    u'Categoría_Discusión',
-    u'Portal',
-    u'Portal_Discusión',
-    u'Wikiproyecto',
-    u'Wikiproyecto_Discusión',
-    u'Anexo',
-    u'Anexo_Discusión',
-]
+NAMESPACES = {
+    u"Anexo": True,
+    u"Anexo_Discusión": False,
+    u"Ayuda": True,
+    u"Categoría": True,
+    u"Categoría_Discusión": False,
+    u"Discusión": False,
+    u"Imagen": False,
+    u"Plantilla": False,
+    u"Plantilla_Discusión": False,
+    u"Portal": True,
+    u"Portal_Discusión": False,
+    u"Usuario": False,
+    u"Usuario_Discusión": False,
+    u"Wikipedia": False,
+    u"Wikipedia_Discusión": False,
+    u"Wikiproyecto": False,
+    u"Wikiproyecto_Discusión": False,
+}
 
-# Comando externo para convertir en HTML en texto, para extraer las palabras
-# del documento. Lynx es el default, pero requiere que esté instalado en el host.
-# W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
+# Dump de Junio 2008
+#Mostrando los resultados para un total de 1362473 archivos que ocupan 18353.39 MB:
 #
-CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
-# CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
-
+#  Raiz                                                            Cant      Cant%  Tamaño   Tamaño%
+#  None                                                           629532     46.21%  7009 MB    38.19%
+#  Imagen                                                         248624     18.25%  4907 MB    26.74%
+#  Usuario_Discusión                                              234779     17.23%  3065 MB    16.70%
+#  Usuario                                                         53582      3.93%  955 MB     5.21%
+#  Discusión                                                       80748      5.93%  711 MB     3.88%
+#  Categoría                                                       65065      4.78%  685 MB     3.74%
+#  Wikipedia                                                       10773      0.79%  387 MB     2.11%
+#  Anexo                                                            9913      0.73%  285 MB     1.56%
+#  Plantilla                                                       11738      0.86%   92 MB     0.50%
+#  Wikiproyecto                                                     2311      0.17%   68 MB     0.37%
+#  Portal                                                           5200      0.38%   57 MB     0.31%
+#  Wikipedia_Discusión                                              1229      0.09%   28 MB     0.16%
+#  Wikiproyecto_Discusión                                            629      0.05%   22 MB     0.12%
+#  Plantilla_Discusión                                              1615      0.12%   15 MB     0.08%
+#  Categoría_Discusión                                              1502      0.11%   11 MB     0.06%
+#  Anexo_Discusión                                                  1498      0.11%   10 MB     0.06%
+#  Ayuda                                                             169      0.01%    3 MB     0.02%
+#  Portal_Discusión                                                  273      0.02%    2 MB     0.02%
 
 # Dump de Septiembre 2007
 # Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
