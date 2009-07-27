@@ -21,7 +21,9 @@ puntaje.
 """
 from re import compile, MULTILINE, DOTALL
 from urllib2 import unquote
+import urllib
 import codecs
+import os
 
 from src import utiles
 import config
@@ -66,7 +68,7 @@ class Namespaces(Procesador):
 
 #        print 'Namespace:', repr(namespace)
         # no da puntaje per se, pero invalida segun namespace
-        if namespace is None or config.NAMESPACES[namespace]:
+        if namespace is None or config.NAMESPACES.get(namespace):
 #            print '[válido]'
             return (0, [])
         else:
@@ -112,9 +114,12 @@ class ExtraerContenido(Procesador):
         self.valor_inicial = 0
         regex = '(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->'
         self.capturar = compile(regex, MULTILINE|DOTALL).search
+        self.no_ocultas = compile('<div id="mw-hidden-catlinks".*?</div>',
+                                                            MULTILINE|DOTALL)
+        self.no_pp_report = compile("<!--\s*?NewPP limit report.*?-->",
+                                                            MULTILINE|DOTALL)
 
     def __call__(self, wikiarchivo):
-        # Sólo procesamos html
         if wikiarchivo.url.endswith('.html'):
             html = wikiarchivo.html
             encontrado = self.capturar(html)
@@ -122,16 +127,66 @@ class ExtraerContenido(Procesador):
                 # Si estamos acá, el html tiene un formato diferente.
                 # Por el momento queremos que se sepa.
                 raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
+            newhtml = "\n".join(encontrado.groups())
 
-#            print "Articulo -",
-            wikiarchivo.html = "\n".join(encontrado.groups())
-            tamanio = len(wikiarchivo.html)
+            # algunas limpiezas más
+            newhtml = self.no_ocultas.sub("", newhtml)
+            newhtml = self.no_pp_report.sub("", newhtml)
+
+            tamanio = len(newhtml)
+            wikiarchivo.html = newhtml
 #            print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
 
             # damos puntaje en función del tamaño del contenido
             return (tamanio, [])
         else:
             print "WARNING: no recibimos un html:", wikiarchivo.url
+
+
+class FixLinksDescartados(Procesador):
+    """Corrige los links de lo que descartamos.
+
+    Re-apunta a una página bogus los links que apuntan a un namespace
+    que no incluímos.
+    """
+    def __init__(self, wikisitio):
+        super(FixLinksDescartados, self).__init__(wikisitio)
+        self.nombre = "FixLinks"
+        self.links = compile('<a href="(.*?)"(.*?)>(.*?)</a>', MULTILINE|DOTALL)
+
+    def __call__(self, wikiarchivo):
+
+        def _reemplaza(m):
+            link, relleno, texto = m.groups()
+
+            # si no tiene el ~, no hay nada que ver
+            if "%7E" not in link:
+                intacta = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
+                return  intacta
+
+            comopath = urllib.url2pathname(link)
+            base = os.path.basename(comopath)
+            categ = base.split("~")[0]
+
+            if config.NAMESPACES.get(categ):
+                # está ok, la dejamos intacta
+                intacta = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
+                return  intacta
+
+            # sacamos entonces el link
+            return texto
+
+        try:
+            newhtml = self.links.sub(_reemplaza, wikiarchivo.html)
+        except Exception, e:
+            print "Path del html", wikiarchivo.url
+            raise e
+
+        # reemplazamos el html original
+        wikiarchivo.html = newhtml
+
+        # no damos puntaje ni nada
+        return (0, [])
 
 
 class Peishranc(Procesador):
@@ -189,6 +244,7 @@ TODOS = [
     Namespaces,
     OmitirRedirects,
     ExtraerContenido,
+    FixLinksDescartados,
     Peishranc,
     #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
 ]

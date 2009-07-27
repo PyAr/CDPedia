@@ -44,12 +44,11 @@ ASSETS = ["skins", "misc", "raw"]
 # Comando externo para convertir en HTML en texto, para extraer las palabras
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.
 # W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
-#
 CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
 # CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
 
 # Límites de cantidades de páginas a incluir
-LIMITE_PAGINAS = 60000
+LIMITE_PAGINAS = 600
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala

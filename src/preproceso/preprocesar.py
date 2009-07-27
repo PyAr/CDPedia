@@ -109,7 +109,9 @@ class WikiSitio(object):
                     if self.verbose:
                         print "  puntaje:", resultados[pag]
 
-                wikiarchivo.guardar()
+                    # lo guardamos sólo si no fue descartado
+                    wikiarchivo.guardar()
+
                 if self.verbose:
                     print
 
@@ -164,7 +166,7 @@ def get_top_htmls(limite):
     data = []
     for linea in fh:
         partes = linea.split(config.SEPARADOR_COLUMNAS)
-        arch, dir3, _, _, ptj_content, ptj_peishranc = partes
+        arch, dir3, _, _, _, ptj_content, ptj_peishranc = partes
         ptj_content = int(ptj_content)
         ptj_peishranc = int(ptj_peishranc)
 
