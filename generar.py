@@ -32,8 +32,15 @@ def copiarAssets(src_info, dest):
         shutil.copytree(src_dir, dst_dir)
 
     # externos (de nosotros, bah)
+    src_dir = "src/armado/external_assets"
     dst_dir = path.join(dest, "extern")
-    shutil.copytree("src/armado/external_assets", dst_dir)
+    if not os.path.exists(dst_dir):
+        os.mkdir(dst_dir)
+    for fname in os.listdir(src_dir):
+        if fname.startswith("."):
+            continue
+        shutil.copy(path.join(src_dir, fname), path.join(dst_dir, fname))
+
 
 
 def copiarSources():
