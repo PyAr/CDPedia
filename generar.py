@@ -19,6 +19,18 @@ def mensaje(texto):
     fh = time.strftime("%Y-%m-%d %H:%M:%S")
     print "%-40s (%s)" % (texto, fh)
 
+def copy_dir(src_dir, dst_dir):
+    '''Copia un directorio.
+
+    (no usamos shutil.copytree para no llevarnos el .svn)
+    '''
+    if not os.path.exists(dst_dir):
+        os.mkdir(dst_dir)
+    for fname in os.listdir(src_dir):
+        if fname.startswith("."):
+            continue
+        shutil.copy(path.join(src_dir, fname), path.join(dst_dir, fname))
+
 def copiarAssets(src_info, dest):
     """Copiar los assets."""
     os.makedirs(dest)
@@ -32,14 +44,13 @@ def copiarAssets(src_info, dest):
         shutil.copytree(src_dir, dst_dir)
 
     # externos (de nosotros, bah)
-    src_dir = "src/armado/external_assets"
+    src_dir = "resources/external_assets"
     dst_dir = path.join(dest, "extern")
-    if not os.path.exists(dst_dir):
-        os.mkdir(dst_dir)
-    for fname in os.listdir(src_dir):
-        if fname.startswith("."):
-            continue
-        shutil.copy(path.join(src_dir, fname), path.join(dst_dir, fname))
+    copy_dir(src_dir, dst_dir)
+
+    # info general
+    src_dir = "resources/general_info"
+    copy_dir(src_dir, config.DIR_CDBASE)
 
 
 
