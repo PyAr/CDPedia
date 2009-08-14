@@ -33,6 +33,7 @@ LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
 LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
 LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
+LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
@@ -48,17 +49,26 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 # CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
 
 # Límites de cantidades de páginas a incluir
-LIMITE_PAGINAS = 65000
+LIMITE_PAGINAS = 500000
+###  Para el CD:
+# LIMITE_PAGINAS = 84000
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ESCALA_IMAGS = [
-    ( 3, 100),
-    ( 5,  75),
-    ( 7,  50),
-    (85,   0),
+    ( 9, 100),  # 5
+    (11,  75),  # 7
+    (14,  50),  # 8  -> 2.6G
+    (66,   0),
 ]
+###  Para el CD:
+#ESCALA_IMAGS = [
+#    ( 2, 100),
+#    ( 4,  75),
+#    ( 4,  50),
+#    (90,   0),
+#]
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
 # mayoría de las páginas no tienen namespace, esas entran todas)

@@ -33,7 +33,8 @@ def copy_dir(src_dir, dst_dir):
 
 def copiarAssets(src_info, dest):
     """Copiar los assets."""
-    os.makedirs(dest)
+    if not os.path.exists(dest):
+        os.makedirs(dest)
     for d in config.ASSETS:
         src_dir = path.join(src_info, d)
         dst_dir = path.join(dest, d)
@@ -110,8 +111,16 @@ def genera_run_config():
 def preparaTemporal():
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
-        # borramos el cdroot
-        shutil.rmtree(os.path.join(dtemp,"cdroot"), ignore_errors=True)
+        # borramos el cdroot excepto las imágenes de assets!
+        imag_path = path.join(config.DIR_ASSETS, "images")
+        if os.path.exists(imag_path):
+            bkup_path = path.join(dtemp, "asset_imag_backup")
+            os.rename(imag_path, bkup_path)
+            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+            os.makedirs(config.DIR_ASSETS)
+            os.rename(bkup_path, imag_path)
+        else:
+            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
     else:
         os.makedirs(dtemp)
 

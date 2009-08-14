@@ -9,16 +9,27 @@ import codecs
 
 def run(verbose):
     notfound = 0
+    done_ahora = {}
+
+    # leemos las imágenes que procesamos antes
+    done_antes = {}
+    if os.path.exists(config.LOG_REDUCDONE):
+        with codecs.open(config.LOG_REDUCDONE, "r", "utf-8") as fh:
+            for linea in fh:
+                partes = linea.strip().split()
+                escala = int(partes[0])
+                dskurl = partes[1]
+                done_antes[dskurl] = escala
 
     # cargamos la escala que va para cada página
     pag_escala = {}
     with codecs.open(config.LOG_REDUCCION, "r", "utf-8") as fh:
         for linea in fh:
             partes = linea.strip().split()
-            puntos = int(partes[0])
+            escala = int(partes[0])
             dir3 = partes[1]
             fname = partes[2]
-            pag_escala[dir3, fname] = puntos
+            pag_escala[dir3, fname] = escala
 
     # sacamos las fotos de cada página, y tomamos la mayor escala que le toca
     escala_imag = {}
@@ -44,9 +55,9 @@ def run(verbose):
     dst = os.path.join(config.DIR_ASSETS, "images")
 
     # reducimos las imágenes
-    for arch, escl in escala_imag.iteritems():
-        frompath = os.path.join(src, arch)
-        topath = os.path.join(dst, arch)
+    for dskurl, escl in escala_imag.iteritems():
+        frompath = os.path.join(src, dskurl)
+        topath = os.path.join(dst, dskurl)
         if not os.path.exists(frompath):
             if verbose:
                 print "WARNING: no tenemos la img", repr(frompath)
@@ -58,14 +69,42 @@ def run(verbose):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
+        # vemos si lo que hay que hacer ahora no lo teníamos hecho de antes
+        escl_antes = done_antes.get(dskurl)
+        if escl_antes == escl:
+            if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
+                import pdb;pdb.set_trace()
+            done_ahora[dskurl] = escl
+            continue
+
         # cambiamos el tamaño si debemos, sino sólo copiamos
         if verbose:
-            print "Rescaling a {0}% la imágen {1}".format(escl, arch.encode("utf8"))
+            print "Rescaling a {0}% la imágen {1}".format(escl, dskurl.encode("utf8"))
         if escl == 100:
+            if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
+                import pdb;pdb.set_trace()
+            done_ahora[dskurl] = escl
             shutil.copyfile(frompath, topath)
         else:
             cmd = ['convert', frompath, '-resize', '{0}%'.format(escl), topath]
-            subprocess.call(cmd)
+            errorcode = subprocess.call(cmd)
+            if not errorcode:
+                if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
+                    import pdb;pdb.set_trace()
+                done_ahora[dskurl] = escl
+
+    # guardamos lo que procesamos ahora
+    with codecs.open(config.LOG_REDUCDONE, "w", "utf-8") as fh:
+        for dskurl, escl in done_ahora.iteritems():
+            fh.write("%3d %s\n" % (escl, dskurl))
+
+    # vemos lo que sobró de la vez pasada y lo borramos
+    for dskurl in (set(done_antes) - set(done_ahora)):
+        fullpath = os.path.join(dst, dskurl)
+        try:
+            os.remove(fullpath)
+        except OSError:
+            print "ERROR: error al borrar %r" % fullpath
 
     # si es verbose ya avisamos una por una
     if not verbose and notfound:

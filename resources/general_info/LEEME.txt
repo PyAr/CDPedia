@@ -1,0 +1,51 @@
+¿Qué es la CDPedia?
+-------------------
+
+Hola! Este disco es un proyecto para tener la información de la Wikipedia
+en castellano accesible aunque no tengas una conexión a Internet.
+
+Como toda la información de la Wikipedia no entra en un CD o DVD,
+necesariamente tuvimos que seleccionar qué artículos poner y cuales dejar
+afuera, y de aquellos que entraron, en cuales poner las imágenes en el
+tamaño original, en cuales poner imágenes reducidas, o en cuales
+directamente no poner la imagen.
+
+Es por esto que no vas a encontrar algunos artículos, o que en muchas
+páginas vas a encontrar un cartelito de "sin imagen" en lugar de la imagen
+original.  Esperemos que los criterios que usamos para seleccionar qué
+información incluir haya dado como resultado un producto útil.
+
+Toda la información aquí incluida fue obtenida de Wikipedia, pero por
+razones técnicas de ese proyecto, está actualizada a Junio del 2008.  Te
+sugerimos acceder a la información directamente en la Wikipedia Web si
+es que necesitás información actualizada de uno de los temas.
+
+Por último, te recomendamos que copies estos discos y los regales a tus
+amigos, familia y conocidos.  La información debe ser libre, así mejoramos
+la calidad de nuestra educación.
+
+¡Que lo disfrutes!
+
+
+Información del proyecto
+------------------------
+
+Este proyecto está escrito en Python, un lenguaje de programación muy
+poderoso y divertido, y está armado por un grupo de programadores
+de PyAr, Python Argentina:
+
+    http://python.org.ar/pyar/
+
+La dirección específicamente del proyecto, por si querés investigar
+o ayudar, es:
+
+    http://code.google.com/p/cdpedia
+
+Te recomendamos leer el archivo LICENCIA.txt en este mismo disco, por
+si tenés alguna duda sobre como usar el material aquí incluido.  También
+están los autores principales del proyecto en el archivo AUTORES.txt.
+
+Pero ante cualquier duda, nos podés contactar mandando un mail a:
+
+    cdpedia@googlegroups.com
+
