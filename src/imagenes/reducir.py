@@ -72,8 +72,6 @@ def run(verbose):
         # vemos si lo que hay que hacer ahora no lo teníamos hecho de antes
         escl_antes = done_antes.get(dskurl)
         if escl_antes == escl:
-            if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
-                import pdb;pdb.set_trace()
             done_ahora[dskurl] = escl
             continue
 
@@ -81,16 +79,12 @@ def run(verbose):
         if verbose:
             print "Rescaling a {0}% la imágen {1}".format(escl, dskurl.encode("utf8"))
         if escl == 100:
-            if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
-                import pdb;pdb.set_trace()
             done_ahora[dskurl] = escl
             shutil.copyfile(frompath, topath)
         else:
             cmd = ['convert', frompath, '-resize', '{0}%'.format(escl), topath]
             errorcode = subprocess.call(cmd)
             if not errorcode:
-                if dskurl == "shared/thumb/f/fc/43px-View-refresh.svg.png":
-                    import pdb;pdb.set_trace()
                 done_ahora[dskurl] = escl
 
     # guardamos lo que procesamos ahora

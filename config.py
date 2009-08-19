@@ -57,10 +57,10 @@ LIMITE_PAGINAS = 500000
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ESCALA_IMAGS = [
-    ( 9, 100),  # 5
-    (11,  75),  # 7
-    (14,  50),  # 8  -> 2.6G
-    (66,   0),
+    (16, 100),  # 5       9
+    (17,  75),  # 7      11
+    (32,  50),  # 8      14
+    (35,   0),  # = 2.6   = 3.2
 ]
 ###  Para el CD:
 #ESCALA_IMAGS = [
