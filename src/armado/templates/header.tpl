@@ -2,7 +2,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es" dir="ltr">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <meta name="keywords" content="Universidad,1088,1492,1918,258,387 adC,489,529,637,651,976" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (Español)" />
         <link rel="copyright" href="../../../COPYING.html" />

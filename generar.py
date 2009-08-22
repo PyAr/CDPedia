@@ -215,8 +215,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         mensaje("Armamos el ISO")
         armarIso("cdpedia.iso")
 
-    estad.dump(path.join(config.DIR_CDBASE, "estad.pkl"))
-    estad.dump("estad.pkl")
+    estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
     mensaje("Todo terminado!")
 
 

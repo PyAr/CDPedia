@@ -73,7 +73,7 @@ def gettitle(zf, name):
     return str(soup("title")[0].contents[0])
 
 def get_stats():
-    d = cPickle.load(open("estad.pkl"))
+    d = cPickle.load(open(os.path.join(config.DIR_ASSETS, "estad.pkl")))
     pag = "%5d (%2d%%)" % (d['pags_incl'], 100 * d['pags_incl'] / d['pags_total'])
     i_tot = d['imgs_incl'] + d['imgs_bogus']
     img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
