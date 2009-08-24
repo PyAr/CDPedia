@@ -116,10 +116,4 @@ if __name__ == "__main__":
         sys.exit()
 
     base = sys.argv[1]
-    if not os.access("%s.ids" % base, os.R_OK):
-        print "No se encontró el archivo '%s.ids'" % base
-        sys.exit()
-    if not os.access("%s.words" % base, os.R_OK):
-        print "No se encontró el archivo '%s.words'" % base
-        sys.exit()
     main(base)

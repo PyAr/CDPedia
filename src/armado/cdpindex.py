@@ -21,6 +21,7 @@ import glob
 import config
 import subprocess
 import re
+from bz2 import BZ2File as CompressedFile
 
 usage = """Indice de títulos de la CDPedia
 
@@ -72,30 +73,50 @@ class Index(object):
     '''
 
     def __init__(self, filename, verbose=False):
-        wordsfilename = filename + ".words"
-        idsfilename = filename + ".ids"
+        self.filename = filename
+        self._ids_cache_cual = None
+        self._ids_cache_dict = None
+
+        # sólo abrimos "words", ya que "ids" es por pedido
+        wordsfilename = filename + ".words.bz2"
 
         if verbose:
             print "Abriendo", wordsfilename
-        with open(wordsfilename, "rb") as fh:
-            self.word_shelf = cPickle.load(fh)
+        fh = CompressedFile(wordsfilename, "rb")
+        self.word_shelf = cPickle.load(fh)
+        fh.close()
 
-        if verbose:
-            print "Abriendo", idsfilename
-        with open(idsfilename, "rb") as fh:
-            self.id_shelf = cPickle.load(fh)
+    def _get_info_id(self, key):
+        '''Devuelve la coincidencia para la clave.'''
+        # vemos cual archivo necesitamos
+        cual = hash(key) % 10
 
+        if self._ids_cache_cual != cual:
+            # tenemos que cargar el archivo
+            idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+            fh = CompressedFile(idsfilename, "rb")
+            self._ids_cache_dict = cPickle.load(fh)
+            fh.close()
+
+        return self._ids_cache_dict[key]
 
     def listar(self):
         '''Muestra en stdout las palabras y los artículos referenciados.'''
-        id_shelf = self.id_shelf
         for palabra, docid_ptje in sorted(self.word_shelf.items()):
             docids = [x[0] for x in docid_ptje] # le sacamos la cant
-            print "%s: %s" % (palabra, [id_shelf[str(x)][1] for x in docids])
+            data = [self._get_info_id(str(x))[1] for x in docids]
+            print "%s: %s" % (palabra, data)
 
     def listado_valores(self):
         '''Devuelve la info de todos los artículos.'''
-        return sorted(self.id_shelf.values())
+        vals = []
+        for cual in range(10):
+            idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+            fh = CompressedFile(idsfilename, "rb")
+            ids = cPickle.load(fh)
+            fh.close()
+            vals.extend(ids.itervalues())
+        return sorted(vals)
 
     def listado_palabras(self):
         '''Devuelve las palabras indexadas.'''
@@ -103,7 +124,12 @@ class Index(object):
 
     def get_random(self):
         '''Devuelve un artículo al azar.'''
-        return random.choice(self.id_shelf.values())
+        cual = random.randint(0,9)
+        idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+        fh = CompressedFile(idsfilename, "rb")
+        ids = cPickle.load(fh)
+        fh.close()
+        return random.choice(ids.values())
 
     def _merge_results(self, results):
         # vemos si tenemos algo más que vacio
@@ -132,7 +158,7 @@ class Index(object):
 
             result = {}
             for docid, ptje in self.word_shelf[word]:
-                pag = self.id_shelf[str(docid)]
+                pag = self._get_info_id(str(docid))
                 result[pag] = result.get(pag, 0) + ptje
             results.append(result)
 
@@ -154,7 +180,7 @@ class Index(object):
             result = {}
             for realword in resultword:
                 for docid, ptje in self.word_shelf[realword]:
-                    pagtit = self.id_shelf[str(docid)]
+                    pagtit = self._get_info_id(str(docid))
                     result[pagtit] = result.get(pagtit, 0) + ptje
             results.append(result)
 
@@ -165,13 +191,6 @@ class Index(object):
         '''Crea los índices.'''
         id_shelf = {}
         word_shelf = {}
-        wordsfilename = filename + ".words"
-        idsfilename = filename + ".ids"
-
-        # borramos lo viejo y arrancamos
-        for arch in (wordsfilename, idsfilename):
-            if os.path.exists(arch):
-                os.remove(arch)
 
         # fill them
         for docid, (nomhtml, titulo, palabs_texto, ptje) in enumerate(fuente):
@@ -194,16 +213,29 @@ class Index(object):
             for pal, cant in all_words.items():
                 word_shelf.setdefault(pal, []).append((docid, cant))
 
-        # grabamos
+        # grabamos words
+        wordsfilename = filename + ".words.bz2"
         if verbose:
             print "Grabando", wordsfilename
-        with open(wordsfilename, "wb") as fh:
-            cPickle.dump(word_shelf, fh, 2)
+        fh = CompressedFile(wordsfilename, "wb")
+        cPickle.dump(word_shelf, fh, 2)
+        fh.close()
 
         if verbose:
             print "Grabando", idsfilename
-        with open(idsfilename, "wb") as fh:
-            cPickle.dump(id_shelf, fh, 2)
+
+        # separamos id_shelf en 10 diccionarios
+        all_idshelves = [{} for i in range(10)]
+        for k,v in id_shelf.iteritems():
+            cual = hash(k) % 10
+            all_idshelves[cual][k] = v
+
+        # grabamos los 10 diccionarios donde corresponde
+        for cual, shelf in enumerate(all_idshelves):
+            idsfilename = "%s-%d.ids.bz2" % (filename, cual)
+            fh = CompressedFile(idsfilename, "wb")
+            cPickle.dump(shelf, fh, 2)
+            fh.close()
 
         return docid+1
 
