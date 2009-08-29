@@ -86,7 +86,7 @@ def copiarIndices():
     # las fuentes
     dest_src = path.join(config.DIR_CDBASE, "indice")
     dir_a_cero(dest_src)
-    for name in glob.glob("%s.*" % config.PREFIJO_INDICE):
+    for name in glob.glob("%s*" % config.PREFIJO_INDICE):
         shutil.copy(name, dest_src)
 
 def armarEjecutable():
@@ -199,6 +199,8 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
     result = compresor.generar(verbose)
     print '  total: %d bloques con %d archivos' % result
 
+    estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
+
     if not evitar_iso:
         mensaje("Copiando las fuentes")
         copiarSources()
@@ -216,7 +218,6 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         mensaje("Armamos el ISO")
         armarIso("cdpedia.iso")
 
-    estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
     mensaje("Todo terminado!")
 
 
