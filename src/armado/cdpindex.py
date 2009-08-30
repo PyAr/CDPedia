@@ -74,8 +74,7 @@ class Index(object):
 
     def __init__(self, filename, verbose=False):
         self.filename = filename
-        self._ids_cache_cual = None
-        self._ids_cache_dict = None
+        self._cache_indx = {}
 
         # sólo abrimos "words", ya que "ids" es por pedido
         wordsfilename = filename + ".words.bz2"
@@ -86,25 +85,34 @@ class Index(object):
         self.word_shelf = cPickle.load(fh)
         fh.close()
 
-    def _get_info_id(self, key):
+    def _get_info_id(self, *keys):
         '''Devuelve la coincidencia para la clave.'''
-        # vemos cual archivo necesitamos
-        cual = hash(key) % 10
+        # separamos los keys en función del archivo
+        cuales = {}
+        for k in keys:
+            cual = hash(k) % 10
+            cuales.setdefault(cual, []).append(k)
 
-        if self._ids_cache_cual != cual:
-            # tenemos que cargar el archivo
-            idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
-            fh = CompressedFile(idsfilename, "rb")
-            self._ids_cache_dict = cPickle.load(fh)
-            fh.close()
+        # juntamos la info de cada archivo
+        resultados = {}
+        for cual, keys in cuales.items():
+            if cual not in self._cache_indx:
+                idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+                fh = CompressedFile(idsfilename, "rb")
+                idx = cPickle.load(fh)
+                fh.close()
+                self._cache_indx[cual] = idx
+            else:
+                idx = self._cache_indx[cual]
+            resultados.update((k, idx[k]) for k in keys)
 
-        return self._ids_cache_dict[key]
+        return resultados
 
     def listar(self):
         '''Muestra en stdout las palabras y los artículos referenciados.'''
         for palabra, docid_ptje in sorted(self.word_shelf.items()):
             docids = [x[0] for x in docid_ptje] # le sacamos la cant
-            data = [self._get_info_id(str(x))[1] for x in docids]
+            data = [str(x)[1] for x in self._get_info_id(*docids).values()]
             print "%s: %s" % (palabra, data)
 
     def listado_valores(self):
@@ -157,8 +165,10 @@ class Index(object):
                 continue
 
             result = {}
-            for docid, ptje in self.word_shelf[word]:
-                pag = self._get_info_id(str(docid))
+            all_data = self.word_shelf[word]
+            all_pags = self._get_info_id(*[x[0] for x in all_data])
+            for docid, ptje in all_data:
+                pag = all_pags[docid]
                 result[pag] = result.get(pag, 0) + ptje
             results.append(result)
 
@@ -179,8 +189,10 @@ class Index(object):
             # efectivamente, tenemos algunas palabras reales
             result = {}
             for realword in resultword:
-                for docid, ptje in self.word_shelf[realword]:
-                    pagtit = self._get_info_id(str(docid))
+                all_data = self.word_shelf[realword]
+                all_pags = self._get_info_id(*[x[0] for x in all_data])
+                for docid, ptje in all_data:
+                    pagtit = all_pags[docid]
                     result[pagtit] = result.get(pagtit, 0) + ptje
             results.append(result)
 
@@ -197,7 +209,7 @@ class Index(object):
             if verbose:
                 print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
             # docid -> info final
-            id_shelf[str(docid)] = (nomhtml, titulo)
+            id_shelf[docid] = (nomhtml, titulo)
 
             # palabras -> docid
             # a las palabras del título le damos mucha importancia: 50, más
