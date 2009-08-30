@@ -98,7 +98,7 @@ def dir_a_cero(path):
     os.makedirs(path)
 
 def armarIso(dest):
-    os.system("mkisofs -quiet -volset CDPedia -o %s -R -J %s " %
+    os.system("mkisofs -quiet -V CDPedia -volset CDPedia -o %s -R -J %s " %
                                                     (dest, config.DIR_CDBASE))
 
 def genera_run_config():
