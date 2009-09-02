@@ -108,6 +108,9 @@ def main(arch_ind):
         for p in pals:
             indice.detailed_search(p)
 
+    memdesp = usoMemoria()
+    print "\nNuevo consumo de memoria:  %d KB" % (memdesp - memant)
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usar:  verIndice.py <indice_base>"

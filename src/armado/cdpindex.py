@@ -23,6 +23,8 @@ import subprocess
 import re
 from bz2 import BZ2File as CompressedFile
 
+from .lru_cache import lru_cache
+
 usage = """Indice de títulos de la CDPedia
 
 Para generar el archivo de indice hacer:
@@ -74,7 +76,6 @@ class Index(object):
 
     def __init__(self, filename, verbose=False):
         self.filename = filename
-        self._cache_indx = {}
 
         # sólo abrimos "words", ya que "ids" es por pedido
         wordsfilename = filename + ".words.bz2"
@@ -85,25 +86,30 @@ class Index(object):
         self.word_shelf = cPickle.load(fh)
         fh.close()
 
+        # y vemos cuantos "ids" tenemos, para ver cómo se reparte
+        self.cuantos_ids = len(glob.glob(filename + "-*.ids.bz2"))
+
+    @lru_cache(20)
+    def _get_indice(self, cual):
+        '''Devuelve el índice.'''
+        idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
+        fh = CompressedFile(idsfilename, "rb")
+        idx = cPickle.load(fh)
+        fh.close()
+        return idx
+
     def _get_info_id(self, *keys):
         '''Devuelve la coincidencia para la clave.'''
         # separamos los keys en función del archivo
         cuales = {}
         for k in keys:
-            cual = hash(k) % 10
+            cual = hash(k) % self.cuantos_ids
             cuales.setdefault(cual, []).append(k)
 
         # juntamos la info de cada archivo
         resultados = {}
         for cual, keys in cuales.items():
-            if cual not in self._cache_indx:
-                idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
-                fh = CompressedFile(idsfilename, "rb")
-                idx = cPickle.load(fh)
-                fh.close()
-                self._cache_indx[cual] = idx
-            else:
-                idx = self._cache_indx[cual]
+            idx = self._get_indice(cual)
             resultados.update((k, idx[k]) for k in keys)
 
         return resultados
@@ -118,8 +124,8 @@ class Index(object):
     def listado_valores(self):
         '''Devuelve la info de todos los artículos.'''
         vals = []
-        for cual in range(10):
-            idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+        for cual in range(self.cuantos_ids):
+            idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
             fh = CompressedFile(idsfilename, "rb")
             ids = cPickle.load(fh)
             fh.close()
@@ -133,7 +139,7 @@ class Index(object):
     def get_random(self):
         '''Devuelve un artículo al azar.'''
         cual = random.randint(0,9)
-        idsfilename = "%s-%d.ids.bz2" % (self.filename, cual)
+        idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
         fh = CompressedFile(idsfilename, "rb")
         ids = cPickle.load(fh)
         fh.close()
@@ -236,15 +242,18 @@ class Index(object):
         if verbose:
             print "Grabando", idsfilename
 
-        # separamos id_shelf en 10 diccionarios
-        all_idshelves = [{} for i in range(10)]
+        # separamos id_shelf en N diccionarios de ~5k entries
+        N = int(round(len(id_shelf) / 5000.0))
+        if not N:
+            N = 1
+        all_idshelves = [{} for i in range(N)]
         for k,v in id_shelf.iteritems():
-            cual = hash(k) % 10
+            cual = hash(k) % N
             all_idshelves[cual][k] = v
 
-        # grabamos los 10 diccionarios donde corresponde
+        # grabamos los N diccionarios donde corresponde
         for cual, shelf in enumerate(all_idshelves):
-            idsfilename = "%s-%d.ids.bz2" % (filename, cual)
+            idsfilename = "%s-%02d.ids.bz2" % (filename, cual)
             fh = CompressedFile(idsfilename, "wb")
             cPickle.dump(shelf, fh, 2)
             fh.close()
