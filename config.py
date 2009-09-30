@@ -50,27 +50,27 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 
 # Límites de cantidades de páginas a incluir
 ###  Para el DVD:
-# LIMITE_PAGINAS = 500000
+LIMITE_PAGINAS = 500000
 ###  Para el CD:
-LIMITE_PAGINAS = 88500
+#LIMITE_PAGINAS = 88500
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ###  Para el DVD:
-#ESCALA_IMAGS = [
-#    (22, 100),  # 5       9       16       18       20
-#    (28,  75),  # 7      11       17       20       25
-#    (50,  50),  # 8      14       32       37       45
-#    ( 0,   0),  # = 2.6   = 3.2    = 4.1    = 4.3    = 4.5
-#]
-###  Para el CD:
 ESCALA_IMAGS = [
-    ( 2, 100),
-    ( 4,  75),
-    ( 4,  50),
-    (90,   0),
+    (22, 100),  # 5       9       16       18       20
+    (28,  75),  # 7      11       17       20       25
+    (50,  50),  # 8      14       32       37       45
+    ( 0,   0),  # = 2.6   = 3.2    = 4.1    = 4.3    = 4.5
 ]
+###  Para el CD:
+#ESCALA_IMAGS = [
+#    ( 2, 100),
+#    ( 4,  75),
+#    ( 4,  50),
+#    (90,   0),
+#]
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
 # mayoría de las páginas no tienen namespace, esas entran todas)
