@@ -15,7 +15,7 @@ import functools
 import subprocess
 
 sys.path.append(os.path.abspath("."))
-from src.armado.cdpindex import Index
+from src.armado.cdpindex import IndexInterface
 
 BLOQUE = 100
 
@@ -41,13 +41,13 @@ def usoMemoria():
     v,r = map(int, info.strip().split())
     return v + r
 
-def main(arch_ind):
+def main(direct):
     memant = usoMemoria()
     with Timer("Start up"):
-        indice = Index(arch_ind)
+        indice = IndexInterface(direct)
     memdesp = usoMemoria()
 
-    print "               cant palabras:", len(indice.listado_palabras())
+    print "               cant palabras:", len(list(indice.listar()))
     print "               ocupa memoria:  %d KB" % (memdesp - memant)
 
     with Timer("Listado completo"):
@@ -94,28 +94,27 @@ def main(arch_ind):
     pals = [azar() for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a una", BLOQUE):
         for p in pals:
-            indice.detailed_search(p)
+            indice.partial_search(p)
 
     # palabras parciales, de a 2
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a 2", BLOQUE):
         for p in pals:
-            indice.detailed_search(p)
+            indice.partial_search(p)
 
     # palabras parciales, de a 5
     pals = [("%s "*5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a 5", BLOQUE):
         for p in pals:
-            indice.detailed_search(p)
+            indice.partial_search(p)
 
     memdesp = usoMemoria()
     print "\nNuevo consumo de memoria:  %d KB" % (memdesp - memant)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "Usar:  verIndice.py <indice_base>"
-        print "           donde el indice_base es la parte base del nombre,"
-        print "           tienen que estar ambos .ids y .words"
+        print "Usar:  benchmarkIndice.py <dir_indice>"
+        print "           dir_indice es el directorio donde está el índice"
         sys.exit()
 
     base = sys.argv[1]

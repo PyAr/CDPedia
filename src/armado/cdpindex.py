@@ -77,10 +77,10 @@ class IndexInterface(object):
         self.indice = Index(directory)
 
     def listar(self):
-        '''Muestra en stdout las palabras y los artículos referenciados.'''
+        '''Devuelve las palabras y los artículos referenciados.'''
         for palabra, info in sorted(self.indice.items()):
             data = [x[0] for x in info] # sólo nomhtml
-            print "%s: %s" % (palabra, data)
+            yield (palabra, data)
 
     def listado_valores(self):
         '''Devuelve la info de todos los artículos.'''
