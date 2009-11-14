@@ -14,6 +14,7 @@ import urllib2  # .urlparse
 import string
 import re
 import cPickle
+import operator
 
 import cdpindex
 import compresor
@@ -186,11 +187,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._main_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
 
-        candidatos = self.index.detailed_search(keywords.decode("utf8"))
+        candidatos = self.index.partial_search(keywords.decode("utf8"))
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
-        for link, titulo, ptje in candidatos:
+        cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+        for link, titulo, ptje in cand:
             linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
@@ -221,7 +223,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
-        for link, titulo, ptje in candidatos:
+        cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+        for link, titulo, ptje in cand:
             linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
@@ -236,7 +239,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 def run(event):
-    WikiHTTPRequestHandler.index = cdpindex.Index(config.PREFIJO_INDICE)
+    WikiHTTPRequestHandler.index = cdpindex.IndexInterface(config.DIR_INDICE)
     WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"
     httpd = BaseHTTPServer.HTTPServer(('', 8000), WikiHTTPRequestHandler)
 

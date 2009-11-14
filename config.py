@@ -12,8 +12,8 @@ DIR_BLOQUES = "temp/cdroot/bloques"
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
 
-# Los índices generados (a esto se le agrega las dos terminaciones)
-PREFIJO_INDICE = "temp/wikiindex"
+# Donde irán los archivos del índice
+DIR_INDICE = "temp/indice"
 
 # Directorio destino de los archivos preprocesados.
 DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
@@ -49,10 +49,12 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 # CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
 
 # Límites de cantidades de páginas a incluir
-###  Para el DVD:
-LIMITE_PAGINAS = 500000
+####  Para el DVD:
+#LIMITE_PAGINAS = 500000
 ###  Para el CD:
 #LIMITE_PAGINAS = 88500
+##  Devel
+LIMITE_PAGINAS = 500
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala

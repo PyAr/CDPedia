@@ -81,14 +81,6 @@ def copiarSources():
     # el main va al root
     shutil.copy("main.py", config.DIR_CDBASE)
 
-def copiarIndices():
-    """Copiar los indices."""
-    # las fuentes
-    dest_src = path.join(config.DIR_CDBASE, "indice")
-    dir_a_cero(dest_src)
-    for name in glob.glob("%s*" % config.PREFIJO_INDICE):
-        shutil.copy(name, dest_src)
-
 def armarEjecutable():
     pass
 
@@ -106,7 +98,7 @@ def genera_run_config():
     f.write('DIR_BLOQUES = "bloques"\n')
     f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
-    f.write('PREFIJO_INDICE = "indice/wikiindex"\n')
+    f.write('DIR_INDICE = "indice"\n')
     f.close()
 
 def preparaTemporal():
@@ -206,7 +198,10 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         copiarSources()
 
         mensaje("Copiando los indices")
-        copiarIndices()
+        dest_src = path.join(config.DIR_CDBASE, "indice")
+        if os.path.exists(dest_src):
+            shutil.rmtree(dest_src)
+        shutil.copytree(config.DIR_INDICE, dest_src)
 
         # FIXME: ¿esto al final se hace por afuera?
         if sys.platform == "win32":
