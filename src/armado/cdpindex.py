@@ -7,23 +7,16 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
-from __future__ import with_statement
-
-import cPickle
 import time
 import sys
 import os
 import codecs
-import random
 import unicodedata
-import operator
-import glob
 import config
 import subprocess
 import re
-from bz2 import BZ2File as CompressedFile
 
-from .lru_cache import lru_cache
+from .easy_index import Index
 
 usage = """Indice de títulos de la CDPedia
 
@@ -61,6 +54,7 @@ def _getHTMLTitle(arch):
     return tit
 
 def _getPalabrasHTML(arch):
+    # FIXME: esta función es para cuando hagamos fulltext
     arch = os.path.abspath(arch)
     cmd = config.CMD_HTML_A_TEXTO % arch
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
@@ -68,236 +62,45 @@ def _getPalabrasHTML(arch):
     txt = txt.decode("utf8")
     return txt
 
-class Index(object):
-    '''Maneja todo el índice.
 
-    La idea es ofrecer funcionalidad, después vemos tamaño y tiempos.
+class IndexInterface(object):
+    '''Procesa toda la info para interfacear con el índice.
+
+    Lo que guardamos en el índice para cada palabra es:
+
+     - nomhtml: el path al archivo
+     - titulo: del artículo
+     - puntaje: para relativizar la importancia del artículo
     '''
 
-    def __init__(self, filename, verbose=False):
-        self.filename = filename
-
-        # sólo abrimos "words", ya que "ids" es por pedido
-        wordsfilename = filename + ".words.bz2"
-
-        if verbose:
-            print "Abriendo", wordsfilename
-        fh = CompressedFile(wordsfilename, "rb")
-        self.word_shelf = cPickle.load(fh)
-        fh.close()
-
-        # y vemos cuantos "ids" tenemos, para ver cómo se reparte
-        self.cuantos_ids = len(glob.glob(filename + "-*.ids.bz2"))
-
-    @lru_cache(20)
-    def _get_indice(self, cual):
-        '''Devuelve el índice.'''
-        idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
-        fh = CompressedFile(idsfilename, "rb")
-        idx = cPickle.load(fh)
-        fh.close()
-        return idx
-
-    def _get_info_id(self, *keys):
-        '''Devuelve la coincidencia para la clave.'''
-        # separamos los keys en función del archivo
-        cuales = {}
-        for k in keys:
-            cual = hash(k) % self.cuantos_ids
-            cuales.setdefault(cual, []).append(k)
-
-        # juntamos la info de cada archivo
-        resultados = {}
-        for cual, keys in cuales.items():
-            idx = self._get_indice(cual)
-            resultados.update((k, idx[k]) for k in keys)
-
-        return resultados
+    def __init__(self, directory):
+        self.indice = Index(directory)
 
     def listar(self):
         '''Muestra en stdout las palabras y los artículos referenciados.'''
-        for palabra, docid_ptje in sorted(self.word_shelf.items()):
-            docids = [x[0] for x in docid_ptje] # le sacamos la cant
-            data = [str(x)[1] for x in self._get_info_id(*docids).values()]
+        for palabra, info in sorted(self.indice.items()):
+            data = [x[0] for x in info] # sólo nomhtml
             print "%s: %s" % (palabra, data)
 
     def listado_valores(self):
         '''Devuelve la info de todos los artículos.'''
-        vals = []
-        for cual in range(self.cuantos_ids):
-            idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
-            fh = CompressedFile(idsfilename, "rb")
-            ids = cPickle.load(fh)
-            fh.close()
-            vals.extend(ids.itervalues())
-        return sorted(vals)
-
-    def listado_palabras(self):
-        '''Devuelve las palabras indexadas.'''
-        return sorted(self.word_shelf.keys())
+        return sorted(set(x[:2] for x in self.indice.values()))
 
     def get_random(self):
         '''Devuelve un artículo al azar.'''
-        cual = random.randint(0,9)
-        idsfilename = "%s-%02d.ids.bz2" % (self.filename, cual)
-        fh = CompressedFile(idsfilename, "rb")
-        ids = cPickle.load(fh)
-        fh.close()
-        return random.choice(ids.values())
-
-    def _merge_results(self, results):
-        # vemos si tenemos algo más que vacio
-        results = filter(bool, results)
-        if not results:
-            return []
-
-        # el resultado final es la intersección de los parciales ("and")
-        intersectados = reduce(operator.iand, (set(d) for d in results))
-        final = {}
-        for result in results:
-            for pagtit, ptje in result.items():
-                if pagtit in intersectados:
-                    final[pagtit] = final.get(pagtit, 0) + ptje
-
-        final = [(pag, tit, ptje) for (pag, tit), ptje in final.items()]
-        return sorted(final, key=operator.itemgetter(2), reverse=True)
-
+        value = self.indice.random()
+        return value[:2]
 
     def search(self, words):
         '''Busca palabras completas en el índice.'''
-        results = []
-        for word in PALABRAS.findall(normaliza(words)):
-            if word not in self.word_shelf:
-                continue
+        pals = PALABRAS.findall(normaliza(words))
+        return self.indice.search(pals)
 
-            result = {}
-            all_data = self.word_shelf[word]
-            all_pags = self._get_info_id(*[x[0] for x in all_data])
-            for docid, ptje in all_data:
-                pag = all_pags[docid]
-                result[pag] = result.get(pag, 0) + ptje
-            results.append(result)
-
-        return self._merge_results(results)
-
-    def detailed_search(self, words):
+    def partial_search(self, words):
         '''Busca palabras parciales en el índice.'''
-        results = []
-        for word in PALABRAS.findall(normaliza(words)):
-            # tomamos cuales palabras reales tienen adentro las palabra parcial
-            resultword = []
-            for guardada in self.word_shelf:
-                if word in guardada:
-                    resultword.append(guardada)
-            if not resultword:
-                continue
+        pals = PALABRAS.findall(normaliza(words))
+        return self.indice.partial_search(pals)
 
-            # efectivamente, tenemos algunas palabras reales
-            result = {}
-            for realword in resultword:
-                all_data = self.word_shelf[realword]
-                all_pags = self._get_info_id(*[x[0] for x in all_data])
-                for docid, ptje in all_data:
-                    pagtit = all_pags[docid]
-                    result[pagtit] = result.get(pagtit, 0) + ptje
-            results.append(result)
-
-        return self._merge_results(results)
-
-    @classmethod
-    def create(cls, filename, fuente, verbose):
-        '''Crea los índices.'''
-        id_shelf = {}
-        word_shelf = {}
-
-        # fill them
-        for docid, (nomhtml, titulo, palabs_texto, ptje) in enumerate(fuente):
-            if verbose:
-                print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
-            # docid -> info final
-            id_shelf[docid] = (nomhtml, titulo)
-
-            # palabras -> docid
-            # a las palabras del título le damos mucha importancia: 50, más
-            # el puntaje original sobre 1000, como desempatador
-            for pal in PALABRAS.findall(normaliza(titulo)):
-                word_shelf.setdefault(pal, []).append((docid, 50 + ptje//1000))
-
-            # las palabras del texto importan tanto como las veces que están
-            all_words = {}
-            for pal in PALABRAS.findall(normaliza(palabs_texto)):
-                all_words[pal] = all_words.get(pal, 0) + 1
-
-            for pal, cant in all_words.items():
-                word_shelf.setdefault(pal, []).append((docid, cant))
-
-        # grabamos words
-        wordsfilename = filename + ".words.bz2"
-        if verbose:
-            print "Grabando", wordsfilename
-        fh = CompressedFile(wordsfilename, "wb")
-        cPickle.dump(word_shelf, fh, 2)
-        fh.close()
-
-        if verbose:
-            print "Grabando", idsfilename
-
-        # separamos id_shelf en N diccionarios de ~5k entries
-        N = int(round(len(id_shelf) / 5000.0))
-        if not N:
-            N = 1
-        all_idshelves = [{} for i in range(N)]
-        for k,v in id_shelf.iteritems():
-            cual = hash(k) % N
-            all_idshelves[cual][k] = v
-
-        # grabamos los N diccionarios donde corresponde
-        for cual, shelf in enumerate(all_idshelves):
-            idsfilename = "%s-%02d.ids.bz2" % (filename, cual)
-            fh = CompressedFile(idsfilename, "wb")
-            cPickle.dump(shelf, fh, 2)
-            fh.close()
-
-        return docid+1
-
-# Lo dejamos comentado para despues, para hacer el full_text desde los bloques
-#
-# def generar(src_info, verbose, full_text=False):
-#     return _create_index(config.LOG_PREPROCESADO, config.PREFIJO_INDICE,
-#                         dirbase=src_info, verbose=verbose, full_text=full_text)
-#
-#     def gen():
-#         fh = codecs.open(fuente, "r", "utf8")
-#         fh.next() # título
-#         for i,linea in enumerate(fh):
-#             partes = linea.split()
-#             arch, dir3 = partes[:2]
-#             if not arch.endswith(".html"):
-#                 continue
-#
-#             (categoria, restonom) = utiles.separaNombre(arch)
-#             if verbose:
-#                 print "Indizando [%d] %s" % (i, arch.encode("utf8"))
-#             # info auxiliar
-#             nomhtml = os.path.join(dir3, arch)
-#             nomreal = os.path.join(dirbase, nomhtml)
-#             if os.access(nomreal, os.F_OK):
-#                 titulo = _getHTMLTitle(nomreal)
-#                 if full_text:
-#                     palabras = _getPalabrasHTML(nomreal)
-#                 else:
-#                     palabras = []
-#             else:
-#                 titulo = ""
-#                 print "WARNING: Archivo no encontrado:", nomreal
-#
-#             # si tenemos max, lo respetamos y entregamos la info
-#             if max is not None and i > max:
-#                 raise StopIteration
-#             yield (nomhtml, titulo, palabras)
-#
-#     cant = Index.create(salida, gen(), verbose)
-#     return cant
 
 def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
@@ -307,25 +110,41 @@ def generar_de_html(dirbase, verbose):
     def gen():
         fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
-        for i, (dir3, arch, puntaje) in enumerate(fileNames):
-            if verbose:
-                print "Indizando [%d] %s" % (i, arch.encode("utf8"))
+        for dir3, arch, puntaje in fileNames:
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
             nomreal = os.path.join(dirbase, nomhtml)
             if os.access(nomreal, os.F_OK):
                 titulo = _getHTMLTitle(nomreal)
-                palabras = u""
             else:
-                titulo = ""
                 print "WARNING: Archivo no encontrado:", nomreal
+                continue
 
-            # si tenemos max, lo respetamos y entregamos la info
-            if max is not None and i > max:
-                raise StopIteration
-            yield (nomhtml, titulo, palabras, puntaje)
+            if verbose:
+                print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
 
-    cant = Index.create(config.PREFIJO_INDICE, gen(), verbose)
+            # a las palabras del título le damos mucha importancia: 50, más
+            # el puntaje original sobre 1000, como desempatador
+            for pal in PALABRAS.findall(normaliza(titulo)):
+                ptje = 50 + puntaje//1000
+                yield pal, (nomhtml, titulo, ptje)
+
+            # FIXME: las siguientes lineas son en caso de que la generación
+            # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
+            # pero será desde los bloques, no desde el html, pero guardamos
+            # esto para luego)
+            #
+            # # las palabras del texto importan tanto como las veces que están
+            # all_words = {}
+            # for pal in PALABRAS.findall(normaliza(palabs_texto)):
+            #     all_words[pal] = all_words.get(pal, 0) + 1
+            # for pal, cant in all_words.items():
+            #     yield pal, (nomhtml, titulo, cant)
+
+    if not os.path.exists(config.DIR_INDICE):
+        os.mkdir(config.DIR_INDICE)
+
+    cant = Index.create(config.DIR_INDICE, gen())
     return cant
 
 if __name__ == "__main__":
