@@ -27,6 +27,18 @@ la calidad de nuestra educación.
 ¡Que lo disfrutes!
 
 
+¿Cómo la uso?
+-------------
+
+Ponés el disco generado en tu máquina, y cuando se abra la carpeta con el
+CD hacés doble click en el archivo main.py.
+
+Para que funcione, tenés que tener instalado Python.  Si usás Linux o Mac
+ya lo vas a tener, para Windows lo podés descargar desde acá:
+
+  http://www.python.org/download/releases/2.6.4/
+
+
 Información del proyecto
 ------------------------
 
