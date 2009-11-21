@@ -15,6 +15,7 @@ import unicodedata
 import config
 import subprocess
 import re
+import threading
 
 from .easy_index import Index
 
@@ -38,7 +39,7 @@ SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
 PALABRAS = re.compile("\w+", re.UNICODE)
 
 def normaliza(txt):
-    '''Recibe una frase y devuelve sus palabras ya normalizadas.'''
+    """Recibe una frase y devuelve sus palabras ya normalizadas."""
     txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
     return txt
 
@@ -63,41 +64,55 @@ def _getPalabrasHTML(arch):
     return txt
 
 
-class IndexInterface(object):
-    '''Procesa toda la info para interfacear con el índice.
+class IndexInterface(threading.Thread):
+    """Procesa toda la info para interfacear con el índice.
 
     Lo que guardamos en el índice para cada palabra es:
 
      - nomhtml: el path al archivo
      - titulo: del artículo
      - puntaje: para relativizar la importancia del artículo
-    '''
-
+    """
     def __init__(self, directory):
-        self.indice = Index(directory)
+        super(IndexInterface, self).__init__()
+        self.ready = threading.Event()
+        self.directory = directory
+
+    def is_ready(self):
+        return self.ready.is_set()
+
+    def run(self):
+        """Levanta el índice."""
+        self.indice = Index(self.directory)
+        self.ready.set()
 
     def listar(self):
-        '''Devuelve las palabras y los artículos referenciados.'''
+        """Devuelve las palabras y los artículos referenciados."""
+        self.ready.wait()
         for palabra, info in sorted(self.indice.items()):
             data = [x[0] for x in info] # sólo nomhtml
             yield (palabra, data)
 
     def listado_valores(self):
-        '''Devuelve la info de todos los artículos.'''
+        """Devuelve la info de todos los artículos."""
+        self.ready.wait()
         return sorted(set(x[:2] for x in self.indice.values()))
 
     def get_random(self):
-        '''Devuelve un artículo al azar.'''
+        """Devuelve un artículo al azar."""
+        self.ready.wait()
         value = self.indice.random()
         return value[:2]
 
     def search(self, words):
-        '''Busca palabras completas en el índice.'''
+        """Busca palabras completas en el índice."""
+        self.ready.wait()
         pals = PALABRAS.findall(normaliza(words))
         return self.indice.search(pals)
 
     def partial_search(self, words):
-        '''Busca palabras parciales en el índice.'''
+        """Busca palabras parciales en el índice."""
+        self.ready.wait()
         pals = PALABRAS.findall(normaliza(words))
         return self.indice.partial_search(pals)
 

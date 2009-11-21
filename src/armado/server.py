@@ -80,6 +80,27 @@ def get_stats():
     img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
     return pag, img
 
+
+# lista para guardar la espera al índice
+
+class EsperaIndice(object):
+    def __init__(self):
+        self.data_esperando = None
+        self.cuanta_espera = ""
+
+    def espera_indice(self, func):
+        """Se asegura que el índice esté listo."""
+        def _f(*a, **k):
+            instancia = a[0]
+            if instancia.index.is_ready():
+                return func(*a, **k)
+            else:
+                self.data_esperando = (func, a, k)
+                return instancia._index_not_ready()
+        return _f
+
+ei = EsperaIndice()
+
 class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
 
@@ -137,12 +158,27 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
         return "text/html", pag
 
+    def _esperando(self):
+        """Se fija si debemos seguir esperando o entregamos la data."""
+        if self.index.is_ready():
+            func, a, k = ei.data_esperando
+            return func(*a, **k)
+        else:
+            ei.cuanta_espera += "."
+            return self._index_not_ready()
+
+    def _index_not_ready(self):
+        pag = self.templates("indicenolisto", espera=ei.cuanta_espera)
+        return "text/html", pag
+
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
         print "get file:", path
         if path == "/index.html":
             return self._main_page()
+        if path == "/esperando":
+            return self._esperando()
         if path == "/dosearch":
             return self.dosearch(query)
         if path == "/detallada":
@@ -179,6 +215,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         return data
 
+    @ei.espera_indice
     def detallada(self, query):
         params = cgi.parse_qs(query)
         if not "keywords" in params:
@@ -197,6 +234,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pag = self.templates("searchres", results="\n".join(res))
         return "text/html", pag
 
+    @ei.espera_indice
     def listfull(self, query):
         articulos = self.index.listado_valores()
         res = []
@@ -208,10 +246,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pag = self.templates("listadofull", lineas="\n".join(res))
         return "text/html", pag
 
+    @ei.espera_indice
     def al_azar(self, query):
         link, tit = self.index.get_random()
         return self._get_contenido(link.encode("utf8"))
 
+    @ei.espera_indice
     def dosearch(self, query):
         params = cgi.parse_qs(query)
         if not "keywords" in params:
@@ -237,7 +277,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 def run(event):
+    import time
     WikiHTTPRequestHandler.index = cdpindex.IndexInterface(config.DIR_INDICE)
+    WikiHTTPRequestHandler.index.start()
     WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"
     httpd = BaseHTTPServer.HTTPServer(('', 8000), WikiHTTPRequestHandler)
 
