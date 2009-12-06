@@ -54,6 +54,14 @@ def copiarAssets(src_info, dest):
     copy_dir(src_dir, config.DIR_CDBASE)
 
 
+def copiarAutorun():
+    src_dir = "resources/autorun"
+    copy_dir(src_dir, config.DIR_CDBASE)
+
+    src_dir = path.join(config.DIR_CDBASE, "src")
+    dst_dir = path.join(config.DIR_CDBASE, "win32", "src")
+    copy_dir(src_dir, dst_dir)
+
 
 def copiarSources():
     """Copiar los fuentes."""
