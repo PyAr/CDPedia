@@ -19,6 +19,7 @@ import operator
 import cdpindex
 import compresor
 import config
+import time
 
 
 __version__ = "0.1.1.1.1.1"
@@ -92,7 +93,7 @@ class EsperaIndice(object):
         """Se asegura que el índice esté listo."""
         def _f(*a, **k):
             instancia = a[0]
-            if instancia.index.is_ready() and False:
+            if instancia.index.is_ready():
                 return func(*a, **k)
             else:
                 self.data_esperando = (func, a, k)
@@ -117,6 +118,11 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             #self.send_header("Content-type", tipo)
             self.send_header("Content-Length", len(data))
+            if tipo != "text/html":
+                expiry = self.date_time_string(time.time() + 86400)
+                self.send_header("Expires", expiry)
+                self.send_header("Cache-Control",
+                    "max-age=86400, must-revalidate")
             self.end_headers()
             self.wfile.write(data)
         else:
@@ -140,7 +146,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ContentNotFound(msg)
 
         if data is None:
-            m = u"La página '%s' no pudo ser incluída en el disco"
+            m = u"La página '%s' no pudo ser incluida en el disco"
             raise ContentNotFound(m % path.decode("utf8"))
 
         return self._arma_pagina(data)
@@ -162,7 +168,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _esperando(self):
         """Se fija si debemos seguir esperando o entregamos la data."""
-        if self.index.is_ready() and False:
+        if self.index.is_ready():
             func, a, k = ei.data_esperando
             return func(*a, **k)
         else:
@@ -171,7 +177,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _index_not_ready(self):
         pag = self.templates("indicenolisto", espera=ei.cuanta_espera)
-        return "text/html", pag
+        return "text/html", self._wrap(pag, "por favor, aguarde...")
 
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
@@ -204,7 +210,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # diferente
         if arranque in ("images", "raw", "skins", "misc", "extern"):
             asset_file = os.path.join(config.DIR_ASSETS, path)
-            asset_data = open(asset_file).read()
+            asset_data = open(asset_file, "rb").read()
             return "image/%s"%path[-3:], asset_data
 
         if path=="":
