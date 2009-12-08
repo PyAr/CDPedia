@@ -48,7 +48,7 @@
     <h5>Presentada por</h5>
         <center>
         <br/>
-        <a href="http://www.python.com.ar/"><img src="../../../extern/pyar-logo.png" alt="Python Argentina" /></a>
+        <a href="http://www.python.org.ar/"><img src="../../../extern/pyar-logo.png" alt="Python Argentina" /></a>
         </center>
     </div>
           </div><!-- end of the left (by default at least) column -->
@@ -59,7 +59,7 @@
             <a href="http://wikimediafoundation.org/"><img src="../../../misc/wikimedia-button.png" border="0" alt="Wikimedia Foundation"/></a>
         </div>
         <div id="f-poweredbyico">
-            <a href="http://www.python.com.ar/"><img src="../../../extern/pyar-logo-chico.png" alt="Powered by PyAr" /></a>
+            <a href="http://www.python.org.ar/"><img src="../../../extern/pyar-logo-chico.png" alt="Powered by PyAr" /></a>
         </div>
 
         <table>
@@ -79,7 +79,7 @@
             </td><td width=40%>
                 <ul id="f-list">
                     <li id="f-about">
-                        CDPedia es un proyecto de <a href="http://www.python.com.ar/">Python Argentina</a><br/>
+                        CDPedia es un proyecto de <a href="http://www.python.org.ar/">Python Argentina</a><br/>
                     </li>
                     <li id="f-disclaimer">
                         Los artículos e imágenes son mostrados aquí sin ningún<br/>
