@@ -9,8 +9,8 @@
 <center>
 <br>
 
-<font color="#330033" size="+1">
-Lo siento, tenemos que esperar que el índice termine de cargar
+<font color="#0000cc" size="+1">
+Por favor, aguarde mientras CDpedia termina de cargar el índice
 <br>
 $espera
 <br>

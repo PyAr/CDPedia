@@ -92,7 +92,7 @@ class EsperaIndice(object):
         """Se asegura que el índice esté listo."""
         def _f(*a, **k):
             instancia = a[0]
-            if instancia.index.is_ready():
+            if instancia.index.is_ready() and False:
                 return func(*a, **k)
             else:
                 self.data_esperando = (func, a, k)
@@ -145,22 +145,24 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         return self._arma_pagina(data)
 
-    def _arma_pagina(self, contenido):
-        title = getTitleFromData(contenido)
+    def _wrap(self, contenido, title):
         header = self.templates("header", titulo=title)
         footer = self.templates("footer",
                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
-        pag = header + contenido + footer
-        return "text/html", pag
+        return header + contenido + footer
+
+    def _arma_pagina(self, contenido):
+        title = getTitleFromData(contenido)
+        return "text/html", self._wrap(contenido, title)
 
     def _main_page(self, msg=u"¡Bienvenido!"):
         pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
-        return "text/html", pag
+        return "text/html", self._wrap(pag, msg.encode("utf8"))
 
     def _esperando(self):
         """Se fija si debemos seguir esperando o entregamos la data."""
-        if self.index.is_ready():
+        if self.index.is_ready() and False:
             func, a, k = ei.data_esperando
             return func(*a, **k)
         else:
@@ -232,19 +234,19 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
-        return "text/html", pag
+        return "text/html", self._wrap(pag, "Resultados")
 
     @ei.espera_indice
     def listfull(self, query):
         articulos = self.index.listado_valores()
         res = []
         for link, titulo in articulos:
-            linea = '<br/><a href="%s">%s</a>' % (
+            linea = '<a href="%s">%s</a><br/>' % (
                                 link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
         pag = self.templates("listadofull", lineas="\n".join(res))
-        return "text/html", pag
+        return "text/html", self._wrap(pag, "Listado Completo")
 
     @ei.espera_indice
     def al_azar(self, query):

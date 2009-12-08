@@ -1,17 +1,7 @@
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>CDPedia - PyAr</title>
-</head><body><br>
-<center>
-<font color="#0000ff" size="+3">CD Pedia<br>
-<br>
+<h1 class="firstHeading">CDpedia</h1>
+<h2><font color="#ff0000">$mensaje</font></h2>
 
-<font color="#ff0000" size="+2">
-$mensaje
-<br>
-
-<br>
-<font color="#000000" size="+2">Buscar en los títulos<br><br>
+<h2>Buscar en los títulos</h2>
 
 <table>
 <tr>
@@ -35,7 +25,7 @@ $mensaje
 </table>
 
 <br>
-<font color="#000000" size="+2">Ver páginas<br><br>
+<h2>Ver páginas</h2>
 <table>
 <tr>
  <td>
@@ -51,25 +41,3 @@ $mensaje
 </tr>
 </table>
 
-<br>
-<font color="#000000" size="+1">Estadísticas<br></font>
-<font size="-1">
-<table>
-<tr>
- <td>Páginas</td>
- <td>$stt_pag</td>
-</tr>
-<tr>
- <td>Imágenes</td>
- <td>$stt_img</td>
-</tr>
-</table>
-</font>
-
-<font size="-1">
-<br>
-- - - <br>
-Otro desarrollo de PyAr - Python Argentina
-</font>
-</center>
-</body></html>
