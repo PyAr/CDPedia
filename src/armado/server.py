@@ -275,7 +275,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             res.append(linea)
 
         pag = self.templates("searchres", results="\n".join(res))
-        return "text/html", pag
+        return "text/html", self._wrap(pag, "Resultados")
 
     def templates(self, nombre_tpl, **kwrds):
         '''Devuelve el texto del template, con la info reemplazada.'''
