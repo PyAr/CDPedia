@@ -76,12 +76,13 @@ class Comprimido(object):
         # se redirecciona
         seek = 0
         for dir3, fileName in fileNames:
-            # si es redirect, sólo el nombre
             if fileName in redirects:
-                header[fileName] = redirects[fileName]
-                continue
+                # si es redirect, ponemos todos los redirects que apunten a
+                # el html que guardamos
+                for orig in redirects[fileName]:
+                    header[orig] = fileName
 
-            # si es real, info del archivo real
+            # guardamos el archivo real
             fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
@@ -104,8 +105,6 @@ class Comprimido(object):
 
         # grabo cada uno de los articulos
         for dir3, fileName in fileNames:
-            if fileName in redirects:
-                continue
             fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
             f.write(open( fullName, "rb" ).read())
 
@@ -160,12 +159,10 @@ def generar(verbose):
     # armo el diccionario de redirects
     redirects = {}
     for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
-        desde, hasta = linea.split(config.SEPARADOR_COLUMNAS)
-        desde = path.basename(desde)
-        hasta = path.basename(hasta)
+        orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+        redirects.setdefault(dest, []).append(orig)
         if verbose:
-            print "  redirs:", repr(desde), repr(hasta)
-        redirects[desde] = hasta
+            print "  redirs:", repr(orig), repr(dest)
 
     # armamos cada uno de los comprimidos
     tot = 0
