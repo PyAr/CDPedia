@@ -23,7 +23,12 @@ class Index(object):
 
         # see how many id files we have
         idsfilename = os.path.join(directory, "easyindex-*.ids.bz2")
-        self.idfiles_count = len(glob.glob(idsfilename))
+        filenames = []
+        for fn in os.listdir(directory):
+            if fn.startswith("easyindex-") and \
+                fn.endswith(".ids.bz2"):
+                filenames.append(fn)
+        self.idfiles_count = len(filenames)
 
     @lru_cache(20)
     def _get_ids_shelve(self, cual):
