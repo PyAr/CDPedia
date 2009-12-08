@@ -1,0 +1,12 @@
+Este directorio contiene todo lo necesario para hacer un cd autoejecutable en windows.
+
+Al insertar un CD, windows trata de abrir un archivo llamado autorun.inf
+Este tiene información del ejecutable que se arrancará automáticamente. En nuestro caso dicho ejecutable es win32\autorun\start.exe, que muestra una pantalla de carga y llama al ejecutable principal de la cdpedia.
+
+El ejecutable principal de la cdpedia está hecho con py2exe y es minimalista. Básicamente lo único que hace es agregar la raíz del cdrom al sys.path y tratar de importar un modulo llamado main, que actualmente está en la raíz del cdrom.
+
+En win32main\setup.py hay que incluir todos aquellos módulos de la stdlib que sean importados en el codigo de la cdpedia, y que no existan todavía en cdroot\win32\main\library.zip
+
+Si se agregan módulos en win32main\setup.py hay que volver a reconstruir el win32main.exe, usando el script mkautorun.bat
+
+En cdroot\ quedan todos los archivos y directorios que deben ser copiados a la raíz del cdrom.

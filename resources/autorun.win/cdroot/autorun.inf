@@ -1,0 +1,3 @@
+[autorun]
+open=win32\autorun\start.exe
+icon=win32\autorun\CDPedia.ico

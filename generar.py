@@ -55,12 +55,8 @@ def copiarAssets(src_info, dest):
 
 
 def copiarAutorun():
-    src_dir = "resources/autorun"
+    src_dir = "resources/autorun.win/cdroot"
     copy_dir(src_dir, config.DIR_CDBASE)
-
-    src_dir = path.join(config.DIR_CDBASE, "src")
-    dst_dir = path.join(config.DIR_CDBASE, "win32", "src")
-    copy_dir(src_dir, dst_dir)
 
 
 def copiarSources():
@@ -214,6 +210,9 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         # FIXME: ¿esto al final se hace por afuera?
         if sys.platform == "win32":
             armarEjecutable()
+
+        mensaje("Copiando el autorun")
+        copiarAutorun()
 
         mensaje("Generamos la config para runtime")
         genera_run_config()
