@@ -29,7 +29,12 @@ def copy_dir(src_dir, dst_dir):
     for fname in os.listdir(src_dir):
         if fname.startswith("."):
             continue
-        shutil.copy(path.join(src_dir, fname), path.join(dst_dir, fname))
+        src_path = path.join(src_dir, fname)
+        dst_path = path.join(dst_dir, fname)
+        if path.isdir(src_path):
+            copy_dir(src_path, dst_path)
+        else:
+            shutil.copy(src_path, dst_path)
 
 def copiarAssets(src_info, dest):
     """Copiar los assets."""
