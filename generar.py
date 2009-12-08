@@ -167,6 +167,9 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         print '      y %d que ya estaban de antes' % cantold
         estad.pags_total = cantnew + cantold
 
+        mensaje("Calculando los que quedan y los que no")
+        preprocesar.calcula_top_htmls()
+
         mensaje("Generando el log de imágenes")
         taken, bogus, adesc = extraer.run(verbose)
         print '  total: %5d imágenes extraídas' % taken

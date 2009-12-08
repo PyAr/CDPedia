@@ -158,8 +158,8 @@ class WikiSitio(object):
             print 'Registro guardado en %s' % log
 
 
-def get_top_htmls(limite):
-    '''Devuelve los htmls con más puntaje.'''
+def calcula_top_htmls():
+    """Calcula los htmls con más puntaje y guarda ambas listas."""
     # leemos el archivo de preprocesado y calculamos puntaje
     fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
     fh.next() # título
@@ -175,10 +175,31 @@ def get_top_htmls(limite):
 
         data.append((dir3, arch, puntaje))
 
-    # ordenamos y devolvemos los primeros N
+    # ordenamos en función del puntaje
     data.sort(key=operator.itemgetter(2), reverse=True)
-    data = data[:limite]
+
+    # guardamos los que entran
+    with codecs.open(config.DECIDIDOS_SI, "w", "utf8") as fh:
+        for dir3, arch, puntaje in data[:config.LIMITE_PAGINAS]:
+            info = (dir3, arch, str(puntaje))
+            fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
+
+    # guardamos los que no
+    with codecs.open(config.DECIDIDOS_NO, "w", "utf8") as fh:
+        for dir3, arch, puntaje in data[config.LIMITE_PAGINAS:]:
+            # hardcodeamos '/' porque es lo que está en el html
+            fh.write(arch + "\n")
+
+
+def get_top_htmls(limite):
+    '''Devuelve los htmls con más puntaje.'''
+    data = []
+    for linea in codecs.open(config.DECIDIDOS_SI, "r", "utf8"):
+        linea = linea.strip()
+        dir3, arch, puntaje = linea.split(config.SEPARADOR_COLUMNAS)
+        data.append((dir3, arch, int(puntaje)))
     return data
+
 
 def run(dir_raiz, verbose=False):
 #    import cProfile

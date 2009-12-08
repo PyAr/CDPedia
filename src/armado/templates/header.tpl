@@ -21,7 +21,11 @@
 @import "../../../raw/MediaWiki%7ECommon.css";
 @import "../../../raw/MediaWiki%7EMonobook.css";
 @import "../../../raw/gen.css";
-/*]]>*/</style>          </head>
+/*]]>*/</style>         
+<style type="text/css">
+  a.nopo {border-bottom: 1px dashed red; text-decoration:none; color: red;}
+</style>
+</head>
   <body
     class="ns-0">
     <div id="globalWrapper">

@@ -39,6 +39,9 @@ class ParseaImagenes(object):
         self.test = test
         self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.anchalt_regex = re.compile('width="\d+" height="\d+"')
+        self.links_regex = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
+                                      re.MULTILINE|re.DOTALL)
+        self.seplink = re.compile("../../../../articles/.+/.+/.+/(.*\.html)")
         self.a_descargar = {}
         self.proces_ahora = {}
 
@@ -64,6 +67,20 @@ class ParseaImagenes(object):
 
         self.imgs_ok = 0
         self.imgs_bogus = 0
+
+        # levantamos los archivos que no incluimos, de los que descartamos y
+        # de los redirects a los que descartamos
+        with codecs.open(config.DECIDIDOS_NO, "r", "utf-8") as fh:
+            self.decididos_no = set(x.strip() for x in fh)
+
+        sep = config.SEPARADOR_COLUMNAS
+        nop = self.decididos_no
+        with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
+            for linea in fh:
+                orig, dest = linea.strip().split(sep)
+                if dest in nop:
+                    nop.add(orig)
+
 
     # la cantidad es cuantas tenemos en a_descargar
     cant = property(lambda s: len(s.a_descargar))
@@ -114,7 +131,13 @@ class ParseaImagenes(object):
             newhtml = self.img_regex.sub(reemplaza, oldhtml)
         except Exception, e:
             print "Path del html", arch
-            raise e
+            raise
+
+        try:
+            newhtml = self.links_regex.sub(self._fixlinks, newhtml)
+        except Exception:
+            print "Path del html", arch
+            raise
 
         # lo grabamos en destino
         if not self.test:
@@ -220,6 +243,21 @@ class ParseaImagenes(object):
         # devolvemos lo cambiado para el html
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
         return htm_url
+
+    def _fixlinks(self, m):
+        """Pone clase "nopo" a los links que apuntan a algo descartado."""
+        link, relleno, texto = m.groups()
+        m = self.seplink.match(link)
+        if m:
+            fname = m.groups()[0]
+        else:
+            fname = None
+
+        if fname is not None and fname in self.decididos_no:
+            new = '<a class="nopo" href="%s"%s>%s</a>' % (link, relleno, texto)
+        else:
+            new = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
+        return new
 
 
 class Escalador(object):
