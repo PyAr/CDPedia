@@ -56,9 +56,9 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 ####  Para el DVD:
 #LIMITE_PAGINAS = 500000
 ##  Para el CD:
-#LIMITE_PAGINAS = 88000
+LIMITE_PAGINAS = 88000
 ##  Devel
-LIMITE_PAGINAS = 1000
+#LIMITE_PAGINAS = 1000
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
@@ -102,6 +102,16 @@ NAMESPACES = {
     u"Wikiproyecto": False,
     u"Wikiproyecto_Discusión": False,
 }
+
+INCLUDE = [
+    u"Wikipedia~Acerca_de",
+    u"Wikipedia~Limitación_general_de_responsabilidad",
+    u"Wikipedia~Aviso_de_riesgo",
+    u"Wikipedia~Aviso_médico",
+    u"Wikipedia~Aviso_legal",
+    u"Wikipedia~Aviso_de_contenido",
+    u"Wikipedia~Derechos_de_autor",
+]
 
 # Dump de Junio 2008
 #Mostrando los resultados para un total de 1362473 archivos que ocupan 18353.39 MB:

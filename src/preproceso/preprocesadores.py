@@ -28,6 +28,10 @@ import os
 from src import utiles
 import config
 
+def mustInclude(filename):
+    must = any(filename.startswith(fn) for fn in config.INCLUDE)
+    return must
+
 # Procesadores:
 class Procesador(object):
     """
@@ -68,7 +72,8 @@ class Namespaces(Procesador):
 
 #        print 'Namespace:', repr(namespace)
         # no da puntaje per se, pero invalida segun namespace
-        if namespace is None or config.NAMESPACES.get(namespace):
+        if namespace is None or config.NAMESPACES.get(namespace) or \
+            mustInclude(wikiarchivo.url):
 #            print '[válido]'
             return (0, [])
         else:
@@ -168,7 +173,7 @@ class FixLinksDescartados(Procesador):
             base = os.path.basename(comopath)
             categ = base.split("~")[0]
 
-            if config.NAMESPACES.get(categ):
+            if config.NAMESPACES.get(categ) or mustInclude(base.decode("utf8")):
                 # está ok, la dejamos intacta
                 intacta = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
                 return  intacta
