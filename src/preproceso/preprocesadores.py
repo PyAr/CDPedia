@@ -166,26 +166,24 @@ class FixLinksDescartados(Procesador):
 
             # si no tiene el ~, no hay nada que ver
             if "%7E" not in link:
-                intacta = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
-                return  intacta
+                return m.group(0)
 
-            comopath = urllib.url2pathname(link)
+            comopath = urllib.url2pathname(link.decode("utf8"))
             base = os.path.basename(comopath)
             categ = base.split("~")[0]
 
-            if config.NAMESPACES.get(categ) or mustInclude(base.decode("utf8")):
+            if config.NAMESPACES.get(categ) or mustInclude(base):
                 # está ok, la dejamos intacta
-                intacta = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
-                return  intacta
+                return m.group(0)
 
             # sacamos entonces el link
             return texto
 
         try:
             newhtml = self.links.sub(_reemplaza, wikiarchivo.html)
-        except Exception, e:
+        except Exception:
             print "Path del html", wikiarchivo.url
-            raise e
+            raise
 
         # reemplazamos el html original
         wikiarchivo.html = newhtml
