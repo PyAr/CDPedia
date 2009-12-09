@@ -104,3 +104,4 @@ def run(verbose):
     if not verbose and notfound:
         print "  WARNING: No encontramos {0} imágenes!".format(notfound)
     return notfound
+

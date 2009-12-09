@@ -11,13 +11,13 @@ import time
 import sys
 import os
 import codecs
-import unicodedata
 import config
-import subprocess
-import re
+import Queue
 import threading
 
+from .lexer import texto_a_lexemas, STOPWORDS, STOPWORDS_TITLE
 from .easy_index import Index
+from .prop_extract import propertiesFromHTML
 
 usage = """Indice de títulos de la CDPedia
 
@@ -31,37 +31,8 @@ Para generar el archivo de indice hacer:
     dirbase: de dónde dependen los archivos
 """
 
-# Buscamos todo hasta el último guión no inclusive, porque los
-# títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
-SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
-
-# separamos por palabras
-PALABRAS = re.compile("\w+", re.UNICODE)
-
-def normaliza(txt):
-    """Recibe una frase y devuelve sus palabras ya normalizadas."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
-    return txt
-
-def _getHTMLTitle(arch):
-    # Todavia no soportamos redirect, asi que todos los archivos son
-    # válidos y debería tener TITLE en ellos
-    html = codecs.open(arch, "r", "utf8").read()
-    m = SACATIT.match(html)
-    if m:
-        tit = m.groups()[0]
-    else:
-        tit = u"<sin título>"
-    return tit
-
-def _getPalabrasHTML(arch):
-    # FIXME: esta función es para cuando hagamos fulltext
-    arch = os.path.abspath(arch)
-    cmd = config.CMD_HTML_A_TEXTO % arch
-    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-    txt = p.stdout.read()
-    txt = txt.decode("utf8")
-    return txt
+def leerHTML(arch):
+    return codecs.open(arch, "r", "utf8").read()
 
 
 class IndexInterface(threading.Thread):
@@ -107,18 +78,18 @@ class IndexInterface(threading.Thread):
     def search(self, words):
         """Busca palabras completas en el índice."""
         self.ready.wait()
-        pals = PALABRAS.findall(normaliza(words))
-        return self.indice.search(pals)
+        return self.indice.search(
+            texto_a_lexemas(words) )
 
     def partial_search(self, words):
         """Busca palabras parciales en el índice."""
         self.ready.wait()
-        pals = PALABRAS.findall(normaliza(words))
-        return self.indice.partial_search(pals)
+        return self.indice.partial_search(
+            texto_a_lexemas(words) )
 
 
-def filename2palabras(fname):
-    """Transforma un filename en sus palabras y título."""
+def filename2title(fname):
+    """Transforma un filename en su título."""
     x = fname[:-5]
     x = normaliza(x)
     p = x.split("_")
@@ -135,7 +106,7 @@ def filename2palabras(fname):
 
     # el tit lo tomamos como la suma de las partes
     t = " ".join(p)
-    return p, t
+    return t
 
 
 def generar_de_html(dirbase, verbose):
@@ -145,55 +116,146 @@ def generar_de_html(dirbase, verbose):
 
     # armamos las redirecciones
     redirs = {}
-    for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
-        orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+    stopwords_title = STOPWORDS_TITLE
+    with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as redirects:
+        for linea in redirects:
+            orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
 
-        # del original, que es el que redirecciona, no tenemos título, así
-        # que sacamos las palabras del nombre de archivo mismo... no es lo
-        # mejor, pero es lo que hay...
-        palabras, titulo = filename2palabras(orig)
-        redirs.setdefault(dest, []).append((palabras, titulo))
+            # del original, que es el que redirecciona, no tenemos título, así
+            # que sacamos las palabras del nombre de archivo mismo... no es lo
+            # mejor, pero es lo que hay...
+            titulo = filename2palabras(orig)
+            redirs.setdefault(dest, []).append((palabras, set(texto_a_lexemas(titulo, stopwords_title))))
 
     def gen():
-        fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
+        # fileNames should be sorted so that similar document ids
+        # have similar document values - increasing compressibility
+        # (all indices will internally generate document ids)
+        fileNames = sorted(preprocesar.get_top_htmls(config.LIMITE_PAGINAS))
+        
+        stopwords = STOPWORDS
+        stopwords_title = STOPWORDS_TITLE
 
-        for dir3, arch, puntaje in fileNames:
+        # una cola para todos
+        queue = Queue.Queue(500)
+
+        # un thread para leer archivos (con lookahead)
+        def reader():
+            for dir3, arch, puntaje in fileNames:
+                # info auxiliar
+                nomhtml = os.path.join(dir3, arch)
+                nomreal = os.path.join(dirbase, nomhtml)
+                if os.access(nomreal, os.F_OK):
+                    html = leerHTML(nomreal)
+                    if html:
+                        queue.put((dir3, arch, puntaje, html))
+                    del html
+            
+            # señalizar fin de secuencia
+            queue.put(None)
+
+        # iniciar el thread
+        reader = threading.Thread(target=reader)
+        reader.setDaemon(True)
+        reader.start()
+
+        # otro thread para procesarlos y alimentar al generador
+        total = len(fileNames)
+        done = 0
+        ultdir3 = ""
+        
+        while True:
+            # extraer html de la cola, reconocer fin de secuencia
+            ent = queue.get()
+            if ent is None:
+                break
+            dir3, arch, puntaje, html = ent
+            del ent
+                
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
             nomreal = os.path.join(dirbase, nomhtml)
-            if os.access(nomreal, os.F_OK):
-                titulo = _getHTMLTitle(nomreal)
-            else:
-                print "WARNING: Archivo no encontrado:", nomreal
-                continue
+
+            props = propertiesFromHTML(html)
+            del html
+            
+            if 'title' not in props:
+                print "WARNING: Archivo sin titulo", nomreal
+            
+            titulo = props['title']
+            texto = props.get('text',u'')
+            del props
 
             if verbose:
                 print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
 
             # a las palabras del título le damos mucha importancia: 50, más
             # el puntaje original sobre 1000, como desempatador
-            ptje = 50 + puntaje//1000
-            for pal in PALABRAS.findall(normaliza(titulo)):
-                yield pal, (nomhtml, titulo, ptje)
+            ptje_titulo = 50 + puntaje//1000
+            doctuple = (nomhtml, titulo, ptje_titulo)
+            for lex in set(texto_a_lexemas(titulo, stopwords_title)):
+                yield lex, doctuple
 
             # pasamos las palabras de los redirects también que apunten
             # a este html, con el mismo puntaje
             if arch in redirs:
-                for (palabras, titulo) in redirs[arch]:
-                    for pal in palabras:
-                        yield pal, (nomhtml, titulo, ptje)
+                for lex, rtitulo in redirs[arch]:
+                    doctuple = (nomhtml, rtitulo, ptje_titulo)
+                    for lex in lex:
+                        yield lex, doctuple
 
-            # FIXME: las siguientes lineas son en caso de que la generación
-            # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
-            # pero será desde los bloques, no desde el html, pero guardamos
-            # esto para luego)
-            #
-            # # las palabras del texto importan tanto como las veces que están
-            # all_words = {}
-            # for pal in PALABRAS.findall(normaliza(palabs_texto)):
-            #     all_words[pal] = all_words.get(pal, 0) + 1
-            # for pal, cant in all_words.items():
-            #     yield pal, (nomhtml, titulo, cant)
+            del doctuple
+
+            if config.FULL_TEXT_INDEX:
+                # FIXME: Mantener un puntaje por término hiere la habilidad para
+                #     mantener el índice pequeño. Por lo tanto, para los términos
+                #     del cuerpo se utiliza un esquema más discreto:
+                #        Si el término está entre los config.KEY_TERMS
+                #     términos, es 25 + puntaje//1000, (algo debajo del título).
+                #        Si en cambio está por debajo, entonces es
+                #     puntaje//1000.
+                #        Esto limita la cantidad de entradas para cada documento
+                #     a tres (título, keyword, word).
+                #
+                #        Eventualmente habría que considerar agregar a la interfaz
+                #     del índice un mecanismo explícito para el puntaje, cosa que
+                #     el índice pueda almacenarlo de forma eficiente, independiente
+                #     de los datos extra para el documento.
+                all_words = {}
+                all_words_get = all_words.get
+                for lex in texto_a_lexemas(texto, stopwords):
+                    all_words[lex] = all_words_get(lex, 0) + 1
+                    
+                keywords = set( [
+                    lex for cant,lex in
+                    sorted(
+                        [ (cant,lex) for lex,cant in all_words.iteritems() ]
+                    )[-config.KEY_TERMS:] ] )
+                is_keyword = keywords.__contains__
+                
+                ptje_texto = puntaje//1000
+                doctuples = {
+                    False : (nomhtml, titulo, ptje_texto),
+                    True  : (nomhtml, titulo, ptje_texto+25),
+                }
+                
+                for lex in all_words:
+                    yield lex, doctuples[is_keyword(lex)]
+                    
+                del all_words, all_words_get
+                del keywords, is_keyword
+                del texto, titulo
+                del doctuples
+
+            # Mostrar progreso
+            if ultdir3 != dir3:
+                # Progreso a stderr
+                print >> sys.stderr, ('%d%%' % (done * 100 // total)), dir3.encode("utf8"), "\t\r",
+                sys.stderr.flush()
+                ultdir3 = dir3
+
+            done += 1
+
 
     if not os.path.exists(config.DIR_INDICE):
         os.mkdir(config.DIR_INDICE)
@@ -211,3 +273,4 @@ if __name__ == "__main__":
     delta = time.time()-tini
     print "Indice creado! (%.2fs)" % delta
     print "Archs: %d  (%.2f mseg/arch)" % (cant, 1000*delta/cant)
+

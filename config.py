@@ -54,29 +54,65 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 
 # Límites de cantidades de páginas a incluir
 ####  Para el DVD:
-#LIMITE_PAGINAS = 500000
+LIMITE_PAGINAS = 500000
 ##  Para el CD:
-LIMITE_PAGINAS = 88000
+#LIMITE_PAGINAS = 88000
 ##  Devel
 #LIMITE_PAGINAS = 1000
+
+# Indexar o no el texto de los artículos
+FULL_TEXT_INDEX = True
+
+# Cantidad de términos a considerar "clave" para el texto
+# (considera los KEY_TERMS más frecuentes)
+KEY_TERMS = 500
+
+# El archivo con términos que no se deben indexar
+TITLE_STOPWORDS_FILE = "stopwords_title.txt"
+TEXT_STOPWORDS_FILE = "stopwords.txt"
+
+# El conjunto de documentos (paths/scores/etc) se divide
+# en archivos de como máximo este tamaño (descomprimido)
+# para limitar lo que ocupen una vez cargados en memoria.
+#
+# Tener en cuenta que se cargan DOCSTORE_CACHE_SIZE de
+# estos en memoria, así que el consumo de memoria sería
+# a grandes rasgos DOCSTORE_BUCKET_SIZE * DOCSTORE_CACHE_SIZE
+DOCSTORE_BUCKET_SIZE = (1 << 20)
+DOCSTORE_CACHE_SIZE = 20
+
+#
+# Configuración del tokenizador / lexer
+#
+
+# Stemming en el tokenizador es una forma rápida de reducir a lexemas
+ENABLE_INDEX_STEMMING = True
+
+# Fonetización es un paso adicional de reducción a lexemas que reduce
+# términos con igual o similar pronunciación, comunmente confundidos por los usuarios
+ENABLE_INDEX_PHONETIZATION = False
+
+# Mantener el índice comprimido en memoria consume menos memoria, 
+# pero es más lento al consultarlo.
+ENABLE_INDEX_COMPRESSION = True
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ####  Para el DVD:
-#ESCALA_IMAGS = [
-#    (22, 100),  # 5       9       16       18       20
-#    (28,  75),  # 7      11       17       20       25
-#    (50,  50),  # 8      14       32       37       45
-#    ( 0,   0),  # = 2.6   = 3.2    = 4.1    = 4.3    = 4.5
-#]
-##  Para el CD:
 ESCALA_IMAGS = [
-    ( 2, 100),
-    ( 4,  75),
-    ( 4,  50),
-    (90,   0),
+    (22, 100),  # 5       9       16       18       20
+    (28,  75),  # 7      11       17       20       25
+    (50,  50),  # 8      14       32       37       45
+    ( 0,   0),  # = 2.6   = 3.2    = 4.1    = 4.3    = 4.5
 ]
+##  Para el CD:
+#ESCALA_IMAGS = [
+#    ( 2, 100),
+#    ( 4,  75),
+#    ( 4,  50),
+#    (90,   0),
+#]
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
 # mayoría de las páginas no tienen namespace, esas entran todas)
