@@ -12,10 +12,12 @@ from src.armado.cdpindex import IndexInterface
 
 def main(direct, palabras):
     indice = IndexInterface(direct)
+    indice.run()
+    indice.ready.wait()
 
     if not palabras:
         for palabra, data in indice.listar():
-            print "%s: %s" % (palabra, data)
+            print "%s: %s" % (palabra.encode("utf8"), data)
     else:
         encontrado = indice.search(" ".join(palabras))
         for it in encontrado:
