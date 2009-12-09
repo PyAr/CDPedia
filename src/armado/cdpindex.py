@@ -117,10 +117,42 @@ class IndexInterface(threading.Thread):
         return self.indice.partial_search(pals)
 
 
+def filename2palabras(fname):
+    """Transforma un filename en sus palabras y título."""
+    x = fname[:-5]
+    x = normaliza(x)
+    p = x.split("_")
+
+    # a veces tenemos un nro hexa de 4 dígitos al final que queremos sacar
+    if len(p[-1]) == 4:
+        try:
+            int(p[-1], 16)
+        except ValueError:
+            # perfecto, no es para sacar
+            pass
+        else:
+            p = p[:-1]
+
+    # el tit lo tomamos como la suma de las partes
+    t = " ".join(p)
+    return p, t
+
+
 def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
     from src import utiles
     from src.preproceso import preprocesar
+
+    # armamos las redirecciones
+    redirs = {}
+    for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
+        orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+
+        # del original, que es el que redirecciona, no tenemos título, así
+        # que sacamos las palabras del nombre de archivo mismo... no es lo
+        # mejor, pero es lo que hay...
+        palabras, titulo = filename2palabras(orig)
+        redirs.setdefault(dest, []).append((palabras, titulo))
 
     def gen():
         fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
@@ -140,9 +172,16 @@ def generar_de_html(dirbase, verbose):
 
             # a las palabras del título le damos mucha importancia: 50, más
             # el puntaje original sobre 1000, como desempatador
+            ptje = 50 + puntaje//1000
             for pal in PALABRAS.findall(normaliza(titulo)):
-                ptje = 50 + puntaje//1000
                 yield pal, (nomhtml, titulo, ptje)
+
+            # pasamos las palabras de los redirects también que apunten
+            # a este html, con el mismo puntaje
+            if arch in redirs:
+                for (palabras, titulo) in redirs[arch]:
+                    for pal in palabras:
+                        yield pal, (nomhtml, titulo, ptje)
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
