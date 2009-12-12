@@ -35,9 +35,8 @@ class ParseaImagenes(object):
     Tenemos que loguear únicas, ya que tenemos muchísimos, muchísimos
     duplicados: en las pruebas, logueamos 28723 imágenes, que eran 203 únicas!
     """
-    def __init__(self, test=False, debug=False):
+    def __init__(self, test=False):
         self.test = test
-        self.debug = debug
         self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.anchalt_regex = re.compile('width="\d+" height="\d+"')
         self.links_regex = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
@@ -106,12 +105,11 @@ class ParseaImagenes(object):
                         linea = separador.join((dir3, fname, "0"))
                 fh.write(linea + "\n")
 
-    def parsea(self, dir3, fname, bogus=False, quicky=False):
+    def parsea(self, dir3, fname, bogus=False):
         if (dir3, fname) in self.proces_antes:
             prev_bogus, prev_dskurls = self.proces_antes[dir3, fname]
-            if prev_bogus == bogus:
-                # procesado antes como real, y ahora también es real,
-                # o procesado antes como bogus, y ahora también es bogus,
+            if not prev_bogus and not bogus:
+                # procesado antes como real, y ahora también es real
                 # no hacemos nada, pero sabemos que las imágenes que
                 # tenía van ok
                 self.proces_ahora[dir3, fname] = (prev_bogus, prev_dskurls)
@@ -123,11 +121,8 @@ class ParseaImagenes(object):
 
         # leemos la info original
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
-        if quicky:
-            oldhtml = ''
-        else:
-            with codecs.open(arch, "r", "utf-8") as fh:
-                oldhtml = fh.read()
+        with codecs.open(arch, "r", "utf-8") as fh:
+            oldhtml = fh.read()
 
         # sacamos imágenes y reemplazamos paths
         newimgs = []
@@ -174,7 +169,7 @@ class ParseaImagenes(object):
         p1, img, p3 = m.groups()
         WIKIMEDIA = "http://upload.wikimedia.org/"
         WIKIPEDIA = "http://es.wikipedia.org/"
-        if self.debug:
+        if self.test:
             print "img", img
 
         # recortamos ancho y alto
@@ -229,7 +224,7 @@ class ParseaImagenes(object):
         else:
             raise ValueError("Formato de imagen no soportado! %r" % img)
 
-        if self.debug:
+        if self.test:
             print "  web url:", web_url
             print "  dsk url:", dsk_url
 
@@ -305,9 +300,7 @@ def run(verbose):
     escalador = Escalador()
 
     log_fh = codecs.open(config.LOG_REDUCCION, "w", "utf8")
-    
-    total = len(preprocesados)
-    oprogress = None
+
     for i, (dir3, fname, _) in enumerate(preprocesados):
         escala = escalador(i)
         if verbose:
@@ -318,12 +311,6 @@ def run(verbose):
             pi.parsea(dir3, fname, bogus=False)
         else:
             pi.parsea(dir3, fname, bogus=True)
-        
-        progress = i * 100 // total
-        if progress != oprogress:
-            oprogress = progress
-            print >> sys.stderr, "%d%%" % progress, "\t\r",
-            sys.stderr.flush()
 
     pi.dump()
     return pi.imgs_ok, pi.imgs_bogus, pi.cant

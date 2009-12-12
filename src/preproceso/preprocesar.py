@@ -16,8 +16,6 @@ from os.path import join, abspath, sep, dirname
 from urllib2 import urlparse
 import config
 import operator
-import sys
-import array
 
 from src.preproceso import preprocesadores
 
@@ -44,21 +42,17 @@ class WikiSitio(object):
         # vemos que habíamos preocesado de antes
         if os.path.exists(config.LOG_PREPROCESADO):
             fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-            heads = fh.next().split(config.SEPARADOR_COLUMNAS) # título
+            fh.next() # título
             procs = [p.nombre for p in self.preprocesadores]
-            procdef = [p.valor_inicial or 0 for p in self.preprocesadores]
-            col2icol = dict( (col,icol) for col,icol in enumerate(heads[2:]) )
             for linea in fh:
                 partes = linea.split(config.SEPARADOR_COLUMNAS)
                 arch = partes[0]
                 dir3 = partes[1]
-                d = [dir3]
-                for iproc, proc in enumerate(procs):
-                    if proc in col2icol:
-                        d.append(partes[2+col2icol[proc]])
-                    else:
-                        d.append(procdef[iproc])
-                self.resultados[arch] = tuple(d)
+                d = {}
+                self.resultados[arch] = d
+                d["dir3"] = dir3
+                for proc, ptje in zip(procs, map(int, partes[2:])):
+                    d[proc] = ptje
 
         # vemos que habíamos descartado antes
         self.descartados = set()
@@ -73,22 +67,8 @@ class WikiSitio(object):
         resultados = self.resultados
         puntaje_extra = {}
         de_antes = 0
-        lult3dirs = ""
-        nproc = len(self.preprocesadores)
 
-        def count(iterable):
-            rv = 0
-            for x in iterable:
-                rv += 1
-            return rv
-        
-        print >> sys.stderr, "contando... \r",
-        sys.stderr.flush()
-        total = count(os.walk(self.origen))
-
-        for done, (cwd, directorios, archivos) in enumerate(os.walk(self.origen)):
-            if done > total:
-                break
+        for cwd, directorios, archivos in os.walk(self.origen):
             for pag in archivos:
                 partes_dir = cwd.split(os.path.sep)
                 ult3dirs = join(*partes_dir[-3:])
@@ -101,42 +81,33 @@ class WikiSitio(object):
                     continue
 
                 wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
-                res = [ult3dirs]
+                resultados[pag] = {}
+                resultados[pag]["dir3"] = ult3dirs
 
                 if self.verbose:
                     print 'Procesando: %s' % pag.encode("utf8")
-                elif lult3dirs != ult3dirs:
-                    # Progreso a stderr
-                    print >> sys.stderr, ('%d%%' % (done * 100 // total)), ult3dirs.encode("utf8"), "\t\r",
-                    sys.stderr.flush()
-                    lult3dirs = ult3dirs
-                
-                for iproc,procesador in enumerate(self.preprocesadores):
+                for procesador in self.preprocesadores:
                     (puntaje, otras_pags) = procesador(wikiarchivo)
 
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
-                        del res
+                        del resultados[pag]
                         if self.verbose:
                             print '  omitido!'
                         self.descartados.add(pag)
                         break
 
                     # ponemos el puntaje
-                    res.append(puntaje)
+                    resultados[pag][procesador.nombre] = puntaje
 
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
-                        ant = puntaje_extra.get(extra_pag)
-                        if not ant:
-                            ant = puntaje_extra[extra_pag] = array.array('l',[0]*nproc)
-                        ant[iproc] += extra_ptje
+                        ant = puntaje_extra.setdefault(extra_pag, {})
+                        ant[procesador.nombre] = ant.get(
+                                            procesador.nombre, 0) + extra_ptje
                 else:
-                    # tuplificar para ahorrar memoria
-                    res = resultados[pag] = tuple(res)
-                    
                     if self.verbose:
-                        print "  puntaje:", res
+                        print "  puntaje:", resultados[pag]
 
                     # lo guardamos sólo si no fue descartado
                     wikiarchivo.guardar()
@@ -148,10 +119,8 @@ class WikiSitio(object):
         perdidos = []
         for (pag, puntajes) in puntaje_extra.items():
             if pag in resultados:
-                res = list(resultados[pag])
-                for (iproc, ptje) in enumerate(puntajes):
-                    res[iproc+1] += ptje
-                resultados[pag] = tuple(res)
+                for (proc, ptje) in puntajes.items():
+                    resultados[pag][proc] += ptje
             else:
                 perdidos.append((pag, puntajes))
         if perdidos:
@@ -175,8 +144,10 @@ class WikiSitio(object):
         for pagina, valores in self.resultados.iteritems():
             #los rankings deben ser convertidos en str para evitar
             # literales como 123456L
-            columnas = (pagina,) + valores
-            salida.write(plantilla % columnas)
+            columnas = [pagina, valores["dir3"]]
+            columnas += [valores.get(p.nombre, p.valor_inicial)
+                                                        for p in preprocs]
+            salida.write(plantilla % tuple(columnas))
 
         # descartados
         with codecs.open(self._descart, "w", "utf8") as fh:
@@ -189,7 +160,6 @@ class WikiSitio(object):
 
 def calcula_top_htmls():
     """Calcula los htmls con más puntaje y guarda ambas listas."""
-    
     # leemos el archivo de preprocesado y calculamos puntaje
     fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
     fh.next() # título
@@ -221,20 +191,13 @@ def calcula_top_htmls():
             fh.write(arch + "\n")
 
 
-def get_top_htmls(limite, cache = []):
+def get_top_htmls(limite):
     '''Devuelve los htmls con más puntaje.'''
-    if cache:
-        return cache[0]
-        
     data = []
-    with codecs.open(config.DECIDIDOS_SI, "r", "utf8") as decididos:
-        for linea in decididos:
-            linea = linea.strip()
-            dir3, arch, puntaje = linea.split(config.SEPARADOR_COLUMNAS)
-            data.append((dir3, arch, int(puntaje)))
-    
-    cache.append(data)
-    
+    for linea in codecs.open(config.DECIDIDOS_SI, "r", "utf8"):
+        linea = linea.strip()
+        dir3, arch, puntaje = linea.split(config.SEPARADOR_COLUMNAS)
+        data.append((dir3, arch, int(puntaje)))
     return data
 
 
