@@ -9,21 +9,19 @@
         title="Portada"></a>
     </div>
     <script type="text/javascript"> if (window.isMSIE55) fixalpha(); </script>
-        <div class='portlet' id='p-navigation'>
+        <div class="portlet" id="p-navigation">
     <br/>
       <h5>Navegación</h5>
-      <div class='pBody'>
+      <div class="pBody">
         <ul>
-                  <li id="n-mainpage"><a href="../../../">Portada</a></li>
-                  <li id="n-portal"><a class="external" href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
-                  <li id="n-help"><a href="../../../c/o/n/Ayuda%7EContenidos_3c64.html">Ayuda</a></li>
-                  <li id="n-sitesupport"><a class="external" href="http://wikimediafoundation.org/wiki/Donaciones">Doná a Wikimedia</a></li>
-                </ul>
+          <li id="n-mainpage"><a href="../../../">Portada</a></li>
+          <li id="n-portal"><a class="external" href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
+          <li id="n-help"><a href="../../../c/o/n/Ayuda%7EContenidos_3c64.html">Ayuda</a></li>
+          <li id="n-sitesupport"><a class="external" href="http://wikimediafoundation.org/wiki/Donaciones">Doná a Wikimedia</a></li>
+        </ul>
       </div>
     <br/>
     <h5>Búsquedas:</h5>
-    </div>
-      <div id="p-search" class="portlet">
       <div id="searchBody" class="pBody">
         <form method="get" action="/dosearch">
         <input id="searchInput" name="keywords"></input>
@@ -31,6 +29,7 @@
       </div>
     <br/>
     <h5>Estadísticas:</h5>
+    <div class="pBody">
         <br/> <small>
           <center>
             <table>
@@ -45,7 +44,10 @@
             </table>
           </center>
         <br/> </small>
+    </div>
+    <br/>
     <h5>Presentada por</h5>
+    <div class="pBody">
         <center>
         <br/>
         <a href="http://www.python.org.ar/"><img src="../../../extern/pyar-logo.png" alt="Python Argentina" /></a>
