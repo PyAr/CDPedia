@@ -23,6 +23,7 @@ import re
 import os
 import codecs
 import functools
+import urllib2
 
 import config
 from src import utiles
@@ -68,18 +69,18 @@ class ParseaImagenes(object):
         self.imgs_ok = 0
         self.imgs_bogus = 0
 
-        # levantamos los archivos que no incluimos, de los que descartamos y
-        # de los redirects a los que descartamos
-        with codecs.open(config.DECIDIDOS_NO, "r", "utf-8") as fh:
-            self.decididos_no = set(x.strip() for x in fh)
-
+        # levantamos los archivos que incluimos, y de los redirects a los
+        # que incluimos
         sep = config.SEPARADOR_COLUMNAS
-        nop = self.decididos_no
+        with codecs.open(config.PAG_ELEGIDAS, "r", "utf-8") as fh:
+            self.pag_elegidas = set(x.strip().split(sep)[1] for x in fh)
+
+        pageleg = self.pag_elegidas
         with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
             for linea in fh:
                 orig, dest = linea.strip().split(sep)
-                if dest in nop:
-                    nop.add(orig)
+                if dest in pageleg:
+                    pageleg.add(orig)
 
 
     # la cantidad es cuantas tenemos en a_descargar
@@ -244,19 +245,28 @@ class ParseaImagenes(object):
         htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
         return htm_url
 
-    def _fixlinks(self, m):
+    def _fixlinks(self, mlink):
         """Pone clase "nopo" a los links que apuntan a algo descartado."""
-        link, relleno, texto = m.groups()
-        m = self.seplink.match(link)
-        if m:
-            fname = m.groups()[0]
-        else:
-            fname = None
+        link, relleno, texto = mlink.groups()
+        if link.startswith("http://"):
+            return mlink.group()
 
-        if fname is not None and fname in self.decididos_no:
-            new = '<a class="nopo" href="%s"%s>%s</a>' % (link, relleno, texto)
-        else:
-            new = '<a href="%s"%s>%s</a>' % (link, relleno, texto)
+        msep = self.seplink.match(link)
+        if not msep:
+            # un link no clásico, no nos preocupa
+            return mlink.group()
+
+        fname = msep.groups()[0]
+        fname = urllib2.unquote(fname)
+        # los links están en latin1, it sucks!
+        fname = fname.encode("latin1").decode("utf8")
+
+        # si la elegimos, joya
+        if fname in self.pag_elegidas:
+            return mlink.group()
+
+        # sino, la marcamos como "nopo"
+        new = '<a class="nopo" href="%s"%s>%s</a>' % (link, relleno, texto)
         return new
 
 

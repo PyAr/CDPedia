@@ -44,7 +44,7 @@ class TemplateManager(object):
             return self.cache[nombre]
 
         nomarch = os.path.join("src", "armado", "templates", "%s.tpl" % nombre)
-        print "Cargando template de disco:", nomarch
+#        print "Cargando template de disco:", nomarch
         with open(nomarch, "rb") as f:
             t = string.Template(f.read())
 
@@ -182,7 +182,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
-        print "get file:", path
+#        print "get file:", path
         if path == "/index.html":
             return self._main_page()
         if path == "/esperando":
@@ -210,8 +210,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # diferente
         if arranque in ("images", "raw", "skins", "misc", "extern"):
             asset_file = os.path.join(config.DIR_ASSETS, path)
-            asset_data = open(asset_file, "rb").read()
-            return "image/%s"%path[-3:], asset_data
+            if os.path.exists(asset_file):
+                asset_data = open(asset_file, "rb").read()
+                return "image/%s"%path[-3:], asset_data
+            else:
+                print "WARNING: no pudimos encontrar", repr(asset_file)
+                return ""
 
         if path=="":
             return self._main_page()
@@ -219,7 +223,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             data = self._get_contenido(path)
         except ContentNotFound, e:
-            return self._main_page(e.message)
+            return self._main_page(unicode(e))
 
         return data
 

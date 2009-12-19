@@ -27,9 +27,8 @@ DIR_CDBASE = "temp/cdroot"
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
 DIR_ASSETS = "temp/cdroot/assets"
 
-# Decidimos cuales entran y cuales no
-DECIDIDOS_SI = "temp/decididos_si.txt"
-DECIDIDOS_NO = "temp/decididos_no.txt"
+# Decidimos cuales páginas quedaron
+PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
@@ -56,9 +55,9 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 ####  Para el DVD:
 #LIMITE_PAGINAS = 500000
 ##  Para el CD:
-LIMITE_PAGINAS = 88000
+#LIMITE_PAGINAS = 88000
 ##  Devel
-#LIMITE_PAGINAS = 1000
+LIMITE_PAGINAS = 1800
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala

@@ -24,7 +24,7 @@
 /*]]>*/</style>         
 <style type="text/css">
   a.nopo {border-bottom: 1px dashed red; text-decoration:none; color: red;}
-  a.blopo {border-bottom: 1px dashed blue; text-decoration:none; }
+  a.external {border-bottom: 1px dashed blue; text-decoration:none; }
 </style>
 </head>
   <body
