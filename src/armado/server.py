@@ -139,6 +139,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if path[-4:] != "html":
             raise ContentNotFound(u"Sólo buscamos páginas HTML!")
 
+        orig_link = "http://es.wikipedia.org/wiki/" + path[:-5] # sin el .html
         try:
             data = self._art_mngr.getArticle(path.decode("utf-8"))
         except Exception, e:
@@ -149,17 +150,22 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             m = u"La página '%s' no pudo ser incluida en el disco"
             raise ContentNotFound(m % path.decode("utf8"))
 
-        return self._arma_pagina(data)
+        title = getTitleFromData(data)
+        return "text/html", self._wrap(data, title, orig_link=orig_link)
 
-    def _wrap(self, contenido, title):
+    def _wrap(self, contenido, title, orig_link=None):
         header = self.templates("header", titulo=title)
-        footer = self.templates("footer",
-                                stt_pag=self._stt_pag, stt_img=self._stt_img)
+
+        if orig_link is None:
+            orig_link = ""
+        else:
+            orig_link = 'Puedes visitar la <a class="external" '\
+                        'href="%s">página original aquí</a>' % orig_link
+
+        footer = self.templates("footer", stt_pag=self._stt_pag,
+                                stt_img=self._stt_img, orig_link=orig_link)
         return header + contenido + footer
 
-    def _arma_pagina(self, contenido):
-        title = getTitleFromData(contenido)
-        return "text/html", self._wrap(contenido, title)
 
     def _main_page(self, msg=u"¡Bienvenido!"):
         pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
@@ -215,7 +221,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 return "image/%s"%path[-3:], asset_data
             else:
                 print "WARNING: no pudimos encontrar", repr(asset_file)
-                return ""
+                return "", ""
 
         if path=="":
             return self._main_page()

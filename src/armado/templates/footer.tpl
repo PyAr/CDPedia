@@ -67,6 +67,9 @@
         <table>
             <tr><td width=55%>
                 <ul id="f-list">
+                    <li>
+                        $orig_link
+                    </li> 
                     <li id="f-copyright">
                         Contenido disponible bajo los términos de la <a class="internal" href="/articles/extern/fdl.html">Licencia de documentación libre de GNU</a> (véase <b><a class="internal" href="/Wikipedia~Derechos_de_autor_3ece.html">Derechos de autor</a></b>).<br />
                         Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a class="external" href="http://wikimediafoundation.org/wiki/Portada">Wikimedia Foundation, Inc.</a><br />
