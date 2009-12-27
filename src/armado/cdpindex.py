@@ -154,10 +154,10 @@ def generar_de_html(dirbase, verbose):
         palabras, titulo = filename2palabras(orig)
         redirs.setdefault(dest, []).append((palabras, titulo))
 
-    def gen():
-        fileNames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
+    filenames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
 
-        for dir3, arch, puntaje in fileNames:
+    def gen():
+        for dir3, arch, puntaje in filenames:
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
             nomreal = os.path.join(dirbase, nomhtml)
@@ -198,8 +198,8 @@ def generar_de_html(dirbase, verbose):
     if not os.path.exists(config.DIR_INDICE):
         os.mkdir(config.DIR_INDICE)
 
-    cant = Index.create(config.DIR_INDICE, gen())
-    return cant
+    Index.create(config.DIR_INDICE, gen())
+    return len(filenames)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

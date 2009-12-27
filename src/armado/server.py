@@ -51,6 +51,11 @@ class TemplateManager(object):
         self.cache[nombre] = t
         return t
 
+NOTFOUND = u"""
+El artículo '%s' no pudo ser incluido en el disco <br/><br>
+Podés acceder al mismo en Wikipedia en
+<a class="external" href="%s">este enlace</a> externo.
+"""
 
 def getTitleFromData(data):
     if data is None:
@@ -147,8 +152,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ContentNotFound(msg)
 
         if data is None:
-            m = u"La página '%s' no pudo ser incluida en el disco"
-            raise ContentNotFound(m % path.decode("utf8"))
+            m  = NOTFOUND % (path.decode("utf8"), orig_link)
+            raise ContentNotFound(m)
 
         title = getTitleFromData(data)
         return "text/html", self._wrap(data, title, orig_link=orig_link)
