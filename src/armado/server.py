@@ -135,6 +135,22 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write ("URL not found: %s" % self.path)
 
+    def _get_orig_link(self, path):
+        """A partir del path devuelve el link original externo."""
+        path = path[:-5] # sin el .html
+
+        # veamos si tenemos "_" + cuatro dígitos hexa
+        if path[-5] == "_":
+            cuad = path[-4:]
+            try:
+                int(cuad, 16)
+            except ValueError:
+                pass
+            else:
+                path = path[:-5]
+        orig_link = "http://es.wikipedia.org/wiki/" + path
+        return orig_link
+
     def _get_contenido(self, path):
 #        print "Get contenido", path
         match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
@@ -144,7 +160,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if path[-4:] != "html":
             raise ContentNotFound(u"Sólo buscamos páginas HTML!")
 
-        orig_link = "http://es.wikipedia.org/wiki/" + path[:-5] # sin el .html
+        orig_link = self._get_orig_link(path)
         try:
             data = self._art_mngr.getArticle(path.decode("utf-8"))
         except Exception, e:
