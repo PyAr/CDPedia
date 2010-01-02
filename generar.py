@@ -178,9 +178,9 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         estad.imgs_incl = taken
         estad.imgs_bogus = bogus
     else:
-        estad.pags_total = "?"
-        estad.imgs_incl = "?"
-        estad.imgs_bogus = "?"
+        estad.pags_total = 0
+        estad.imgs_incl = 0
+        estad.imgs_bogus = 0
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")

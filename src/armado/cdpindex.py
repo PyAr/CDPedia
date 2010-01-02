@@ -16,6 +16,7 @@ import config
 import subprocess
 import re
 import threading
+import shutil
 
 from .easy_index import Index
 
@@ -195,8 +196,10 @@ def generar_de_html(dirbase, verbose):
             # for pal, cant in all_words.items():
             #     yield pal, (nomhtml, titulo, cant)
 
-    if not os.path.exists(config.DIR_INDICE):
-        os.mkdir(config.DIR_INDICE)
+    # nos aseguramos que el directorio esté virgen
+    if os.path.exists(config.DIR_INDICE):
+        shutil.rmtree(config.DIR_INDICE)
+    os.mkdir(config.DIR_INDICE)
 
     Index.create(config.DIR_INDICE, gen())
     return len(filenames)
