@@ -7,13 +7,14 @@ import os
 import urllib2
 
 import config
+from src import repartidor
 
 HEADERS = {'User-Agent':
     'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
     'Ubuntu/8.10 (intrepid) Firefox/3.0.5'
 }
 
-def _descargar(url, fullpath, msg):
+def _descargar(url, fullpath):
     # descargamos!
     basedir, _ = os.path.split(fullpath)
     if not os.path.exists(basedir):
@@ -21,17 +22,28 @@ def _descargar(url, fullpath, msg):
 
     req = urllib2.Request(url.encode("utf8"), headers=HEADERS)
     u = urllib2.urlopen(req)
-    content_length = u.headers.get("content-length")
-    if content_length is None:
-        msg("  %?? KB")
-    else:
-        largo = int(content_length) / 1024.0
-        msg("  %d KB" % round(largo))
 
     img = u.read()
     with open(fullpath, "wb") as fh:
         fh.write(img)
-    msg("  ok!")
+
+
+def descargar(data):
+    url, fullpath = data
+    for i in range(3):
+        try:
+            _descargar(url, fullpath)
+            # todo bien
+            return None
+        except urllib2.HTTPError, err:
+            # error espeso, devolvemos el código
+            return "HTTPError: %d" % (err.code,)
+        except Exception, e:
+            # algo raro, reintentamos
+            print "Uh...", e
+
+    # demasiados reintentos, devolvemos el último error
+    return str(e)
 
 
 def traer(verbose):
@@ -57,28 +69,17 @@ def traer(verbose):
         if url not in imgs_problemas and not os.path.exists(fullpath):
             lista_descargar.append((url, fullpath))
 
-    def msg(*t):
-        if verbose:
-            print " ".join(str(x) for x in t)
-
     tot = len(lista_descargar)
-    for i, (url, fullpath) in enumerate(lista_descargar):
-        print "Descargando (%d/%d)  %s" % (i, tot, url)
+    p = repartidor.Pool(descargar, 5)
+    for i, result in enumerate(p.procesa(lista_descargar)):
+        (url, fullpath), stt = result
+        if stt is None:
+            stt = "ok"
+        else:
+            with codecs.open(log_errores, "a", "utf8") as fh:
+                fh.write(url + "\n")
 
-        retries = 3
-        while retries:
-            try:
-                _descargar(url, fullpath, msg)
-                break
-            except urllib2.HTTPError, err:
-                msg("  error %d!" % err.code)
-                errores[err.code] = errores.get(err.code, 0) + 1
-                with codecs.open(log_errores, "a", "utf8") as fh:
-                    fh.write(url + "\n")
-                break
-            except Exception, e:
-                print "Uh...", e
-                retries -= 1
+        print "   %5d/%d  (%s)  %s" % (i, tot, stt, url)
 
     if errores:
         print "WARNING! Tuvimos errores:"

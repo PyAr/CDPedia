@@ -140,7 +140,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         path = path[:-5] # sin el .html
 
         # veamos si tenemos "_" + cuatro dígitos hexa
-        if path[-5] == "_":
+        if len(path) > 5 and path[-5] == "_":
             cuad = path[-4:]
             try:
                 int(cuad, 16)
