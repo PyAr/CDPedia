@@ -50,6 +50,8 @@ class ArticleManager(object):
             print "bloque:", bloqName
         comp = self.getComprimido("/%s.cdp" % bloqName)
         art = comp.get_articulo(fileName)
+        if self.verbose and art is not None:
+            print "len art:", len(art)
         return art
 
 
@@ -71,22 +73,18 @@ class Comprimido(object):
         header = {}
 
         # Llenamos el header con archivos reales, con la pag como
-        # clave, y la posición/tamaño como valor, a menos que sea un
-        # redirect (en ese caso, ponemos el nombre de la página a la que
-        # se redirecciona
+        # clave, y la posición/tamaño como valor
         seek = 0
         for dir3, fileName in fileNames:
-            if fileName in redirects:
-                # si es redirect, ponemos todos los redirects que apunten a
-                # el html que guardamos
-                for orig in redirects[fileName]:
-                    header[orig] = fileName
-
-            # guardamos el archivo real
             fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
             size = path.getsize(fullName)
             header[fileName] = (seek, size)
             seek += size
+
+        # Ponemos en el header también los redirects, apuntando en este caso
+        # ael nombre de la página a la que se redirecciona
+        for orig, dest in redirects:
+            header[orig] = dest
 
         headerBytes = pickle.dumps(header)
         if verbose:
@@ -132,8 +130,6 @@ def generar(verbose):
     # lo importamos acá porque no es necesario en producción
     from src.preproceso import preprocesar
 
-    import cProfile
-
     # preparamos el dir destino
     dest = path.join(config.DIR_BLOQUES)
     if os.path.exists(dest):
@@ -149,26 +145,27 @@ def generar(verbose):
     numBloques = len(fileNames) // config.ARTICLES_PER_BLOCK + 1
     bloques = {}
     for dir3, fileName, _ in fileNames:
-        if verbose:
-            print "  archs:", repr(dir3), repr(fileName)
         bloqNum = hash(fileName) % numBloques
-        if bloqNum not in bloques:
-            bloques[bloqNum] = []
-        bloques[bloqNum].append((dir3,fileName))
+        bloques.setdefault(bloqNum, []).append((dir3, fileName))
+        if verbose:
+            print "  archs:", bloqNum, repr(dir3), repr(fileName)
 
-    # armo el diccionario de redirects
+    # armo el diccionario de redirects, también separados por bloques para
+    # saber a dónde buscarlos
     redirects = {}
     for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
         orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
-        redirects.setdefault(dest, []).append(orig)
+        bloqNum = hash(orig) % numBloques
+        redirects.setdefault(bloqNum, []).append((orig, dest))
         if verbose:
-            print "  redirs:", repr(orig), repr(dest)
+            print "  redirs:", bloqNum, repr(orig), repr(dest)
 
     # armamos cada uno de los comprimidos
     tot = 0
     for bloqNum, fileNames in bloques.items():
         tot += len(fileNames)
-        Comprimido.crear(redirects, bloqNum, fileNames, verbose)
+        redirs_thisblock = redirects[bloqNum]
+        Comprimido.crear(redirs_thisblock, bloqNum, fileNames, verbose)
 
     return (len(bloques), tot)
 
