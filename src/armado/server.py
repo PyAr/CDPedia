@@ -1,4 +1,3 @@
-#!/usr/bin/python2.4
 # -*- coding: utf-8 -*-
 # cdpedia/server.py
 """server"""
@@ -149,7 +148,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 path = path[:-5]
         orig_link = "http://es.wikipedia.org/wiki/" + path
-        return orig_link
+        return orig_link.decode("utf8")
 
     def _get_contenido(self, path):
 #        print "Get contenido", path
@@ -180,11 +179,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if orig_link is None:
             orig_link = ""
         else:
-            orig_link = 'Puedes visitar la <a class="external" '\
-                        'href="%s">página original aquí</a>' % orig_link
+            orig_link = u'Puedes visitar la <a class="external" '\
+                        u'href="%s">página original aquí</a>' % orig_link
 
         footer = self.templates("footer", stt_pag=self._stt_pag,
-                                stt_img=self._stt_img, orig_link=orig_link)
+                                stt_img=self._stt_img,
+                                orig_link=orig_link.encode("utf8"))
         return header + contenido + footer
 
 
