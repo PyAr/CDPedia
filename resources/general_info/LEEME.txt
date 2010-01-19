@@ -33,10 +33,10 @@ la calidad de nuestra educación.
 Ponés el disco generado en tu máquina, y cuando se abra la carpeta con el
 CD hacés doble click en el archivo main.py.
 
-Para que funcione, tenés que tener instalado Python.  Si usás Linux o Mac
-ya lo vas a tener, para Windows lo podés descargar desde acá:
-
-  http://www.python.org/download/releases/2.6.4/
+Esta versión funciona en Linux, Mac o Windows, sin tener que instalar
+ningún software adicional (se necesita solamente Python: en Linux y Mac
+ya viene instalado, la versión para Windows está incluída en el CD y
+se usa directamente).
 
 
 Información del proyecto
