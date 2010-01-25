@@ -87,12 +87,10 @@ class IndexInterface(threading.Thread):
         self.indice = Index(self.directory)
         self.ready.set()
 
-    def listar(self):
-        """Devuelve las palabras y los artículos referenciados."""
+    def listado_palabras(self):
+        """Devuelve las palabras."""
         self.ready.wait()
-        for palabra, info in sorted(self.indice.items()):
-            data = [x[0] for x in info] # sólo nomhtml
-            yield (palabra, data)
+        return sorted(self.indice.keys())
 
     def listado_valores(self):
         """Devuelve la info de todos los artículos."""

@@ -45,18 +45,15 @@ def main(direct):
     memant = usoMemoria()
     with Timer("Start up"):
         indice = IndexInterface(direct)
+        indice.run()
+        indice.ready.wait()
     memdesp = usoMemoria()
 
-    print "               cant palabras:", len(list(indice.listar()))
     print "               ocupa memoria:  %d KB" % (memdesp - memant)
 
-    with Timer("Listado completo"):
-        listado = indice.listado_valores()
-
-    palabras = set()
-    for (pag, tit) in listado:
-        palabras.update(set(tit.split()))
-    palabras = list(palabras)
+    with Timer("Listado completo palabras"):
+        palabras = [x.decode("utf8") for x in indice.listado_palabras()]
+    print "               cant palabras:", len(palabras)
 
     # palabras completas
     azar = functools.partial(random.choice, palabras)

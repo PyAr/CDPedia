@@ -33,7 +33,7 @@ class Index(object):
     @lru_cache(20)
     def _get_ids_shelve(self, cual):
         '''Return the ids index.'''
-        fname = os.path.join(self._directory, "easyindex-%02d.ids.bz2" % cual)
+        fname = os.path.join(self._directory, "easyindex-%03d.ids.bz2" % cual)
         fh = CompressedFile(fname, "rb")
         idx = cPickle.load(fh)
         fh.close()
@@ -56,6 +56,10 @@ class Index(object):
             idx = self._get_ids_shelve(cual)
             for i in ids:
                 yield idx[i]
+
+    def keys(self):
+        """Returns an iterator over the stored keys."""
+        return self.key_shelf.iterkeys()
 
     def items(self):
         '''Returns an iterator over the stored items.'''
@@ -200,7 +204,7 @@ class Index(object):
 
         # save dict where corresponds
         for cual, shelf in enumerate(all_idshelves):
-            fname = "easyindex-%02d.ids.bz2" % cual
+            fname = "easyindex-%03d.ids.bz2" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
             cPickle.dump(shelf, fh, 2)
