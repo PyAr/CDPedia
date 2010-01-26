@@ -17,15 +17,22 @@
           <li id="n-mainpage"><a href="../../../">Portada</a></li>
           <li id="n-portal"><a class="external" href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
           <li id="n-help"><a href="../../../c/o/n/Ayuda%7EContenidos_3c64.html">Ayuda</a></li>
-          <li id="n-sitesupport"><a class="external" href="http://wikimediafoundation.org/wiki/Donaciones">Doná a Wikimedia</a></li>
         </ul>
       </div>
     <br/>
     <h5>Búsquedas:</h5>
       <div id="searchBody" class="pBody">
         <form method="get" action="/dosearch">
-        <input id="searchInput" name="keywords"></input>
-        <input type="submit" value="Buscar">
+        <input id="searchInput" name="keywords" />
+        <input type="submit" value="Buscar" />
+        </form>
+      </div>
+    <br/>
+    <h5>Sorprendete:</h5>
+      <div class="pBody">
+        <form method="get" action="/al_azar">
+        <input type="submit" value="Página al azar" />
+        </form>
       </div>
     <br/>
     <h5>Estadísticas:</h5>
