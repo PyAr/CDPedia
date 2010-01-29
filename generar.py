@@ -90,9 +90,6 @@ def copiarSources():
     # el main va al root
     shutil.copy("main.py", config.DIR_CDBASE)
 
-def armarEjecutable():
-    pass
-
 def dir_a_cero(path):
     if os.path.exists(path):
         shutil.rmtree(path)
@@ -214,10 +211,6 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         if os.path.exists(dest_src):
             shutil.rmtree(dest_src)
         shutil.copytree(config.DIR_INDICE, dest_src)
-
-        # FIXME: ¿esto al final se hace por afuera?
-        if sys.platform == "win32":
-            armarEjecutable()
 
         mensaje("Copiando el autorun")
         copiarAutorun()

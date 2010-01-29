@@ -218,8 +218,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.dosearch(query)
         if path == "/detallada":
             return self.detallada(query)
-        if path == "/listfull":
-            return self.listfull(query)
         if path == "/al_azar":
             return self.al_azar(query)
         if path[0] == "/":
@@ -272,18 +270,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         pag = self.templates("searchres", results="\n".join(res))
         return "text/html", self._wrap(pag, "Resultados")
-
-    @ei.espera_indice
-    def listfull(self, query):
-        articulos = self.index.listado_valores()
-        res = []
-        for link, titulo in articulos:
-            linea = '<a href="%s">%s</a><br/>' % (
-                                link.encode("utf8"), titulo.encode("utf8"))
-            res.append(linea)
-
-        pag = self.templates("listadofull", lineas="\n".join(res))
-        return "text/html", self._wrap(pag, "Listado Completo")
 
     @ei.espera_indice
     def al_azar(self, query):
