@@ -299,7 +299,7 @@ class Index(object):
         #   ( matrix, docsets )
         #   matrix = TermSimilitudeMatrix
         #   docsets = FrozenStringList
-        keyfilename = os.path.join(directory, "easyindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.bz2")
         fh = CompressedFile(keyfilename, "rb")
         matrix, docsets = cPickle.load(fh)
         fh.close()
@@ -310,10 +310,10 @@ class Index(object):
         self.matrix, self.docsets = matrix, docsets
 
         # see how many id files we have
-        idsfilename = os.path.join(directory, "easyindex-*.ids.bz2")
+        idsfilename = os.path.join(directory, "compindex-*.ids.bz2")
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("easyindex-") and \
+            if fn.startswith("compindex-") and \
                 fn.endswith(".ids.bz2"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
@@ -321,7 +321,7 @@ class Index(object):
     @lru_cache(DOCSTORE_CACHE_SIZE)
     def _get_ids_shelve(self, cual):
         '''Return the ids index.'''
-        fname = os.path.join(self._directory, "easyindex-%02d.ids.bz2" % cual)
+        fname = os.path.join(self._directory, "compindex-%02d.ids.bz2" % cual)
         fh = CompressedFile(fname, "rb")
         idx = cPickle.load(fh)
         fh.close()
@@ -558,7 +558,7 @@ class Index(object):
         print "done"
         print " Saving:"
 
-        keyfilename = os.path.join(directory, "easyindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.bz2")
         fh = CompressedFile(keyfilename, "wb")
         cPickle.dump( (matrix.pickle(), docsets.pickle()), fh, 2)
         print "  Uncompressed keystore bytes", fh.tell()
@@ -588,7 +588,7 @@ class Index(object):
         docucomp = 0
         doccomp = 0
         for cual, shelf in enumerate(all_idshelves):
-            fname = "easyindex-%02d.ids.bz2" % cual
+            fname = "compindex-%02d.ids.bz2" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
             cPickle.dump(shelf, fh, 2)

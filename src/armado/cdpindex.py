@@ -18,6 +18,7 @@ import re
 import threading
 import shutil
 
+#from .easy_index import Index
 from .compressed_index import Index
 
 usage = """Indice de títulos de la CDPedia
