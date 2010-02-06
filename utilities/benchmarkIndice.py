@@ -17,7 +17,7 @@ import subprocess
 sys.path.append(os.path.abspath("."))
 from src.armado.cdpindex import IndexInterface
 
-BLOQUE = 100
+BLOQUE = 20
 
 class Timer(object):
     def __init__(self, msg, divisor=1):
