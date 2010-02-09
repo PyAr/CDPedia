@@ -222,9 +222,13 @@ class TermSimilitudeMatrixBase:
         for tv in iter( t[a:a+l]
                         for l in xrange(min(20,len(t)),0,-1)
                         for a in xrange(len(t)-l+1) ):
-            if self.contains_term(t):
+            try:
                 # an exact match is a godsend - we just look it up
-                i = self.lookup_term_index(t)
+                i = self.lookup_term_index(tv)
+            except KeyError:
+                i = None
+                
+            if i is not None:
                 candidates = delta_decode_str(self.matrix[i])
                 candidates.add(i) # <- the matrix omits the diagnoal
                 break
@@ -235,14 +239,14 @@ class TermSimilitudeMatrixBase:
             #   letters should be in the index and thus in the matrix.
             candidates = set()
             candidates_a = candidates.add
-            for i,st in enumerate(self.terms):
-                if terms[i] in t:
+            for i,st in enumerate(terms):
+                if st in t:
                     # Found a substring in the matrix, all matches
                     # will be a subset of matches for the substring
                     candidates = delta_decode_str(self.matrix[i])
                     candidates.add(i) # <- the matrix omits the diagnoal
                     break
-                elif t in terms[i]:
+                elif t in st:
                     candidates_a(i)
             else:
                 # don't recheck candidates if we did a full scan
