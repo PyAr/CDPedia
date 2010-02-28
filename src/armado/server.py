@@ -6,19 +6,19 @@ from __future__ import division
 from __future__ import with_statement
 
 import BaseHTTPServer
-import cgi
-import os
-import urllib   # .quote, .unquote
-import urllib2  # .urlparse
-import string
-import re
 import cPickle
-import operator
-
 import cdpindex
+import cgi
 import compresor
 import config
+import operator
+import os
+import re
+import string
+import threading
 import time
+import urllib   # .quote, .unquote
+import urllib2  # .urlparse
 
 
 __version__ = "0.1.1.1.1.1"
@@ -27,6 +27,8 @@ reg = re.compile("\<title\>([^\<]*)\</title\>")
 reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
 
 FMT_BUSQ = '<tr><td><a href="%s">%s</a></td></tr> '
+RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
+                'URL=http://localhost:8000/%s">'
 
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
@@ -212,6 +214,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 #        print "get file:", path
         if path == "/index.html":
             return self._main_page()
+        if path == "/buscando":
+            return self.buscando(query)
         if path == "/esperando":
             return self._esperando()
         if path == "/dosearch":
@@ -268,7 +272,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
-        pag = self.templates("searchres", results="\n".join(res))
+        pag = self.templates("searchres", results="\n".join(res), header="")
         return "text/html", self._wrap(pag, "Resultados")
 
     @ei.espera_indice
@@ -282,7 +286,25 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not "keywords" in params:
             return self._main_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
-        candidatos = self.index.search(keywords.decode("utf8"))
+
+        # search in a thread
+        buscador.buscar(self.index, keywords.decode("utf8"))
+        return self._get_reloading_page(keywords)
+
+    def _get_reloading_page(self, palabras):
+        reload = RELOAD_HEADER % ('buscando?pals=' + urllib.quote(palabras),)
+        aviso = "Buscando: %s %s" % (palabras, "." * buscador.tardando)
+        pag = self.templates("searchres", results=aviso, header=reload)
+        return "text/html", self._wrap(pag, "Buscando")
+
+    def buscando(self, query):
+        """Muestra resultados cuando terminó de buscar."""
+        if not buscador.done:
+            params = cgi.parse_qs(query)
+            return self._get_reloading_page(params['pals'][0])
+
+        # tenemos resultados!
+        candidatos = buscador.results
         if not candidatos:
             return self._main_page(u"No se encontró nada para lo ingresado!")
         res = []
@@ -291,7 +313,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
             res.append(linea)
 
-        pag = self.templates("searchres", results="\n".join(res))
+        pag = self.templates("searchres", results="\n".join(res), header="")
         return "text/html", self._wrap(pag, "Resultados")
 
     def templates(self, nombre_tpl, **kwrds):
@@ -301,8 +323,43 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return r
 
 
+class Buscador(object):
+    def __init__(self):
+        self.results = None
+        self.done = True
+        self.busqueda = 0
+        self._tardando = 0
+
+        # FIXME: que lo que se buscó no desaparezca de la barra de la izquierda
+
+    @property
+    def tardando(self):
+        self._tardando += 1
+        return self._tardando
+
+    def buscar(self, indice, palabras):
+        """Busca en otro thread."""
+        # FIXME: ver de integrar *todo* el indice aca adentro!
+        self.done = False
+        self.results = None
+        self.busqueda += 1
+        self._tardando = 0
+
+        def _inner(nrobusq):
+            r = indice.search(palabras)
+            if self.busqueda == nrobusq:
+                # todavía en la misma búsqueda
+                self.done = True
+                self.results = r
+
+        threading.Thread(target=_inner, args=(self.busqueda,)).start()
+        return self.busqueda
+
+
+buscador = Buscador()
+
+
 def run(event):
-    import time
     WikiHTTPRequestHandler.index = cdpindex.IndexInterface(config.DIR_INDICE)
     WikiHTTPRequestHandler.index.start()
     WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"

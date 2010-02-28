@@ -7,8 +7,6 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
-import time
-import sys
 import os
 import codecs
 import unicodedata
@@ -140,7 +138,6 @@ def filename2palabras(fname):
 
 def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
-    from src import utiles
     from src.preproceso import preprocesar
 
     # armamos las redirecciones
@@ -202,14 +199,3 @@ def generar_de_html(dirbase, verbose):
 
     Index.create(config.DIR_INDICE, gen())
     return len(filenames)
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print usage
-        sys.exit()
-
-    tini = time.time()
-    cant = _create_index(*sys.argv[1:])
-    delta = time.time()-tini
-    print "Indice creado! (%.2fs)" % delta
-    print "Archs: %d  (%.2f mseg/arch)" % (cant, 1000*delta/cant)
