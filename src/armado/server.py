@@ -341,8 +341,6 @@ class Buscador(object):
         self.busqueda = 0
         self._tardando = 0
 
-        # FIXME: que lo que se buscó no desaparezca de la barra de la izquierda
-
     @property
     def tardando(self):
         self._tardando += 1
@@ -350,7 +348,6 @@ class Buscador(object):
 
     def buscar(self, indice, palabras):
         """Busca en otro thread."""
-        # FIXME: ver de integrar *todo* el indice aca adentro!
         self.done_completa = False
         self.done_detallada = False
         self.results = None
