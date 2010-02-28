@@ -29,6 +29,7 @@ reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
 FMT_BUSQ = '<tr><td><a href="%s">%s</a></td></tr> '
 RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
                 'URL=http://localhost:8000/%s">'
+BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
 
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
@@ -220,8 +221,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._esperando()
         if path == "/dosearch":
             return self.dosearch(query)
-        if path == "/detallada":
-            return self.detallada(query)
         if path == "/al_azar":
             return self.al_azar(query)
         if path[0] == "/":
@@ -257,25 +256,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return data
 
     @ei.espera_indice
-    def detallada(self, query):
-        params = cgi.parse_qs(query)
-        if not "keywords" in params:
-            return self._main_page(u"¡Búsqueda mal armada!")
-        keywords = params["keywords"][0]
-
-        candidatos = self.index.partial_search(keywords.decode("utf8"))
-        if not candidatos:
-            return self._main_page(u"No se encontró nada para lo ingresado!")
-        res = []
-        cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-        for link, titulo, ptje in cand:
-            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
-            res.append(linea)
-
-        pag = self.templates("searchres", results="\n".join(res), header="")
-        return "text/html", self._wrap(pag, "Resultados")
-
-    @ei.espera_indice
     def al_azar(self, query):
         link, tit = self.index.get_random()
         return self._get_contenido(link.encode("utf8"))
@@ -291,30 +271,59 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         buscador.buscar(self.index, keywords.decode("utf8"))
         return self._get_reloading_page(keywords)
 
-    def _get_reloading_page(self, palabras):
+    def _get_reloading_page(self, palabras, res_comp=None, res_det=None):
+        """Arma la página de recarga."""
         reload = RELOAD_HEADER % ('buscando?pals=' + urllib.quote(palabras),)
+
         aviso = "Buscando: %s %s" % (palabras, "." * buscador.tardando)
-        pag = self.templates("searchres", results=aviso, header=reload)
+        if res_comp is None:
+            res_comp = aviso
+        if res_det is None:
+            res_det = aviso
+        pag = self.templates("searchres", results_completa=res_comp,
+                             results_detallada=res_det, header=reload)
         return "text/html", self._wrap(pag, "Buscando")
 
     def buscando(self, query):
         """Muestra resultados cuando terminó de buscar."""
-        if not buscador.done:
-            params = cgi.parse_qs(query)
-            return self._get_reloading_page(params['pals'][0])
+        params = cgi.parse_qs(query)
+        palabras = params['pals'][0]
 
-        # tenemos resultados!
-        candidatos = buscador.results
-        if not candidatos:
-            return self._main_page(u"No se encontró nada para lo ingresado!")
-        res = []
-        cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-        for link, titulo, ptje in cand:
-            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
-            res.append(linea)
+        # si no terminó la primera, devolvemos todo vacío
+        if not buscador.done_completa:
+            return self._get_reloading_page(palabras)
 
-        pag = self.templates("searchres", results="\n".join(res), header="")
-        return "text/html", self._wrap(pag, "Resultados")
+        # terminó la búsqueda completa
+        candidatos = buscador.results_completa
+        if candidatos:
+            res = []
+            cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+            for link, titulo, ptje in cand:
+                linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
+                res.append(linea)
+            results_completa = results="\n".join(res)
+        else:
+            results_completa = BUSQ_NO_RESULTS.encode("utf8")
+
+        # si no terminó la segunda, devolvemos hasta ahí
+        if not buscador.done_detallada:
+            return self._get_reloading_page(palabras, results_completa)
+
+        # terminó la búsqueda detallada
+        candidatos = buscador.results_detallada
+        if candidatos:
+            res = []
+            cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+            for link, titulo, ptje in cand:
+                linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
+                res.append(linea)
+            results_detallada = results="\n".join(res)
+        else:
+            results_detallada = BUSQ_NO_RESULTS.encode("utf8")
+
+        pag = self.templates("searchres", results_completa=results_completa,
+                             results_detallada=results_detallada, header="")
+        return "text/html", self._wrap(pag, "Buscando")
 
     def templates(self, nombre_tpl, **kwrds):
         '''Devuelve el texto del template, con la info reemplazada.'''
@@ -325,8 +334,10 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 class Buscador(object):
     def __init__(self):
-        self.results = None
-        self.done = True
+        self.results_completa = None
+        self.results_detallada = None
+        self.done_completa = True
+        self.done_detallada = True
         self.busqueda = 0
         self._tardando = 0
 
@@ -340,19 +351,27 @@ class Buscador(object):
     def buscar(self, indice, palabras):
         """Busca en otro thread."""
         # FIXME: ver de integrar *todo* el indice aca adentro!
-        self.done = False
+        self.done_completa = False
+        self.done_detallada = False
         self.results = None
         self.busqueda += 1
         self._tardando = 0
 
-        def _inner(nrobusq):
+        def _inner_completa(nrobusq):
             r = indice.search(palabras)
             if self.busqueda == nrobusq:
-                # todavía en la misma búsqueda
-                self.done = True
-                self.results = r
+                self.results_completa = list(r)
+                self.done_completa = True
+                threading.Thread(target=_inner_detallada,
+                                 args=(self.busqueda,)).start()
 
-        threading.Thread(target=_inner, args=(self.busqueda,)).start()
+        def _inner_detallada(nrobusq):
+            r = indice.partial_search(palabras)
+            if self.busqueda == nrobusq:
+                self.results_detallada = set(r) - set(self.results_completa)
+                self.done_detallada = True
+
+        threading.Thread(target=_inner_completa, args=(self.busqueda,)).start()
         return self.busqueda
 
 

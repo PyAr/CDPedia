@@ -1,6 +1,10 @@
 $header
-<h1>Resultados de la Búsqueda</h1>
+<h1>Resultados de la Búsqueda Completa</h1>
 <table>
- $results
+ $results_completa
 </table>
-
+<br/>
+<h1>Resultados de la Búsqueda Detallada</h1>
+<table>
+ $results_detallada
+</table>
