@@ -14,6 +14,7 @@ import config
 import operator
 import os
 import re
+import socket
 import string
 import threading
 import time
@@ -31,8 +32,14 @@ RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
                 'URL=http://localhost:8000/%s">'
 BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
 
+
+# global variable to hold the port used by the server
+serving_port = None
+
+
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
+
 
 class TemplateManager(object):
     '''Maneja los templates en disco.'''
@@ -376,12 +383,24 @@ buscador = Buscador()
 
 
 def run(event):
+    global serving_port
+
     WikiHTTPRequestHandler.index = cdpindex.IndexInterface(config.DIR_INDICE)
     WikiHTTPRequestHandler.index.start()
     WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"
-    httpd = BaseHTTPServer.HTTPServer(('', 8000), WikiHTTPRequestHandler)
+    for port in xrange(8000, 8099):
+        try:
+            httpd = BaseHTTPServer.HTTPServer(('', port),
+                                              WikiHTTPRequestHandler)
+        except socket.error, e:
+            if e.errno != 98:
+                raise
+        else:
+            # server opened ok
+            serving_port = port
+            break
 
-    print "Sirviendo HTTP en localhost, puerto 8000..."
+    print "Sirviendo HTTP en localhost, puerto %d..." % port
     event.set()
     httpd.serve_forever()
 

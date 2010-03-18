@@ -9,7 +9,8 @@ event = threading.Event()
 
 def sleepAndBrowse():
     event.wait()
-    webbrowser.open("http://localhost:8000/")
+    port = server.serving_port
+    webbrowser.open("http://localhost:%d/" % port)
 
 threading.Thread(target=sleepAndBrowse).start()
 print "Levantando el server..."
