@@ -171,14 +171,14 @@ def generar_de_html(dirbase, verbose):
             # el puntaje original sobre 1000, como desempatador
             ptje = 50 + puntaje//1000
             for pal in PALABRAS.findall(normaliza(titulo)):
-                yield pal, (nomhtml, titulo, ptje)
+                yield pal, (nomhtml, titulo, ptje, True)
 
             # pasamos las palabras de los redirects también que apunten
             # a este html, con el mismo puntaje
             if arch in redirs:
                 for (palabras, titulo) in redirs[arch]:
                     for pal in palabras:
-                        yield pal, (nomhtml, titulo, ptje)
+                        yield pal, (nomhtml, titulo, ptje, False)
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,

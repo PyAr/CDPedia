@@ -303,15 +303,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # terminó la búsqueda completa
         candidatos = buscador.results_completa
-        if candidatos:
-            res = []
-            cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-            for link, titulo, ptje in cand:
-                linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
-                res.append(linea)
-            results_completa = results="\n".join(res)
-        else:
-            results_completa = BUSQ_NO_RESULTS.encode("utf8")
+        results_completa = self._formatear_resultados(candidatos)
 
         # si no terminó la segunda, devolvemos hasta ahí
         if not buscador.done_detallada:
@@ -319,19 +311,40 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # terminó la búsqueda detallada
         candidatos = buscador.results_detallada
-        if candidatos:
-            res = []
-            cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-            for link, titulo, ptje in cand:
-                linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
-                res.append(linea)
-            results_detallada = results="\n".join(res)
-        else:
-            results_detallada = BUSQ_NO_RESULTS.encode("utf8")
+        results_detallada = self._formatear_resultados(candidatos)
 
         pag = self.templates("searchres", results_completa=results_completa,
                              results_detallada=results_detallada, header="")
         return "text/html", self._wrap(pag, "Buscando")
+
+    def _formatear_resultados(self, candidatos):
+        """Arma los resultados."""
+        if not candidatos:
+            return BUSQ_NO_RESULTS.encode("utf8")
+
+        # agrupamos por link, dando prioridad a los títulos de los
+        # artículos originales
+        agrupados = {}
+        for link, titulo, ptje, original in candidatos:
+            if link in agrupados:
+                (tit, prv_ptje) = agrupados[link]
+                if original:
+                    # guardamos el título del artículo original
+                    tit = titulo
+                agrupados[link] = (tit, prv_ptje + ptje)
+            else:
+                agrupados[link] = (titulo, ptje)
+
+        # ordenamos la nueva info descendiente y armamos las lineas
+        res = []
+        candidatos = ((k, v[0], v[1]) for k,v in agrupados.iteritems())
+        cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+        for link, titulo, ptje in cand:
+            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
+            res.append(linea)
+        results = "\n".join(res)
+
+        return results
 
     def templates(self, nombre_tpl, **kwrds):
         '''Devuelve el texto del template, con la info reemplazada.'''
