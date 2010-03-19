@@ -27,10 +27,10 @@ __version__ = "0.1.1.1.1.1"
 reg = re.compile("\<title\>([^\<]*)\</title\>")
 reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
 
-FMT_BUSQ = '<tr><td><a href="%s">%s</a></td></tr> '
 RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
                 'URL=http://localhost:%d/%s">'
 BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
+LIMPIA = re.compile("[(),]")
 
 
 # global variable to hold the port used by the server
@@ -326,25 +326,40 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # artículos originales
         agrupados = {}
         for link, titulo, ptje, original in candidatos:
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
+
             if link in agrupados:
-                (tit, prv_ptje) = agrupados[link]
+                (tit, prv_ptje, tokens) = agrupados[link]
+                tokens.update(tit_tokens)
                 if original:
                     # guardamos el título del artículo original
                     tit = titulo
-                agrupados[link] = (tit, prv_ptje + ptje)
+                agrupados[link] = (tit, prv_ptje + ptje, tokens)
             else:
-                agrupados[link] = (titulo, ptje)
+                agrupados[link] = (titulo, ptje, tit_tokens)
 
+        # limpiamos los tokens
+        for link, (tit, ptje, tokens) in agrupados.iteritems():
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
+            tokens.difference_update(tit_tokens)
+
+        textoloco = u"añlsj dlkfs lfhsdlh fsdlkh lskf hlaksdh flksdjhf lkshflkashflak aflksdhf alkfh alklkadsfh laksdfh laksdfhalsdkfh alskfhalsdkfh alkdfhlaksdfh lakdshfklasd hflksdfksbc kqwbcl iqn ciqnciqb"
         # ordenamos la nueva info descendiente y armamos las lineas
         res = []
-        candidatos = ((k, v[0], v[1]) for k,v in agrupados.iteritems())
+        candidatos = ((k, v[0], v[1], v[2]) for k,v in agrupados.iteritems())
         cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-        for link, titulo, ptje in cand:
-            linea = FMT_BUSQ % (link.encode("utf8"), titulo.encode("utf8"))
-            res.append(linea)
+        for link, titulo, ptje, tokens in cand:
+            res.append(u'<font size=+1><a href="%s">%s</a></font><br/>' % (
+                                                                link, titulo))
+            if tokens:
+                res.append(u'<font color="#A05A2C"><i>%s</i></font><br/>' % (
+                                                            " ".join(tokens)))
+            if textoloco:
+                res.append(u'%s<br/>' % textoloco)
+            res.append('<br/>')
         results = "\n".join(res)
 
-        return results
+        return results.encode("utf8")
 
     def templates(self, nombre_tpl, **kwrds):
         '''Devuelve el texto del template, con la info reemplazada.'''
