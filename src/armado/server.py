@@ -29,7 +29,7 @@ reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
 
 FMT_BUSQ = '<tr><td><a href="%s">%s</a></td></tr> '
 RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
-                'URL=http://localhost:8000/%s">'
+                'URL=http://localhost:%d/%s">'
 BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
 
 
@@ -280,7 +280,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _get_reloading_page(self, palabras, res_comp=None, res_det=None):
         """Arma la página de recarga."""
-        reload = RELOAD_HEADER % ('buscando?pals=' + urllib.quote(palabras),)
+        reload = RELOAD_HEADER % (serving_port,
+                                  'buscando?pals=' + urllib.quote(palabras))
 
         aviso = "Buscando: %s %s" % (palabras, "." * buscador.tardando)
         if res_comp is None:
