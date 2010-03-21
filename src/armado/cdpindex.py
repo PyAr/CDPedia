@@ -34,9 +34,13 @@ Para generar el archivo de indice hacer:
 # Buscamos todo hasta el último guión no inclusive, porque los
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
+SACA_ = re.compile("_")
 
 # separamos por palabras
 PALABRAS = re.compile("\w+", re.UNICODE)
+
+# cantidad de palabras a incluir en el resumen de cada artículo
+CANT_CARS_RESUMEN = 230
 
 def normaliza(txt):
     """Recibe una frase y devuelve sus palabras ya normalizadas."""
@@ -62,6 +66,39 @@ def _getPalabrasHTML(arch):
     txt = p.stdout.read()
     txt = txt.decode("utf8")
     return txt
+
+def _get_primeras_palabras(arch):
+    html = codecs.open(arch, "r", "utf8").read()
+
+    # nos paramos luego del contenido
+    delimiter = "<!-- start content -->"
+    try:
+        pos = html.index(delimiter) + len(delimiter)
+    except ValueError:
+        # es un archivo no de contenido sino especial
+        return ""
+    html = html[pos:]
+
+    # nos paramos luego del primer párrafo
+    delimiter = "<p>"
+    try:
+        pos = html.index(delimiter) + len(delimiter)
+    except ValueError:
+        pos = 0
+    html = html[pos:]
+
+    # borramos todo lo que son tablas
+    html = re.sub("<table>.*?</table>", "", html)
+
+    # borramos todo lo que son tags
+    html = re.sub("<.*?>", "", html)
+
+    # borramos todo los tabs y enters
+    html = re.sub("[\\t\\n]", "", html)
+
+    # separamos en palabras y mostramos las indicadas
+    res = html[:CANT_CARS_RESUMEN] + "..."
+    return res
 
 
 class IndexInterface(threading.Thread):
@@ -117,11 +154,12 @@ class IndexInterface(threading.Thread):
 
 def filename2palabras(fname):
     """Transforma un filename en sus palabras y título."""
-    x = fname[:-5]
-    x = normaliza(x)
+    fname_sinhtml = fname[:-5]
+    x = normaliza(fname_sinhtml)
     p = x.split("_")
 
     # a veces tenemos un nro hexa de 4 dígitos al final que queremos sacar
+    tenia_cuatro = False
     if len(p[-1]) == 4:
         try:
             int(p[-1], 16)
@@ -130,9 +168,13 @@ def filename2palabras(fname):
             pass
         else:
             p = p[:-1]
+            tenia_cuatro = True
 
-    # el tit lo tomamos como la suma de las partes
-    t = " ".join(p)
+    # el título lo retomamos del nombre de archivo para que no
+    # esté normalizado
+    if tenia_cuatro:
+        fname_sinhtml = fname_sinhtml[:-5]  # los cuatro más el "_"
+    t = SACA_.sub(" ", fname_sinhtml)
     return p, t
 
 
@@ -160,6 +202,7 @@ def generar_de_html(dirbase, verbose):
             nomreal = os.path.join(dirbase, nomhtml)
             if os.access(nomreal, os.F_OK):
                 titulo = _getHTMLTitle(nomreal)
+                primtexto = _get_primeras_palabras(nomreal)
             else:
                 print "WARNING: Archivo no encontrado:", nomreal
                 continue
@@ -171,14 +214,14 @@ def generar_de_html(dirbase, verbose):
             # el puntaje original sobre 1000, como desempatador
             ptje = 50 + puntaje//1000
             for pal in PALABRAS.findall(normaliza(titulo)):
-                yield pal, (nomhtml, titulo, ptje, True)
+                yield pal, (nomhtml, titulo, ptje, True, primtexto)
 
             # pasamos las palabras de los redirects también que apunten
             # a este html, con el mismo puntaje
             if arch in redirs:
                 for (palabras, titulo) in redirs[arch]:
                     for pal in palabras:
-                        yield pal, (nomhtml, titulo, ptje, False)
+                        yield pal, (nomhtml, titulo, ptje, False, "")
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,

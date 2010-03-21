@@ -283,13 +283,16 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         reload = RELOAD_HEADER % (serving_port,
                                   'buscando?pals=' + urllib.quote(palabras))
 
-        aviso = "Buscando: %s %s" % (palabras, "." * buscador.tardando)
+        aviso = "<i>(buscando%s)</i><br/>" % ("." * buscador.tardando,)
         if res_comp is None:
             res_comp = aviso
         if res_det is None:
+            if res_comp == aviso:
+                res_comp = ""
             res_det = aviso
         pag = self.templates("searchres", results_completa=res_comp,
-                             results_detallada=res_det, header=reload)
+                             results_detallada=res_det, header=reload,
+                             buscando=palabras)
         return "text/html", self._wrap(pag, "Buscando")
 
     def buscando(self, query):
@@ -303,7 +306,10 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # terminó la búsqueda completa
         candidatos = buscador.results_completa
-        results_completa = self._formatear_resultados(candidatos)
+        if candidatos:
+            results_completa = self._formatear_resultados(candidatos)
+        else:
+            results_completa = ""
 
         # si no terminó la segunda, devolvemos hasta ahí
         if not buscador.done_detallada:
@@ -311,51 +317,54 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # terminó la búsqueda detallada
         candidatos = buscador.results_detallada
-        results_detallada = self._formatear_resultados(candidatos)
+        if candidatos:
+            results_detallada = self._formatear_resultados(candidatos)
+        else:
+            results_detallada = BUSQ_NO_RESULTS.encode("utf8")
 
         pag = self.templates("searchres", results_completa=results_completa,
-                             results_detallada=results_detallada, header="")
+                             results_detallada=results_detallada, header="",
+                             buscando=palabras)
         return "text/html", self._wrap(pag, "Buscando")
 
     def _formatear_resultados(self, candidatos):
         """Arma los resultados."""
-        if not candidatos:
-            return BUSQ_NO_RESULTS.encode("utf8")
-
         # agrupamos por link, dando prioridad a los títulos de los
         # artículos originales
         agrupados = {}
-        for link, titulo, ptje, original in candidatos:
+        for link, titulo, ptje, original, texto in candidatos:
+            # los tokens los ponemos en minúscula porque las mayúscula les
+            # da un efecto todo entrecortado
             tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
 
             if link in agrupados:
-                (tit, prv_ptje, tokens) = agrupados[link]
+                (tit, prv_ptje, tokens, txt) = agrupados[link]
                 tokens.update(tit_tokens)
                 if original:
-                    # guardamos el título del artículo original
+                    # guardamos la info del artículo original
                     tit = titulo
-                agrupados[link] = (tit, prv_ptje + ptje, tokens)
+                    txt = texto
+                agrupados[link] = (tit, prv_ptje + ptje, tokens, txt)
             else:
-                agrupados[link] = (titulo, ptje, tit_tokens)
+                agrupados[link] = (titulo, ptje, tit_tokens, texto)
 
         # limpiamos los tokens
-        for link, (tit, ptje, tokens) in agrupados.iteritems():
+        for link, (tit, ptje, tokens, texto) in agrupados.iteritems():
             tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
-        textoloco = u"añlsj dlkfs lfhsdlh fsdlkh lskf hlaksdh flksdjhf lkshflkashflak aflksdhf alkfh alklkadsfh laksdfh laksdfhalsdkfh alskfhalsdkfh alkdfhlaksdfh lakdshfklasd hflksdfksbc kqwbcl iqn ciqnciqb"
         # ordenamos la nueva info descendiente y armamos las lineas
         res = []
-        candidatos = ((k, v[0], v[1], v[2]) for k,v in agrupados.iteritems())
+        candidatos = ((k,) + tuple(v) for k,v in agrupados.iteritems())
         cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
-        for link, titulo, ptje, tokens in cand:
+        for link, titulo, ptje, tokens, texto in cand:
             res.append(u'<font size=+1><a href="%s">%s</a></font><br/>' % (
                                                                 link, titulo))
             if tokens:
                 res.append(u'<font color="#A05A2C"><i>%s</i></font><br/>' % (
                                                             " ".join(tokens)))
-            if textoloco:
-                res.append(u'%s<br/>' % textoloco)
+            if texto:
+                res.append(u'%s<br/>' % texto)
             res.append('<br/>')
         results = "\n".join(res)
 
