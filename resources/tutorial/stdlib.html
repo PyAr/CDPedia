@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>11. Pequeño paseo por la Biblioteca Estándar &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="12. Pequeño paseo por la Biblioteca Estándar - Parte II" href="stdlib2.html" />
+    <link rel="prev" title="10. Clases" href="classes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="stdlib2.html" title="12. Pequeño paseo por la Biblioteca Estándar - Parte II"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="classes.html" title="10. Clases"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pequeno-paseo-por-la-biblioteca-estandar">
+<span id="tut-brieftour"></span><h1>11. Pequeño paseo por la Biblioteca Estándar<a class="headerlink" href="#pequeno-paseo-por-la-biblioteca-estandar" title="Enlazar permanentemente con este título">¶</a></h1>
+<div class="section" id="interfaz-al-sistema-operativo">
+<span id="tut-os-interface"></span><h2>11.1. Interfaz al sistema operativo<a class="headerlink" href="#interfaz-al-sistema-operativo" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">os</span></tt> provee docenas de funciones para interactuar
+con el sistema operativo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;time 0:02&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>      <span class="c"># devuelve el directorio de trabajo actual</span>
+<span class="go">&#39;C:\\Python26&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s">&#39;/server/accesslogs&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Asegurate de usar el estilo <tt class="docutils literal"><span class="pre">import</span> <span class="pre">os</span></tt> en lugar de <tt class="docutils literal"><span class="pre">from</span> <span class="pre">os</span> <span class="pre">import</span> <span class="pre">*</span></tt>.
+Esto evitará que <tt class="xref docutils literal"><span class="pre">os.open()</span></tt> oculte a la función integrada <tt class="xref docutils literal"><span class="pre">open()</span></tt>,
+que trabaja bastante diferente.</p>
+<p id="index-83">Las funciones integradas <tt class="xref docutils literal"><span class="pre">dir()</span></tt> y <tt class="xref docutils literal"><span class="pre">help()</span></tt> son útiles como ayudas
+interactivas para trabajar con módulos grandes como <tt class="xref docutils literal"><span class="pre">os</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">os</span><span class="p">)</span>
+<span class="go">&lt;devuelve una lista de todas las funciones del módulo&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">help</span><span class="p">(</span><span class="n">os</span><span class="p">)</span>
+<span class="go">&lt;devuelve un manual creado a partir de las documentaciones del módulo&gt;</span>
+</pre></div>
+</div>
+<p>Para tareas diarias de administración de archivos y directorios, el módulo
+<tt class="xref docutils literal"><span class="pre">shutil</span></tt> provee una interfaz de más alto nivel que es más fácil de usar:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">shutil</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="s">&#39;datos.db&#39;</span><span class="p">,</span> <span class="s">&#39;archivo.db&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="s">&#39;/build/executables&#39;</span><span class="p">,</span> <span class="s">&#39;dir_instalac&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="comodines-de-archivos">
+<span id="tut-file-wildcards"></span><h2>11.2. Comodines de archivos<a class="headerlink" href="#comodines-de-archivos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">glob</span></tt> provee una función para hacer listas de archivos a partir
+de búsquedas con comodines en directorios:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s">&#39;*.py&#39;</span><span class="p">)</span>
+<span class="go">[&#39;primes.py&#39;, &#39;random.py&#39;, &#39;quote.py&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="argumentos-de-linea-de-ordenes">
+<span id="tut-command-line-arguments"></span><h2>11.3. Argumentos de linea de órdenes<a class="headerlink" href="#argumentos-de-linea-de-ordenes" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Los programas frecuentemente necesitan procesar argumentos de linea de órdenes.
+Estos argumentos se almacenan en el atributo <em>argv</em> del módulo <tt class="xref docutils literal"><span class="pre">sys</span></tt> como
+una lista.  Por ejemplo, la siguiente salida resulta de ejecutar
+<tt class="docutils literal"><span class="pre">python</span> <span class="pre">demo.py</span> <span class="pre">uno</span> <span class="pre">dos</span> <span class="pre">tres</span></tt> en la línea de órdenes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="go">[&#39;demo.py&#39;, &#39;uno&#39;, &#39;dos&#39;, &#39;tres&#39;]</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">getopt</span></tt> procesa <em>sys.argv</em> usando las convenciones de la
+función de Unix <tt class="xref docutils literal"><span class="pre">getopt()</span></tt>.  El módulo <tt class="xref docutils literal"><span class="pre">optparse</span></tt> provee un
+procesamiento más flexible de la linea de órdenes.</p>
+</div>
+<div class="section" id="redireccion-de-la-salida-de-error-y-finalizacion-del-programa">
+<span id="tut-stderr"></span><h2>11.4. Redirección de la salida de error y finalización del programa<a class="headerlink" href="#redireccion-de-la-salida-de-error-y-finalizacion-del-programa" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">sys</span></tt> también tiene atributos para <em>stdin</em>, <em>stdout</em>, y
+<em>stderr</em>.  Este último es útil para emitir mensajes de alerta y error para
+que se vean incluso cuando se haya redireccionado <em>stdout</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Alerta, archivo de log no encontrado</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="go">Alerta, archivo de log no encontrado</span>
+</pre></div>
+</div>
+<p>La forma más directa de terminar un programa es usar <tt class="docutils literal"><span class="pre">sys.exit()</span></tt>.</p>
+</div>
+<div class="section" id="coincidencia-en-patrones-de-cadenas">
+<span id="tut-string-pattern-matching"></span><h2>11.5. Coincidencia en patrones de cadenas<a class="headerlink" href="#coincidencia-en-patrones-de-cadenas" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">re</span></tt> provee herramientas de expresiones regulares para un
+procesamiento avanzado de cadenas.  Para manipulación y coincidencias
+complejas, las expresiones regulares ofrecen soluciones concisas y
+optimizadas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">re</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&#39;\bt[a-z]*&#39;</span><span class="p">,</span> <span class="s">&#39;tres felices tigres comen trigo&#39;</span><span class="p">)</span>
+<span class="go">[&#39;tres&#39;, &#39;tigres&#39;, &#39;trigo&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;(\b[a-z]+) \1&#39;</span><span class="p">,</span> <span class="s">r&#39;\1&#39;</span><span class="p">,</span> <span class="s">&#39;gato en el el sombrero&#39;</span><span class="p">)</span>
+<span class="go">&#39;gato en el sombrero&#39;</span>
+</pre></div>
+</div>
+<p>Cuando se necesita algo más sencillo solamente, se prefieren los métodos de
+las cadenas porque son más fáciles de leer y depurar.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;te para tos&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;tos&#39;</span><span class="p">,</span> <span class="s">&#39;dos&#39;</span><span class="p">)</span>
+<span class="go">&#39;te para dos&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="matematica">
+<span id="tut-mathematics"></span><h2>11.6. Matemática<a class="headerlink" href="#matematica" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">math</span></tt> permite el acceso a las funciones de la biblioteca C
+subyacente para la matemática de punto flotante:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span>
+<span class="go">0.70710678118654757</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">10.0</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">random</span></tt> provee herramientas para realizar selecciones al azar:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">random</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="s">&#39;manzana&#39;</span><span class="p">,</span> <span class="s">&#39;pera&#39;</span><span class="p">,</span> <span class="s">&#39;banana&#39;</span><span class="p">])</span>
+<span class="go">&#39;manzana&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">xrange</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>   <span class="c"># elección sin reemplazo</span>
+<span class="go">[30, 83, 16, 4, 8, 81, 41, 50, 18, 33]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>    <span class="c"># un float al azar</span>
+<span class="go">0.17970987693706186</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>    <span class="c"># un entero al azar tomado de range(6)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="acceso-a-internet">
+<span id="tut-internet-access"></span><h2>11.7. Acceso a Internet<a class="headerlink" href="#acceso-a-internet" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Hay varios módulos para acceder a internet y procesar sus protocolos.  Dos de
+los más simples son <tt class="xref docutils literal"><span class="pre">urllib2</span></tt> para traer data de URLs y <tt class="xref docutils literal"><span class="pre">smtplib</span></tt>
+para mandar correos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s">&#39;http://tycho.usno.navy.mil/cgi-bin/timer.pl&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="s">&#39;EST&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="s">&#39;EDT&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>  <span class="c"># buscamos la hora del este</span>
+<span class="gp">... </span>        <span class="k">print</span> <span class="n">line</span>
+
+<span class="go">&lt;BR&gt;Nov. 25, 09:43:32 PM EST</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">smtplib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">server</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="s">&#39;localhost&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">server</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="s">&#39;soothsayer@ejemplo.org&#39;</span><span class="p">,</span> <span class="s">&#39;jcaesar@ejemplo.org&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="sd">&quot;&quot;&quot;To: jcaesar@ejemplo.org</span>
+<span class="gp">... </span><span class="sd">From: soothsayer@ejemplo.org</span>
+<span class="gp">...</span><span class="sd"></span>
+<span class="gp">... </span><span class="sd">Ojo al piojo.</span>
+<span class="gp">... </span><span class="sd">&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">server</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>(Notá que el segundo ejemplo necesita un servidor de correo corriendo en la
+máquina local)</p>
+</div>
+<div class="section" id="fechas-y-tiempos">
+<span id="tut-dates-and-times"></span><h2>11.8. Fechas y tiempos<a class="headerlink" href="#fechas-y-tiempos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">datetime</span></tt> ofrece clases para manejar fechas y tiempos tanto de
+manera simple como compleja.  Aunque se soporta aritmética sobre fechas y
+tiempos, el foco de la implementación es en la extracción eficiente de partes
+para manejarlas o formatear la salida.  El módulo también soporta objetos que
+son conscientes de la zona horaria.</p>
+<div class="highlight-python"><pre># las fechas son fácilmente construidas y formateadas
+&gt;&gt;&gt; from datetime import date
+&gt;&gt;&gt; hoy = date.today()
+&gt;&gt;&gt; hoy
+datetime.date(2009, 7, 19)
+
+# nos aseguramos de tener la info de localización correcta
+&gt;&gt;&gt; import locale
+&gt;&gt;&gt; locale.setlocale(locale.LC_ALL, locale.getdefaultlocale())
+'es_ES.UTF8'
+&gt;&gt;&gt; hoy.strftime("%m-%d-%y. %d %b %Y es %A. hoy es %d de %B.")
+'07-19-09. 19 jul 2009 es domingo. hoy es 19 de julio.'
+
+# las fechas soportan aritmética de calendario
+&gt;&gt;&gt; nacimiento = date(1964, 7, 31)
+&gt;&gt;&gt; edad = hoy - nacimiento
+&gt;&gt;&gt; edad.days
+14368</pre>
+</div>
+</div>
+<div class="section" id="compresion-de-datos">
+<span id="tut-data-compression"></span><h2>11.9. Compresión de datos<a class="headerlink" href="#compresion-de-datos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Los formatos para archivar y comprimir datos se soportan directamente con los
+módulos: <tt class="xref docutils literal"><span class="pre">zlib</span></tt>, <tt class="xref docutils literal"><span class="pre">gzip</span></tt>, <tt class="xref docutils literal"><span class="pre">bz2</span></tt>, <tt class="xref docutils literal"><span class="pre">zipfile</span></tt> y <tt class="xref docutils literal"><span class="pre">tarfile</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">zlib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s">&#39;witch which has which witches wrist watch&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">41</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="go">37</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zlib</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="go">&#39;witch which has which witches wrist watch&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zlib</span><span class="o">.</span><span class="n">crc32</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">226805979</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="medicion-de-rendimiento">
+<span id="tut-performance-measurement"></span><h2>11.10. Medición de rendimiento<a class="headerlink" href="#medicion-de-rendimiento" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Algunos usuarios de Python desarrollan un profundo interés en saber el
+rendimiento relativo de las diferentes soluciones al mismo problema.  Python
+provee una herramienta de medición que responde esas preguntas inmediatamente.</p>
+<p>Por ejemplo, puede ser tentador usar la característica de empaquetamiento y
+desempaquetamiento de las tuplas en lugar de la solución tradicional para
+intercambiar argumentos.  El módulo <tt class="xref docutils literal"><span class="pre">timeit</span></tt> muestra rapidamente una
+modesta ventaja de rendimiento:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;t=a; a=b; b=t&#39;</span><span class="p">,</span> <span class="s">&#39;a=1; b=2&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">timeit</span><span class="p">()</span>
+<span class="go">0.57535828626024577</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;a,b = b,a&#39;</span><span class="p">,</span> <span class="s">&#39;a=1; b=2&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">timeit</span><span class="p">()</span>
+<span class="go">0.54962537085770791</span>
+</pre></div>
+</div>
+<p>En contraste con el fino nivel de granularidad del módulo <tt class="xref docutils literal"><span class="pre">timeit</span></tt>, los
+módulos <tt class="xref docutils literal"><span class="pre">profile</span></tt> y <tt class="xref docutils literal"><span class="pre">pstats</span></tt> proveen herramientas para identificar
+secciones críticas de tiempo en bloques de código más grandes.</p>
+</div>
+<div class="section" id="control-de-calidad">
+<span id="tut-quality-control"></span><h2>11.11. Control de calidad<a class="headerlink" href="#control-de-calidad" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Una forma para desarrollar software de alta calidad es escribir pruebas para
+cada función mientras se la desarrolla, y correr esas pruebas frecuentemente
+durante el proceso de desarrollo.</p>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">doctest</span></tt> provee una herramienta para revisar un módulo y
+validar las pruebas integradas en las cadenas de documentación (o <em>docstring</em>)
+del programa.  La construcción de las pruebas es tan sencillo como cortar y
+pegar una ejecución típica junto con sus resultados en los docstrings.  Esto
+mejora la documentación al proveer al usuario un ejemplo y permite que el
+módulo <tt class="xref docutils literal"><span class="pre">doctest</span></tt> se asegure que el código permanece fiel a la
+documentación:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">promedio</span><span class="p">(</span><span class="n">valores</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calcula la media aritmética de una lista de números.</span>
+
+<span class="sd">    &gt;&gt;&gt; print promedio([20, 30, 70])</span>
+<span class="sd">    40.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">valores</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">valores</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">doctest</span>
+<span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>   <span class="c"># valida automáticamente las pruebas integradas</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">unittest</span></tt> necesita más esfuerzo que el módulo <tt class="xref docutils literal"><span class="pre">doctest</span></tt>,
+pero permite que se mantenga en un archivo separado un conjunto más comprensivo
+de pruebas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">TestFuncionesEstadisticas</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_promedio</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">promedio</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">70</span><span class="p">]),</span> <span class="mf">40.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">promedio</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">]),</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">4.3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">,</span> <span class="n">promedio</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">promedio</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+
+<span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span> <span class="c"># llamarlo de la linea de comandos ejecuta todas las pruebas</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="las-pilas-incluidas">
+<span id="tut-batteries-included"></span><h2>11.12. Las pilas incluidas<a class="headerlink" href="#las-pilas-incluidas" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Python tiene una filosofía de &#8220;pilas incluidas&#8221;.  Esto se ve mejor en las
+capacidades robustas y sofisticadas de sus paquetes más grandes.  Por ejemplo:</p>
+<ul class="simple">
+<li>Los módulos <tt class="xref docutils literal"><span class="pre">xmlrpclib</span></tt> y <tt class="xref docutils literal"><span class="pre">SimpleXMLRPCServer</span></tt> hacen que
+implementar llamadas a procedimientos remotos sea una tarea trivial.  A
+pesar de los nombres de los módulos, no se necesita conocimiento directo
+o manejo de XML.</li>
+<li>El paquete <tt class="xref docutils literal"><span class="pre">email</span></tt> es una biblioteca para manejar mensajes de mail,
+incluyendo MIME y otros mensajes basados en RFC 2822.  Al contrario de
+<tt class="xref docutils literal"><span class="pre">smtplib</span></tt> y <tt class="xref docutils literal"><span class="pre">poplib</span></tt> que en realidad envían y reciben mensajes,
+el paquete <tt class="xref docutils literal"><span class="pre">email</span></tt> tiene un conjunto de herramientas completo para
+construir y decodificar estructuras complejas de mensajes (incluyendo
+adjuntos) y para implementar protocolos de cabecera y codificación de
+Internet.</li>
+<li>Los paquetes <tt class="xref docutils literal"><span class="pre">xml.dom</span></tt> y <tt class="xref docutils literal"><span class="pre">xml.sax</span></tt> proveen un robusto soporte para
+analizar este popular formato de intercambio de datos.  Asimismo, el módulo
+<tt class="xref docutils literal"><span class="pre">csv</span></tt> soporta lecturas y escrituras directas en un formato común de base
+de datos.  Juntos, estos módulos y paquetes simplifican enormemente el
+intercambio de datos entre aplicaciones Python y otras herramientas.</li>
+<li>Se soporta la internacionalización a través de varios módulos, incluyendo
+<tt class="xref docutils literal"><span class="pre">gettext</span></tt>, <tt class="xref docutils literal"><span class="pre">locale</span></tt>, y el paquete <tt class="xref docutils literal"><span class="pre">codecs</span></tt>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">11. Pequeño paseo por la Biblioteca Estándar</a><ul>
+<li><a class="reference external" href="#interfaz-al-sistema-operativo">11.1. Interfaz al sistema operativo</a></li>
+<li><a class="reference external" href="#comodines-de-archivos">11.2. Comodines de archivos</a></li>
+<li><a class="reference external" href="#argumentos-de-linea-de-ordenes">11.3. Argumentos de linea de órdenes</a></li>
+<li><a class="reference external" href="#redireccion-de-la-salida-de-error-y-finalizacion-del-programa">11.4. Redirección de la salida de error y finalización del programa</a></li>
+<li><a class="reference external" href="#coincidencia-en-patrones-de-cadenas">11.5. Coincidencia en patrones de cadenas</a></li>
+<li><a class="reference external" href="#matematica">11.6. Matemática</a></li>
+<li><a class="reference external" href="#acceso-a-internet">11.7. Acceso a Internet</a></li>
+<li><a class="reference external" href="#fechas-y-tiempos">11.8. Fechas y tiempos</a></li>
+<li><a class="reference external" href="#compresion-de-datos">11.9. Compresión de datos</a></li>
+<li><a class="reference external" href="#medicion-de-rendimiento">11.10. Medición de rendimiento</a></li>
+<li><a class="reference external" href="#control-de-calidad">11.11. Control de calidad</a></li>
+<li><a class="reference external" href="#las-pilas-incluidas">11.12. Las pilas incluidas</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="classes.html"
+                                  title="Capítulo anterior">10. Clases</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="stdlib2.html"
+                                  title="Próximo capítulo">12. Pequeño paseo por la Biblioteca Estándar - Parte II</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/stdlib.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="stdlib2.html" title="12. Pequeño paseo por la Biblioteca Estándar - Parte II"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="classes.html" title="10. Clases"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

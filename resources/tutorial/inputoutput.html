@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>8. Entrada y salida &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="9. Errores y excepciones" href="errors.html" />
+    <link rel="prev" title="7. Módulos" href="modules.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="errors.html" title="9. Errores y excepciones"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="7. Módulos"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="entrada-y-salida">
+<span id="tut-io"></span><h1>8. Entrada y salida<a class="headerlink" href="#entrada-y-salida" title="Enlazar permanentemente con este título">¶</a></h1>
+<p>Hay diferentes métodos de presentar la salida de un programa; los datos pueden
+ser impresos de una forma legible por humanos, o escritos a un archivo para uso
+futuro. Este capítulo discutirá algunas de las posibilidades.</p>
+<div class="section" id="formateo-elegante-de-la-salida">
+<span id="tut-formatting"></span><h2>8.1. Formateo elegante de la salida<a class="headerlink" href="#formateo-elegante-de-la-salida" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Hasta ahora encontramos dos maneras de escribir valores: <em>declaraciones de
+expresión</em> y la declaración <tt class="xref docutils literal"><span class="pre">print</span></tt>.  (Una tercer manera es usando el
+método <tt class="xref docutils literal"><span class="pre">write()</span></tt> de los objetos tipo archivo; el archivo de salida estándar
+puede referenciarse como <tt class="docutils literal"><span class="pre">sys.stdout</span></tt>.  Mirá la Referencia de la Biblioteca
+para más información sobre esto.)</p>
+<p id="index-64">Frecuentemente querrás más control sobre el formateo de tu salida que
+simplemente imprimir valores separados por espacios.  Hay dos maneras de
+formatear tu salida; la primera es hacer todo el manejo de las cadenas vos
+mismo: usando rebanado de cadenas y operaciones de concatenado podés crear
+cualquier forma que puedas imaginar.  El módulo <tt class="xref docutils literal"><span class="pre">string</span></tt> contiene algunas
+operaciones útiles para emparejar cadenas a un determinado ancho; estas las
+discutiremos en breve.  La otra forma es usar el método <tt class="xref docutils literal"><span class="pre">str.format()</span></tt>.</p>
+<p>Nos queda una pregunta, por supuesto: ¿cómo convertís valores a cadenas?
+Afortunadamente, Python tiene maneras de convertir cualquier valor a una
+cadena: pasalos a las funciones <tt class="xref docutils literal"><span class="pre">repr()</span></tt> o <tt class="xref docutils literal"><span class="pre">str()</span></tt>.</p>
+<p>La función <tt class="xref docutils literal"><span class="pre">str()</span></tt> devuelve representaciones de los valores que son
+bastante legibles por humanos, mientras que <tt class="xref docutils literal"><span class="pre">repr()</span></tt> genera
+representaciones que pueden ser leídas por el el intérprete (o forzarían
+un <tt class="xref docutils literal"><span class="pre">SyntaxError</span></tt> si no hay sintáxis equivalente).  Para objetos que no
+tienen una representación en particular para consumo humano, <tt class="xref docutils literal"><span class="pre">str()</span></tt>
+devolverá el mismo valor que <tt class="xref docutils literal"><span class="pre">repr()</span></tt>.  Muchos valores, como números o
+estructuras como listas y diccionarios, tienen la misma representación
+usando cualquiera de las dos funciones.  Las cadenas y los números de punto
+flotante, en particular, tienen dos representaciones distintas.</p>
+<p>Algunos ejemplos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s">&#39;Hola mundo.&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">&#39;Hola mundo.&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">&quot;&#39;Hola mundo.&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="go">&#39;0.1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="go">&#39;0.10000000000000001&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="mf">3.25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="mi">200</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s">&#39;El valor de x es &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, y es &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;...&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">s</span>
+<span class="go">El valor de x es 32.5, y es 40000...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># El repr() de una cadena agrega apóstrofos y barras invertidas</span>
+<span class="gp">... </span><span class="n">hola</span> <span class="o">=</span> <span class="s">&#39;hola mundo</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">holas</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">hola</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">holas</span>
+<span class="go">&#39;hola mundo\n&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># El argumento de repr() puede ser cualquier objeto Python:</span>
+<span class="gp">... </span><span class="nb">repr</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;carne&#39;</span><span class="p">,</span> <span class="s">&#39;huevos&#39;</span><span class="p">)))</span>
+<span class="go">&quot;(32.5, 40000, (&#39;carne&#39;, &#39;huevos&#39;))&quot;</span>
+</pre></div>
+</div>
+<p>Acá hay dos maneras de escribir una tabla de cuadrados y cubos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="c"># notar la coma al final de la linea anterior</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="nb">repr</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go"> 1   1    1</span>
+<span class="go"> 2   4    8</span>
+<span class="go"> 3   9   27</span>
+<span class="go"> 4  16   64</span>
+<span class="go"> 5  25  125</span>
+<span class="go"> 6  36  216</span>
+<span class="go"> 7  49  343</span>
+<span class="go"> 8  64  512</span>
+<span class="go"> 9  81  729</span>
+<span class="go">10 100 1000</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&#39;{0:2d} {1:3d} {2:4d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go"> 1   1    1</span>
+<span class="go"> 2   4    8</span>
+<span class="go"> 3   9   27</span>
+<span class="go"> 4  16   64</span>
+<span class="go"> 5  25  125</span>
+<span class="go"> 6  36  216</span>
+<span class="go"> 7  49  343</span>
+<span class="go"> 8  64  512</span>
+<span class="go"> 9  81  729</span>
+<span class="go">10 100 1000</span>
+</pre></div>
+</div>
+<p>(Notar que en el primer ejemplo, un espacio entre cada columna fue agregado por
+la manera en que <tt class="xref docutils literal"><span class="pre">print</span></tt> trabaja: siempre agrega espacios entre sus
+argumentos)</p>
+<p>Este ejemplo muestra el método <tt class="xref docutils literal"><span class="pre">rjust()</span></tt> de los objetos cadena, el cual
+ordena una cadena a la derecha en un campo del ancho dado llenándolo con
+espacios a la izquierda.  Hay métodos similares <tt class="xref docutils literal"><span class="pre">ljust()</span></tt> y <tt class="xref docutils literal"><span class="pre">center()</span></tt>.
+Estos métodos no escriben nada, sólo devuelven una nueva cadena.  Si la cadena
+de entrada es demasiado larga, no la truncan, sino la devuelven intacta; esto
+te romperá la alineación de tus columnas pero es normalmente mejor que la
+alternativa, que te estaría mintiendo sobre el valor.  (Si realmente querés que
+se recorte, siempre podés agregarle una operación de rebanado, como en
+<tt class="docutils literal"><span class="pre">x.ljust(n)[:n]</span></tt>.)</p>
+<p>Hay otro método, <tt class="xref docutils literal"><span class="pre">zfill()</span></tt>, el cual rellena una cadena numérica a la
+izquierda con ceros. Entiende signos positivos y negativos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;12&#39;</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">&#39;00012&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;-3.14&#39;</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="go">&#39;-003.14&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;3.14159265359&#39;</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">&#39;3.14159265359&#39;</span>
+</pre></div>
+</div>
+<p>El uso básico del método <tt class="xref docutils literal"><span class="pre">str.format()</span></tt> es como esto:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;Somos los {0} quienes decimos &quot;{1}!&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;caballeros&#39;</span><span class="p">,</span> <span class="s">&#39;Nop&#39;</span><span class="p">)</span>
+<span class="go">Somos los caballeros quienes decimos &quot;Nop!&quot;</span>
+</pre></div>
+</div>
+<p>Las llaves y caracteres dentro de las mismas (llamados campos de formato) son
+reemplazadas con los objetos pasados en el método <tt class="xref docutils literal"><span class="pre">str.format()</span></tt>.  El
+número en las llaves se refiere a la posición del objeto pasado en el
+método.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;{0} y {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;carne&#39;</span><span class="p">,</span> <span class="s">&#39;huevos&#39;</span><span class="p">)</span>
+<span class="go">carne y huevos</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;{1} y {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;carne&#39;</span><span class="p">,</span> <span class="s">&#39;huevos&#39;</span><span class="p">)</span>
+<span class="go">huevos y carne</span>
+</pre></div>
+</div>
+<p>Si se usan argumentos nombrados en el método <tt class="xref docutils literal"><span class="pre">str.format()</span></tt>, sus valores
+serán referidos usando el nombre del argumento.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;Esta {comida} es {adjetivo}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="gp">... </span>      <span class="n">comida</span><span class="o">=</span><span class="s">&#39;carne&#39;</span><span class="p">,</span> <span class="n">adjetivo</span><span class="o">=</span><span class="s">&#39;espantosa&#39;</span><span class="p">)</span>
+<span class="go">Esta carne es espantosa.</span>
+</pre></div>
+</div>
+<p>Se pueden combinar arbitrariamente argumentos posicionales y nombrados:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;La historia de {0}, {1}, y {otro}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;Bill&#39;</span><span class="p">,</span> <span class="s">&#39;Manfred&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                                                  <span class="n">otro</span><span class="o">=</span><span class="s">&#39;Georg&#39;</span><span class="p">)</span>
+<span class="go">La historia de Bill, Manfred, y Georg.</span>
+</pre></div>
+</div>
+<p>Un <tt class="docutils literal"><span class="pre">':</span></tt> y especificador de formato opcionales pueden ir luego del nombre del
+campo.  Esto aumenta el control sobre cómo el valor es formateado.  El
+siguiente ejemplo trunca Pi a tres lugares luego del punto decimal.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;El valor de PI es aproximadamente {0:.3f}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+<span class="go">El valor de PI es aproximadamente 3.142.</span>
+</pre></div>
+</div>
+<p>Pasando un entero luego del <tt class="docutils literal"><span class="pre">':'</span></tt> causará que que el campo sea de un mínimo
+número de caracteres de ancho.  Esto es útil para hacer tablas lindas.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tabla</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Sjoerd&#39;</span><span class="p">:</span> <span class="mi">4127</span><span class="p">,</span> <span class="s">&#39;Jack&#39;</span><span class="p">:</span> <span class="mi">4098</span><span class="p">,</span> <span class="s">&#39;Dcab&#39;</span><span class="p">:</span> <span class="mi">7678</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">nombre</span><span class="p">,</span> <span class="n">telefono</span> <span class="ow">in</span> <span class="n">tabla</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&#39;{0:10} ==&gt; {1:10d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nombre</span><span class="p">,</span> <span class="n">telefono</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">Dcab       ==&gt;       7678</span>
+<span class="go">Jack       ==&gt;       4098</span>
+<span class="go">Sjoerd     ==&gt;       4127</span>
+</pre></div>
+</div>
+<p>Si tenés una cadena de formateo realmente larga que no querés separar, podría
+ser bueno que puedas hacer referencia a las variables a ser formateadas por el
+nombre en vez de la posición.  Esto puede hacerse simplemente pasando el
+diccionario y usando corchetes <tt class="docutils literal"><span class="pre">'[]'</span></tt> para acceder a las claves</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tabla</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Sjoerd&#39;</span><span class="p">:</span> <span class="mi">4127</span><span class="p">,</span> <span class="s">&#39;Jack&#39;</span><span class="p">:</span> <span class="mi">4098</span><span class="p">,</span> <span class="s">&#39;Dcab&#39;</span><span class="p">:</span> <span class="mi">8637678</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="s">&#39;Jack: {0[Jack]:d}; Sjoerd: {0[Sjoerd]:d}; &#39;</span>
+<span class="gp">... </span>       <span class="s">&#39;Dcab: {0[Dcab]:d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tabla</span><span class="p">))</span>
+<span class="go">Jack: 4098; Sjoerd: 4127; Dcab: 8637678</span>
+</pre></div>
+</div>
+<p>Esto se podría también hacer pasando la tabla como argumentos nombrados con la
+notación &#8216;**&#8217;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tabla</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Sjoerd&#39;</span><span class="p">:</span> <span class="mi">4127</span><span class="p">,</span> <span class="s">&#39;Jack&#39;</span><span class="p">:</span> <span class="mi">4098</span><span class="p">,</span> <span class="s">&#39;Dcab&#39;</span><span class="p">:</span> <span class="mi">8637678</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;Jack: {Jack:d}; Sjoerd: {Sjoerd:d}; Dcab: {Dcab:d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">tabla</span><span class="p">)</span>
+<span class="go">Jack: 4098; Sjoerd: 4127; Dcab: 8637678</span>
+</pre></div>
+</div>
+<p>Esto es particularmente útil en combinación con la nueva función integrada
+<tt class="xref docutils literal"><span class="pre">vars()</span></tt>, que devuelve un diccionario conteniendo todas las variables
+locales.</p>
+<p>Para una completa descripción del formateo de cadenas con <tt class="xref docutils literal"><span class="pre">str.format()</span></tt>,
+mirá en <em class="xref">formatstrings</em>.</p>
+<div class="section" id="viejo-formateo-de-cadenas">
+<h3>8.1.1. Viejo formateo de cadenas<a class="headerlink" href="#viejo-formateo-de-cadenas" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>El operador <tt class="docutils literal"><span class="pre">%</span></tt> también puede usarse para formateo de cadenas.  Interpreta el
+argumento de la izquierda con el estilo de formateo de <tt class="xref docutils literal"><span class="pre">sprintf()</span></tt> para
+ser aplicado al argumento de la derecha, y devuelve la cadena resultante de
+esta operación de formateo.  Por ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&#39;El valor de PI es aproximadamente </span><span class="si">%5.3f</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="go">El valor de PI es aproximadamente 3.142.</span>
+</pre></div>
+</div>
+<p>Ya que <tt class="xref docutils literal"><span class="pre">str.format()</span></tt> es bastante nuevo, un montón de código Python todavía
+usa el operador <tt class="docutils literal"><span class="pre">%</span></tt>.  Sin embargo, ya que este viejo estilo de formateo será
+eventualmente eliminado del lenguaje, en general debería usarse
+<tt class="xref docutils literal"><span class="pre">str.format()</span></tt>.</p>
+<p>Podés encontrar más información en la sección <em class="xref">string-formatting</em>.</p>
+</div>
+</div>
+<div class="section" id="leyendo-y-escribiendo-archivos">
+<span id="tut-files"></span><h2>8.2. Leyendo y escribiendo archivos<a class="headerlink" href="#leyendo-y-escribiendo-archivos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p id="index-65">La función <tt class="xref docutils literal"><span class="pre">open()</span></tt> devuelve un objeto archivo, y es normalmente usado con
+dos argumentos: <tt class="docutils literal"><span class="pre">open(nombre_de_archivo,</span> <span class="pre">modo)</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/workfile&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">f</span>
+<span class="go">&lt;open file &#39;/tmp/workfile&#39;, mode &#39;w&#39; at 80a0960&gt;</span>
+</pre></div>
+</div>
+<p>El primer argumento es una cadena conteniendo el nombre de archivo.  El segundo
+argumento es otra cadena conteniendo unos pocos caracteres que describen la
+forma en que el archivo será usado.  El <em>modo</em> puede ser <tt class="docutils literal"><span class="pre">'r'</span></tt> cuando el
+archivo será solamente leído, <tt class="docutils literal"><span class="pre">'w'</span></tt> para sólo escribirlo (un archivo
+existente con el mismo nombre será borrado), y <tt class="docutils literal"><span class="pre">'a'</span></tt> abre el archivo para
+agregarle información; cualquier dato escrito al archivo será automáticamente
+agregado al final. <tt class="docutils literal"><span class="pre">'r+'</span></tt> abre el archivo tanto para leerlo como para
+escribirlo.  El argumento <em>modo</em> es opcional; si se omite se asume <tt class="docutils literal"><span class="pre">'r'</span></tt>.</p>
+<p>En Windows, agregando <tt class="docutils literal"><span class="pre">'b'</span></tt> al modo abre al archivo en modo binario,
+por lo que también hay modos como <tt class="docutils literal"><span class="pre">'rb'</span></tt>, <tt class="docutils literal"><span class="pre">'wb'</span></tt>, y <tt class="docutils literal"><span class="pre">'r+b'</span></tt>.
+Windows hace una distinción entre archivos binarios y de texto; los caracteres
+de fin de linea en los archivos de texto son automáticamente alterados
+levemente cuando los datos son leídos o escritos.  Esta modificación en
+bambalinas para guardar datos está bien con archivos de texto ASCII, pero
+corromperá datos binarios como en archivos <tt class="docutils literal"><span class="pre">JPEG</span></tt> o <tt class="docutils literal"><span class="pre">EXE</span></tt>.  Sé muy
+cuidadoso en usar el modo binario al leer y escribir tales archivos.  En Unix,
+no hay problema en agregarle una <tt class="docutils literal"><span class="pre">'b'</span></tt> al modo, por lo que podés usarlo
+independientemente de la plataforma para todos los archivos binarios.</p>
+<div class="section" id="metodos-de-los-objetos-archivo">
+<span id="tut-filemethods"></span><h3>8.2.1. Métodos de los objetos Archivo<a class="headerlink" href="#metodos-de-los-objetos-archivo" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>El resto de los ejemplos en esta sección asumirán que ya se creó un objeto
+archivo llamado <tt class="docutils literal"><span class="pre">f</span></tt>.</p>
+<p>Para leer el contenido de una archivo llamá a <tt class="docutils literal"><span class="pre">f.read(cantidad)</span></tt>, el cual lee
+alguna cantidad de datos y los devuelve como una cadena.  <em>cantidad</em> es un
+argumento numérico opcional.  Cuando se omite <em>cantidad</em> o es negativo, el
+contenido entero del archivo será leido y devuelto; es tu problema si el
+archivo es el doble de grande que la memoria de tu máquina.  De otra manera,
+a lo sumo una <em>cantidad</em> de bytes son leídos y devueltos.  Si se alcanzó el
+fin del archivo, <tt class="docutils literal"><span class="pre">f.read()</span></tt> devolverá una cadena vacía (<tt class="docutils literal"><span class="pre">&quot;&quot;</span></tt>).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="go">&#39;Este es el archivo entero.\n&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="go">&#39;&#39;</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">f.readline()</span></tt> lee una sola linea del archivo; el caracter de fin de linea
+(<tt class="docutils literal"><span class="pre">\n</span></tt>) se deja al final de la cadena, y sólo se omite en la última linea del
+archivo si el mismo no termina en un fin de linea.  Esto hace que el valor de
+retorno no sea ambiguo; si <tt class="docutils literal"><span class="pre">f.readline()</span></tt> devuelve una cadena vacía, es que
+se alcanzó el fin del archivo, mientras que una linea en blanco es representada
+por <tt class="docutils literal"><span class="pre">'\n'</span></tt>, una cadena conteniendo sólo un único fin de linea.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+<span class="go">&#39;Esta es la primer linea del archivo.\n&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+<span class="go">&#39;Segunda linea del archivo\n&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+<span class="go">&#39;&#39;</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">f.readlines()</span></tt> devuelve una lista conteniendo todos las lineas de datos en
+el archivo.  Si se da un parámetro opcional <em>size</em>, lee esa cantidad de
+bytes del archivo y lo suficientemente más como para completar una linea, y
+devuelve las lineas de eso.  Esto se usa frecuentemente para permitir una
+lectura por lineas de forma eficiente en archivos grandes, sin tener que cargar
+el archivo entero en memoria.  Sólo lineas completas serán devueltas.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="go">[&#39;Esta es la primer linea del archivo.\n&#39;, &#39;Segunda linea del archivo\n&#39;]</span>
+</pre></div>
+</div>
+<p>Una forma alternativa a leer lineas es iterar sobre el objeto archivo.  Esto es
+eficiente en memoria, rápido, y conduce a un código más simple:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">linea</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">linea</span><span class="p">,</span>
+
+<span class="go">Esta es la primer linea del archivo</span>
+<span class="go">Segunda linea del archivo</span>
+</pre></div>
+</div>
+<p>El enfoque alternativo es mucho más simple pero no permite un control fino.
+Como los dos enfoques manejan diferente el buffer de lineas, no deberían
+mezclarse.</p>
+<p><tt class="docutils literal"><span class="pre">f.write(cadena)</span></tt> escribe el contenido de la <em>cadena</em> al archivo, devolviendo
+<tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Esto es una prueba</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Para escribir algo más que una cadena, necesita convertirse primero a una
+cadena:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">valor</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;la respuesta&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">valor</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">f.tell()</span></tt> devuelve un entero que indica la posición actual en el archivo,
+medida en bytes desde el comienzo del archivo.  Para cambiar la posición usá
+<tt class="docutils literal"><span class="pre">f.seek(desplazamiento,</span> <span class="pre">desde_donde)</span></tt>.  La posición es calculada agregando
+el <em>desplazamiento</em> a un punto de referencia; el punto de referencia se
+selecciona del argumento <em>desde_donde</em>.  Un valor <em>desde_donde</em> de 0 mide desde
+el comienzo del archivo, 1 usa la posición actual del archivo, y 2 usa el fin
+del archivo como punto de referencia.  <em>desde_donde</em> puede omitirse, el default
+es 0, usando el comienzo del archivo como punto de referencia.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/archivodetrabajo&#39;</span><span class="p">,</span> <span class="s">&#39;r+&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>     <span class="c"># Va al sexto byte en el archivo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">&#39;5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c"># Va al tercer byte antes del final</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">&#39;d&#39;</span>
+</pre></div>
+</div>
+<p>Cuando hayas terminado con un archivo, llamá a <tt class="docutils literal"><span class="pre">f.close()</span></tt> para cerrarlo
+y liberar cualquier recurso del sistema tomado por el archivo abierto.  Luego
+de llamar <tt class="docutils literal"><span class="pre">f.close()</span></tt>, los intentos de usar el objeto archivo fallarán
+automáticamente.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n-Identifier">?</span>
+<span class="nc">ValueError</span>: <span class="n-Identifier">I/O operation on closed file</span>
+</pre></div>
+</div>
+<p>Es una buena práctica usar la declaración <tt class="xref docutils literal"><span class="pre">with</span></tt> cuando manejamos
+objetos archivo.  Tiene la ventaja que el archivo es cerrado apropiadamente
+luego de que el bloque termina, incluso si se generó una excepción.  También
+es mucho más corto que escribir los equivalentes bloques
+<tt class="xref docutils literal"><span class="pre">try</span></tt>-<tt class="xref docutils literal"><span class="pre">finally</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/workfile&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">read_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">closed</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Los objetos archivo tienen algunos métodos más, como <tt class="xref docutils literal"><span class="pre">isatty()</span></tt> y
+<tt class="xref docutils literal"><span class="pre">truncate()</span></tt> que son usados menos frecuentemente; consultá la
+Referencia de la Biblioteca para una guía completa sobre los objetos
+archivo.</p>
+</div>
+<div class="section" id="el-modulo-pickle">
+<span id="tut-pickle"></span><h3>8.2.2. El módulo <tt class="xref docutils literal"><span class="pre">pickle</span></tt><a class="headerlink" href="#el-modulo-pickle" title="Enlazar permanentemente con este título">¶</a></h3>
+<p id="index-66">Las cadenas pueden facilmente escribirse y leerse de un archivo.  Los números
+toman algo más de esfuerzo, ya que el método <tt class="xref docutils literal"><span class="pre">read()</span></tt> sólo devuelve
+cadenas, que tendrán que ser pasadas a una función como <tt class="xref docutils literal"><span class="pre">int()</span></tt>, que toma
+una cadena como <tt class="docutils literal"><span class="pre">'123'</span></tt> y devuelve su valor numérico 123.  Sin embargo,
+cuando querés grabar tipos de datos más complejos como listas, diccionarios, o
+instancias de clases, las cosas se ponen más complicadas.</p>
+<p>En lugar de tener a los usuarios constantemente escribiendo y debugueando
+código para grabar tipos de datos complicados, Python provee un módulo estándar
+llamado <tt class="xref docutils literal"><span class="pre">pickle</span></tt>.  Este es un asombroso módulo que puede tomar casi
+cualquier objeto Python (¡incluso algunas formas de código Python!), y
+convertirlo a una representación de cadena; este proceso se llama
+<em>picklear</em>.  Reconstruir los objetos desde la representación en cadena
+se llama <em>despicklear</em>.  Entre que se picklea y se despicklea, la
+cadena que representa al objeto puede almacenarse en un archivo, o enviarse
+a una máquina distante por una conexión de red.</p>
+<p>Si tenés un objeto <tt class="docutils literal"><span class="pre">x</span></tt>, y un objeto archivo <tt class="docutils literal"><span class="pre">f</span></tt> que fue abierto para
+escritura, la manera más simple de picklear el objeto toma una sola linea
+de código:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Para despicklear el objeto, si <tt class="docutils literal"><span class="pre">f</span></tt> es un objeto archivo que fue
+abierto para lectura:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">x</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(Hay otras variantes de esto, usadas al picklear muchos objetos o cuando no
+querés escribir los datos pickleados a un archivo; consultá la documentación
+completa para <tt class="xref docutils literal"><span class="pre">pickle</span></tt> en la Referencia de la Biblioteca de Python.)</p>
+<p><tt class="xref docutils literal"><span class="pre">pickle</span></tt> es la manera estándar de hacer que los objetos Python puedan
+almacenarse y reusarse por otros programas o por una futura invocación al mismo
+programa; el término técnico de esto es un objeto <em>persistente</em>.  Ya que
+<tt class="xref docutils literal"><span class="pre">pickle</span></tt> es tan ampliamente usado, muchos autores que escriben extensiones
+de Python toman el cuidado de asegurarse que los nuevos tipos de datos, como
+matrices, puedan ser adecuadamente pickleados y despickleados.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">8. Entrada y salida</a><ul>
+<li><a class="reference external" href="#formateo-elegante-de-la-salida">8.1. Formateo elegante de la salida</a><ul>
+<li><a class="reference external" href="#viejo-formateo-de-cadenas">8.1.1. Viejo formateo de cadenas</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#leyendo-y-escribiendo-archivos">8.2. Leyendo y escribiendo archivos</a><ul>
+<li><a class="reference external" href="#metodos-de-los-objetos-archivo">8.2.1. Métodos de los objetos Archivo</a></li>
+<li><a class="reference external" href="#el-modulo-pickle">8.2.2. El módulo <tt class="docutils literal"><span class="pre">pickle</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="modules.html"
+                                  title="Capítulo anterior">7. Módulos</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="errors.html"
+                                  title="Próximo capítulo">9. Errores y excepciones</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/inputoutput.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="errors.html" title="9. Errores y excepciones"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="7. Módulos"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

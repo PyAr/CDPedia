@@ -20,6 +20,7 @@ import threading
 import time
 import urllib   # .quote, .unquote
 import urllib2  # .urlparse
+from mimetypes import guess_type
 
 
 __version__ = "0.1.1.1.1.1"
@@ -130,7 +131,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         tipo, data = self.getfile(self.path)
         if data is not None:
             self.send_response(200)
-            #self.send_header("Content-type", tipo)
+            if tipo is not None:
+                self.send_header("Content-type", tipo)
             self.send_header("Content-Length", len(data))
             if tipo != "text/html":
                 expiry = self.date_time_string(time.time() + 86400)
@@ -243,11 +245,20 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente
-        if arranque in ("images", "raw", "skins", "misc", "extern"):
+        if arranque in config.ASSETS + ["images",  "extern", "tutorial"]:
             asset_file = os.path.join(config.DIR_ASSETS, path)
-            if os.path.exists(asset_file):
+            if os.path.isdir(asset_file):
+                print "WARNING: ", repr(asset_file), "es un directorio"
+                return "", None
+            if os.path.exists(asset_file): 
                 asset_data = open(asset_file, "rb").read()
-                return "image/%s"%path[-3:], asset_data
+
+                # los fuentes del tutorial (rest) son archivos de texto plano
+                # encodeados en utf-8
+                if "tutorial/_sources" in asset_file:
+                    return "text/plain ;charset=utf-8", asset_data
+
+                return guess_type(path)[0], asset_data
             else:
                 print "WARNING: no pudimos encontrar", repr(asset_file)
                 return "", ""

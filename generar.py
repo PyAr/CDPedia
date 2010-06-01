@@ -9,6 +9,11 @@ import glob
 import optparse
 import cPickle
 
+#Para poder hacer generar.py > log.txt
+if sys.stdout.encoding is None:
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+
 import config
 from src.preproceso import preprocesar
 from src.armado import compresor
@@ -58,6 +63,10 @@ def copiarAssets(src_info, dest):
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
 
+    # el tutorial de python
+    src_dir = "resources/tutorial"
+    dst_dir = path.join(dest, "tutorial")
+    copy_dir(src_dir, dst_dir)
 
 def copiarAutorun():
     src_dir = "resources/autorun.win/cdroot"
@@ -105,6 +114,7 @@ def genera_run_config():
     f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('DIR_INDICE = "indice"\n')
+    f.write('INDEX = "%s"' % config.INDEX)
     f.close()
 
 def preparaTemporal():

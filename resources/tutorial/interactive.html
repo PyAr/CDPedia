@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>14. Edición de entrada interactiva y sustitución de historial &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="15. Aritmética de Punto Flotante: Problemas y Limitaciones" href="floatingpoint.html" />
+    <link rel="prev" title="13. ¿Y ahora qué?" href="whatnow.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="floatingpoint.html" title="15. Aritmética de Punto Flotante: Problemas y Limitaciones"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="whatnow.html" title="13. ¿Y ahora qué?"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="edicion-de-entrada-interactiva-y-sustitucion-de-historial">
+<span id="tut-interacting"></span><h1>14. Edición de entrada interactiva y sustitución de historial<a class="headerlink" href="#edicion-de-entrada-interactiva-y-sustitucion-de-historial" title="Enlazar permanentemente con este título">¶</a></h1>
+<p>Algunas versiones del intérprete de Python permiten editar la línea de entrada
+actual, y sustituir en base al historial, de forma similar a las capacidades
+del intérprete de comandos Korn y el GNU bash.  Esto se implementa con la
+biblioteca <a class="reference external" href="http://tiswww.case.edu/php/chet/readline/rltop.html">GNU Readline</a>, que soporta edición al estilo de Emacs y al estilo
+de vi.  Esta biblioteca tiene su propia documentación que no duplicaré aquí;
+pero la funcionalidad básica es fácil de explicar.  La edición interactiva y
+el historial aquí descriptos están disponibles como opcionales en las versiones
+para Unix y Cygwin del intérprete.</p>
+<p>Este capítulo <em>no</em> documenta las capacidades de edición del paquete PythonWin
+de Mark Hammond, ni del entorno IDLE basado en Tk que se distribuye con Python.
+El historial de línea de comandos que funciona en pantallas de DOS en NT y
+algunas otras variantes de DOS y Windows es también una criatura diferente.</p>
+<div class="section" id="edicion-de-linea">
+<span id="tut-lineediting"></span><h2>14.1. Edición de línea<a class="headerlink" href="#edicion-de-linea" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>De estar soportada, la edición de línea de entrada se activa en cuanto el
+intérprete muestra un símbolo de espera de ordenes (<em>prompt</em>) primario o
+secundario.  La línea activa puede editarse usando los caracteres de control
+convencionales de Emacs.  De estos, los más importantes son:
+<tt class="docutils literal"><span class="pre">C-A</span></tt> (Ctrl-A) mueve el cursor al comienzo de la línea, <tt class="docutils literal"><span class="pre">C-E</span></tt>
+al final, <tt class="docutils literal"><span class="pre">C-B</span></tt> lo mueve una posición a la izquierda, <tt class="docutils literal"><span class="pre">C-F</span></tt> a la
+derecha.  La tecla de retroceso (backspace) borra el caracter a la izquierda
+del cursor, <tt class="docutils literal"><span class="pre">C-D</span></tt> el caracter a su derecha. <tt class="docutils literal"><span class="pre">C-K</span></tt> corta el resto de
+la línea a la derecha del cursor, <tt class="docutils literal"><span class="pre">C-Y</span></tt> pega de vuelta la última cadena
+cortada.  <tt class="docutils literal"><span class="pre">C-underscore</span></tt> deshace el último cambio hecho; puede repetirse
+para obtener un efecto acumulativo.</p>
+</div>
+<div class="section" id="sustitucion-de-historial">
+<span id="tut-history"></span><h2>14.2. Sustitución de historial<a class="headerlink" href="#sustitucion-de-historial" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>La sustitución de historial funciona de la siguiente manera: todas las líneas
+ingresadas y no vacías se almacenan en una memoria intermedia, y cuando se te
+pide una nueva línea, estás posicionado en una linea nueva al final de esta
+memoria. <tt class="docutils literal"><span class="pre">C-P</span></tt> se mueve una línea hacia arriba (es decir, hacia atrás) en
+el historial, <tt class="docutils literal"><span class="pre">C-N</span></tt> se mueve una línea hacia abajo.  Cualquier línea en el
+historial puede editarse; aparecerá un asterisco adelante del indicador de
+entrada para marcar una línea como editada.  Presionando la tecla <tt class="docutils literal"><span class="pre">Return</span></tt>
+(Intro) se pasa la línea activa al intérprete.  <tt class="docutils literal"><span class="pre">C-R</span></tt> inicia una búsqueda
+incremental hacia atrás, <tt class="docutils literal"><span class="pre">C-S</span></tt> inicia una búsqueda hacia adelante.</p>
+</div>
+<div class="section" id="atajos-de-teclado">
+<span id="tut-keybindings"></span><h2>14.3. Atajos de teclado<a class="headerlink" href="#atajos-de-teclado" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Los atajos de teclado y algunos otros parámetros de la biblioteca Readline se
+pueden personalizar poniendo comandos en un archivo de inicialización llamado
+<tt class="docutils literal"><span class="pre">~/.inputrc</span></tt>.  Los atajos de teclado tienen la forma</p>
+<div class="highlight-python"><pre>nombre-de-tecla: nombre-de-función</pre>
+</div>
+<p>...o</p>
+<div class="highlight-python"><pre>"cadena": nombre-de-función</pre>
+</div>
+<p>...y se pueden configurar opciones con</p>
+<div class="highlight-python"><pre>set nombre-opción valor</pre>
+</div>
+<p>Por ejemplo:</p>
+<div class="highlight-python"><pre># Prefiero edición al estilo vi:
+set editing-mode vi
+
+# Editar usando sólo un renglón:
+set horizontal-scroll-mode On
+
+# Reasociar algunas teclas:
+Meta-h: backward-kill-word
+"\C-u": universal-argument
+"\C-x\C-r": re-read-init-file</pre>
+</div>
+<p>Observa que la asociación por omisión para la tecla <tt class="docutils literal"><span class="pre">Tab</span></tt> en Python es
+insertar un caracter  <tt class="docutils literal"><span class="pre">Tab</span></tt> (tabulación horizontal) en vez de la función
+por defecto de Readline de completar nombres de archivo.  Si insistes, puedes
+redefinir esto poniendo</p>
+<div class="highlight-python"><pre>Tab: complete</pre>
+</div>
+<p>en tu <tt class="docutils literal"><span class="pre">~/.inputrc</span></tt>.  (Desde luego, esto hace más difícil escribir líneas
+de continuación indentadas si estás acostumbrado a usar <tt class="docutils literal"><span class="pre">Tab</span></tt> para tal
+propósito.)</p>
+<p id="index-67">Hay disponible opcionalmente completado automático de variables y nombres de
+módulos.  Para activarlo en el modo interactivo del intérprete, agregá lo
+siguiente a tu archivo de arranque: <a class="footnote-reference" href="#id2" id="id1">[1]</a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">rlcompleter</span><span class="o">,</span> <span class="nn">readline</span>
+<span class="n">readline</span><span class="o">.</span><span class="n">parse_and_bind</span><span class="p">(</span><span class="s">&#39;tab: complete&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Esto asocia la tecla <tt class="docutils literal"><span class="pre">Tab</span></tt> a la función de completado, con lo cual
+presionar la tecla <tt class="docutils literal"><span class="pre">Tab</span></tt> dos veces sugerirá valores para completar; se
+fija en nombres de instrucciones Python, las variables locales del momento, y
+los nombres de módulos disponibles.  Para expresiones con puntos como
+<tt class="docutils literal"><span class="pre">string.a</span></tt>, evaluará la expresión hasta el último <tt class="docutils literal"><span class="pre">'.'</span></tt> y luego sugerirá
+opciones a completar de los atributos de el objeto resultante.  Tené en cuenta
+que esto puede ejecutar código definido por la aplicación si un objeto con un
+método <tt class="xref docutils literal"><span class="pre">__getattr__()</span></tt> forma parte de la expresión.</p>
+<p>Un archivo de inicialización con más capacidades podría ser como este ejemplo.
+Observá que éste borra los nombres que crea una vez que no se necesitan más;
+esto se hace debido a que el archivo de inicialización se ejecuta en el mismo
+espacio de nombres que los comandos interactivos, y borrar los nombres evita
+que se produzcan efectos colaterales en el entorno interactivo.  Tal vez te
+resulte cómodo mantener algunos de los módulos importados, tales como
+<tt class="xref docutils literal"><span class="pre">os</span></tt>, que usualmente acaban siendo necesarios en la mayoría de las
+sesiones con el intérprete.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Añadir auto-completado y almacenamiento de archivo de histórico a tu</span>
+<span class="c"># intérprete de Python interactivo. Requiere Python 2.0+, y readline.</span>
+<span class="c"># El autocompletado esta ligado a la tecla Esc por defecto (puedes</span>
+<span class="c"># modificarlo - lee la documentación de readline).</span>
+<span class="c">#</span>
+<span class="c"># Guarda este archivo en ~/.pystartup, y configura una variable de inicio</span>
+<span class="c"># que lo apunte: en bash &quot;export PYTHONSTARTUP=/home/usuario/.pystartup&quot;.</span>
+<span class="c">#</span>
+<span class="c"># Tené en cuenta que PYTHONSTARTUP *no* expande &quot;~&quot;, así que debés poner</span>
+<span class="c"># la ruta completa a tu directorio personal.</span>
+
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">readline</span>
+<span class="kn">import</span> <span class="nn">rlcompleter</span>
+
+<span class="n">historyPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&quot;~/.pyhistory&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">save_history</span><span class="p">(</span><span class="n">historyPath</span><span class="o">=</span><span class="n">historyPath</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">readline</span>
+    <span class="n">readline</span><span class="o">.</span><span class="n">write_history_file</span><span class="p">(</span><span class="n">historyPath</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">historyPath</span><span class="p">):</span>
+    <span class="n">readline</span><span class="o">.</span><span class="n">read_history_file</span><span class="p">(</span><span class="n">historyPath</span><span class="p">)</span>
+
+<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">save_history</span><span class="p">)</span>
+<span class="k">del</span> <span class="n">os</span><span class="p">,</span> <span class="n">atexit</span><span class="p">,</span> <span class="n">readline</span><span class="p">,</span> <span class="n">rlcompleter</span><span class="p">,</span> <span class="n">save_history</span><span class="p">,</span> <span class="n">historyPath</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="alternativas-al-interprete-interactivo">
+<span id="tut-commentary"></span><h2>14.4. Alternativas al intérprete interactivo<a class="headerlink" href="#alternativas-al-interprete-interactivo" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Esta funcionalidad es un paso enorme hacia adelante comparado con versiones
+anteriores del interprete; de todos modos, quedan pendientes algunos deseos:
+sería bueno que el sangrado correcto se sugiriera en las lineas de
+continuación (el parser sabe si se requiere un sangrado a continuación).
+El mecanismo de completado podría usar la tabla de símbolos del intérprete.
+Un comando para verificar (o incluso sugerir) coincidencia de paréntesis,
+comillas, etc. también sería útil.</p>
+<p>Un intérprete interactivo mejorado alternativo que está dando vueltas desde
+hace rato es <a class="reference external" href="http://ipython.scipy.org/">IPython</a>, que ofrece completado por tab, exploración de
+objetos, y administración avanzada del historial.  También puede ser
+configurado en profundidad, e integrarse en otras aplicaciones.  Otro
+entorno interactivo mejorado similar es <a class="reference external" href="http://www.bpython-interpreter.org/">bpython</a>.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Python ejecutará el contenido de un archivo indicado por la variable de
+entorno <span class="target" id="index-68"></span><strong class="xref">PYTHONSTARTUP</strong> cuando inicies un intérprete interactivo.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">14. Edición de entrada interactiva y sustitución de historial</a><ul>
+<li><a class="reference external" href="#edicion-de-linea">14.1. Edición de línea</a></li>
+<li><a class="reference external" href="#sustitucion-de-historial">14.2. Sustitución de historial</a></li>
+<li><a class="reference external" href="#atajos-de-teclado">14.3. Atajos de teclado</a></li>
+<li><a class="reference external" href="#alternativas-al-interprete-interactivo">14.4. Alternativas al intérprete interactivo</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="whatnow.html"
+                                  title="Capítulo anterior">13. ¿Y ahora qué?</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="floatingpoint.html"
+                                  title="Próximo capítulo">15. Aritmética de Punto Flotante: Problemas y Limitaciones</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/interactive.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="floatingpoint.html" title="15. Aritmética de Punto Flotante: Problemas y Limitaciones"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="whatnow.html" title="13. ¿Y ahora qué?"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

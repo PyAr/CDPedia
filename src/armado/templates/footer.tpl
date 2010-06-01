@@ -68,7 +68,14 @@
             <a href="http://wikimediafoundation.org/"><img src="../../../misc/wikimedia-button.png" border="0" alt="Wikimedia Foundation"/></a>
         </div>
         <div id="f-poweredbyico">
-            <a href="http://www.python.org.ar/"><img src="../../../extern/pyar-logo-chico.png" alt="Powered by PyAr" /></a>
+            <ul id="f-pyar">
+                <li>
+                    <a href="http://www.python.org.ar/"><img src="../../../extern/pyar-logo-chico.png" alt="Powered by PyAr" /></a>
+                </li>
+                <li>
+                    <a href="/tutorial/index.html">Aprendé Python! Acá tenés el tutorial</a>
+                </li>
+            </ul>
         </div>
 
         <table>

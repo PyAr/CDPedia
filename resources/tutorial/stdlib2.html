@@ -1,0 +1,488 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>12. Pequeño paseo por la Biblioteca Estándar - Parte II &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="13. ¿Y ahora qué?" href="whatnow.html" />
+    <link rel="prev" title="11. Pequeño paseo por la Biblioteca Estándar" href="stdlib.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="whatnow.html" title="13. ¿Y ahora qué?"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="stdlib.html" title="11. Pequeño paseo por la Biblioteca Estándar"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pequeno-paseo-por-la-biblioteca-estandar-parte-ii">
+<span id="tut-brieftourtwo"></span><h1>12. Pequeño paseo por la Biblioteca Estándar - Parte II<a class="headerlink" href="#pequeno-paseo-por-la-biblioteca-estandar-parte-ii" title="Enlazar permanentemente con este título">¶</a></h1>
+<p>Este segundo paseo cubre módulos más avanzados que facilitan necesidades
+de programación complejas.  Estos módulos raramente se usan en scripts cortos.</p>
+<div class="section" id="formato-de-salida">
+<span id="tut-output-formatting"></span><h2>12.1. Formato de salida<a class="headerlink" href="#formato-de-salida" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">repr</span></tt> provee una versión de <tt class="xref docutils literal"><span class="pre">repr()</span></tt> ajustada para
+mostrar contenedores grandes o profundamente anidados, en forma abreviada:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">repr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="o">.</span><span class="n">repr</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="s">&#39;supercalifragilisticoespialidoso&#39;</span><span class="p">))</span>
+<span class="go">&quot;set([&#39;a&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, ...])&quot;</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">pprint</span></tt> ofrece un control más sofisticado de la forma
+en que se imprimen tanto los objetos predefinidos como los objetos
+definidos por el usuario, de manera que sean legibles por el intérprete.
+Cuando el resultado ocupa más de una línea, el generador de
+&#8220;impresiones lindas&#8221; agrega saltos de línea y sangrías para mostrar
+la estructura de los datos más claramente:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pprint</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="p">[[[[</span><span class="s">&#39;negro&#39;</span><span class="p">,</span> <span class="s">&#39;turquesa&#39;</span><span class="p">],</span> <span class="s">&#39;blanco&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;verde&#39;</span><span class="p">,</span> <span class="s">&#39;rojo&#39;</span><span class="p">]],</span> <span class="p">[[</span><span class="s">&#39;magenta&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s">&#39;amarillo&#39;</span><span class="p">],</span> <span class="s">&#39;azul&#39;</span><span class="p">]]]</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="go">[[[[&#39;negro&#39;, &#39;turquesa&#39;],</span>
+<span class="go">   &#39;blanco&#39;,</span>
+<span class="go">   [&#39;verde&#39;, &#39;rojo&#39;]],</span>
+<span class="go">  [[&#39;magenta&#39;, &#39;amarillo&#39;],</span>
+<span class="go">   &#39;azul&#39;]]]</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">textwrap</span></tt> formatea párrafos de texto para que quepan
+dentro de cierto ancho de pantalla:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="s">u&quot;&quot;&quot;El método wrap() es como fill(), excepto que devuelve</span>
+<span class="gp">... </span><span class="s">una lista de strings en lugar de una gran string con saltos de</span>
+<span class="gp">... </span><span class="s">línea como separadores.&quot;&quot;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+<span class="go">El método wrap() es como fill(), excepto</span>
+<span class="go">que devuelve una lista de strings en</span>
+<span class="go">lugar de una gran string con saltos de</span>
+<span class="go">línea como separadores.</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">locale</span></tt> accede a una base de datos de formatos específicos
+a una cultura.  El atributo <a href="#id1"><span class="problematic" id="id2">:var:`grouping`</span></a> de la función <a href="#id3"><span class="problematic" id="id4">:function:`format`</span></a>
+permite una forma directa de formatear números con separadores de grupo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">locale</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locale</span><span class="o">.</span><span class="n">setlocale</span><span class="p">(</span><span class="n">locale</span><span class="o">.</span><span class="n">LC_ALL</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="go">&#39;Spanish_Argentina.1252&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conv</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">localeconv</span><span class="p">()</span>      <span class="c"># obtener un mapeo de convenciones</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="mf">1234567.8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locale</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%d</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">grouping</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">&#39;1.234.567&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locale</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s%.*f</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">conv</span><span class="p">[</span><span class="s">&#39;currency_symbol&#39;</span><span class="p">],</span>
+<span class="gp">... </span>              <span class="n">conv</span><span class="p">[</span><span class="s">&#39;frac_digits&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">),</span> <span class="n">grouping</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">&#39;$1.234.567,80&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plantillas">
+<span id="tut-templating"></span><h2>12.2. Plantillas<a class="headerlink" href="#plantillas" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">string</span></tt> incluye una clase versátil <tt class="xref docutils literal"><span class="pre">Template</span></tt>
+(plantilla) con una sintaxis simplificada apta para ser editada por usuarios
+finales.  Esto permite que los usuarios personalicen sus aplicaciones sin
+necesidad de modificar la aplicación en sí.</p>
+<p>El formato usa marcadores cuyos nombres se forman con <tt class="docutils literal"><span class="pre">$</span></tt> seguido de
+identificadores Python válidos (caracteres alfanuméricos y guión de subrayado).
+Si se los encierra entre llaves, pueden seguir más caracteres alfanuméricos
+sin necesidad de dejar espacios en blanco. <tt class="docutils literal"><span class="pre">$$</span></tt> genera un <tt class="docutils literal"><span class="pre">$</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">Template</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;${village}folk send $$10 to $cause.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">village</span><span class="o">=</span><span class="s">&#39;Nottingham&#39;</span><span class="p">,</span> <span class="n">cause</span><span class="o">=</span><span class="s">&#39;the ditch fund&#39;</span><span class="p">)</span>
+<span class="go">&#39;Nottinghamfolk send $10 to the ditch fund.&#39;</span>
+</pre></div>
+</div>
+<p>El método <tt class="xref docutils literal"><span class="pre">substitute()</span></tt> lanza <tt class="xref docutils literal"><span class="pre">KeyError</span></tt> cuando no se suministra
+ningún valor para un marcador mediante un diccionario o argumento por nombre.
+Para algunas aplicaciones los datos suministrados por el usuario puede ser
+incompletos, y el método <tt class="xref docutils literal"><span class="pre">safe_substitute()</span></tt> puede ser más apropiado: deja
+los marcadores inalterados cuando hay datos faltantes:</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; t = Template('Return the $item to $owner.')
+&gt;&gt;&gt; d = dict(item='unladen swallow')
+&gt;&gt;&gt; t.substitute(d)
+Traceback (most recent call last):
+  . . .
+KeyError: 'owner'
+&gt;&gt;&gt; t.safe_substitute(d)
+'Return the unladen swallow to $owner.'</pre>
+</div>
+<p>Las subclases de Template pueden especificar un delimitador propio.
+Por ejemplo, una utilidad de renombrado por lotes para un visualizador
+de fotos puede escoger usar signos de porcentaje para los marcadores
+tales como la fecha actual, el número de secuencia de la imagen,
+o el formato de archivo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">os.path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">photofiles</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;img_1074.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;img_1076.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;img_1077.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">BatchRename</span><span class="p">(</span><span class="n">Template</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">delimiter</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmt</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&#39;Enter rename style (</span><span class="si">%d</span><span class="s">-date %n-seqnum </span><span class="si">%f</span><span class="s">-format):  &#39;</span><span class="p">)</span>
+<span class="go">Enter rename style (%d-date %n-seqnum %f-format):  Ashley_%n%f</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">BatchRename</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">date</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">%b%y&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">photofiles</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">base</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">newname</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">date</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&#39;{0} --&gt; {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">img_1074.jpg --&gt; Ashley_0.jpg</span>
+<span class="go">img_1076.jpg --&gt; Ashley_1.jpg</span>
+<span class="go">img_1077.jpg --&gt; Ashley_2.jpg</span>
+</pre></div>
+</div>
+<p>Las plantillas también pueden ser usadas para separar la lógica del programa
+de los detalles de múltiples formatos de salida.  Esto permite sustituir
+plantillas específicas para archivos XML, reportes en texto plano,
+y reportes web en HTML.</p>
+</div>
+<div class="section" id="trabajar-con-registros-estructurados-conteniendo-datos-binarios">
+<span id="tut-binary-formats"></span><h2>12.3. Trabajar con registros estructurados conteniendo datos binarios<a class="headerlink" href="#trabajar-con-registros-estructurados-conteniendo-datos-binarios" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">struct</span></tt> provee las funciones <tt class="xref docutils literal"><span class="pre">pack()</span></tt> y <tt class="xref docutils literal"><span class="pre">unpack()</span></tt>
+para trabajar con formatos de registros binarios de longitud variable.
+El siguiente ejemplo muestra cómo recorrer la información de encabezado
+en un archivo ZIP sin usar el módulo <tt class="xref docutils literal"><span class="pre">zipfile</span></tt>.  Los códigos <tt class="docutils literal"><span class="pre">&quot;H&quot;</span></tt>
+e <tt class="docutils literal"><span class="pre">&quot;I&quot;</span></tt> representan números sin signo de dos y cuatro bytes
+respectivamente.  El <tt class="docutils literal"><span class="pre">&quot;&lt;&quot;</span></tt> indica que son de tamaño estándar y los
+bytes tienen ordenamiento <cite>little-endian</cite>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">struct</span>
+
+<span class="n">datos</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;miarchivo.zip&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">inicio</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>                     <span class="c"># mostrar los 3 primeros encabezados</span>
+    <span class="n">inicio</span> <span class="o">+=</span> <span class="mi">14</span>
+    <span class="n">campos</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;&lt;IIIHH&#39;</span><span class="p">,</span> <span class="n">datos</span><span class="p">[</span><span class="n">inicio</span><span class="p">:</span><span class="n">inicio</span><span class="o">+</span><span class="mi">16</span><span class="p">])</span>
+    <span class="n">crc32</span><span class="p">,</span> <span class="n">tam_comp</span><span class="p">,</span> <span class="n">tam_descomp</span><span class="p">,</span> <span class="n">tam_nomarch</span><span class="p">,</span> <span class="n">tam_extra</span> <span class="o">=</span> <span class="n">fields</span>
+
+    <span class="n">inicio</span> <span class="o">+=</span> <span class="mi">16</span>
+    <span class="n">nomarch</span> <span class="o">=</span> <span class="n">datos</span><span class="p">[</span><span class="n">inicio</span><span class="p">:</span><span class="n">inicio</span><span class="o">+</span><span class="n">tam_nomarch</span><span class="p">]</span>
+    <span class="n">inicio</span> <span class="o">+=</span> <span class="n">tam_nomarch</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="n">datos</span><span class="p">[</span><span class="n">inicio</span><span class="p">:</span><span class="n">inicio</span><span class="o">+</span><span class="n">tam_extra</span><span class="p">]</span>
+    <span class="k">print</span> <span class="n">nomarch</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="n">crc32</span><span class="p">),</span> <span class="n">tam_comp</span><span class="p">,</span> <span class="n">tam_descomp</span>
+
+    <span class="n">inicio</span> <span class="o">+=</span> <span class="n">tam_extra</span> <span class="o">+</span> <span class="n">tam_comp</span>     <span class="c"># saltear hasta el próximo encabezado</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="multi-hilos">
+<span id="tut-multi-threading"></span><h2>12.4. Multi-hilos<a class="headerlink" href="#multi-hilos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>La técnica de multi-hilos (o multi-threading) permite desacoplar tareas que no
+tienen dependencia secuencial.  Los hilos se pueden usar para mejorar el
+grado de reacción de las aplicaciones que aceptan entradas del usuario
+mientras otras tareas se ejecutan en segundo plano.  Un caso de uso
+relacionado es ejecutar E/S en paralelo con cálculos en otro hilo.</p>
+<p>El código siguiente muestra cómo el módulo de alto nivel <tt class="xref docutils literal"><span class="pre">threading</span></tt>
+puede ejecutar tareas en segundo plano mientras el programa principal continúa
+su ejecución:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">threading</span><span class="o">,</span> <span class="nn">zipfile</span>
+
+<span class="k">class</span> <span class="nc">AsyncZip</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arch_ent</span><span class="p">,</span> <span class="n">arch_sal</span><span class="p">):</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arch_ent</span> <span class="o">=</span> <span class="n">arch_ent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arch_sal</span> <span class="o">=</span> <span class="n">arch_sal</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arch_sal</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arch_ent</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">print</span> <span class="s">u&#39;Terminó zip en segundo plano de: &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arch_ent</span>
+
+<span class="n">seg_plano</span> <span class="o">=</span> <span class="n">AsyncZip</span><span class="p">(</span><span class="s">&#39;misdatos.txt&#39;</span><span class="p">,</span> <span class="s">&#39;miarchivo.zip&#39;</span><span class="p">)</span>
+<span class="n">seg_plano</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">u&#39;El programa principal continúa la ejecución en primer plano.&#39;</span>
+
+<span class="n">seg_plano</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>    <span class="c"># esperar que termine la tarea en segundo plano</span>
+<span class="k">print</span> <span class="s">u&#39;El programa principal esperó hasta que el segundo plano terminara.&#39;</span>
+</pre></div>
+</div>
+<p>El desafío principal de las aplicaciones multi-hilo es la coordinación entre
+los hilos que comparten datos u otros recursos.  A ese fin, el módulo threading
+provee una serie de primitivas de sincronización que incluyen locks, eventos,
+variables de condición, y semáforos.</p>
+<p>Aún cuando esas herramientas son poderosas, pequeños errores de diseño pueden
+resultar en problemas difíciles de reproducir.  La forma preferida de coordinar
+tareas es concentrar todos los accesos a un recurso en un único hilo y después
+usar el módulo <tt class="xref docutils literal"><span class="pre">Queue</span></tt> para alimentar dicho hilo con pedidos desde otros
+hilos.  Las aplicaciones que usan objetos <tt class="xref docutils literal"><span class="pre">Queue.Queue</span></tt> para
+comunicación y coordinación entre hilos son más fáciles de diseñar,
+más legibles, y más confiables.</p>
+</div>
+<div class="section" id="registrando">
+<span id="tut-logging"></span><h2>12.5. Registrando<a class="headerlink" href="#registrando" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">logging</span></tt> ofrece un sistema de registros (logs) completo y
+flexible.  En su forma más simple, los mensajes de registro se envían a un
+archivo o a <tt class="docutils literal"><span class="pre">sys.stderr</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">u&#39;Información de depuración&#39;</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">u&#39;Mensaje informativo&#39;</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">u&#39;Atención: archivo de configuración </span><span class="si">%s</span><span class="s"> no se encuentra&#39;</span><span class="p">,</span>
+                <span class="s">&#39;server.conf&#39;</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">u&#39;Ocurrió un error&#39;</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">u&#39;Error crítico -- cerrando&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Ésta es la salida obtenida:</p>
+<div class="highlight-python"><pre>WARNING:root:Atención: archivo de configuración server.conf no se encuentra
+ERROR:root:Ocurrió un error
+CRITICAL:root:Error crítico -- cerrando</pre>
+</div>
+<p>De forma predeterminada, los mensajes de depuración e informativos se suprimen,
+y la salida se envía al error estándar.  Otras opciones de salida incluyen
+mensajes de ruteo a través de correo electrónico, datagramas, sockets, o un
+servidor HTTP.  Nuevos filtros pueden seleccionar diferentes rutas basadas en
+la prioridad del mensaje: <tt class="xref docutils literal"><span class="pre">DEBUG</span></tt>, <tt class="xref docutils literal"><span class="pre">INFO</span></tt>,
+<tt class="xref docutils literal"><span class="pre">WARNING</span></tt>, <tt class="xref docutils literal"><span class="pre">ERROR</span></tt>, and <tt class="xref docutils literal"><span class="pre">CRITICAL</span></tt>
+(Depuración, Informativo, Atención, Error y Crítico respectivamente)</p>
+<p>El sistema de registro puede configurarse directamente desde Python
+o puede cargarse la configuración desde un archivo editable por el usuario
+para personalizar el registro sin alterar la aplicación.</p>
+</div>
+<div class="section" id="referencias-debiles">
+<span id="tut-weak-references"></span><h2>12.6. Referencias débiles<a class="headerlink" href="#referencias-debiles" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Python realiza administración de memoria automática (cuenta de referencias
+para la mayoría de los objetos, y <em class="xref">garbage collection</em> (recolección
+de basura) para eliminar ciclos).  La memoria se libera poco después de que
+la última referencia a la misma haya sido eliminada.</p>
+<p>Esta estrategia funciona bien para la mayoría de las aplicaciones, pero
+ocasionalmente aparece la necesidad de hacer un seguimiento de objetos sólo
+mientras están siendo usados por alguien más.  Desafortunadamente, el sólo
+hecho de seguirlos crea una referencia que los hace permanentes.</p>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">weakref</span></tt> provee herramientas para seguimiento de objetos que
+no crean una referencia.  Cuando el objeto no se necesita más, es eliminado
+automáticamente de una tabla de referencias débiles y se dispara una
+retrollamada (<cite>callback</cite>).  Comúnmente se usa para mantener una <cite>cache</cite> de
+objetos que son caros de crear:</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; import weakref, gc
+&gt;&gt;&gt; class A:
+...     def __init__(self, value):
+...             self.value = value
+...     def __repr__(self):
+...             return str(self.value)
+...
+&gt;&gt;&gt; a = A(10)                    # crear una referencia
+&gt;&gt;&gt; d = weakref.WeakValueDictionary()
+&gt;&gt;&gt; d['primaria'] = a            # no crea una referencia
+&gt;&gt;&gt; d['primaria']                # traer el objeto si aún está vivo
+10
+&gt;&gt;&gt; del a                        # eliminar la única referencia
+&gt;&gt;&gt; gc.collect()                 # recolección de basura justo ahora
+0
+&gt;&gt;&gt; d['primaria']                # la entrada fue automáticamente eliminada
+Traceback (most recent call last):
+  . . .
+KeyError: 'primaria'</pre>
+</div>
+</div>
+<div class="section" id="herramientas-para-trabajar-con-listas">
+<span id="tut-list-tools"></span><h2>12.7. Herramientas para trabajar con listas<a class="headerlink" href="#herramientas-para-trabajar-con-listas" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Muchas necesidades de estructuras de datos pueden ser satisfechas con el tipo
+integrado lista.  Sin embargo, a veces se hacen necesarias implementaciones
+alternativas con rendimientos distintos.</p>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">array</span></tt> provee un objeto <tt class="xref docutils literal"><span class="pre">array()</span></tt> (vector) que es como
+una lista que almacena sólo datos homogéneos y de una manera más compacta.  Los
+ejemplos a continuación muestran un vector de números guardados como dos
+números binarios sin signo de dos bytes (código de tipo <tt class="docutils literal"><span class="pre">&quot;H&quot;</span></tt>) en lugar de
+los 16 bytes por elemento habituales en listas de objetos int de Python:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">array</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;H&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">4000</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">22222</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">26932</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array(&#39;H&#39;, [10, 700])</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">collections</span></tt> provee un objeto <tt class="xref docutils literal"><span class="pre">deque()</span></tt> que es como una
+lista más rápida para agregar y quitar elementos por el lado izquierdo pero
+búsquedas más lentas por el medio.  Estos objetos son adecuados para implementar
+colas y árboles de búsqueda a lo ancho:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="s">&quot;tarea1&quot;</span><span class="p">,</span> <span class="s">&quot;tarea2&quot;</span><span class="p">,</span> <span class="s">&quot;tarea3&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;tarea4&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&quot;Realizando&quot;</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+<span class="go">Realizando tarea1</span>
+
+<span class="go">no_visitado = deque([nodo_inicial])</span>
+<span class="go">def busqueda_a_lo_ancho(no_visitado):</span>
+<span class="go">    nodo = no_visitado.popleft()</span>
+<span class="go">    for m in gen_moves(nodo):</span>
+<span class="go">        if is_goal(m):</span>
+<span class="go">            return m</span>
+<span class="go">        no_visitado.append(m)</span>
+</pre></div>
+</div>
+<p>Además de las implementaciones alternativas de listas, la biblioteca ofrece
+otras herramientas como el módulo <tt class="xref docutils literal"><span class="pre">bisect</span></tt> con funciones para manipular
+listas ordenadas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">bisect</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">puntajes</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">100</span><span class="p">,</span> <span class="s">&#39;perl&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#39;tcl&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&#39;lua&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&#39;python&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bisect</span><span class="o">.</span><span class="n">insort</span><span class="p">(</span><span class="n">puntajes</span><span class="p">,</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="s">&#39;ruby&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">puntajes</span>
+<span class="go">[(100, &#39;perl&#39;), (200, &#39;tcl&#39;), (300, &#39;ruby&#39;), (400, &#39;lua&#39;), (500, &#39;python&#39;)]</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">heapq</span></tt> provee funciones para implementar heaps basados en
+listas comunes.  El menor valor ingresado se mantiene en la posición cero.
+Esto es útil para aplicaciones que acceden a menudo al elemento más chico pero
+no quieren hacer un orden completo de la lista:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">heapify</span><span class="p">,</span> <span class="n">heappop</span><span class="p">,</span> <span class="n">heappush</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">heapify</span><span class="p">(</span><span class="n">datos</span><span class="p">)</span>                     <span class="c"># acomodamos la lista a orden de heap</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">heappush</span><span class="p">(</span><span class="n">datos</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">)</span>                <span class="c"># agregamos un elemento</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">heappop</span><span class="p">(</span><span class="n">datos</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span> <span class="c"># traemos los tres elementos menores</span>
+<span class="go">[-5, 0, 1]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="aritmetica-de-punto-flotante-decimal">
+<span id="tut-decimal-fp"></span><h2>12.8. Aritmética de punto flotante decimal<a class="headerlink" href="#aritmetica-de-punto-flotante-decimal" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">decimal</span></tt> provee un tipo de dato <tt class="xref docutils literal"><span class="pre">Decimal</span></tt> para soportar
+aritmética de punto flotante decimal.  Comparado con <tt class="xref docutils literal"><span class="pre">float</span></tt>, la
+implementación de punto flotante binario incluida, la clase es muy útil
+especialmente para:</p>
+<ul class="simple">
+<li>aplicaciones financieras y para cualquier uso que requiera una
+representación decimal exacta,</li>
+<li>control de la precisión,</li>
+<li>control del redondeo para satisfacer requerimientos legales o reglamentarios,</li>
+<li>seguimiento de cifras significativas,</li>
+<li>o para aplicaciones donde el usuario espera que los resultados coincidan
+con cálculos hechos a mano.</li>
+</ul>
+<p>Por ejemplo, calcular un impuesto del 5% de una tarifa telefónica de 70
+centavos da resultados distintos con punto flotante decimal y punto flotante
+binario. La diferencia se vuelve significativa si los resultados se redondean
+al centavo más próximo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;0.70&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;1.05&#39;</span><span class="p">)</span>
+<span class="go">Decimal(&#39;0.7350&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">.</span><span class="mi">70</span> <span class="o">*</span> <span class="mf">1.05</span>
+<span class="go">0.73499999999999999</span>
+</pre></div>
+</div>
+<p>El resultado con <tt class="xref docutils literal"><span class="pre">Decimal</span></tt> conserva un cero al final, calculando
+automáticamente cuatro cifras significativas a partir de los multiplicandos con
+dos cifras significativas.  Decimal reproduce la matemática como se la hace a
+mano, y evita problemas que pueden surgir cuando el punto flotante binario no
+puede representar exactamente cantidades decimales.</p>
+<p>La representación exacta permite a la clase <tt class="xref docutils literal"><span class="pre">Decimal</span></tt> hacer cálculos de
+modulo y pruebas de igualdad que son inadecuadas para punto flotante binario:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;1.00&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;.10&#39;</span><span class="p">)</span>
+<span class="go">Decimal(&#39;0.00&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mf">1.00</span> <span class="o">%</span> <span class="mf">0.10</span>
+<span class="go">0.09999999999999995</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">([</span><span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;0.1&#39;</span><span class="p">)]</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">&#39;1.0&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">([</span><span class="mf">0.1</span><span class="p">]</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mf">1.0</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>El módulo <tt class="xref docutils literal"><span class="pre">decimal</span></tt> provee aritmética con tanta precisión como
+haga falta:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="mi">36</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Decimal</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">Decimal</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="go">Decimal(&#39;0.142857142857142857142857142857142857&#39;)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">12. Pequeño paseo por la Biblioteca Estándar - Parte II</a><ul>
+<li><a class="reference external" href="#formato-de-salida">12.1. Formato de salida</a></li>
+<li><a class="reference external" href="#plantillas">12.2. Plantillas</a></li>
+<li><a class="reference external" href="#trabajar-con-registros-estructurados-conteniendo-datos-binarios">12.3. Trabajar con registros estructurados conteniendo datos binarios</a></li>
+<li><a class="reference external" href="#multi-hilos">12.4. Multi-hilos</a></li>
+<li><a class="reference external" href="#registrando">12.5. Registrando</a></li>
+<li><a class="reference external" href="#referencias-debiles">12.6. Referencias débiles</a></li>
+<li><a class="reference external" href="#herramientas-para-trabajar-con-listas">12.7. Herramientas para trabajar con listas</a></li>
+<li><a class="reference external" href="#aritmetica-de-punto-flotante-decimal">12.8. Aritmética de punto flotante decimal</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="stdlib.html"
+                                  title="Capítulo anterior">11. Pequeño paseo por la Biblioteca Estándar</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="whatnow.html"
+                                  title="Próximo capítulo">13. ¿Y ahora qué?</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/stdlib2.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="whatnow.html" title="13. ¿Y ahora qué?"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="stdlib.html" title="11. Pequeño paseo por la Biblioteca Estándar"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>7. Módulos &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="8. Entrada y salida" href="inputoutput.html" />
+    <link rel="prev" title="6. Estructuras de datos" href="datastructures.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="inputoutput.html" title="8. Entrada y salida"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="datastructures.html" title="6. Estructuras de datos"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="modulos">
+<span id="tut-modules"></span><h1>7. Módulos<a class="headerlink" href="#modulos" title="Enlazar permanentemente con este título">¶</a></h1>
+<p>Si salís del intérprete de Python y entrás de nuevo, las definiciones que
+hiciste (funciones y variables) se pierden.  Por lo tanto, si querés escribir
+un programa más o menos largo, es mejor que uses un editor de texto para
+preparar la entrada para el interprete y ejecutarlo con ese archivo como
+entrada.  Esto es conocido como crear un <em>guión</em>, o <em>script</em>.  Si tu programa
+se vuelve más largo, quizás quieras separarlo en distintos archivos para un
+mantenimiento más fácil.  Quizás también quieras usar una función útil que
+escribiste desde distintos programas sin copiar su definición a cada programa.</p>
+<p>Para soportar esto, Python tiene una manera de poner definiciones en un archivo
+y usarlos en un script o en una instancia interactiva del intérprete.  Tal
+archivo es llamado <em>módulo</em>; las definiciones de un módulo pueden ser
+<em>importadas</em> a otros módulos o al módulo <em>principal</em> (la colección de variables
+a las que tenés acceso en un script ejecutado en el nivel superior y en el modo
+calculadora).</p>
+<p>Un módulo es una archivo conteniendo definiciones y declaraciones de Python.
+El nombre del archivo es el nombre del módulo con el sufijo <tt class="docutils literal"><span class="pre">.py</span></tt>
+agregado. Dentro de un módulo, el nombre del mismo (como una cadena) está
+disponible en el valor de la variable global <tt class="docutils literal"><span class="pre">__name__</span></tt>.  Por ejemplo, usá
+tu editor de textos favorito para crear un archivo llamado <tt class="docutils literal"><span class="pre">fibo.py</span></tt> en
+el directorio actual, con el siguiente contenido:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># módulo de números Fibonacci</span>
+
+<span class="k">def</span> <span class="nf">fib</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>    <span class="c"># escribe la serie Fibonacci hasta n</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">b</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+
+<span class="k">def</span> <span class="nf">fib2</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="c"># devuelve la serie Fibonacci hasta n</span>
+    <span class="n">resultado</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="n">resultado</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+    <span class="k">return</span> <span class="n">resultado</span>
+</pre></div>
+</div>
+<p>Ahora entrá al intérprete de Python e importá este módulo con la siguiente
+orden:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fibo</span>
+</pre></div>
+</div>
+<p>Esto no mete los nombres de las funciones definidas en <tt class="docutils literal"><span class="pre">fibo</span></tt> directamente
+en el espacio de nombres actual; sólo mete ahí el nombre del módulo, <tt class="docutils literal"><span class="pre">fibo</span></tt>.
+Usando el nombre del módulo podés acceder a las funciones:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fibo</span><span class="o">.</span><span class="n">fib</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fibo</span><span class="o">.</span><span class="n">fib2</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="go">[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fibo</span><span class="o">.</span><span class="n">__name__</span>
+<span class="go">&#39;fibo&#39;</span>
+</pre></div>
+</div>
+<p>Si pensás usar la función frecuentemente, podés asignarla a un nombre local:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span> <span class="o">=</span> <span class="n">fibo</span><span class="o">.</span><span class="n">fib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89 144 233 377</span>
+</pre></div>
+</div>
+<div class="section" id="mas-sobre-los-modulos">
+<span id="tut-moremodules"></span><h2>7.1. Más sobre los módulos<a class="headerlink" href="#mas-sobre-los-modulos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Un módulo puede contener tanto declaraciones ejecutables como definiciones
+de funciones.  Estas declaraciones están pensadas para inicializar el módulo.
+Se ejecutan solamente la <em>primera</em> vez que el módulo se importa en algún
+lado. <a class="footnote-reference" href="#id2" id="id1">[1]</a></p>
+<p>Cada módulo tiene su propio espacio de nombres, el que es usado como espacio
+de nombres global por todas las funciones definidas en el módulo.  Por lo
+tanto, el autor de un módulo puede usar variables globales en el módulo sin
+preocuparse acerca de  conflictos con una variable global del usuario.
+Por otro lado, si sabés lo que estás haciendo podés tocar las variables
+globales de un módulo con la misma notación usada para referirte a sus
+funciones, <tt class="docutils literal"><span class="pre">nombremodulo.nombreitem</span></tt>.</p>
+<p>Los módulos pueden importar otros módulos.  Es costumbre pero no obligatorio el
+ubicar todas las declaraciones <tt class="xref docutils literal"><span class="pre">import</span></tt> al principio del módulo (o
+script, para el caso).  Los nombres de los módulos importados se ubican en el
+espacio de nombres global del módulo que hace la importación.</p>
+<p>Hay una variante de la declaración <tt class="xref docutils literal"><span class="pre">import</span></tt> que importa los nombres de
+un módulo directamente al espacio de nombres del módulo que hace la
+importación.  Por ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">fibo</span> <span class="kn">import</span> <span class="n">fib</span><span class="p">,</span> <span class="n">fib2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89 144 233 377</span>
+</pre></div>
+</div>
+<p>Esto no introduce en el espacio de nombres local el nombre del módulo desde el
+cual se está importando (entonces, en el ejemplo, <tt class="docutils literal"><span class="pre">fibo</span></tt> no se define).</p>
+<p>Hay incluso una variante para importar todos los nombres que un módulo define:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">fibo</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89 144 233 377</span>
+</pre></div>
+</div>
+<p>Esto importa todos los nombres excepto aquellos que comienzan con un subrayado
+(<tt class="docutils literal"><span class="pre">_</span></tt>).</p>
+<div class="admonition-nota admonition ">
+<p class="first admonition-title">Nota</p>
+<p class="last">Por razones de eficiencia, cada módulo se importa una vez por sesión del
+intérprete.  Por lo tanto, si modificás los módulos, tenés que reiniciar el
+intérprete &#8211; o, si es sólo un módulo que querés probar interactivamente,
+usá  <tt class="xref docutils literal"><span class="pre">reload()</span></tt>, por ejemplo <tt class="docutils literal"><span class="pre">reload(nombremodulo)</span></tt>.</p>
+</div>
+<div class="section" id="ejecutando-modulos-como-scripts">
+<span id="tut-modulesasscripts"></span><h3>7.1.1. Ejecutando módulos como scripts<a class="headerlink" href="#ejecutando-modulos-como-scripts" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Cuando ejecutás un módulo de Python con</p>
+<div class="highlight-python"><pre>python fibo.py &lt;argumentos&gt;</pre>
+</div>
+<p>...el código en el módulo será ejecutado, tal como si lo hubieses importado,
+pero con <tt class="docutils literal"><span class="pre">__name__</span></tt> con el valor de <tt class="docutils literal"><span class="pre">&quot;__main__&quot;</span></tt>.  Eso significa que
+agregando este código al final de tu módulo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">fib</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>...podés hacer que el archivo sea utilizable tanto como script, como módulo
+importable, porque el código que analiza la linea de órdenes sólo se ejecuta
+si el módulo es ejecutado como archivo principal:</p>
+<div class="highlight-python"><pre>$ python fibo.py 50
+1 1 2 3 5 8 13 21 34</pre>
+</div>
+<p>Si el módulo se importa, ese código no se ejecuta:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fibo</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Esto es frecuentemente usado para proveer al módulo una interfaz de usuario
+conveniente, o para propósitos de prueba (ejecutar el módulo como un script
+ejecuta el juego de pruebas).</p>
+</div>
+<div class="section" id="el-camino-de-busqueda-de-los-modulos">
+<span id="tut-searchpath"></span><h3>7.1.2. El camino de búsqueda de los módulos<a class="headerlink" href="#el-camino-de-busqueda-de-los-modulos" title="Enlazar permanentemente con este título">¶</a></h3>
+<p id="index-72">Cuando se importa un módulo llamado <tt class="xref docutils literal"><span class="pre">spam</span></tt>, el intérprete busca un archivo
+llamado  <tt class="docutils literal"><span class="pre">spam.py</span></tt> en el directorio actual, y luego en la lista de
+directorios especificada por la variable de entorno <span class="target" id="index-73"></span><strong class="xref">PYTHONPATH</strong>.  Esta
+tiene la misma sintáxis que la variable de shell <span class="target" id="index-74"></span><strong class="xref">PATH</strong>, o sea, una
+lista de nombres de directorios.  Cuando <span class="target" id="index-75"></span><strong class="xref">PYTHONPATH</strong> no está
+configurada, o cuando el archivo no se encuentra allí, la búsqueda continua en
+un camino por omisión que depende de la instalación; en Unix, este es
+normalmente <tt class="docutils literal"><span class="pre">.:/usr/lib/python</span></tt>.</p>
+<p>En realidad, los módulos se buscan en la lista de directorios dada por la
+variable <tt class="docutils literal"><span class="pre">sys.path</span></tt>, la cual se inicializa con el directorio que contiene al
+script de entrada (o el directorio actual), <span class="target" id="index-76"></span><strong class="xref">PYTHONPATH</strong>, y el
+directorio default dependiente de la instalación.  Esto permite que los
+programas en Python que saben lo que están haciendo modifiquen o reemplacen el
+camino de búsqueda de los módulos.  Notar que como el directorio que contiene
+el script que se ejecuta está en el camino de búsqueda, es importante que el
+script no tenga el mismo nombre que un módulo estándar, o Python intentará
+cargar el script como un módulo cuando ese módulo se importe.  Esto
+generalmente será un error.  Mirá la sección <a class="reference internal" href="#tut-standardmodules"><em>Módulos estándar</em></a> para
+más información.</p>
+</div>
+<div class="section" id="archivos-compilados-de-python">
+<h3>7.1.3. Archivos &#8220;compilados&#8221; de Python<a class="headerlink" href="#archivos-compilados-de-python" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Como una importante aceleración del tiempo de arranque para programas cortos
+que usan un montón de los módulos estándar, si un archivo llamado
+<tt class="docutils literal"><span class="pre">spam.pyc</span></tt> existe en el directorio donde se encuentra <tt class="docutils literal"><span class="pre">spam.py</span></tt>, se
+asume que contiene una versión ya &#8220;compilada a byte&#8221; del módulo <tt class="xref docutils literal"><span class="pre">spam</span></tt> (lo
+que se denomina <em>bytecode</em>).  La fecha y hora de modificación del archivo
+<tt class="docutils literal"><span class="pre">spam.py</span></tt> usado para crear <tt class="docutils literal"><span class="pre">spam.pyc</span></tt> se graba en este último, y
+el <tt class="docutils literal"><span class="pre">.pyc</span></tt> se ignora si estos no coinciden.</p>
+<p>Normalmente, no necesitás hacer nada para crear el archivo <tt class="docutils literal"><span class="pre">spam.pyc</span></tt>.
+Siempre que se compile satisfactoriamente el <tt class="docutils literal"><span class="pre">spam.py</span></tt>, se hace un
+intento de escribir la versión compilada al <tt class="docutils literal"><span class="pre">spam.pyc</span></tt>.  No es un error
+si este intento falla, si por cualquier razón el archivo no se escribe
+completamente el archivo <tt class="docutils literal"><span class="pre">spam.pyc</span></tt> resultante se reconocerá como
+inválido luego.  El contenido del archivo <tt class="docutils literal"><span class="pre">spam.pyc</span></tt> es independiente de
+la plataforma, por lo que un directorio de módulos puede ser compartido por
+máquinas de diferentes arquitecturas.</p>
+<p>Algunos consejos para expertos:</p>
+<ul>
+<li><p class="first">Cuando se invoca el intérprete de Python con la opción <em class="xref">-O</em>, se
+genera código optimizado que se almacena en archivos <tt class="docutils literal"><span class="pre">.pyo</span></tt>.  El
+optimizador actualmente no ayuda mucho; sólo remueve las declaraciones
+<tt class="xref docutils literal"><span class="pre">assert</span></tt>.  Cuando se usa <em class="xref">-O</em>, se optimiza <em>todo</em> el
+<em class="xref">bytecode</em>; se ignoran los archivos <tt class="docutils literal"><span class="pre">.pyc</span></tt> y los archivos <tt class="docutils literal"><span class="pre">.py</span></tt>
+se compilan a bytecode optimizado.</p>
+</li>
+<li><p class="first">Pasando dos opciones <em class="xref">-O</em> al intérprete de Python (<em class="xref">-OO</em>)
+causará que el compilador realice optimizaciones que en algunos raros casos
+podría resultar en programas que funcionen incorrectamente.  Actualmente,
+solamente se remueven del bytecode a las cadenas <tt class="docutils literal"><span class="pre">__doc__</span></tt>, resultando en
+archivos <tt class="docutils literal"><span class="pre">.pyo</span></tt> más compactos.  Ya que algunos programas necesitan
+tener disponibles estas cadenas, sólo deberías usar esta opción si sabés lo
+que estás haciendo.</p>
+</li>
+<li><p class="first">Un programa no corre más rápido cuando se lee de un archivo <tt class="docutils literal"><span class="pre">.pyc</span></tt> o
+<tt class="docutils literal"><span class="pre">.pyo</span></tt> que cuando se lee del <tt class="docutils literal"><span class="pre">.py</span></tt>; lo único que es más rápido
+en los archivos <tt class="docutils literal"><span class="pre">.pyc</span></tt> o <tt class="docutils literal"><span class="pre">.pyo</span></tt> es la velocidad con que se
+cargan.</p>
+</li>
+<li><p class="first">Cuando se ejecuta un script desde la linea de órdenes, nunca se escribe el
+bytecode del script a los archivos <tt class="docutils literal"><span class="pre">.pyc</span></tt> o <tt class="docutils literal"><span class="pre">.pyo</span></tt>.  Por lo
+tanto, el tiempo de comienzo de un script puede reducirse moviendo la mayor
+parte de su código a un módulo y usando un pequeño script de arranque que
+importe el módulo.  También es posible nombrar a los archivos <tt class="docutils literal"><span class="pre">.pyc</span></tt> o
+<tt class="docutils literal"><span class="pre">.pyo</span></tt> directamente desde la linea de órdenes.</p>
+</li>
+<li><p class="first">Es posible tener archivos llamados <tt class="docutils literal"><span class="pre">spam.pyc</span></tt> (o <tt class="docutils literal"><span class="pre">spam.pyo</span></tt>
+cuando se usa la opción <em class="xref">-O</em>) sin un archivo <tt class="docutils literal"><span class="pre">spam.py</span></tt> para
+el mismo módulo.  Esto puede usarse para distribuir el código de una
+biblioteca de Python en una forma que es moderadamente difícil de hacerle
+ingeniería inversa.</p>
+</li>
+<li id="index-77"><p class="first">El módulo <tt class="xref docutils literal"><span class="pre">compileall</span></tt> puede crear archivos <tt class="docutils literal"><span class="pre">.pyc</span></tt> (o archivos
+<tt class="docutils literal"><span class="pre">.pyo</span></tt> cuando se usa la opción <em class="xref">-O</em>) para todos los módulos
+en un directorio.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="modulos-estandar">
+<span id="tut-standardmodules"></span><h2>7.2. Módulos estándar<a class="headerlink" href="#modulos-estandar" title="Enlazar permanentemente con este título">¶</a></h2>
+<p id="index-78">Python viene con una biblioteca de módulos estándar, descrita en un documento
+separado, la Referencia de la Biblioteca de Python (de aquí en más, &#8220;Referencia
+de la Biblioteca&#8221;).  Algunos módulos se integran en el intérprete; estos
+proveen acceso a operaciones que no son parte del núcleo del lenguaje pero que
+sin embargo están integrados, tanto por eficiencia como para proveer acceso a
+primitivas del sistema operativo, como llamadas al sistema.  El conjunto de
+tales módulos es una opción de configuración el cual también depende de la
+plataforma subyacente.  Por ejemplo, el módulo <tt class="xref docutils literal"><span class="pre">winreg</span></tt> sólo se provee
+en sistemas Windows.  Un módulo en particular merece algo de atención:
+<tt class="xref docutils literal"><span class="pre">sys</span></tt>, el que está integrado en todos los intérpretes de Python.  Las
+variables <tt class="docutils literal"><span class="pre">sys.ps1</span></tt> y <tt class="docutils literal"><span class="pre">sys.ps2</span></tt> definen las cadenas usadas como cursores
+primarios y secundarios:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">ps1</span>
+<span class="go">&#39;&gt;&gt;&gt; &#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">ps2</span>
+<span class="go">&#39;... &#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">ps1</span> <span class="o">=</span> <span class="s">&#39;C&gt; &#39;</span>
+<span class="go">C&gt; print &#39;Yuck!&#39;</span>
+<span class="go">Yuck!</span>
+<span class="go">C&gt;</span>
+</pre></div>
+</div>
+<p>Estas dos variables están solamente definidas si el intérprete está en modo
+interactivo.</p>
+<p>La variable  <tt class="docutils literal"><span class="pre">sys.path</span></tt> es una lista de cadenas que determinan el camino de
+búsqueda del intérprete para los módulos.  Se inicializa por omisión a un
+camino tomado de la variable de entorno <span class="target" id="index-79"></span><strong class="xref">PYTHONPATH</strong>, o a un valor
+predefinido en el intérprete si <span class="target" id="index-80"></span><strong class="xref">PYTHONPATH</strong> no está configurada.  Lo
+podés modificar usando las operaciones estándar de listas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;/ufs/guido/lib/python&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="la-funcion-dir">
+<span id="tut-dir"></span><h2>7.3. La función <tt class="xref docutils literal"><span class="pre">dir()</span></tt><a class="headerlink" href="#la-funcion-dir" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>La función integrada <tt class="xref docutils literal"><span class="pre">dir()</span></tt> se usa para encontrar qué nombres define un
+módulo.  Devuelve una lista ordenada de cadenas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fibo</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">fibo</span><span class="p">)</span>
+<span class="go">[&#39;__name__&#39;, &#39;fib&#39;, &#39;fib2&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<span class="go">[&#39;__displayhook__&#39;, &#39;__doc__&#39;, &#39;__excepthook__&#39;, &#39;__name__&#39;, &#39;__stderr__&#39;,</span>
+<span class="go"> &#39;__stdin__&#39;, &#39;__stdout__&#39;, &#39;_getframe&#39;, &#39;api_version&#39;, &#39;argv&#39;,</span>
+<span class="go"> &#39;builtin_module_names&#39;, &#39;byteorder&#39;, &#39;callstats&#39;, &#39;copyright&#39;,</span>
+<span class="go"> &#39;displayhook&#39;, &#39;exc_clear&#39;, &#39;exc_info&#39;, &#39;exc_type&#39;, &#39;excepthook&#39;,</span>
+<span class="go"> &#39;exec_prefix&#39;, &#39;executable&#39;, &#39;exit&#39;, &#39;getdefaultencoding&#39;, &#39;getdlopenflags&#39;,</span>
+<span class="go"> &#39;getrecursionlimit&#39;, &#39;getrefcount&#39;, &#39;hexversion&#39;, &#39;maxint&#39;, &#39;maxunicode&#39;,</span>
+<span class="go"> &#39;meta_path&#39;, &#39;modules&#39;, &#39;path&#39;, &#39;path_hooks&#39;, &#39;path_importer_cache&#39;,</span>
+<span class="go"> &#39;platform&#39;, &#39;prefix&#39;, &#39;ps1&#39;, &#39;ps2&#39;, &#39;setcheckinterval&#39;, &#39;setdlopenflags&#39;,</span>
+<span class="go"> &#39;setprofile&#39;, &#39;setrecursionlimit&#39;, &#39;settrace&#39;, &#39;stderr&#39;, &#39;stdin&#39;, &#39;stdout&#39;,</span>
+<span class="go"> &#39;version&#39;, &#39;version_info&#39;, &#39;warnoptions&#39;]</span>
+</pre></div>
+</div>
+<p>Sin argumentos, <tt class="xref docutils literal"><span class="pre">dir()</span></tt> lista los nombres que tenés actualmente definidos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fibo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span> <span class="o">=</span> <span class="n">fibo</span><span class="o">.</span><span class="n">fib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">()</span>
+<span class="go">[&#39;__builtins__&#39;, &#39;__doc__&#39;, &#39;__file__&#39;, &#39;__name__&#39;, &#39;a&#39;, &#39;fib&#39;, &#39;fibo&#39;, &#39;sys&#39;]</span>
+</pre></div>
+</div>
+<p>Notá que lista todos los tipos de nombres: variables, módulos, funciones, etc.</p>
+<p id="index-81"><tt class="xref docutils literal"><span class="pre">dir()</span></tt> no lista los nombres de las funciones y variables integradas.  Si
+querés una lista de esos, están definidos en el módulo estándar
+<tt class="xref docutils literal"><span class="pre">__builtin__</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">__builtin__</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">__builtin__</span><span class="p">)</span>
+<span class="go">[&#39;ArithmeticError&#39;, &#39;AssertionError&#39;, &#39;AttributeError&#39;, &#39;DeprecationWarning&#39;,</span>
+<span class="go"> &#39;EOFError&#39;, &#39;Ellipsis&#39;, &#39;EnvironmentError&#39;, &#39;Exception&#39;, &#39;False&#39;,</span>
+<span class="go"> &#39;FloatingPointError&#39;, &#39;FutureWarning&#39;, &#39;IOError&#39;, &#39;ImportError&#39;,</span>
+<span class="go"> &#39;IndentationError&#39;, &#39;IndexError&#39;, &#39;KeyError&#39;, &#39;KeyboardInterrupt&#39;,</span>
+<span class="go"> &#39;LookupError&#39;, &#39;MemoryError&#39;, &#39;NameError&#39;, &#39;None&#39;, &#39;NotImplemented&#39;,</span>
+<span class="go"> &#39;NotImplementedError&#39;, &#39;OSError&#39;, &#39;OverflowError&#39;,</span>
+<span class="go"> &#39;PendingDeprecationWarning&#39;, &#39;ReferenceError&#39;, &#39;RuntimeError&#39;,</span>
+<span class="go"> &#39;RuntimeWarning&#39;, &#39;StandardError&#39;, &#39;StopIteration&#39;, &#39;SyntaxError&#39;,</span>
+<span class="go"> &#39;SyntaxWarning&#39;, &#39;SystemError&#39;, &#39;SystemExit&#39;, &#39;TabError&#39;, &#39;True&#39;,</span>
+<span class="go"> &#39;TypeError&#39;, &#39;UnboundLocalError&#39;, &#39;UnicodeDecodeError&#39;,</span>
+<span class="go"> &#39;UnicodeEncodeError&#39;, &#39;UnicodeError&#39;, &#39;UnicodeTranslateError&#39;,</span>
+<span class="go"> &#39;UserWarning&#39;, &#39;ValueError&#39;, &#39;Warning&#39;, &#39;WindowsError&#39;,</span>
+<span class="go"> &#39;ZeroDivisionError&#39;, &#39;_&#39;, &#39;__debug__&#39;, &#39;__doc__&#39;, &#39;__import__&#39;,</span>
+<span class="go"> &#39;__name__&#39;, &#39;abs&#39;, &#39;apply&#39;, &#39;basestring&#39;, &#39;bool&#39;, &#39;buffer&#39;,</span>
+<span class="go"> &#39;callable&#39;, &#39;chr&#39;, &#39;classmethod&#39;, &#39;cmp&#39;, &#39;coerce&#39;, &#39;compile&#39;,</span>
+<span class="go"> &#39;complex&#39;, &#39;copyright&#39;, &#39;credits&#39;, &#39;delattr&#39;, &#39;dict&#39;, &#39;dir&#39;, &#39;divmod&#39;,</span>
+<span class="go"> &#39;enumerate&#39;, &#39;eval&#39;, &#39;execfile&#39;, &#39;exit&#39;, &#39;file&#39;, &#39;filter&#39;, &#39;float&#39;,</span>
+<span class="go"> &#39;frozenset&#39;, &#39;getattr&#39;, &#39;globals&#39;, &#39;hasattr&#39;, &#39;hash&#39;, &#39;help&#39;, &#39;hex&#39;,</span>
+<span class="go"> &#39;id&#39;, &#39;input&#39;, &#39;int&#39;, &#39;intern&#39;, &#39;isinstance&#39;, &#39;issubclass&#39;, &#39;iter&#39;,</span>
+<span class="go"> &#39;len&#39;, &#39;license&#39;, &#39;list&#39;, &#39;locals&#39;, &#39;long&#39;, &#39;map&#39;, &#39;max&#39;, &#39;memoryview&#39;,</span>
+<span class="go"> &#39;min&#39;, &#39;object&#39;, &#39;oct&#39;, &#39;open&#39;, &#39;ord&#39;, &#39;pow&#39;, &#39;property&#39;, &#39;quit&#39;, &#39;range&#39;,</span>
+<span class="go"> &#39;raw_input&#39;, &#39;reduce&#39;, &#39;reload&#39;, &#39;repr&#39;, &#39;reversed&#39;, &#39;round&#39;, &#39;set&#39;,</span>
+<span class="go"> &#39;setattr&#39;, &#39;slice&#39;, &#39;sorted&#39;, &#39;staticmethod&#39;, &#39;str&#39;, &#39;sum&#39;, &#39;super&#39;,</span>
+<span class="go"> &#39;tuple&#39;, &#39;type&#39;, &#39;unichr&#39;, &#39;unicode&#39;, &#39;vars&#39;, &#39;xrange&#39;, &#39;zip&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="paquetes">
+<span id="tut-packages"></span><h2>7.4. Paquetes<a class="headerlink" href="#paquetes" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Los paquetes son una manera de estructurar los espacios de nombres de Python
+usando &#8220;nombres de módulos con puntos&#8221;.  Por ejemplo, el nombre de módulo
+<tt class="xref docutils literal"><span class="pre">A.B</span></tt> designa un submódulo llamado <tt class="docutils literal"><span class="pre">B</span></tt> en un paquete llamado <tt class="docutils literal"><span class="pre">A</span></tt>.
+Tal como el uso de módulos evita que los autores de diferentes módulos tengan
+que preocuparse de los respectivos nombres de variables globales, el uso de
+nombres de módulos con puntos evita que los autores de paquetes de muchos
+módulos, como NumPy o la Biblioteca de Imágenes de Python (Python Imaging
+Library, o PIL), tengan que preocuparse de los respectivos nombres de módulos.</p>
+<p>Suponete que querés designar una colección de módulos (un &#8220;paquete&#8221;) para el
+manejo uniforme de archivos y datos de sonidos.  Hay diferentes formatos de
+archivos de sonido (normalmente reconocidos por su extensión, por ejemplo:
+<tt class="docutils literal"><span class="pre">.wav</span></tt>, <tt class="docutils literal"><span class="pre">.aiff</span></tt>, <tt class="docutils literal"><span class="pre">.au</span></tt>), por lo que tenés que crear y
+mantener una colección siempre creciente de módulos para la conversión entre
+los distintos formatos de archivos.  Hay muchas operaciones diferentes que
+quizás quieras ejecutar en los datos de sonido (como mezclarlos, añadir eco,
+aplicar una función ecualizadora, crear un efecto estéreo artificial), por lo
+que ademas estarás escribiendo una lista sin fin de módulos para realizar
+estas operaciones.  Aquí hay una posible estructura para tu paquete (expresados
+en términos de un sistema jerárquico de archivos):</p>
+<div class="highlight-python"><pre>sound/                          Paquete superior
+      __init__.py               Inicializa el paquete de sonido
+      formats/                  Subpaquete para conversiones de formato
+              __init__.py
+              wavread.py
+              wavwrite.py
+              aiffread.py
+              aiffwrite.py
+              auread.py
+              auwrite.py
+              ...
+      effects/                  Subpaquete para efectos de sonido
+              __init__.py
+              echo.py
+              surround.py
+              reverse.py
+              ...
+      filters/                  Subpaquete para filtros
+              __init__.py
+              equalizer.py
+              vocoder.py
+              karaoke.py
+              ...</pre>
+</div>
+<p>Al importar el paquete, Python busca a través de los directorios en
+<tt class="docutils literal"><span class="pre">sys.path</span></tt>, buscando el subdirectorio del paquete.</p>
+<p>Los archivos <tt class="docutils literal"><span class="pre">__init__.py</span></tt> se necesitan para hacer que Python trate
+los directorios como que contienen paquetes; esto se hace para prevenir
+directorios con un nombre común, como <tt class="docutils literal"><span class="pre">string</span></tt>, de esconder sin intención
+a módulos válidos que se suceden luego en el camino de búsqueda de módulos.
+En el caso más simple, <tt class="docutils literal"><span class="pre">__init__.py</span></tt> puede ser solamente un archivo
+vacío, pero también puede ejecutar código de inicialización para el paquete
+o configurar la variable <tt class="docutils literal"><span class="pre">__all__</span></tt>, descrita luego.</p>
+<p>Los usuarios del paquete pueden importar módulos individuales del mismo, por
+ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sound.effects.echo</span>
+</pre></div>
+</div>
+<p>Esto carga el submódulo <tt class="xref docutils literal"><span class="pre">sound.effects.echo</span></tt>.  Debe hacerse referencia al
+mismo con el nombre completo.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sound</span><span class="o">.</span><span class="n">effects</span><span class="o">.</span><span class="n">echo</span><span class="o">.</span><span class="n">echofilter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">atten</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Otra alternativa para importar el submódulos es:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sound.effects</span> <span class="kn">import</span> <span class="n">echo</span>
+</pre></div>
+</div>
+<p>Esto también carga el submódulo <tt class="xref docutils literal"><span class="pre">echo</span></tt>, lo deja disponible sin su prefijo
+de paquete, por lo que puede usarse así:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">echo</span><span class="o">.</span><span class="n">echofilter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">atten</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Otra variación más es importar la función o variable deseadas directamente:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sound.effects.echo</span> <span class="kn">import</span> <span class="n">echofilter</span>
+</pre></div>
+</div>
+<p>De nuevo, esto carga el submódulo <tt class="xref docutils literal"><span class="pre">echo</span></tt>, pero deja directamente
+disponible a la función <tt class="xref docutils literal"><span class="pre">echofilter()</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">echofilter</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">atten</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notá que al usar <tt class="docutils literal"><span class="pre">from</span> <span class="pre">package</span> <span class="pre">import</span> <span class="pre">item</span></tt> el ítem puede ser tanto un
+submódulo (o subpaquete) del paquete, o algún otro nombre definido en el
+paquete, como una función, clase, o variable.  La declaración <tt class="docutils literal"><span class="pre">import</span></tt>
+primero verifica si el ítem está definido en el paquete; si no, asume que es un
+módulo y trata de cargarlo.  Si no lo puede encontrar, se genera una excepción
+<tt class="xref docutils literal"><span class="pre">ImportError</span></tt>.</p>
+<p>Por otro lado, cuando se usa la sintaxis como
+<tt class="docutils literal"><span class="pre">import</span> <span class="pre">item.subitem.subsubitem</span></tt>, cada ítem excepto el último debe ser un
+paquete; el mismo puede ser un módulo o un paquete pero no puede ser una clase,
+función o variable definida en el ítem previo.</p>
+<div class="section" id="importando-desde-un-paquete">
+<span id="tut-pkg-import-star"></span><h3>7.4.1. Importando * desde un paquete<a class="headerlink" href="#importando-desde-un-paquete" title="Enlazar permanentemente con este título">¶</a></h3>
+<p id="index-82">Ahora, ¿qué sucede cuando el usuario escribe <tt class="docutils literal"><span class="pre">from</span> <span class="pre">sound.effects</span> <span class="pre">import</span> <span class="pre">*</span></tt>?
+Idealmente, uno esperaría que esto de alguna manera vaya al sistema de
+archivos, encuentre cuales submódulos están presentes en el paquete, y los
+importe a todos.  Desafortunadamente, esta operación no funciona muy bien en
+las plataformas Windows, donde el sistema de archivos no siempre tiene
+información precisa sobre mayúsculas y minúsculas.  En estas plataformas,
+no hay una manera garantizada de saber si el archivo <cite>ECHO.PY</cite> debería
+importarse como el módulo <tt class="xref docutils literal"><span class="pre">echo</span></tt>, <tt class="xref docutils literal"><span class="pre">Echo</span></tt> o <tt class="xref docutils literal"><span class="pre">ECHO</span></tt>. (Por ejemplo,
+Windows 95 tiene la molesta costumbre de mostrar todos los nombres de archivos
+con la primer letra en mayúsculas.)  La restricción de DOS de los nombres de
+archivos con la forma 8+3 agrega otro problema interesante para los nombres
+de módulos largos.</p>
+<p>La única solución es que el autor del paquete provea un índice explícito del
+paquete.  La declaración <tt class="xref docutils literal"><span class="pre">import</span></tt> usa la siguiente convención: si el
+código del <tt class="docutils literal"><span class="pre">__init__.py</span></tt> de un paquete define una lista llamada
+<tt class="docutils literal"><span class="pre">__all__</span></tt>, se toma como la lista de los nombres de módulos que deberían ser
+importados cuando se hace <tt class="docutils literal"><span class="pre">from</span> <span class="pre">package</span> <span class="pre">import</span> <span class="pre">*</span></tt>.  Es tarea del autor del
+paquete mantener actualizada esta lista cuando se libera una nueva versión del
+paquete.  Los autores de paquetes podrían decidir no soportarlo, si no ven un
+uso para importar * en sus paquetes.  Por ejemplo, el archivo
+<tt class="docutils literal"><span class="pre">sounds/effects/__init__.py</span></tt> podría contener el siguiente código:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;echo&quot;</span><span class="p">,</span> <span class="s">&quot;surround&quot;</span><span class="p">,</span> <span class="s">&quot;reverse&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Esto significaría que <tt class="docutils literal"><span class="pre">from</span> <span class="pre">sound.effects</span> <span class="pre">import</span> <span class="pre">*</span></tt> importaría esos tres
+submódulos del paquete <tt class="xref docutils literal"><span class="pre">sound</span></tt>.</p>
+<p>Si no se define <tt class="docutils literal"><span class="pre">__all__</span></tt>, la declaración <tt class="docutils literal"><span class="pre">from</span> <span class="pre">sound.effects</span> <span class="pre">import</span> <span class="pre">*</span></tt>
+<em>no</em> importa todos los submódulos del paquete <tt class="xref docutils literal"><span class="pre">sound.effects</span></tt> al espacio
+de nombres actual; sólo se asegura que se haya importado el paquete
+<tt class="xref docutils literal"><span class="pre">sound.effects</span></tt> (posiblemente ejecutando algún código de inicialización
+que haya en <tt class="docutils literal"><span class="pre">__init__.py</span></tt>) y luego importa aquellos nombres que estén
+definidos en el paquete.  Esto incluye cualquier nombre definido (y submódulos
+explícitamente cargados) por <tt class="docutils literal"><span class="pre">__init__.py</span></tt>.  También incluye cualquier
+submódulo del paquete que pudiera haber sido explícitamente cargado por
+declaraciones <tt class="xref docutils literal"><span class="pre">import</span></tt> previas.  Considerá este código:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sound.effects.echo</span>
+<span class="kn">import</span> <span class="nn">sound.effects.surround</span>
+<span class="kn">from</span> <span class="nn">sound.effects</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>En este ejemplo, los módulos <em>echo</em> y <em>surround</em> se importan en el espacio de
+nombre actual porque están definidos en el paquete <tt class="xref docutils literal"><span class="pre">sound.effects</span></tt> cuando
+se ejecuta la declaración <tt class="docutils literal"><span class="pre">from...import</span></tt>.  (Esto también funciona cuando se
+define <tt class="docutils literal"><span class="pre">__all__</span></tt>).</p>
+<p>Notá que en general la práctica de importar <tt class="docutils literal"><span class="pre">*</span></tt> desde un módulo o paquete no
+se recomienda, ya que frecuentemente genera un código con mala legibilidad.
+Sin embargo, está bien usarlo para ahorrar tecleo en sesiones interactivas,
+y algunos módulos están diseñados para exportar sólo nombres que siguen
+ciertos patrones.</p>
+<p>Recordá que no está mal usar <tt class="docutils literal"><span class="pre">from</span> <span class="pre">paquete</span> <span class="pre">import</span> <span class="pre">submodulo_especifico</span></tt>!  De
+hecho, esta notación se recomienda a menos que el módulo que estás importando
+necesite usar submódulos con el mismo nombre desde otros paquetes.</p>
+</div>
+<div class="section" id="referencias-internas-en-paquetes">
+<h3>7.4.2. Referencias internas en paquetes<a class="headerlink" href="#referencias-internas-en-paquetes" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Los submódulos frecuentemente necesitan referirse unos a otros.  Por ejemplo,
+el módulo <tt class="xref docutils literal"><span class="pre">surround</span></tt> quizás necesite usar el módulo <tt class="xref docutils literal"><span class="pre">echo</span></tt> module.
+De hecho, tales referencias son tan comunes que la declaración
+<tt class="xref docutils literal"><span class="pre">import</span></tt> primero mira en el paquete actual antes de mirar en el camino
+estándar de búsqueda de módulos.  Por lo tanto, el módulo <tt class="xref docutils literal"><span class="pre">surround</span></tt> puede
+simplemente hacer <tt class="docutils literal"><span class="pre">import</span> <span class="pre">echo</span></tt> o <tt class="docutils literal"><span class="pre">from</span> <span class="pre">echo</span> <span class="pre">import</span> <span class="pre">echofilter</span></tt>.  Si el
+módulo importado no se encuentra en el paquete actual (el paquete del cual el
+módulo actual es un submódulo), la declaración <tt class="xref docutils literal"><span class="pre">import</span></tt> busca en el
+nivel superior por un módulo con el nombre dado.</p>
+<p>Cuando se estructuran los paquetes en subpaquetes (como en el ejemplo
+<tt class="xref docutils literal"><span class="pre">sound</span></tt>), podés usar <tt class="docutils literal"><span class="pre">import</span></tt> absolutos para referirte a
+submódulos de paquetes hermanos.  Por ejemplo, si el módulo
+<tt class="xref docutils literal"><span class="pre">sound.filters.vocoder</span></tt> necesita usar el módulo <tt class="xref docutils literal"><span class="pre">echo</span></tt> en el paquete
+<tt class="xref docutils literal"><span class="pre">sound.effects</span></tt>, puede hacer <tt class="docutils literal"><span class="pre">from</span> <span class="pre">sound.effects</span> <span class="pre">import</span> <span class="pre">echo</span></tt>.</p>
+<p>Desde Python 2.5, además de los <tt class="docutils literal"><span class="pre">import</span></tt> relativos implícitos descritos
+arriba, podés escribir <tt class="docutils literal"><span class="pre">import</span></tt> relativos explícitos con la declaración de la
+forma <tt class="docutils literal"><span class="pre">from</span> <span class="pre">module</span> <span class="pre">import</span> <span class="pre">name</span></tt>.  Estos <tt class="docutils literal"><span class="pre">import</span></tt> relativos explícitos usan
+puntos adelante para indicar los paquetes actual o padres involucrados en el
+<tt class="docutils literal"><span class="pre">import</span></tt> relativo. En el ejemplo <tt class="xref docutils literal"><span class="pre">surround</span></tt>, podrías hacer:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">echo</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">formats</span>
+<span class="kn">from</span> <span class="nn">..filters</span> <span class="kn">import</span> <span class="n">equalizer</span>
+</pre></div>
+</div>
+<p>Notá que ambos <tt class="docutils literal"><span class="pre">import</span></tt>, relativos explícitos e implícitos, se basan en el
+nombre del módulo actual.  Ya que el nombre del módulo principal es siempre
+<tt class="docutils literal"><span class="pre">&quot;__main__&quot;</span></tt>,  los módulos pensados para usarse como módulo principal de una
+aplicación Python siempre deberían usar <tt class="docutils literal"><span class="pre">import</span></tt> absolutos.</p>
+</div>
+<div class="section" id="paquetes-en-multiples-directorios">
+<h3>7.4.3. Paquetes en múltiples directorios<a class="headerlink" href="#paquetes-en-multiples-directorios" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Los paquetes soportan un atributo especial más, <tt class="xref docutils literal"><span class="pre">__path__</span></tt>.  Este
+se inicializa, antes de que el código en ese archivo se ejecute, a una lista
+que contiene el nombre del directorio donde está el paquete.  Esta variable
+puede modificarse, afectando búsquedas futuras de módulos y subpaquetes
+contenidos en el paquete.</p>
+<p>Aunque esta característica no se necesita frecuentemente, puede usarse para
+extender el conjunto de módulos que se encuentran en el paquete.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>De hecho las definiciones de función son también &#8216;declaraciones&#8217; que
+se &#8216;ejecutan&#8217;;  la ejecución de una función a nivel de módulo mete el
+nombre de la función en el espacio de nombres global.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">7. Módulos</a><ul>
+<li><a class="reference external" href="#mas-sobre-los-modulos">7.1. Más sobre los módulos</a><ul>
+<li><a class="reference external" href="#ejecutando-modulos-como-scripts">7.1.1. Ejecutando módulos como scripts</a></li>
+<li><a class="reference external" href="#el-camino-de-busqueda-de-los-modulos">7.1.2. El camino de búsqueda de los módulos</a></li>
+<li><a class="reference external" href="#archivos-compilados-de-python">7.1.3. Archivos &#8220;compilados&#8221; de Python</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#modulos-estandar">7.2. Módulos estándar</a></li>
+<li><a class="reference external" href="#la-funcion-dir">7.3. La función <tt class="docutils literal"><span class="pre">dir()</span></tt></a></li>
+<li><a class="reference external" href="#paquetes">7.4. Paquetes</a><ul>
+<li><a class="reference external" href="#importando-desde-un-paquete">7.4.1. Importando * desde un paquete</a></li>
+<li><a class="reference external" href="#referencias-internas-en-paquetes">7.4.2. Referencias internas en paquetes</a></li>
+<li><a class="reference external" href="#paquetes-en-multiples-directorios">7.4.3. Paquetes en múltiples directorios</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="datastructures.html"
+                                  title="Capítulo anterior">6. Estructuras de datos</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="inputoutput.html"
+                                  title="Próximo capítulo">8. Entrada y salida</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/modules.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="inputoutput.html" title="8. Entrada y salida"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="datastructures.html" title="6. Estructuras de datos"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

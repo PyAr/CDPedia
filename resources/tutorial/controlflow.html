@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>5. Más herramientas para control de flujo &mdash; Tutorial de Python v2.6.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '2.6.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tutorial de Python v2.6.2 documentation" href="index.html" />
+    <link rel="next" title="6. Estructuras de datos" href="datastructures.html" />
+    <link rel="prev" title="4. Una introducción informal a Python" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="datastructures.html" title="6. Estructuras de datos"
+             accesskey="N">siguiente</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="4. Una introducción informal a Python"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mas-herramientas-para-control-de-flujo">
+<span id="tut-morecontrol"></span><h1>5. Más herramientas para control de flujo<a class="headerlink" href="#mas-herramientas-para-control-de-flujo" title="Enlazar permanentemente con este título">¶</a></h1>
+<p>Además de la sentencia <tt class="xref docutils literal"><span class="pre">while</span></tt> que acabamos de introducir,
+Python soporta las sentencias de control de flujo que podemos encontrar en
+otros lenguajes, con algunos cambios.</p>
+<div class="section" id="la-sentencia-if">
+<span id="tut-if"></span><h2>5.1. La sentencia <tt class="xref docutils literal"><span class="pre">if</span></tt><a class="headerlink" href="#la-sentencia-if" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Tal vez el tipo más conocido de sentencia sea el <tt class="xref docutils literal"><span class="pre">if</span></tt>. Por
+ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Ingresa un entero, por favor: &quot;</span><span class="p">))</span>
+<span class="go">Ingresa un entero, por favor: 42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>     <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">... </span>     <span class="k">print</span> <span class="s">&#39;Negativo cambiado a cero&#39;</span>
+<span class="gp">... </span><span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>     <span class="k">print</span> <span class="s">&#39;Cero&#39;</span>
+<span class="gp">... </span><span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+<span class="gp">... </span>     <span class="k">print</span> <span class="s">&#39;Simple&#39;</span>
+<span class="gp">... </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>     <span class="k">print</span> <span class="s">&#39;Mas&#39;</span>
+<span class="gp">...</span>
+<span class="go">&#39;Mas&#39;</span>
+</pre></div>
+</div>
+<p>Puede haber cero o más bloques <tt class="xref docutils literal"><span class="pre">elif</span></tt>, y el bloque <tt class="xref docutils literal"><span class="pre">else</span></tt> es
+opcional. La palabra reservada &#8216;<tt class="xref docutils literal"><span class="pre">elif</span></tt>&#8216; es una abreviación de &#8216;else
+if&#8217;, y es útil para evitar un sangrado excesivo. Una secuencia <tt class="xref docutils literal"><span class="pre">if</span></tt>
+...  <tt class="xref docutils literal"><span class="pre">elif</span></tt> ... <tt class="xref docutils literal"><span class="pre">elif</span></tt> ... sustituye las sentencias
+<tt class="docutils literal"><span class="pre">switch</span></tt> o <tt class="docutils literal"><span class="pre">case</span></tt> encontradas en otros lenguajes.</p>
+</div>
+<div class="section" id="la-sentencia-for">
+<span id="tut-for"></span><h2>5.2. La sentencia <tt class="xref docutils literal"><span class="pre">for</span></tt><a class="headerlink" href="#la-sentencia-for" title="Enlazar permanentemente con este título">¶</a></h2>
+<p id="index-57">La sentencia <tt class="xref docutils literal"><span class="pre">for</span></tt> en Python difiere un poco de lo que uno puede estar
+acostumbrado en lenguajes como C o Pascal.  En lugar de siempre iterar sobre
+una progresión aritmética de números (como en Pascal) o darle al usuario la
+posibilidad de definir tanto el paso de la iteración como la condición de fin
+(como en C), la sentencia <tt class="xref docutils literal"><span class="pre">for</span></tt> de Python itera sobre los ítems de
+cualquier secuencia (una lista o una cadena de texto), en el orden que aparecen
+en la secuencia. Por ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Midiendo cadenas de texto</span>
+<span class="gp">... </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;gato&#39;</span><span class="p">,</span> <span class="s">&#39;ventana&#39;</span><span class="p">,</span> <span class="s">&#39;defenestrado&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">x</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">gato 4</span>
+<span class="go">ventana 7</span>
+<span class="go">defenestrado 12</span>
+</pre></div>
+</div>
+<p>No es seguro modificar la secuencia sobre la que se está iterando en el lazo
+(esto solo es posible para tipos de secuencias mutables, como las listas).  Si
+se necesita modificar la lista sobre la que se está iterando (por ejemplo, para
+duplicar ítems seleccionados) se debe iterar sobre una copia.  La notación de
+rebanada es conveniente para esto:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">[:]:</span> <span class="c"># hacer una copia por rebanada de toda la lista</span>
+<span class="gp">... </span>   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">[&#39;defenestrado&#39;, &#39;ventana&#39;, &#39;gato&#39;, &#39;ventana&#39;, &#39;defenestrado&#39;]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="la-funcion-range">
+<span id="tut-range"></span><h2>5.3. La función <tt class="xref docutils literal"><span class="pre">range()</span></tt><a class="headerlink" href="#la-funcion-range" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Si se necesita iterar sobre una secuencia de números, es apropiado utilizar
+la función integrada <tt class="xref docutils literal"><span class="pre">range()</span></tt>.  Genera una lista conteniendo
+progresiones aritméticas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+</pre></div>
+</div>
+<p>El valor final dado nunca es parte de la lista; <tt class="docutils literal"><span class="pre">range(10)</span></tt> genera una lista
+de 10 valores, los índices correspondientes para los ítems de una secuencia de
+longitud 10. Es posible hacer que el rango empiece con otro número, o
+especificar un incremento diferente (incluso negativo; algunas veces se lo
+llama &#8216;paso&#8217;):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[5, 6, 7, 8, 9]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">[0, 3, 6, 9]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">30</span><span class="p">)</span>
+<span class="go">[-10, -40, -70]</span>
+</pre></div>
+</div>
+<p>Para iterar sobre los índices de una secuencia, podés combinar <tt class="xref docutils literal"><span class="pre">range()</span></tt> y
+<tt class="xref docutils literal"><span class="pre">len()</span></tt> así:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Mary&#39;</span><span class="p">,</span> <span class="s">&#39;tenia&#39;</span><span class="p">,</span> <span class="s">&#39;un&#39;</span><span class="p">,</span> <span class="s">&#39;corderito&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">...</span>
+<span class="go">0 Mary</span>
+<span class="go">1 tenia</span>
+<span class="go">2 un</span>
+<span class="go">3 corderito</span>
+</pre></div>
+</div>
+<p>En la mayoría de los casos, sin embargo, conviene usar la función
+<tt class="xref docutils literal"><span class="pre">enumerate()</span></tt>, mirá <a class="reference external" href="datastructures.html#tut-loopidioms"><em>Técnicas de iteración</em></a>.</p>
+</div>
+<div class="section" id="las-sentencias-break-continue-y-else-en-lazos">
+<span id="tut-break"></span><h2>5.4. Las sentencias <tt class="xref docutils literal"><span class="pre">break</span></tt>, <tt class="xref docutils literal"><span class="pre">continue</span></tt>, y <tt class="xref docutils literal"><span class="pre">else</span></tt> en lazos<a class="headerlink" href="#las-sentencias-break-continue-y-else-en-lazos" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>La sentencia <tt class="xref docutils literal"><span class="pre">break</span></tt>, como en C, termina el lazo <tt class="xref docutils literal"><span class="pre">for</span></tt> o
+<tt class="xref docutils literal"><span class="pre">while</span></tt> más anidado.</p>
+<p>La sentencia <tt class="xref docutils literal"><span class="pre">continue</span></tt>, también tomada prestada de C, continua
+con la próxima iteración del lazo.</p>
+<p>Las sentencias de lazo pueden tener una cláusula <tt class="docutils literal"><span class="pre">else</span></tt> que es ejecutada
+cuando el lazo termina, luego de agotar la lista (con <tt class="xref docutils literal"><span class="pre">for</span></tt>) o cuando
+la condición se hace falsa (con <tt class="xref docutils literal"><span class="pre">while</span></tt>), pero no cuando el lazo es
+terminado con la sentencia <tt class="xref docutils literal"><span class="pre">break</span></tt>.  Se ejemplifica en el siguiente
+lazo, que busca números primos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="k">print</span> <span class="n">n</span><span class="p">,</span> <span class="s">&#39;es igual a&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">/</span><span class="n">x</span>
+<span class="gp">... </span>            <span class="k">break</span>
+<span class="gp">... </span>    <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="c"># sigue el bucle sin encontrar un factor</span>
+<span class="gp">... </span>        <span class="k">print</span> <span class="n">n</span><span class="p">,</span> <span class="s">&#39;es un numero primo&#39;</span>
+<span class="gp">...</span>
+<span class="go">2 es un numero primo</span>
+<span class="go">3 es un numero primo</span>
+<span class="go">4 es igual a 2 * 2</span>
+<span class="go">5 es un numero primo</span>
+<span class="go">6 es igual a 2 * 3</span>
+<span class="go">7 es un numero primo</span>
+<span class="go">8 es igual a 2 * 4</span>
+<span class="go">9 es igual a 3 * 3</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="la-sentencia-pass">
+<span id="tut-pass"></span><h2>5.5. La sentencia <tt class="xref docutils literal"><span class="pre">pass</span></tt><a class="headerlink" href="#la-sentencia-pass" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>La sentencia <tt class="xref docutils literal"><span class="pre">pass</span></tt> no hace nada.  Se puede usar cuando una sentencia
+es requerida por la sintáxis pero el programa no requiere ninguna acción.
+Por ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">pass</span>  <span class="c"># Espera ocupada hasta una interrupción de teclado (Ctrl+C)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Se usa normalmente para crear clases en su mínima expresión:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyEmptyClass</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Otro lugar donde se puede usar <tt class="xref docutils literal"><span class="pre">pass</span></tt> es como una marca de lugar
+para una función o un cuerpo condicional cuando estás trabajando en código
+nuevo, lo cual te permite pensar a un nivel de abstracción mayor.  El
+<tt class="xref docutils literal"><span class="pre">pass</span></tt> se ignora silenciosamente:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">initlog</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>   <span class="c"># Acordate de implementar esto!</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="definiendo-funciones">
+<span id="tut-functions"></span><h2>5.6. Definiendo funciones<a class="headerlink" href="#definiendo-funciones" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>Podemos crear una función que escriba la serie de Fibonacci hasta un límite
+determinado:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fib</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>    <span class="c"># escribe la serie de Fibonacci hasta n</span>
+<span class="gp">... </span>    <span class="sd">&quot;&quot;&quot;Escribe la serie de Fibonacci hasta n.&quot;&quot;&quot;</span>
+<span class="gp">... </span>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+<span class="gp">... </span>    <span class="k">while</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">print</span> <span class="n">b</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Ahora llamamos a la funcion que acabamos de definir:</span>
+<span class="gp">... </span><span class="n">fib</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597</span>
+</pre></div>
+</div>
+<p id="index-58">La palabra reservada <tt class="xref docutils literal"><span class="pre">def</span></tt> se usa para <em>definir</em> funciones.  Debe
+seguirle el nombre de la función y la lista de parámetros formales entre
+paréntesis.  Las sentencias que forman el cuerpo de la función empiezan en la
+línea siguiente, y deben estar con sangría.</p>
+<p>La primer sentencia del cuerpo de la función puede ser opcionalmente una
+cadena de texto literal; esta es la cadena de texto de documentación de la
+función, o <em>docstring</em>.  (Podés encontrar más acerca de docstrings en la
+sección <a class="reference internal" href="#tut-docstrings"><em>Cadenas de texto de documentación</em></a>.)</p>
+<p>Hay herramientas que usan las docstrings para producir automáticamente
+documentación en línea o imprimible, o para permitirle al usuario que navegue
+el código en forma interactiva; es una buena práctica incluir docstrings en el
+código que uno escribe, por lo que se debe hacer un hábito de esto.</p>
+<p>La <em>ejecución</em> de una función introduce una nueva tabla de símbolos usada para
+las variables locales de la función.  Más precisamente, todas las asignaciones
+de variables en la función almacenan el valor en la tabla de símbolos local;
+así mismo la referencia a variables primero mira la tabla de símbolos local,
+luego en la tabla de símbolos local de las funciones externas, luego la tabla
+de símbolos global, y finalmente la tabla de nombres predefinidos.  Así, no se
+les puede asignar directamente un valor a las variables globales dentro de una
+función (a menos se las nombre en la sentencia <tt class="xref docutils literal"><span class="pre">global</span></tt>), aunque si
+pueden ser referenciadas.</p>
+<p>Los parámetros reales (argumentos) de una función se introducen
+en la tabla de símbolos local de la función llamada cuando esta es ejecutada;
+así, los argumentos son pasados <em>por valor</em> (dónde el <em>valor</em> es siempre una
+<em>referencia</em> a un objeto, no el valor del objeto). <a class="footnote-reference" href="#id2" id="id1">[1]</a> Cuando una función
+llama a otra función, una nueva tabla de símbolos local es creada para esa
+llamada.</p>
+<p>La definición de una función introduce el nombre de la función en la tabla de
+símbolos actual.  El valor del nombre de la función tiene un tipo que es
+reconocido por el interprete como una función definida por el usuario.  Este
+valor puede ser asignado a otro nombre que luego puede ser usado como una
+función.  Esto sirve como un mecanismo general para renombrar:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span>
+<span class="go">&lt;function fib at 10042ed0&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">fib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="go">1 1 2 3 5 8 13 21 34 55 89</span>
+</pre></div>
+</div>
+<p>Viniendo de otros lenguajes, podés objetar que <tt class="docutils literal"><span class="pre">fib</span></tt> no es una función, sino
+un procedimiento, porque no devuelve un valor.  De hecho, técnicamente
+hablando, los procedimientos sí retornan un valor, aunque uno aburrido.  Este
+valor se llama <tt class="xref docutils literal"><span class="pre">None</span></tt> (es un nombre predefinido).  El intérprete por lo
+general no escribe el valor <tt class="xref docutils literal"><span class="pre">None</span></tt> si va a ser el único valor escrito.  Si
+realmente se quiere, se puede verlo usando
+<tt class="xref docutils literal"><span class="pre">print</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fib</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">fib</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">None</span>
+</pre></div>
+</div>
+<p>Es simple escribir una función que retorne una lista con los números de la
+serie de Fibonacci en lugar de imprimirlos:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fib2</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="c"># devuelve la serie de Fibonacci hasta n</span>
+<span class="gp">... </span>    <span class="sd">&quot;&quot;&quot;Devuelve una lista conteniendo la serie de Fibonacci hasta n.&quot;&quot;&quot;</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">... </span>    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+<span class="gp">... </span>    <span class="k">while</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>    <span class="c"># ver abajo</span>
+<span class="gp">... </span>        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">result</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f100</span> <span class="o">=</span> <span class="n">fib2</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>    <span class="c"># llamarla</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f100</span>                <span class="c"># escribir el resultado</span>
+<span class="go">[1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]</span>
+</pre></div>
+</div>
+<p>Este ejemplo, como es usual, demuestra algunas características más de Python:</p>
+<ul class="simple">
+<li>La sentencia <tt class="xref docutils literal"><span class="pre">return</span></tt> devuelve un valor en una función.
+<tt class="xref docutils literal"><span class="pre">return</span></tt> sin una expresión como argumento retorna <tt class="xref docutils literal"><span class="pre">None</span></tt>.  Si se
+alcanza el final de una función, también se retorna <tt class="xref docutils literal"><span class="pre">None</span></tt>.</li>
+<li>La sentencia <tt class="docutils literal"><span class="pre">result.append(b)</span></tt> llama a un <em>método</em> del objeto lista
+<tt class="docutils literal"><span class="pre">result</span></tt>.  Un método es una función que &#8216;pertenece&#8217; a un objeto y se nombra
+<tt class="docutils literal"><span class="pre">obj.methodname</span></tt>, dónde <tt class="docutils literal"><span class="pre">obj</span></tt> es algún objeto (puede ser una expresión),
+y <tt class="docutils literal"><span class="pre">methodname</span></tt> es el nombre del método que está definido por el tipo del
+objeto.  Distintos tipos definen distintos métodos.  Métodos de diferentes
+tipos pueden tener el mismo nombre sin causar ambigüedad.  (Es posible
+definir tipos de objetos propios, y métodos, usando <em>clases</em>, mirá
+<a class="reference external" href="classes.html#tut-classes"><em>Clases</em></a>).
+El método <tt class="xref docutils literal"><span class="pre">append()</span></tt> mostrado en el ejemplo está definido para objetos
+lista; añade un nuevo elemento al final de la lista.  En este ejemplo es
+equivalente a <tt class="docutils literal"><span class="pre">result</span> <span class="pre">=</span> <span class="pre">result</span> <span class="pre">+</span> <span class="pre">[b]</span></tt>, pero más eficiente.</li>
+</ul>
+</div>
+<div class="section" id="mas-sobre-definicion-de-funciones">
+<span id="tut-defining"></span><h2>5.7. Más sobre definición de funciones<a class="headerlink" href="#mas-sobre-definicion-de-funciones" title="Enlazar permanentemente con este título">¶</a></h2>
+<p>También es posible definir funciones con un número variable de argumentos. Hay
+tres formas que pueden ser combinadas.</p>
+<div class="section" id="argumentos-con-valores-por-omision">
+<span id="tut-defaultargs"></span><h3>5.7.1. Argumentos con valores por omisión<a class="headerlink" href="#argumentos-con-valores-por-omision" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>La forma más útil es especificar un valor por omisión para  uno o más
+argumentos.  Esto crea una función que puede ser llamada con menos argumentos
+que los que permite.  Por ejemplo:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">pedir_confirmacion</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">reintentos</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">queja</span><span class="o">=</span><span class="s">&#39;Si o no, por favor!&#39;</span><span class="p">):</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ok</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">,</span> <span class="s">&#39;S&#39;</span><span class="p">,</span> <span class="s">&#39;si&#39;</span><span class="p">,</span> <span class="s">&#39;Si&#39;</span><span class="p">,</span> <span class="s">&#39;SI&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">ok</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">,</span> <span class="s">&#39;No&#39;</span><span class="p">,</span> <span class="s">&#39;NO&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">reintentos</span> <span class="o">=</span> <span class="n">reintentos</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">reintentos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;usuario duro&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">queja</span>
+</pre></div>
+</div>
+<p>Esta función puede ser llamada de distintas maneras:</p>
+<ul class="simple">
+<li>pasando sólo el argumento obligatorio:
+<tt class="docutils literal"><span class="pre">pedir_confirmacion('¿Realmente</span> <span class="pre">queres</span> <span class="pre">salir?')</span></tt></li>
+<li>pasando uno de los argumentos opcionales:
+<tt class="docutils literal"><span class="pre">pedir_confirmacion('¿Sobreescribir</span> <span class="pre">archivo?',</span> <span class="pre">2)</span></tt></li>
+<li>o pasando todos los argumentos:
+<tt class="docutils literal"><span class="pre">pedir_confirmacion('¿Sobreescribir</span> <span class="pre">archivo?',</span> <span class="pre">2,</span> <span class="pre">&quot;Vamos,</span> <span class="pre">solo</span> <span class="pre">si</span> <span class="pre">o</span> <span class="pre">no!)</span></tt></li>
+</ul>
+<p>Este ejemplo también introduce la palabra reservada <tt class="xref docutils literal"><span class="pre">in</span></tt>, la cual
+prueba si una secuencia contiene o no un determinado valor.</p>
+<p>Los valores por omisión son evaluados en el momento de la definición de la
+función, en el ámbito de la <em>definición</em>, entonces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">i</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">arg</span><span class="o">=</span><span class="n">i</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">arg</span>
+
+<span class="n">i</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">f</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>...imprimirá <tt class="docutils literal"><span class="pre">5</span></tt>.</p>
+<p><strong>Advertencia importante:</strong>  El valor por omisión es evaluado solo una vez.
+Existe una diferencia cuando el valor por omisión es un objeto mutable como una
+lista, diccionario, o instancia de la mayoría de las clases.  Por ejemplo, la
+siguiente función acumula los argumentos que se le pasan en subsiguientes
+llamadas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">L</span>
+
+<span class="k">print</span> <span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">f</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">f</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Imprimirá:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Si no se quiere que el valor por omisión sea compartido entre subsiguientes
+llamadas, se pueden escribir la función así:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">L</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">L</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="palabras-claves-como-argumentos">
+<span id="tut-keywordargs"></span><h3>5.7.2. Palabras claves como argumentos<a class="headerlink" href="#palabras-claves-como-argumentos" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Las funciones también puede ser llamadas nombrando a los argumentos
+de la forma <tt class="docutils literal"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">value</span></tt>.  Por ejemplo, la siguiente función:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">loro</span><span class="p">(</span><span class="n">tension</span><span class="p">,</span> <span class="n">estado</span><span class="o">=</span><span class="s">&#39;muerto&#39;</span><span class="p">,</span> <span class="n">accion</span><span class="o">=</span><span class="s">&#39;explotar&#39;</span><span class="p">,</span> <span class="n">tipo</span><span class="o">=</span><span class="s">&#39;Azul Nordico&#39;</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">&quot;-- Este loro no va a&quot;</span><span class="p">,</span> <span class="n">accion</span><span class="p">,</span>
+    <span class="k">print</span> <span class="s">&quot;si le aplicas&quot;</span><span class="p">,</span> <span class="n">tension</span><span class="p">,</span> <span class="s">&quot;voltios.&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;-- Gran plumaje tiene el&quot;</span><span class="p">,</span> <span class="n">tipo</span>
+    <span class="k">print</span> <span class="s">&quot;-- Esta&quot;</span><span class="p">,</span> <span class="n">estado</span><span class="p">,</span> <span class="s">&quot;!&quot;</span>
+</pre></div>
+</div>
+<p>...puede ser llamada de cualquiera de las siguientes formas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">loro</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">loro</span><span class="p">(</span><span class="n">accion</span><span class="o">=</span><span class="s">&#39;EXPLOTARRRRR&#39;</span><span class="p">,</span> <span class="n">tension</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>
+<span class="n">loro</span><span class="p">(</span><span class="s">&#39;mil&#39;</span><span class="p">,</span> <span class="n">estado</span><span class="o">=</span><span class="s">&#39;boca arriba&#39;</span><span class="p">)</span>
+<span class="n">loro</span><span class="p">(</span><span class="s">&#39;un millon&#39;</span><span class="p">,</span> <span class="s">&#39;rostizado&#39;</span><span class="p">,</span> <span class="s">&#39;saltar&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>...pero estas otras llamadas serían todas inválidas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">loro</span><span class="p">()</span>                      <span class="c"># falta argumento obligatorio</span>
+<span class="n">loro</span><span class="p">(</span><span class="n">tension</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="s">&#39;muerto&#39;</span><span class="p">)</span> <span class="c"># argumento nombrado seguido de uno posicional</span>
+<span class="n">loro</span><span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="n">tension</span><span class="o">=</span><span class="mi">220</span><span class="p">)</span>      <span class="c"># valor duplicado para argumento</span>
+<span class="n">loro</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="s">&#39;Juan Garau&#39;</span><span class="p">)</span>    <span class="c"># palabra clave desconocida</span>
+</pre></div>
+</div>
+<p>En general, una lista de argumentos debe tener todos sus argumentos
+posicionales seguidos por los argumentos nombrados, dónde las palabras
+claves deben ser elegidas entre los nombres de los parámetros formales.  No es
+importante si un parámetro formal tiene un valor por omisión o no.  Ningún
+argumento puede recibir un valor más de una vez (los nombres de parámetros
+formales correspondientes a argumentos posicionales no pueden ser usados como
+palabras clave en la misma llamada).  Aquí hay un ejemplo que falla debido a
+esta restricción:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">funcion</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">funcion</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="nc">TypeError</span>: <span class="n-Identifier">funcion() got multiple values for keyword argument &#39;a&#39;</span>
+</pre></div>
+</div>
+<p>Cuando un parámetro formal de la forma <tt class="docutils literal"><span class="pre">**nombre</span></tt> está presente al final,
+recibe un diccionario (ver <em class="xref">typesmapping</em>) conteniendo todos los
+argumentos nombrados excepto aquellos correspondientes a un parámetro formal.
+Esto puede ser combinado con un parámetro formal de la forma <tt class="docutils literal"><span class="pre">*nombre</span></tt>
+(descripto en la siguiente sección) que recibe una tupla conteniendo los
+argumentos posicionales además de la lista de parámetros formales. (<tt class="docutils literal"><span class="pre">*nombre</span></tt>
+debe ocurrir antes de <tt class="docutils literal"><span class="pre">**nombre</span></tt>).  Por ejemplo, si definimos una función
+así:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">ventadequeso</span><span class="p">(</span><span class="n">tipo</span><span class="p">,</span> <span class="o">*</span><span class="n">argumentos</span><span class="p">,</span> <span class="o">**</span><span class="n">palabrasclaves</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">&quot;-- ¿Tiene&quot;</span><span class="p">,</span> <span class="n">tipo</span><span class="p">,</span> <span class="s">&quot;?&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;-- Lo siento, nos quedamos sin&quot;</span><span class="p">,</span> <span class="n">kind</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argumentos</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">arg</span>
+    <span class="k">print</span> <span class="s">&quot;-&quot;</span><span class="o">*</span><span class="mi">40</span>
+    <span class="n">claves</span> <span class="o">=</span> <span class="n">palabrasclaves</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">claves</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">claves</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">c</span><span class="p">,</span> <span class="s">&quot;:&quot;</span><span class="p">,</span> <span class="n">palabrasclaves</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Puede ser llamada así:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ventadequeso</span><span class="p">(</span><span class="s">&quot;Limburger&quot;</span><span class="p">,</span> <span class="s">&quot;Es muy liquido, sr.&quot;</span><span class="p">,</span>
+           <span class="s">&quot;Realmente es muy muy liquido, sr.&quot;</span><span class="p">,</span>
+           <span class="n">cliente</span><span class="o">=</span><span class="s">&quot;Juan Garau&quot;</span><span class="p">,</span>
+           <span class="n">vendedor</span><span class="o">=</span><span class="s">&quot;Miguel Paez&quot;</span><span class="p">,</span>
+           <span class="n">puesto</span><span class="o">=</span><span class="s">&quot;Venta de Queso Argentino&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>...y por supuesto imprimirá:</p>
+<div class="highlight-python"><pre>-- ¿Tiene Limburger ?
+-- Lo siento, nos quedamos sin Limburger
+Es muy liquido, sr.
+Realmente es muy muy liquido, sr.
+----------------------------------------
+cliente : Juan Garau
+vendedor : Miguel Paez
+puesto : Venta de Queso Argentino</pre>
+</div>
+<p>Se debe notar que el método <tt class="xref docutils literal"><span class="pre">sort()</span></tt> de la lista de nombres de argumentos
+nombrados es llamado antes de imprimir el contenido del diccionario
+<tt class="docutils literal"><span class="pre">palabrasclaves</span></tt>; si esto no se hace, el orden en que los argumentos son
+impresos no está definido.</p>
+</div>
+<div class="section" id="listas-de-argumentos-arbitrarios">
+<span id="tut-arbitraryargs"></span><h3>5.7.3. Listas de argumentos arbitrarios<a class="headerlink" href="#listas-de-argumentos-arbitrarios" title="Enlazar permanentemente con este título">¶</a></h3>
+<p id="index-59">Finalmente, la opción menos frecuentemente usada es especificar que una
+función puede ser llamada con un número arbitrario de argumentos.  Estos
+argumentos serán organizados en una tupla (mirá <a class="reference external" href="datastructures.html#tut-tuples"><em>Tuplas y secuencias</em></a>).  Antes
+del número variable de argumentos, cero o más argumentos normales pueden
+estar presentes.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">muchos_items</span><span class="p">(</span><span class="n">archivo</span><span class="p">,</span> <span class="n">separador</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">archivo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">separador</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="desempaquetando-una-lista-de-argumentos">
+<span id="tut-unpacking-arguments"></span><h3>5.7.4. Desempaquetando una lista de argumentos<a class="headerlink" href="#desempaquetando-una-lista-de-argumentos" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>La situación inversa ocurre cuando los argumentos ya están en una lista o
+tupla pero necesitan ser desempaquetados para llamar a una función que
+requiere argumentos posicionales separados.  Por ejemplo, la función
+predefinida <tt class="xref docutils literal"><span class="pre">range()</span></tt> espera los argumentos <em>inicio</em> y <em>fin</em>.  Si no están
+disponibles en forma separada, se puede escribir la llamada a la función con
+el operador para desempaquetar argumentos de una lista o una tupla <tt class="docutils literal"><span class="pre">*</span></tt>::</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>       <span class="c"># llamada normal con argumentos separados</span>
+<span class="go">[3, 4, 5]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>      <span class="c"># llamada con argumentos desempaquetados de una lista</span>
+<span class="go">[3, 4, 5]</span>
+</pre></div>
+</div>
+<p id="index-60">Del mismo modo, los diccionarios pueden entregar argumentos nombrados
+con el operador <tt class="docutils literal"><span class="pre">**</span></tt>::</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">loro</span><span class="p">(</span><span class="n">tension</span><span class="p">,</span> <span class="n">estado</span><span class="o">=</span><span class="s">&#39;rostizado&#39;</span><span class="p">,</span> <span class="n">accion</span><span class="o">=</span><span class="s">&#39;explotar&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&quot;-- Este loro no va a&quot;</span><span class="p">,</span> <span class="n">accion</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&quot;si le aplicas&quot;</span><span class="p">,</span> <span class="n">tension</span><span class="p">,</span> <span class="s">&quot;voltios.&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="s">&quot;Esta&quot;</span><span class="p">,</span> <span class="n">estado</span><span class="p">,</span> <span class="s">&quot;!&quot;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;tension&quot;</span><span class="p">:</span> <span class="s">&quot;cuatro millones&quot;</span><span class="p">,</span> <span class="s">&quot;estado&quot;</span><span class="p">:</span> <span class="s">&quot;demacrado&quot;</span><span class="p">,</span>
+<span class="gp">... </span>     <span class="s">&quot;accion&quot;</span><span class="p">:</span> <span class="s">&quot;VOLAR&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loro</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+<span class="go">-- Este loro no va a VOLAR si le aplicas cuatro millones voltios. Esta demacrado !</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="formas-con-lambda">
+<span id="tut-lambda"></span><h3>5.7.5. Formas con lambda<a class="headerlink" href="#formas-con-lambda" title="Enlazar permanentemente con este título">¶</a></h3>
+<p>Por demanda popular, algunas características comúnmente encontradas en
+lenguajes de programación funcionales como Lisp fueron añadidas a Python.  Con
+la palabra reservada <tt class="xref docutils literal"><span class="pre">lambda</span></tt> se pueden crear pequeñas funciones
+anónimas.  Esta es una función que devuelve la suma de sus dos argumentos:
+<tt class="docutils literal"><span class="pre">lambda</span> <span class="pre">a,</span> <span class="pre">b:</span> <span class="pre">a+b</span></tt>.  Las formas con lambda pueden ser usadas en cualquier
+lugar que se requieran funciones.  Semánticamente, son solo azúcar sintáctica
+para la definición de funciones.  Cómo en la definición de funciones anidadas,
+las formas con lambda pueden hacer referencia a variables del ámbito en el que
+son contenidas:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">hacer_incrementador</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">n</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">hacer_incrementador</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">43</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cadenas-de-texto-de-documentacion">
+<span id="tut-docstrings"></span><h3>5.7.6. Cadenas de texto de documentación<a class="headerlink" href="#cadenas-de-texto-de-documentacion" title="Enlazar permanentemente con este título">¶</a></h3>
+<p id="index-61">Hay convenciones emergentes sobre el contenido y formato de las cadenas de
+texto de documentación.</p>
+<p>La primer línea debe ser siempre un resumen corto y conciso del propósito del
+objeto.  Para ser breve, no se debe mencionar explícitamente el nombre o tipo
+del objeto, ya que estos están disponibles de otros modos (excepto si el nombre
+es un verbo que describe el funcionamiento de la función).  Esta línea debe
+empezar con una letra mayúscula y terminar con un punto.</p>
+<p>Si hay más líneas en la cadena de texto de documentación, la segunda línea debe
+estar en blanco, separando visualmente el resumen del resto de la descripción.
+Las líneas siguientes deben ser uno o más párrafos describiendo las
+convenciones para llamar al objeto, efectos secundarios, etc.</p>
+<p>El analizador de Python no quita el sangrado de las cadenas de texto
+literales multi-líneas, entonces las herramientas que procesan documentación
+tienen que quitarlo si así lo desean.  Esto se hace mediante la
+siguiente convención.  La primer línea que no está en blanco <em>siguiente</em> a la
+primer línea de la cadena determina la cantidad de sangría para toda la
+cadena de documentación.  (No podemos usar la primer línea ya que generalmente
+es adyacente a las comillas de apertura de la cadena y el sangrado no se nota
+en la cadena de texto).  Los espacios en blanco &#8220;equivalentes&#8221; a este sangrado
+son luego quitados del comienzo de cada línea en la cadena.  No deberían haber
+líneas con una sangría menor, pero si las hay todos los espacios en blanco del
+comienzo deben ser quitados.  La equivalencia de espacios en blanco debe ser
+verificada luego de la expansión de tabs (a 8 espacios, normalmente).</p>
+<p>Este es un ejemplo de un docstring multi-línea:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">mi_funcion</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="sd">&quot;&quot;&quot;No hace mas que documentar la funcion.</span>
+<span class="gp">...</span><span class="sd"></span>
+<span class="gp">... </span><span class="sd">    No, de verdad. No hace nada.</span>
+<span class="gp">... </span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">mi_funcion</span><span class="o">.</span><span class="n">__doc__</span>
+<span class="go">No hace mas que documentar la funcion.</span>
+
+<span class="go">No, de verdad. No hace nada.</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="intermezzo-estilo-de-codificacion">
+<span id="tut-codingstyle"></span><h2>5.8. Intermezzo: Estilo de codificación<a class="headerlink" href="#intermezzo-estilo-de-codificacion" title="Enlazar permanentemente con este título">¶</a></h2>
+<p id="index-62">Ahora que estás a punto de escribir piezas de Python más largas y complejas,
+es un buen momento para hablar sobre <em>estilo de codificación</em>. La mayoría de
+los lenguajes pueden ser escritos (o mejor dicho, <em>formateados</em>) con diferentes
+estilos; algunos son mas fáciles de leer que otros.  Hacer que tu código sea
+más fácil de leer por otros es siempre una buena idea, y adoptar un buen estilo
+de codificación ayuda tremendamente a lograrlo.</p>
+<p>Para Python, <span class="target" id="index-63"></span><a class="reference external" href="http://www.python.org/dev/peps/pep-0008"><strong>PEP 8</strong></a> se erigió como la guía de estilo a la que más proyectos
+adhirieron; promueve un estilo de codificación fácil de leer y visualmente
+agradable.  Todos los desarrolladores Python deben leerlo en algún momento;
+aquí están extraídos los puntos más importantes:</p>
+<ul>
+<li><p class="first">Usar sangrías de 4 espacios, no tabs.</p>
+<p>4 espacios son un buen compromiso entre una sangría pequeña (permite mayor
+nivel de sangrado)y una sangría grande (más fácil de leer). Los tabs
+introducen confusión y es mejor dejarlos de lado.</p>
+</li>
+<li><p class="first">Recortar las líneas para que no superen los 79 caracteres.</p>
+<p>Esto ayuda a los usuarios con pantallas pequeñas y hace posible tener varios
+archivos de código abiertos, uno al lado del otro, en pantallas grandes.</p>
+</li>
+<li><p class="first">Usar líneas en blanco para separar funciones y clases, y bloques grandes
+de código dentro de funciones.</p>
+</li>
+<li><p class="first">Cuando sea posible, poner comentarios en una sola línea.</p>
+</li>
+<li><p class="first">Usar docstrings.</p>
+</li>
+<li><p class="first">Usar espacios alrededor de operadores y luego de las comas, pero no
+directamente dentro de paréntesis: <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">f(1,</span> <span class="pre">2)</span> <span class="pre">+</span> <span class="pre">g(3,</span> <span class="pre">4)</span></tt>.</p>
+</li>
+<li><p class="first">Nombrar las clases y funciones consistentemente; la convención es usar
+<tt class="docutils literal"><span class="pre">NotacionCamello</span></tt> para clases y <tt class="docutils literal"><span class="pre">minusculas_con_guiones_bajos</span></tt> para
+funciones y métodos.  Siempre usá <tt class="docutils literal"><span class="pre">self</span></tt> como el nombre para el primer
+argumento en los métodos (mirá <a class="reference external" href="classes.html#tut-firstclasses"><em>Un primer vistazo a las clases</em></a> para más información
+sobre clases y métodos).</p>
+</li>
+<li><p class="first">No usar codificaciones estrafalarias si se espera usar el código en entornos
+internacionales.  ASCII plano funciona bien en la mayoría de los casos.</p>
+</li>
+</ul>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>En realidad, <em>llamadas por referencia de objeto</em> sería una
+mejor descripción, ya que si se pasa un objeto mutable, quien realiza la
+llamada verá cualquier cambio que se realice sobre el mismo (por ejemplo
+ítems insertados en una lista).</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="contenido.html">Contenidos</a></h3>
+            <ul>
+<li><a class="reference external" href="#">5. Más herramientas para control de flujo</a><ul>
+<li><a class="reference external" href="#la-sentencia-if">5.1. La sentencia <tt class="docutils literal"><span class="pre">if</span></tt></a></li>
+<li><a class="reference external" href="#la-sentencia-for">5.2. La sentencia <tt class="docutils literal"><span class="pre">for</span></tt></a></li>
+<li><a class="reference external" href="#la-funcion-range">5.3. La función <tt class="docutils literal"><span class="pre">range()</span></tt></a></li>
+<li><a class="reference external" href="#las-sentencias-break-continue-y-else-en-lazos">5.4. Las sentencias <tt class="docutils literal"><span class="pre">break</span></tt>, <tt class="docutils literal"><span class="pre">continue</span></tt>, y <tt class="docutils literal"><span class="pre">else</span></tt> en lazos</a></li>
+<li><a class="reference external" href="#la-sentencia-pass">5.5. La sentencia <tt class="docutils literal"><span class="pre">pass</span></tt></a></li>
+<li><a class="reference external" href="#definiendo-funciones">5.6. Definiendo funciones</a></li>
+<li><a class="reference external" href="#mas-sobre-definicion-de-funciones">5.7. Más sobre definición de funciones</a><ul>
+<li><a class="reference external" href="#argumentos-con-valores-por-omision">5.7.1. Argumentos con valores por omisión</a></li>
+<li><a class="reference external" href="#palabras-claves-como-argumentos">5.7.2. Palabras claves como argumentos</a></li>
+<li><a class="reference external" href="#listas-de-argumentos-arbitrarios">5.7.3. Listas de argumentos arbitrarios</a></li>
+<li><a class="reference external" href="#desempaquetando-una-lista-de-argumentos">5.7.4. Desempaquetando una lista de argumentos</a></li>
+<li><a class="reference external" href="#formas-con-lambda">5.7.5. Formas con lambda</a></li>
+<li><a class="reference external" href="#cadenas-de-texto-de-documentacion">5.7.6. Cadenas de texto de documentación</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#intermezzo-estilo-de-codificacion">5.8. Intermezzo: Estilo de codificación</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Tema anterior</h4>
+            <p class="topless"><a href="introduction.html"
+                                  title="Capítulo anterior">4. Una introducción informal a Python</a></p>
+            <h4>Próximo tema</h4>
+            <p class="topless"><a href="datastructures.html"
+                                  title="Próximo capítulo">6. Estructuras de datos</a></p>
+            <h3>Esta página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/controlflow.txt"
+                     rel="nofollow">Enseñar el código</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Búsqueda rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir a" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Ingrese una palabra para buscar o un nombre de módulo, clase o función
+              </p>
+          </div>
+          <h4><a href="/"> Volver a CdPedia </a></h4>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegación</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice General"
+             >índice</a></li>
+        <li class="right" >
+          <a href="datastructures.html" title="6. Estructuras de datos"
+             >siguiente</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="4. Una introducción informal a Python"
+             >anterior</a> |</li>
+        <li><a href="contenido.html">Tutorial de Python v2.6.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Python Software Foundation.
+      Creado con <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

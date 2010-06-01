@@ -45,6 +45,11 @@ SEPARADOR_COLUMNAS = '|'
 # páginas en sí
 ASSETS = ["skins", "misc", "raw"]
 
+# Primera página que se abrirá en el browser.
+# Para ir a la portada de cdpedia dejar ""
+INDEX = ""
+
+
 # Comando externo para convertir en HTML en texto, para extraer las palabras
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.
 # W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
