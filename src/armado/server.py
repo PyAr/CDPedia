@@ -34,9 +34,11 @@ BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
 LIMPIA = re.compile("[(),]")
 
 
-# global variable to hold the port used by the server
+# variable global para saber el puerto usado por el servidor
 serving_port = None
 
+# función para apagar el servidor
+shutdown = None
 
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
@@ -433,6 +435,7 @@ buscador = Buscador()
 
 def run(event):
     global serving_port
+    global shutdown
 
     WikiHTTPRequestHandler.index = cdpindex.IndexInterface(config.DIR_INDICE)
     WikiHTTPRequestHandler.index.start()
@@ -450,6 +453,8 @@ def run(event):
             break
 
     print "Sirviendo HTTP en localhost, puerto %d..." % port
+
+    shutdown = httpd.shutdown
     event.set()
     httpd.serve_forever()
 
