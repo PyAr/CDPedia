@@ -18,8 +18,8 @@ opts = {
             "urllib2",
             "shutil",
         ],
+		"packages": ["win32api"]
     }
 }
 
-setup(console=['win32main.py'], options=opts)
-
+setup(windows=["win32main.py"], options=opts)
