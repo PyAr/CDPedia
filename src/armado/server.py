@@ -5,23 +5,27 @@
 from __future__ import division
 from __future__ import with_statement
 
-import BaseHTTPServer
-import cPickle
-import cdpindex
-import cgi
-import compresor
-import config
-import operator
 import os
 import re
+import cgi
+import time
 import socket
 import string
-import threading
-import time
 import urllib   # .quote, .unquote
 import urllib2  # .urlparse
+import cPickle
+import operator
+import threading
+import posixpath
+import BaseHTTPServer
+from base64 import b64encode
 from mimetypes import guess_type
+from random import choice
 
+import config
+import to3dirs
+import cdpindex
+import compresor
 
 __version__ = "0.1.1.1.1.1"
 
@@ -33,6 +37,8 @@ RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
 BUSQ_NO_RESULTS = u"No se encontró nada para lo ingresado!"
 LIMPIA = re.compile("[(),]")
 
+WATCHDOG_IFRAME = '<iframe src="/watchdog/update" style="width:1px;height:1px;'\
+                  'display:none;"></iframe>'
 
 # variable global para saber el puerto usado por el servidor
 serving_port = None
@@ -40,9 +46,20 @@ serving_port = None
 # función para apagar el servidor
 shutdown = None
 
+# listado de artíuclos destacados para mostrar en la mainpage
+if config.DESTACADOS:
+    destacados = open(config.DESTACADOS, 'r').readlines()
+else:
+    destacados = None
+
 class ContentNotFound(Exception):
     """No se encontró la página requerida!"""
 
+class ArticleNotFound(ContentNotFound):
+    """No se encontró el artículo!"""
+
+class InternalServerError(Exception):
+    """Error interno al buscar contenido!"""
 
 class TemplateManager(object):
     '''Maneja los templates en disco.'''
@@ -95,7 +112,10 @@ def get_stats():
     d = cPickle.load(open(os.path.join(config.DIR_ASSETS, "estad.pkl")))
     pag = "%5d (%2d%%)" % (d['pags_incl'], 100 * d['pags_incl'] / d['pags_total'])
     i_tot = d['imgs_incl'] + d['imgs_bogus']
-    img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
+    if i_tot == 0:
+        img = 0
+    else:
+        img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
     return pag, img
 
 
@@ -130,65 +150,55 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Serve a GET request."""
-        tipo, data = self.getfile(self.path)
-        if data is not None:
+        try:
+            tipo, data = self.getfile(self.path)
             self.send_response(200)
             if tipo is not None:
                 self.send_header("Content-type", tipo)
             self.send_header("Content-Length", len(data))
-            if tipo != "text/html":
+            if tipo not in ["text/html", "application/json"]:
                 expiry = self.date_time_string(time.time() + 86400)
                 self.send_header("Expires", expiry)
                 self.send_header("Cache-Control",
                     "max-age=86400, must-revalidate")
             self.end_headers()
             self.wfile.write(data)
-        else:
-            self.send_response (404)
+        except ArticleNotFound, e:
+            self.send_response(code=404)
+            self.send_header("Content-type", "text/html")
+            self.send_header("Content-Length", len(e.args[0]))
             self.end_headers()
-            self.wfile.write ("URL not found: %s" % self.path)
+            self.wfile.write(str(e))
+        except ContentNotFound, e:
+            self.send_error(code=404)
+        except InternalServerError, e:
+            self.send_error(code=500, message=str(e))
 
     def _get_orig_link(self, path):
         """A partir del path devuelve el link original externo."""
-        path = path[:-5] # sin el .html
-
-        # veamos si tenemos "_" + cuatro dígitos hexa
-        if len(path) > 5 and path[-5] == "_":
-            cuad = path[-4:]
-            try:
-                int(cuad, 16)
-            except ValueError:
-                pass
-            else:
-                path = path[:-5]
-        orig_link = "http://es.wikipedia.org/wiki/" + path
-        return orig_link.decode("utf8")
+        orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
+        return orig_link
 
     def _get_contenido(self, path):
-#        print "Get contenido", path
         match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
         if match is not None:
             path = match.group(1)
-
-        if path[-4:] != "html":
-            raise ContentNotFound(u"Sólo buscamos páginas HTML!")
-
         orig_link = self._get_orig_link(path)
         try:
-            data = self._art_mngr.getArticle(path.decode("utf-8"))
+            data = self._art_mngr.getArticle(path)
         except Exception, e:
             msg = u"Error interno al buscar contenido: %s" % e
-            raise ContentNotFound(msg)
+            raise InternalServerError(msg)
 
         if data is None:
-            m  = NOTFOUND % (path.decode("utf8"), orig_link)
-            raise ContentNotFound(m)
+            msg  = NOTFOUND % (path, orig_link)
+            raise ArticleNotFound(msg)
 
         title = getTitleFromData(data)
         return "text/html", self._wrap(data, title, orig_link=orig_link)
 
     def _wrap(self, contenido, title, orig_link=None):
-        header = self.templates("header", titulo=title)
+        header = self.templates("header", titulo=title, iframe=WATCHDOG_IFRAME)
 
         if orig_link is None:
             orig_link = ""
@@ -201,11 +211,40 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                                 orig_link=orig_link.encode("utf8"))
         return header + contenido + footer
 
-
     def _main_page(self, msg=u"¡Bienvenido!"):
-        pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
-                                stt_pag=self._stt_pag, stt_img=self._stt_img)
-        return "text/html", self._wrap(pag, msg.encode("utf8"))
+        if destacados:
+            link = choice(destacados).replace('\n','').decode('utf-8')
+            data = self._art_mngr.getArticle(link[len('/wiki/')-1:])
+            while not data:
+                # FIXME: si no está ningún artículo de los destacados se queda
+                # trabado aca.
+                #print u"WARNING: Artículo destacado no encontrado: %s" % link
+                link = choice(destacados).replace('\n','').decode('utf-8')
+                data = self._art_mngr.getArticle(link[len('/wiki/')-1:])
+
+            # La regexp se queda con el título y
+            # los párrafos que hay antes de la TOC (si tiene)
+            # o antes de la 2da sección
+            # Si hay una tabla antes del primer párrafo, la elimina
+            # FIXME: Escribir mejor la regex (por lo menos en varias líneas)
+            #        o tal vez usar BeautifulSoup
+            m = re.search('<h1 id="firstHeading" class="firstHeading">([^<]+).*?<!-- bodytext -->.*?(?:<table .*</table>)?\n(<p>.*?)(?:(?:<table id="toc" class="toc">)|(?:<h2))', data, re.MULTILINE | re.DOTALL)
+            if not m:
+                #print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
+                titulo, primeros_parrafos = '',''
+            else:
+                titulo, primeros_parrafos = m.groups()
+
+            pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
+                                 link=link.encode('utf-8'), titulo=titulo,
+                                 primeros_parrafos=primeros_parrafos,
+                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
+            return "text/html", self._wrap(pag, msg.encode("utf8"))
+
+        else:
+            pag = self.templates("mainpage_sin_destacado", mensaje=msg.encode("utf8"),
+                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
+            return "text/html", self._wrap(pag, msg.encode("utf8"))
 
     def _esperando(self):
         """Se fija si debemos seguir esperando o entregamos la data."""
@@ -232,6 +271,14 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._esperando()
         if path == "/dosearch":
             return self.dosearch(query)
+        if path == "/ajax/index/ready":
+            return self.ajax_index_ready()
+        if path == "/ajax/buscar":
+            return self.ajax_search(query)
+        if path == "/ajax/buscar/resultado":
+            return self.ajax_search_get_results()
+        if path == "/watchdog/update":
+            return self.watchdog_update()
         if path == "/al_azar":
             return self.al_azar(query)
         if path[0] == "/":
@@ -239,20 +286,21 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         arranque = path.split("/")[0]
 
-        # los links internos apuntan a algo arrancando con articles, se lo
+        # los links internos apuntan a algo arrancando con wiki, se lo
         # sacamos y tenemos el path que nos sirve
-        if arranque == "articles":
-            path = path[9:]
-            arranque = path.split("/")[0]
+        if arranque == "wiki":
+            articulo = path[len("wiki/"):].decode("utf-8")
+            if articulo:
+                path = to3dirs.to_complete_path(articulo)
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente
-        if arranque in config.ASSETS + ["images",  "extern", "tutorial"]:
+        elif arranque in config.ASSETS + ["images",  "extern", "tutorial"]:
             asset_file = os.path.join(config.DIR_ASSETS, path)
             if os.path.isdir(asset_file):
                 print "WARNING: ", repr(asset_file), "es un directorio"
-                return "", None
-            if os.path.exists(asset_file): 
+                raise ContentNotFound()
+            if os.path.exists(asset_file):
                 asset_data = open(asset_file, "rb").read()
 
                 # los fuentes del tutorial (rest) son archivos de texto plano
@@ -260,25 +308,33 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 if "tutorial/_sources" in asset_file:
                     return "text/plain ;charset=utf-8", asset_data
 
-                return guess_type(path)[0], asset_data
+                type_ = guess_type(path)[0]
+                if type_ == "text/html":
+                    s = re.search("<.*?body.*?>", asset_data)
+                    if s:
+                        asset_data = asset_data.replace(s.group(), s.group()+WATCHDOG_IFRAME)
+                return type_, asset_data
             else:
                 print "WARNING: no pudimos encontrar", repr(asset_file)
-                return "", ""
+                raise ContentNotFound()
 
         if path=="":
             return self._main_page()
 
         try:
             data = self._get_contenido(path)
-        except ContentNotFound, e:
-            return self._main_page(unicode(e))
+        except ArticleNotFound, e:
+            # Devolvemos el error del artículo no encontrado usando la página
+            # principal.
+            _, msg = self._main_page(unicode(e))
+            raise ArticleNotFound(msg)
 
         return data
 
     @ei.espera_indice
     def al_azar(self, query):
         link, tit = self.index.get_random()
-        return self._get_contenido(link.encode("utf8"))
+        return self._get_contenido(link)
 
     @ei.espera_indice
     def dosearch(self, query):
@@ -290,6 +346,47 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # search in a thread
         buscador.buscar(self.index, keywords.decode("utf8"))
         return self._get_reloading_page(keywords)
+
+    def ajax_index_ready(self):
+        r = 'false'
+        if self.index.is_ready():
+            r = 'true'
+        return "application/json", r
+
+    def ajax_search(self, query):
+        if not self.index.is_ready():
+            raise InternalServerError("Index not ready")
+        params = cgi.parse_qs(query)
+        if not "keywords" in params:
+            return self._main_page(u"¡Búsqueda mal armada!")
+        keywords = params["keywords"][0]
+
+        # search in a thread
+        buscador.buscar(self.index, keywords.decode("utf8"))
+        return "text/html", "buscando?pals=%s" % (urllib.quote(keywords),)
+
+    def ajax_search_get_results(self):
+        res_completa = ""
+        res_detallada = ""
+
+        if not buscador.done_completa or not buscador.done_detallada:
+            status = "NOTDONE"
+        else:
+            status = "DONE"
+        if buscador.done_completa and buscador.results_completa:
+            res_completa = b64encode(self._formatear_resultados(buscador.results_completa))
+        if buscador.done_detallada and buscador.results_detallada:
+            res_detallada = b64encode(self._formatear_resultados(buscador.results_detallada))
+
+        return "application/json", ('{"status":"%s","res_detallada":"%s","res_completa":"%s"}'
+                                                                        % (status,
+                                                                          res_detallada,
+                                                                          res_completa))
+    def watchdog_update(self):
+        self._watchdog_update()
+        seconds = str(config.BROWSER_WD_SECONDS/2)
+        return "text/html", "<html><head><meta http-equiv='refresh' content='%s'" \
+                             "></head><body></body></html>" % (seconds, )
 
     def _get_reloading_page(self, palabras, res_comp=None, res_det=None):
         """Arma la página de recarga."""
@@ -346,6 +443,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # artículos originales
         agrupados = {}
         for link, titulo, ptje, original, texto in candidatos:
+            # quitamos 3 dirs del link y agregamos "wiki"
+            link = u"wiki" + link[5:]
             # los tokens los ponemos en minúscula porque las mayúscula les
             # da un efecto todo entrecortado
             tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
@@ -371,8 +470,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         candidatos = ((k,) + tuple(v) for k,v in agrupados.iteritems())
         cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
         for link, titulo, ptje, tokens, texto in cand:
-            res.append(u'<font size=+1><a href="%s">%s</a></font><br/>' % (
-                                                                link, titulo))
+            res.append(u'<font size=+1><a href="/%s">%s</a></font><br/>' % (
+                                                                urllib.quote(link.encode("utf-8")), titulo))
             if tokens:
                 res.append(u'<font color="#A05A2C"><i>%s</i></font><br/>' % (
                                                             " ".join(tokens)))
@@ -432,8 +531,7 @@ class Buscador(object):
 
 buscador = Buscador()
 
-
-def run(event):
+def run(server_up_event, watchdog_update):
     global serving_port
     global shutdown
 
@@ -455,7 +553,8 @@ def run(event):
     print "Sirviendo HTTP en localhost, puerto %d..." % port
 
     shutdown = httpd.shutdown
-    event.set()
+    server_up_event.set()
+    WikiHTTPRequestHandler._watchdog_update = watchdog_update
     httpd.serve_forever()
 
 if __name__ == '__main__':

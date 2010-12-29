@@ -6,31 +6,48 @@
         <link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (Español)" />
         <link rel="copyright" href="../../../COPYING.html" />
     <title>$titulo - Wikipedia, la enciclopedia libre</title>
-    <style type="text/css">/*<![CDATA[*/ @import "../../../skins/offline/main.css"; /*]]>*/</style>
-    <link rel="stylesheet" type="text/css" media="print" href="../../../skins/common/commonPrint.css" />
+
+
+    <link rel="stylesheet" href="../../../skins/css/main.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../skins/css/shared.css" type="text/css" media="screen" />
+
+    <link rel="stylesheet" href="../../../skins/css/commonPrint.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="../../../skins/css/combined.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/Common.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/Print.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="../../../skins/css/Handheld.css" type="text/css" media="handheld" />
+    <link rel="stylesheet" href="../../../skins/css/Vector.css" type="text/css" media="all" />
+
     <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
     <!--[if IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE55Fixes.css";</style><![endif]-->
     <!--[if IE 6]><style type="text/css">@import "../../../skins/monobook/IE60Fixes.css";</style><![endif]-->
     <!--[if IE]><script type="text/javascript" src="../../../skins/common/IEFixes.js"></script>
     <meta http-equiv="imagetoolbar" content="no" /><![endif]-->
-    <script type="text/javascript" src="../../../skins/common/wikibits.js"></script>
-    <script type="text/javascript" src="../../../skins/offline/md5.js"></script>
-    <script type="text/javascript" src="../../../skins/offline/utf8.js"></script>
-    <script type="text/javascript" src="../../../skins/offline/lookup.js"></script>
-    <script type="text/javascript" src="../../../raw/gen.js"></script>        <style type="text/css">/*<![CDATA[*/
-@import "../../../raw/MediaWiki%7ECommon.css";
-@import "../../../raw/MediaWiki%7EMonobook.css";
-@import "../../../raw/gen.css";
-/*]]>*/</style>         
+
+    <script type="text/javascript" src="../../../skins/js/header.js"></script>
+    <script type="text/javascript" src="../../../skins/js/wikibits.js"></script>
+    <script type="text/javascript" src="../../../extern/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="../../../extern/jquery.base64.js"></script>
+    <script type="text/javascript" src="../../../extern/search.js"></script>
+    <!--<script type="text/javascript" src="../../../skins/js/ajax.js"></script>-->
+    <!--<script type="text/javascript" src="../../../skins/js/mwsuggest.js"></script>-->
+    <!--<script type="text/javascript" src="../../../skins/js/Vector.js"></script>
+    <script type="text/javascript" src="../../../skins/js/plugins.js"></script>-->
+    <script type="text/javascript" src="../../../skins/js/md5.js"></script>
+    <script type="text/javascript" src="../../../skins/js/utf8.js"></script>
+    <script type="text/javascript" src="../../../skins/js/lookup.js"></script>
+
 <style type="text/css">
   a.nopo {border-bottom: 1px dashed red; text-decoration:none; color: red;}
   a.external {border-bottom: 1px dashed blue; text-decoration:none; }
 </style>
 </head>
-  <body
-    class="ns-0">
-    <div id="globalWrapper">
-      <div id="column-content">
-    <div id="content">
-      <a name="top" id="contentTop"></a>
-      <div id="bodyContent">
+<body class="mediawiki ltr ns-0 ns-subject skin-vector">
+  $iframe
+  <div id="content">
+    <a id="top"></a>
+    <div id="mw-js-message" style="display:none;"></div>
+    <!-- sitenotice -->
+    <div id="siteNotice"><!-- centralNotice loads here --></div>
+    <!-- /sitenotice -->

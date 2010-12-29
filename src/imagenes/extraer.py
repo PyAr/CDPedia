@@ -40,7 +40,7 @@ class ParseaImagenes(object):
         self.test = test
         self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
         self.anchalt_regex = re.compile('width="\d+" height="\d+"')
-        self.links_regex = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
+        self.links_regex = re.compile('<a(.*?)href="(.*?)"(.*?)>(.*?)</a>',
                                       re.MULTILINE|re.DOTALL)
         self.seplink = re.compile("../../../../articles/.+/.+/.+/(.*\.html)")
         self.a_descargar = {}
@@ -170,6 +170,7 @@ class ParseaImagenes(object):
         p1, img, p3 = m.groups()
         WIKIMEDIA = "http://upload.wikimedia.org/"
         WIKIPEDIA = "http://es.wikipedia.org/"
+        BITS = "http://bits.wikimedia.org/"
         if self.test:
             print "img", img
 
@@ -192,9 +193,17 @@ class ParseaImagenes(object):
             web_url = WIKIMEDIA + img[12:]
             dsk_url="../../../../images/" + img[12:]
 
+        elif img.startswith("http://upload.wikimedia.org/math"):
+            web_url = img
+            dsk_url = "../../../../images" + img[39:]
+
         elif img.startswith("../../../../extensions/"):
             web_url = WIKIPEDIA + "w/" + img[12:]
             dsk_url = "../../../../images/" + img[12:]
+
+        elif img.startswith("/w/extensions/"):
+            web_url = WIKIMEDIA + img[1:]
+            dsk_url = "../../../../images/" + img[1:]
 
         elif img.startswith("../../../../images/shared"):
             # ../../../../images/shared/b/ba/LocatieZutphen.png
@@ -206,16 +215,27 @@ class ParseaImagenes(object):
             web_url = WIKIMEDIA + "wikipedia/es/timeline/%s" % img[27:]
             dsk_url = img
 
+        elif img.startswith("http://upload.wikimedia.org/wikipedia/es/timeline/"):
+              web_url = img
+              dsk_url = "../../../../images/timeline/" + img[50:]
+
         elif img.startswith("http://upload.wikimedia.org/wikipedia/commons/"):
             # http://upload.wikimedia.org/wikipedia/commons/
             #   thumb/2/22/Heckert_GNU_white.svg/64px-Heckert_GNU_white.svg.png
-            web_url = WIKIMEDIA + img[27:]
-
+            web_url = WIKIMEDIA + img[28:]
             partes = img[46:].split("/")
-            if len(partes) != 5:
+            if len(partes) == 5:
+                del partes[3]
+            elif len(partes) == 3:
+                pass
+            else:
                 raise ValueError("Formato de imagen feo! %r" % partes)
-            del partes[3]
+
             dsk_url = "../../../../images/shared/" + "/".join(partes)
+
+        elif img.startswith("http://bits.wikimedia.org/"):
+            web_url = img
+            dsk_url = "../../../../images/shared/" + img
 
         elif img.startswith("../../../../misc") or\
              img.startswith("../../../../skins"):
@@ -247,7 +267,12 @@ class ParseaImagenes(object):
 
     def _fixlinks(self, mlink):
         """Pone clase "nopo" a los links que apuntan a algo descartado."""
-        link, relleno, texto = mlink.groups()
+        relleno_anterior, link, relleno, texto = mlink.groups()
+
+        # Si lo que hay dentro del link es una imagen, devolvemos solo la imagen
+        if texto.startswith('<img'):
+            return texto
+
         if link.startswith("http://"):
             return mlink.group()
 
@@ -266,7 +291,7 @@ class ParseaImagenes(object):
             return mlink.group()
 
         # sino, la marcamos como "nopo"
-        new = '<a class="nopo" href="%s"%s>%s</a>' % (link, relleno, texto)
+        new = '<a class="nopo" %s href="%s"%s>%s</a>' % (relleno_anterior, link, relleno, texto)
         return new
 
 

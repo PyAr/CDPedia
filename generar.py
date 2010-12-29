@@ -99,6 +99,9 @@ def copiarSources():
     # el main va al root
     shutil.copy("main.py", config.DIR_CDBASE)
 
+    if config.DESTACADOS:
+        shutil.copy(config.DESTACADOS, config.DIR_CDBASE)
+
 def dir_a_cero(path):
     if os.path.exists(path):
         shutil.rmtree(path)
@@ -114,7 +117,8 @@ def genera_run_config():
     f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('DIR_INDICE = "indice"\n')
-    f.write('INDEX = "%s"' % config.INDEX)
+    f.write('INDEX = "%s"\n' % config.INDEX)
+    f.write('DESTACADOS = "%s"' % config.DESTACADOS)
     f.close()
 
 def preparaTemporal():

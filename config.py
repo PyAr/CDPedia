@@ -43,12 +43,19 @@ SEPARADOR_COLUMNAS = '|'
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
-ASSETS = ["skins", "misc", "raw"]
+ASSETS = ["skins", "misc", "raw", "educar"]
 
 # Primera página que se abrirá en el browser.
 # Para ir a la portada de cdpedia dejar ""
-INDEX = ""
+INDEX = "educar/index.html"
 
+# PATH del archivo que contiene los artículos destacados de donde se seleccionara
+# el que se muestra en la página principal
+# Si no hay destacados debe ser None
+DESTACADOS = './destacados.txt'
+
+# Tiempo de espera máxima para actualización del browser_watchdog
+BROWSER_WD_SECONDS = 60
 
 # Comando externo para convertir en HTML en texto, para extraer las palabras
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.

@@ -8,15 +8,17 @@ import sys
 import traceback
 
 from src.armado import server
+from src.utiles import WatchDog
 import config
 
-event = threading.Event()
+server_up = threading.Event()
+browser_up = threading.Event()
 
 # WatchDog timer
 wd_timer = None
 
-# Tiempo entre llamadas a watch_dog en segundos
-WD_SECONDS = 10
+# Tiempo entre llamadas a cd_watch_dog en segundos
+CD_WD_SECONDS = 10
 
 def handle_crash(type, value, tb):
     '''Function to handle any exception that is not addressed explicitly.'''
@@ -36,7 +38,7 @@ def close():
     server.shutdown()
     sys.exit(0)
 
-def watch_dog():
+def cd_watch_dog():
     ''' Comprueba que el CD está puesto '''
     global wd_timer
 
@@ -51,18 +53,30 @@ def watch_dog():
         close()
 
     # Sigue andando, probemos mas tarde
-    wd_timer = threading.Timer(WD_SECONDS, watch_dog)
+    wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
     wd_timer.start()
 
 def sleep_and_browse():
     global wd_timer
-    event.wait()
+    server_up.wait()
     port = server.serving_port
-    wd_timer = threading.Timer(WD_SECONDS, watch_dog)
+    wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
     wd_timer.start()
     webbrowser.open("http://localhost:%d/%s" % (port, config.INDEX))
+    browser_up.set()
+
+
+def start_browser_watchdog():
+    browser_up.wait()
+    browser_watchdog.start()
+
 
 threading.Thread(target=sleep_and_browse).start()
+
+browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
+threading.Thread(target=start_browser_watchdog).start()
+
 print "Levantando el server..."
-server.run(event)
+server.run(server_up, browser_watchdog.update)
 print "Terminado, saliendo."
+wd_timer.cancel()

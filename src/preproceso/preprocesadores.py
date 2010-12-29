@@ -90,7 +90,7 @@ class OmitirRedirects(Procesador):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects-"
         self.log = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
-        regex = r'<meta http-equiv="Refresh" content="\d*;?url=.*?([^/">]+)"'
+        regex = r'<span class="redirectText"><a href="(.*?)"'
         self.capturar = compile(regex).search
 
     def __call__(self, wikiarchivo):
@@ -117,7 +117,7 @@ class ExtraerContenido(Procesador):
         super(ExtraerContenido, self).__init__(wikisitio)
         self.nombre = "Contenido"
         self.valor_inicial = 0
-        regex = '(<h1 class="firstHeading">.+</h1>).*<!-- start content -->\s*(.+)\s*<!-- end content -->'
+        regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
         self.capturar = compile(regex, MULTILINE|DOTALL).search
         self.no_ocultas = compile('<div id="mw-hidden-catlinks".*?</div>',
                                                             MULTILINE|DOTALL)
@@ -125,27 +125,24 @@ class ExtraerContenido(Procesador):
                                                             MULTILINE|DOTALL)
 
     def __call__(self, wikiarchivo):
-        if wikiarchivo.url.endswith('.html'):
-            html = wikiarchivo.html
-            encontrado = self.capturar(html)
-            if not encontrado:
-                # Si estamos acá, el html tiene un formato diferente.
-                # Por el momento queremos que se sepa.
-                raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
-            newhtml = "\n".join(encontrado.groups())
+        html = wikiarchivo.html
+        encontrado = self.capturar(html)
+        if not encontrado:
+            # Si estamos acá, el html tiene un formato diferente.
+            # Por el momento queremos que se sepa.
+            raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
+        newhtml = "\n".join(encontrado.groups())
 
-            # algunas limpiezas más
-            newhtml = self.no_ocultas.sub("", newhtml)
-            newhtml = self.no_pp_report.sub("", newhtml)
+        # algunas limpiezas más
+        newhtml = self.no_ocultas.sub("", newhtml)
+        newhtml = self.no_pp_report.sub("", newhtml)
 
-            tamanio = len(newhtml)
-            wikiarchivo.html = newhtml
+        tamanio = len(newhtml)
+        wikiarchivo.html = newhtml
 #            print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
 
-            # damos puntaje en función del tamaño del contenido
-            return (tamanio, [])
-        else:
-            print "WARNING: no recibimos un html:", wikiarchivo.url
+        # damos puntaje en función del tamaño del contenido
+        return (tamanio, [])
 
 
 class FixLinksDescartados(Procesador):
