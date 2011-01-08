@@ -43,11 +43,15 @@ SEPARADOR_COLUMNAS = '|'
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
-ASSETS = ["skins", "misc", "raw", "educar"]
+ASSETS = ["skins", "misc"]
+
+# Nombre de la edicion especial, modifica el INDEX y ASSETS en código
+EDICION_ESPECIAL = None
+#EDICION_ESPECIAL = "educar"
 
 # Primera página que se abrirá en el browser.
 # Para ir a la portada de cdpedia dejar ""
-INDEX = "educar/index.html"
+INDEX = "index.html"
 
 # PATH del archivo que contiene los artículos destacados de donde se seleccionara
 # el que se muestra en la página principal

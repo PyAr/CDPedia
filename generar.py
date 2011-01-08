@@ -45,7 +45,12 @@ def copiarAssets(src_info, dest):
     """Copiar los assets."""
     if not os.path.exists(dest):
         os.makedirs(dest)
-    for d in config.ASSETS:
+
+    assets = config.ASSETS
+    if config.EDICION_ESPECIAL is not None:
+        assets.append(config.EDICION_ESPECIAL)
+
+    for d in assets:
         src_dir = path.join(src_info, d)
         dst_dir = path.join(dest, d)
         if not os.path.exists(src_dir):
@@ -116,6 +121,7 @@ def genera_run_config():
     f.write('DIR_BLOQUES = "bloques"\n')
     f.write('DIR_ASSETS = "assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
+    f.write('EDICION_ESPECIAL = %s\n' % config.EDICION_ESPECIAL)
     f.write('DIR_INDICE = "indice"\n')
     f.write('INDEX = "%s"\n' % config.INDEX)
     f.write('DESTACADOS = "%s"' % config.DESTACADOS)

@@ -62,7 +62,12 @@ def sleep_and_browse():
     port = server.serving_port
     wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
     wd_timer.start()
-    webbrowser.open("http://localhost:%d/%s" % (port, config.INDEX))
+    if config.EDICION_ESPECIAL is None:
+        index = "http://localhost:%d/%s" % (port, config.INDEX)
+    else:
+        index = "http://localhost:%d/%s/%s" % (port, config.EDICION_ESPECIAL,
+                                                                config.INDEX)
+    webbrowser.open(index)
     browser_up.set()
 
 
