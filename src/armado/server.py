@@ -27,7 +27,7 @@ import to3dirs
 import cdpindex
 import compresor
 
-__version__ = "0.1.1.1.1.1"
+__version__ = "0.2"
 
 reg = re.compile("\<title\>([^\<]*)\</title\>")
 reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
@@ -317,6 +317,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             else:
                 print "WARNING: no pudimos encontrar", repr(asset_file)
                 raise ContentNotFound()
+
+        else:
+            print "ERROR: path desconocido para procesar:", repr(path)
 
         if path=="":
             return self._main_page()
