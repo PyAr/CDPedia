@@ -42,7 +42,7 @@ class ParseaImagenes(object):
         self.anchalt_regex = re.compile('width="\d+" height="\d+"')
         self.links_regex = re.compile('<a(.*?)href="(.*?)"(.*?)>(.*?)</a>',
                                       re.MULTILINE|re.DOTALL)
-        self.seplink = re.compile("../../../../articles/.+/.+/.+/(.*\.html)")
+        self.seplink = re.compile("/wiki/(.*)")
         self.a_descargar = {}
         self.proces_ahora = {}
 
@@ -268,7 +268,6 @@ class ParseaImagenes(object):
     def _fixlinks(self, mlink):
         """Pone clase "nopo" a los links que apuntan a algo descartado."""
         relleno_anterior, link, relleno, texto = mlink.groups()
-
         # Si lo que hay dentro del link es una imagen, devolvemos solo la imagen
         if texto.startswith('<img'):
             return texto
