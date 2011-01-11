@@ -16,7 +16,7 @@ def run(verbose):
     if os.path.exists(config.LOG_REDUCDONE):
         with codecs.open(config.LOG_REDUCDONE, "r", "utf-8") as fh:
             for linea in fh:
-                partes = linea.strip().split()
+                partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
                 escala = int(partes[0])
                 dskurl = partes[1]
                 done_antes[dskurl] = escala
@@ -25,7 +25,7 @@ def run(verbose):
     pag_escala = {}
     with codecs.open(config.LOG_REDUCCION, "r", "utf-8") as fh:
         for linea in fh:
-            partes = linea.strip().split()
+            partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
             escala = int(partes[0])
             dir3 = partes[1]
             fname = partes[2]

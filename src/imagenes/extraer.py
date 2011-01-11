@@ -23,6 +23,7 @@ import re
 import os
 import codecs
 import functools
+import urllib
 import urllib2
 
 import config
@@ -261,7 +262,7 @@ class ParseaImagenes(object):
                 self.imgs_ok += 1
 
         # devolvemos lo cambiado para el html
-        htm_url = '<img%ssrc="%s"%s/>' % (p1, dsk_url, p3)
+        htm_url = '<img%ssrc="%s"%s/>' % (p1, urllib.quote(dsk_url.encode("latin-1")), p3)
         return htm_url
 
     def _fixlinks(self, mlink):
@@ -340,7 +341,8 @@ def run(verbose):
             print "Extrayendo imgs (al {0}) de {1}/{2}".format(
                              escala, dir3.encode("utf8"), fname.encode("utf8"))
         if escala != 0:
-            log_fh.write("%d %s %s\n" % (escala, dir3, fname))
+            info = ("%d" % escala, dir3, fname)
+            log_fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
             pi.parsea(dir3, fname, bogus=False)
         else:
             pi.parsea(dir3, fname, bogus=True)
