@@ -75,9 +75,15 @@ def run(verbose):
             done_ahora[dskurl] = escl
             continue
 
+        # reglas para no escalar algunas imagenes: math/*, .png, y < 2KB
+        if dskurl.startswith('math') or dskurl.endswith('.png') or \
+           os.stat(frompath).st_size < 2048:
+#            print "Forzando imagen a escala 100 por reglas", repr(dskurl)
+            escl = 100
+
         # cambiamos el tamaño si debemos, sino sólo copiamos
         if verbose:
-            print "Rescaling a {0}% la imágen {1}".format(escl, dskurl.encode("utf8"))
+            print "Rescaling a {0}% la imagen {1}".format(escl, dskurl.encode("utf8"))
         if escl == 100:
             done_ahora[dskurl] = escl
             shutil.copyfile(frompath, topath)

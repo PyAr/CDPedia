@@ -26,7 +26,6 @@ import functools
 import urllib2
 
 import config
-from src import utiles
 from src.preproceso import preprocesar
 
 BOGUS_IMAGE = "../../../extern/sinimagen.png"
@@ -195,7 +194,7 @@ class ParseaImagenes(object):
 
         elif img.startswith("http://upload.wikimedia.org/math"):
             web_url = img
-            dsk_url = "../../../../images" + img[39:]
+            dsk_url = "../../../../images/" + img[28:]
 
         elif img.startswith("../../../../extensions/"):
             web_url = WIKIPEDIA + "w/" + img[12:]
