@@ -4,6 +4,7 @@ más participaron:
  - Agustin Henze
  - Alejandro David Weil
  - Alejandro J. Cura
+ - Diego Mascialino
  - Facundo Batista
  - Guillermo Gonzalez
  - Marcos Dione
@@ -11,6 +12,7 @@ más participaron:
  - Pablo Zilliani
  - Piukeyen Tappa
  - Ricardo Kirkner
+ - Santiago Piccinini
  - Sebastian Farioli
  - Zuzel Vera Pacheco
 
