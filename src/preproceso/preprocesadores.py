@@ -188,6 +188,27 @@ class FixLinksDescartados(Procesador):
         # no damos puntaje ni nada
         return (0, [])
 
+class QuitaEditarSpan(Procesador):
+    """Quita los [editar] del html.
+
+    """
+    def __init__(self, wikisitio):
+        super(QuitaEditarSpan, self).__init__(wikisitio)
+        self.nombre = "QuitaEditar"
+        self.editar_span = compile('<span class="editsection">.*?</span>', MULTILINE|DOTALL)
+
+    def __call__(self, wikiarchivo):
+        try:
+            newhtml = self.editar_span.sub("", wikiarchivo.html)
+        except Exception:
+            print "Path del html", wikiarchivo.url
+            raise
+
+        # reemplazamos el html original
+        wikiarchivo.html = newhtml
+
+        # no damos puntaje ni nada
+        return (0, [])
 
 class Peishranc(Procesador):
     """
@@ -245,6 +266,7 @@ TODOS = [
     OmitirRedirects,
     ExtraerContenido,
     FixLinksDescartados,
+    QuitaEditarSpan,
     Peishranc,
     #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
 ]

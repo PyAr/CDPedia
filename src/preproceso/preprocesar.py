@@ -166,7 +166,7 @@ def calcula_top_htmls():
     data = []
     for linea in fh:
         partes = linea.split(config.SEPARADOR_COLUMNAS)
-        arch, dir3, _, _, _, ptj_content, ptj_peishranc = partes
+        arch, dir3, _, _, _, _, ptj_content, ptj_peishranc = partes
         ptj_content = int(ptj_content)
         ptj_peishranc = int(ptj_peishranc)
 
