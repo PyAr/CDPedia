@@ -251,11 +251,11 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
             return None
 
-        return m.groups()
+        return link, m.groups()
 
     def _main_page(self, msg=u"¡Bienvenido!"):
         """Devuelve la pag principal."""
-        data_destacado = self._get_destacado()
+        link, data_destacado = self._get_destacado()
         if data_destacado is not None:
             titulo, primeros_parrafos = data_destacado
             pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
