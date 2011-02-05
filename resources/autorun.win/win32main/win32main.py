@@ -11,4 +11,4 @@ sys.stderr = open(os.devnull, "w")
 # para que windows no muestre "no disk in the drive"
 olderror = win32api.SetErrorMode(1)
 
-import main
+import cdpedia
