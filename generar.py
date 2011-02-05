@@ -106,7 +106,8 @@ def copiarSources():
     shutil.copy("main.py", config.DIR_CDBASE)
 
     if config.DESTACADOS:
-        shutil.copy(config.DESTACADOS, os.path.join(config.DIR_CDBASE, "cdpedia"))
+        shutil.copy(config.DESTACADOS,
+                    os.path.join(config.DIR_CDBASE, "cdpedia"))
 
 def dir_a_cero(path):
     if os.path.exists(path):
@@ -114,8 +115,8 @@ def dir_a_cero(path):
     os.makedirs(path)
 
 def armarIso(dest):
-    os.system("mkisofs -quiet -V CDPedia -volset CDPedia -o %s -R -J %s " %
-                                                    (dest, config.DIR_CDBASE))
+    os.system("mkisofs -hide-rr-moved -quiet -V CDPedia -volset CDPedia -o %s "
+              "-R -J %s" % (dest, config.DIR_CDBASE))
 
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
