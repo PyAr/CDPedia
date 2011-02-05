@@ -25,14 +25,16 @@ def mensaje(texto):
     print "%-40s (%s)" % (texto, fh)
 
 def copy_dir(src_dir, dst_dir):
-    '''Copia un directorio.
+    '''Copia un directorio recursivamente.
 
-    (no usamos shutil.copytree para no llevarnos el .svn)
+    No se lleva .* (por .svn) ni los .pyc.
     '''
     if not os.path.exists(dst_dir):
         os.mkdir(dst_dir)
     for fname in os.listdir(src_dir):
         if fname.startswith("."):
+            continue
+        if fname.endswith('.pyc'):
             continue
         src_path = path.join(src_dir, fname)
         dst_path = path.join(dst_dir, fname)
@@ -57,7 +59,7 @@ def copiarAssets(src_info, dest):
             print "\nERROR: No se encuentra el directorio %r" % src_dir
             print "Este directorio es obligatorio para el procesamiento general"
             sys.exit()
-        shutil.copytree(src_dir, dst_dir)
+        copy_dir(src_dir, dst_dir)
 
     # externos (de nosotros, bah)
     src_dir = "resources/external_assets"
@@ -73,6 +75,7 @@ def copiarAssets(src_info, dest):
     dst_dir = path.join(dest, "tutorial")
     copy_dir(src_dir, dst_dir)
 
+
 def copiarAutorun():
     src_dir = "resources/autorun.win/cdroot"
     copy_dir(src_dir, config.DIR_CDBASE)
@@ -85,38 +88,29 @@ def copiarSources():
     dir_a_cero(dest_src)
     shutil.copy(path.join("src", "__init__.py"), dest_src)
     shutil.copy(path.join("src", "utiles.py"), dest_src)
-
-    # las fuentes
-    orig_src = path.join("src", "armado")
-    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src", "armado")
-    dir_a_cero(dest_src)
-    for name in os.listdir(orig_src):
-        fullname = path.join(orig_src, name)
-        if os.path.isfile(fullname):
-            shutil.copy(fullname, dest_src)
-
-    # los templates
-    orig_src = path.join("src", "armado", "templates")
-    dest_src = path.join(config.DIR_CDBASE, "cdpedia", orig_src)
-    dir_a_cero(dest_src)
-    for name in glob.glob(path.join(orig_src, "*.tpl")):
-        shutil.copy(name, dest_src)
+    copy_dir(path.join("src", "armado"),
+             path.join(config.DIR_CDBASE, "cdpedia", "src", "armado"))
 
     # el main va al root
-    shutil.copy("main.py", config.DIR_CDBASE)
+    shutil.copy("cdpedia.py", config.DIR_CDBASE)
 
     if config.DESTACADOS:
         shutil.copy(config.DESTACADOS,
                     os.path.join(config.DIR_CDBASE, "cdpedia"))
 
+
 def dir_a_cero(path):
+    """Crea un directorio borrando lo viejo si existiera."""
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
 
+
 def armarIso(dest):
+    """Arma el .iso de la CDPedia."""
     os.system("mkisofs -hide-rr-moved -quiet -V CDPedia -volset CDPedia -o %s "
               "-R -J %s" % (dest, config.DIR_CDBASE))
+
 
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")

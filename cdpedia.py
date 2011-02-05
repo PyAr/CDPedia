@@ -52,7 +52,7 @@ def cd_watch_dog():
         # El CD no esta disponible
         close()
 
-    if not 'main.py' in archivos:
+    if not 'cdpedia.py' in archivos:
         # El CD no es CDPedia
         close()
 
