@@ -70,6 +70,16 @@ def copiarAssets(src_info, dest):
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
 
+    # ayuda
+    src_dir = "resources/ayuda"
+    dst_dir = path.join(dest, "ayuda")
+    copy_dir(src_dir, dst_dir)
+
+    # institucional
+    src_dir = "resources/institucional"
+    dst_dir = path.join(dest, "institucional")
+    copy_dir(src_dir, dst_dir)
+
     # el tutorial de python
     src_dir = "resources/tutorial"
     dst_dir = path.join(dest, "tutorial")

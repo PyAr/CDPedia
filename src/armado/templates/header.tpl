@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="../../../skins/css/Handheld.css" type="text/css" media="handheld" />
     <link rel="stylesheet" href="../../../skins/css/Vector.css" type="text/css" media="all" />
 
+    <link rel="stylesheet" href="../../../extern/cdpedia.css" type="text/css" media="all" />
+
     <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
     <!--[if IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE55Fixes.css";</style><![endif]-->
     <!--[if IE 6]><style type="text/css">@import "../../../skins/monobook/IE60Fixes.css";</style><![endif]-->

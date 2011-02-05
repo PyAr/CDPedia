@@ -53,7 +53,7 @@ else:
     destacados = None
 
 # construccion con todos los assets usados y lugares para servir data
-ALL_ASSETS = config.ASSETS + ["images",  "extern", "tutorial"]
+ALL_ASSETS = config.ASSETS + ["images",  "extern", "tutorial", "ayuda", "institucional"]
 if config.EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(config.EDICION_ESPECIAL)
 
