@@ -67,7 +67,7 @@ def sleep_and_browse():
     wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
     wd_timer.start()
     if config.EDICION_ESPECIAL is None:
-        index = "http://localhost:%d/%s" % (port, config.INDEX)
+        index = "http://localhost:%d/" % (port,)
     else:
         index = "http://localhost:%d/%s/%s" % (port, config.EDICION_ESPECIAL,
                                                                 config.INDEX)
