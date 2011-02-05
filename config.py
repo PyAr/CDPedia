@@ -7,7 +7,7 @@ IDIOMA = "es"
 
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
-DIR_BLOQUES = "temp/cdroot/bloques"
+DIR_BLOQUES = "temp/cdroot/cdpedia/bloques"
 
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
@@ -25,7 +25,7 @@ DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 DIR_CDBASE = "temp/cdroot"
 
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
-DIR_ASSETS = "temp/cdroot/assets"
+DIR_ASSETS = "temp/cdroot/cdpedia/assets"
 
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
@@ -53,10 +53,10 @@ EDICION_ESPECIAL = None
 # Para ir a la portada de cdpedia dejar ""
 INDEX = "index.html"
 
-# PATH del archivo que contiene los artículos destacados de donde se seleccionara
-# el que se muestra en la página principal
+# PATH del archivo que contiene los artículos destacados de donde se
+# seleccionará el que se muestra en la página principal
 # Si no hay destacados debe ser None
-DESTACADOS = './destacados.txt'
+DESTACADOS = 'destacados.txt'
 
 # Tiempo de espera máxima para actualización del browser_watchdog
 BROWSER_WD_SECONDS = 60

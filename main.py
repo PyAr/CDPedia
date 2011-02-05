@@ -7,6 +7,10 @@ import os
 import sys
 import traceback
 
+# fix path if needed
+if os.path.exists("cdpedia"):
+    sys.path.append("cdpedia")
+
 from src.armado import server
 from src.utiles import WatchDog
 import config

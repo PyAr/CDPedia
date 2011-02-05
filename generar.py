@@ -81,13 +81,14 @@ def copiarAutorun():
 def copiarSources():
     """Copiar los fuentes."""
     # el src
-    dest_src = path.join(config.DIR_CDBASE, "src")
+    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src")
     dir_a_cero(dest_src)
     shutil.copy(path.join("src", "__init__.py"), dest_src)
+    shutil.copy(path.join("src", "utiles.py"), dest_src)
 
     # las fuentes
     orig_src = path.join("src", "armado")
-    dest_src = path.join(config.DIR_CDBASE, "src", "armado")
+    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src", "armado")
     dir_a_cero(dest_src)
     for name in os.listdir(orig_src):
         fullname = path.join(orig_src, name)
@@ -96,7 +97,7 @@ def copiarSources():
 
     # los templates
     orig_src = path.join("src", "armado", "templates")
-    dest_src = path.join(config.DIR_CDBASE, orig_src)
+    dest_src = path.join(config.DIR_CDBASE, "cdpedia", orig_src)
     dir_a_cero(dest_src)
     for name in glob.glob(path.join(orig_src, "*.tpl")):
         shutil.copy(name, dest_src)
@@ -105,7 +106,7 @@ def copiarSources():
     shutil.copy("main.py", config.DIR_CDBASE)
 
     if config.DESTACADOS:
-        shutil.copy(config.DESTACADOS, config.DIR_CDBASE)
+        shutil.copy(config.DESTACADOS, os.path.join(config.DIR_CDBASE, "cdpedia"))
 
 def dir_a_cero(path):
     if os.path.exists(path):
@@ -117,14 +118,15 @@ def armarIso(dest):
                                                     (dest, config.DIR_CDBASE))
 
 def genera_run_config():
-    f = open(path.join(config.DIR_CDBASE, "config.py"), "w")
-    f.write('DIR_BLOQUES = "bloques"\n')
-    f.write('DIR_ASSETS = "assets"\n')
+    f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
+    f.write('DIR_BLOQUES = "cdpedia/bloques"\n')
+    f.write('DIR_ASSETS = "cdpedia/assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('EDICION_ESPECIAL = %s\n' % config.EDICION_ESPECIAL)
-    f.write('DIR_INDICE = "indice"\n')
+    f.write('DIR_INDICE = "cdpedia/indice"\n')
     f.write('INDEX = "%s"\n' % config.INDEX)
-    f.write('DESTACADOS = "%s"' % config.DESTACADOS)
+    f.write('DESTACADOS = "cdpedia/%s"\n' % config.DESTACADOS)
+    f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.close()
 
 def preparaTemporal():
@@ -227,7 +229,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         copiarSources()
 
         mensaje("Copiando los indices")
-        dest_src = path.join(config.DIR_CDBASE, "indice")
+        dest_src = path.join(config.DIR_CDBASE, "cdpedia", "indice")
         if os.path.exists(dest_src):
             shutil.rmtree(dest_src)
         shutil.copytree(config.DIR_INDICE, dest_src)

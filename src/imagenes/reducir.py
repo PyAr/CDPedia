@@ -16,7 +16,7 @@ def run(verbose):
     if os.path.exists(config.LOG_REDUCDONE):
         with codecs.open(config.LOG_REDUCDONE, "r", "utf-8") as fh:
             for linea in fh:
-                partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
+                partes = linea.strip().split()
                 escala = int(partes[0])
                 dskurl = partes[1]
                 done_antes[dskurl] = escala

@@ -8,8 +8,9 @@ import threading
 
 import config
 
-# Coincide si se empieza con uno de los namespaces más ~
-RE_NAMESPACES = re.compile(r'(%s)~(.*)' % '|'.join(config.NAMESPACES))
+if hasattr(config, 'NAMESPACES'):
+    # coincide si se empieza con uno de los namespaces más ~
+    RE_NAMESPACES = re.compile(r'(%s)~(.*)' % '|'.join(config.NAMESPACES))
 
 def separaNombre(nombre):
     '''Devuelve (namespace, resto) de un nombre de archivo del wiki.'''

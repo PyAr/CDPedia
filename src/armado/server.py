@@ -46,7 +46,7 @@ serving_port = None
 # función para apagar el servidor
 shutdown = None
 
-# listado de artíuclos destacados para mostrar en la mainpage
+# listado de artículos destacados para mostrar en la mainpage
 if config.DESTACADOS:
     destacados = open(config.DESTACADOS, 'r').readlines()
 else:
@@ -72,12 +72,17 @@ class TemplateManager(object):
     def __init__(self, directorio):
         self.direct = directorio
         self.cache = {}
+        if os.path.exists("cdpedia"):
+            self.basedir = os.path.join("cdpedia",
+                                        "src", "armado", "templates")
+        else:
+            self.basedir = os.path.join("src", "armado", "templates")
 
     def get_template(self, nombre):
         if nombre in self.cache:
             return self.cache[nombre]
 
-        nomarch = os.path.join("src", "armado", "templates", "%s.tpl" % nombre)
+        nomarch = os.path.join(self.basedir, "%s.tpl" % nombre)
 #        print "Cargando template de disco:", nomarch
         with open(nomarch, "rb") as f:
             t = string.Template(f.read())
@@ -220,7 +225,6 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Devuelve un destacado... eventualmente."""
         data = None
         while destacados and not data:
-            print "======== dest", len(destacados)
             elegido = choice(destacados)
             link = elegido.replace('\n','').decode('utf-8')
             data = self._art_mngr.getArticle(link[len('/wiki/')-1:])
