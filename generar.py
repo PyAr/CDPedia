@@ -123,7 +123,7 @@ def genera_run_config():
     f.write('DIR_BLOQUES = "cdpedia/bloques"\n')
     f.write('DIR_ASSETS = "cdpedia/assets"\n')
     f.write('ASSETS = %s\n' % config.ASSETS)
-    f.write('EDICION_ESPECIAL = %s\n' % config.EDICION_ESPECIAL)
+    f.write('EDICION_ESPECIAL = "%s"\n' % config.EDICION_ESPECIAL)
     f.write('DIR_INDICE = "cdpedia/indice"\n')
     f.write('INDEX = "%s"\n' % config.INDEX)
     f.write('DESTACADOS = "cdpedia/%s"\n' % config.DESTACADOS)
