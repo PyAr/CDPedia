@@ -283,8 +283,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def getfile(self, path):
         scheme, netloc, path, params, query, fragment = urllib2.urlparse.urlparse(path)
         path = urllib.unquote(path)
-#        print "get file:", path
-        if path == "/index.html":
+        if path == "/":
             return self._main_page()
         if path == "/buscando":
             return self.buscando(query)
