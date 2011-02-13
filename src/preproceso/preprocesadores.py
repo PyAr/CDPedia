@@ -34,35 +34,25 @@ def mustInclude(filename):
 
 # Procesadores:
 class Procesador(object):
-    """
-    Procesador Genérico, no usar directamente
+    """Procesador Genérico, no usar directamente."""
 
-    """
     def __init__(self, wikisitio):
-        """
-        Instancia el procesador con los datos necesarios.
-
-        """
         self.valor_inicial = ''
         self.nombre = 'Procesador Genérico'
         self.log = None # ej.: open("archivo.log", "w")
 
     def __call__(self, wikiarchivo):
-        """
-        Aplica el procesador a una instancia de WikiArchivo.
+        """Aplica el procesador a una instancia de WikiArchivo.
 
+        Ejemplo:
+          return (123456, [])
         """
-        # Ejemplo:
-        # return (123456, [])
         raise NotImplemented
 
 
 class Namespaces(Procesador):
-    """
-    Se registra el namespace de la página al mismo tiempo que
-    se descartan las páginas de namespaces declarados inválidos.
+    """Registra el namespace y descarta si el mismo es inválido."""
 
-    """
     def __init__(self, wikisitio):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
@@ -82,10 +72,7 @@ class Namespaces(Procesador):
 
 
 class OmitirRedirects(Procesador):
-    """
-    Procesa y omite de la compilación a los redirects
-
-    """
+    """Procesa y omite de la compilación a los redirects."""
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects-"
@@ -109,10 +96,7 @@ class OmitirRedirects(Procesador):
 
 
 class ExtraerContenido(Procesador):
-    """
-    Extrae el contenido principal del html de un artículo
-
-    """
+    """Extrae el contenido principal del html de un artículo."""
     def __init__(self, wikisitio):
         super(ExtraerContenido, self).__init__(wikisitio)
         self.nombre = "Contenido"
@@ -139,7 +123,7 @@ class ExtraerContenido(Procesador):
 
         tamanio = len(newhtml)
         wikiarchivo.html = newhtml
-#            print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
+#        print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
 
         # damos puntaje en función del tamaño del contenido
         return (tamanio, [])
@@ -188,10 +172,9 @@ class FixLinksDescartados(Procesador):
         # no damos puntaje ni nada
         return (0, [])
 
-class QuitaEditarSpan(Procesador):
-    """Quita los [editar] del html.
 
-    """
+class QuitaEditarSpan(Procesador):
+    """Quita los [editar] del html."""
     def __init__(self, wikisitio):
         super(QuitaEditarSpan, self).__init__(wikisitio)
         self.nombre = "QuitaEditar"
@@ -210,28 +193,35 @@ class QuitaEditarSpan(Procesador):
         # no damos puntaje ni nada
         return (0, [])
 
+
 class Peishranc(Procesador):
-    """
+    """Calcula el peishranc.
+
     Registra las veces que una página es referida por las demás páginas.
     Ignora las auto-referencias y los duplicados
-
     """
     def __init__(self, wikisitio):
         super(Peishranc, self).__init__(wikisitio)
         self.nombre = "Peishranc"
         self.valor_inicial = 0
-        regex = r'<a\s+[^>]*?href="\.\.\/.*?([^/>"]+\.html)"'
+        regex = r'<a href="/wiki/.*?" .*?>'
         self.capturar = compile(regex).findall
+        self.limpiar = compile(r'<a href="/wiki/(.*?)" .*?>')
 
     def __call__(self, wikiarchivo):
         enlaces = self.capturar(wikiarchivo.html)
         if not enlaces:
             return (0, [])
-        enlaces = [unquote(x).decode("utf-8", "replace") for x in enlaces]
 
         # no damos puntaje a la página recibida, sino a todos sus apuntados
         puntajes = {}
         for lnk in enlaces:
+            if 'class="image"' in lnk:
+                continue
+
+            lnk = self.limpiar.match(lnk).groups()[0]
+
+            lnk = unquote(lnk).decode('utf-8')
             puntajes[lnk] = puntajes.get(lnk, 0) + 1
 
         # sacamos el "auto-bombo"
@@ -239,6 +229,7 @@ class Peishranc(Procesador):
             del puntajes[wikiarchivo.url]
 
         return (0, puntajes.items())
+
 
 class Longitud(Procesador):
     """

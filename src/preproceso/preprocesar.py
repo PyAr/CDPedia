@@ -32,6 +32,10 @@ class WikiArchivo:
 
         open(destino, 'w').write(self.html)
 
+    def __str__(self):
+        return "<WikiArchivo: %s>" % self.url.encode("utf8")
+
+
 class WikiSitio(object):
     def __init__(self, dir_raiz, verbose=False):
         self.origen = unicode(abspath(dir_raiz))
@@ -183,6 +187,7 @@ def calcula_top_htmls():
         for dir3, arch, puntaje in data[:config.LIMITE_PAGINAS]:
             info = (dir3, arch, str(puntaje))
             fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
+    print u"  puntaje del último artículo que entró:", puntaje
 
 
 def get_top_htmls(limite):
