@@ -218,7 +218,7 @@ class Peishranc(Procesador):
         # no damos puntaje a la página recibida, sino a todos sus apuntados
         puntajes = {}
         for lnk in enlaces:
-            if 'class="image"' in lnk:
+            if 'class="image"' in lnk or 'class="internal"' in lnk:
                 continue
 
             lnk = self.limpiar.match(lnk).groups()[0]
