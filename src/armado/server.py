@@ -255,9 +255,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _main_page(self, msg=u"¡Bienvenido!"):
         """Devuelve la pag principal."""
-        link, data_destacado = self._get_destacado()
+        data_destacado = self._get_destacado()
         if data_destacado is not None:
-            titulo, primeros_parrafos = data_destacado
+            link, (titulo, primeros_parrafos) = data_destacado
             pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
                                  link=link.encode('utf-8'), titulo=titulo,
                                  primeros_parrafos=primeros_parrafos,

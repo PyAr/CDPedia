@@ -87,7 +87,9 @@ class OmitirRedirects(Procesador):
         sep_col = config.SEPARADOR_COLUMNAS
         if captura:
             url_redirect = unquote(captura.groups()[0]).decode("utf-8")
-#            print "Redirect ->", url_redirect.encode("latin1","replace")
+            # le sacamos el /wiki/ del principio
+            url_redirect = url_redirect[6:]
+            print "Redirect ->", repr(url_redirect)
             linea = wikiarchivo.url + sep_col + url_redirect + "\n"
             self.log.write(linea)
             return (None, [])
