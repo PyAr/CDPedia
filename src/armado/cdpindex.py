@@ -69,15 +69,6 @@ def _getPalabrasHTML(arch):
 def _get_primeras_palabras(arch):
     html = codecs.open(arch, "r", "utf8").read()
 
-    # nos paramos luego del contenido
-    delimiter = "<!-- start content -->"
-    try:
-        pos = html.index(delimiter) + len(delimiter)
-    except ValueError:
-        # es un archivo no de contenido sino especial
-        return ""
-    html = html[pos:]
-
     # nos paramos luego del primer párrafo
     delimiter = "<p>"
     try:
@@ -86,8 +77,13 @@ def _get_primeras_palabras(arch):
         pos = 0
     html = html[pos:]
 
-    # borramos todo lo que son tablas
-    html = re.sub("<table>.*?</table>", "", html)
+    # hasta que termine el párrafo
+    delimiter = "</p>"
+    try:
+        pos = html.index(delimiter)
+    except ValueError:
+        pos = 0
+    html = html[:pos]
 
     # borramos todo lo que son tags
     html = re.sub("<.*?>", "", html)
@@ -95,9 +91,10 @@ def _get_primeras_palabras(arch):
     # borramos todo los tabs y enters
     html = re.sub("[\\t\\n]", "", html)
 
-    # separamos en palabras y mostramos las indicadas
-    res = html[:CANT_CARS_RESUMEN] + "..."
-    return res
+    # mostramos las indicadas, si hay
+    if html:
+        html = html[:CANT_CARS_RESUMEN] + "..."
+    return html
 
 
 class IndexInterface(threading.Thread):

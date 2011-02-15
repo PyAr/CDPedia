@@ -499,7 +499,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 res.append(u'<font color="#A05A2C"><i>%s</i></font><br/>' % (
                                                             " ".join(tokens)))
             if texto:
-                res.append(u'%s<br/>' % texto)
+                res.append(u'<small>%s</small><br/>' % texto)
             res.append('<br/>')
         results = "\n".join(res)
 
