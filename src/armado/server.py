@@ -48,7 +48,7 @@ shutdown = None
 
 # listado de artículos destacados para mostrar en la mainpage
 if config.DESTACADOS:
-    destacados = open(config.DESTACADOS, 'r').readlines()
+    destacados = [x.strip().decode('utf8') for x in open(config.DESTACADOS)]
 else:
     destacados = None
 
@@ -225,16 +225,15 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Devuelve un destacado... eventualmente."""
         data = None
         while destacados and not data:
-            elegido = choice(destacados)
-            link = elegido.replace('\n','').decode('utf-8')
-            data = self._art_mngr.getArticle(link[len('/wiki/')-1:])
+            link = choice(destacados)
+            data = self._art_mngr.getArticle(link)
 
             if data:
                 break
 
             # destacado roto :|
             print u"WARNING: Artículo destacado no encontrado: %s" % link
-            destacados.remove(elegido)
+            destacados.remove(link)
         else:
             # no hay destacado
             return None

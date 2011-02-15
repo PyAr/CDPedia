@@ -252,6 +252,20 @@ class Longitud(Procesador):
         return (largo, [])
 
 
+class Destacado(Procesador):
+    """Marca con puntaje si el artículo es destacado."""
+    def __init__(self, wikisitio):
+        super(Destacado, self).__init__(wikisitio)
+        self.nombre = "Destacado"
+        self.valor_inicial = 0
+        self.destacados = [x.strip().decode('utf8')
+                           for x in open(config.DESTACADOS)]
+
+    def __call__(self, wikiarchivo):
+        destac = wikiarchivo.url in self.destacados
+        return (int(destac), [])
+
+
 # Clases que serán utilizadas para el preprocesamiento
 # de cada una de las páginas, en orden de ejecución.
 TODOS = [
@@ -261,5 +275,6 @@ TODOS = [
     FixLinksDescartados,
     QuitaEditarSpan,
     Peishranc,
+    Destacado,
     #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
 ]

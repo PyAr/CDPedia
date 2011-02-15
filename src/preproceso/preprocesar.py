@@ -10,10 +10,9 @@ será (o no) incluída en la compilación.
 
 """
 
-import os, re
+import os
 import codecs
-from os.path import join, abspath, sep, dirname
-from urllib2 import urlparse
+from os.path import join, abspath, dirname
 import config
 import operator
 
@@ -168,14 +167,23 @@ def calcula_top_htmls():
     fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
     fh.next() # título
     data = []
+
+    # tomamos la posición de los puntajes (más dos de arch y dir3)
+    idx_content = preprocesadores.TODOS.index(
+                                        preprocesadores.ExtraerContenido) + 2
+    idx_peishranc = preprocesadores.TODOS.index(preprocesadores.Peishranc) + 2
+    idx_destacado = preprocesadores.TODOS.index(preprocesadores.Destacado) + 2
+
     for linea in fh:
         partes = linea.split(config.SEPARADOR_COLUMNAS)
-        arch, dir3, _, _, _, _, ptj_content, ptj_peishranc = partes
-        ptj_content = int(ptj_content)
-        ptj_peishranc = int(ptj_peishranc)
+        arch = partes[0]
+        dir3 = partes[1]
+        ptj_content = int(partes[idx_content])
+        ptj_peishranc = int(partes[idx_peishranc])
+        ptj_destacado = int(partes[idx_destacado])
 
         # cálculo de puntaje, mezclando y ponderando los individuales
-        puntaje = ptj_content + ptj_peishranc * 5000
+        puntaje = ptj_content + ptj_peishranc * 5000 + ptj_destacado * 1000000
 
         data.append((dir3, arch, puntaje))
 
