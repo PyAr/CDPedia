@@ -34,7 +34,6 @@ Para generar el archivo de indice hacer:
 # Buscamos todo hasta el último guión no inclusive, porque los
 # títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
 SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
-SACA_ = re.compile("_")
 
 # separamos por palabras
 PALABRAS = re.compile("\w+", re.UNICODE)
@@ -154,27 +153,11 @@ class IndexInterface(threading.Thread):
 
 def filename2palabras(fname):
     """Transforma un filename en sus palabras y título."""
-    fname_sinhtml = fname[:-5]
-    x = normaliza(fname_sinhtml)
+    if fname.endswith(".html"):
+        fname = fname[:-5]
+    x = normaliza(fname)
     p = x.split("_")
-
-    # a veces tenemos un nro hexa de 4 dígitos al final que queremos sacar
-    tenia_cuatro = False
-    if len(p[-1]) == 4:
-        try:
-            int(p[-1], 16)
-        except ValueError:
-            # perfecto, no es para sacar
-            pass
-        else:
-            p = p[:-1]
-            tenia_cuatro = True
-
-    # el título lo retomamos del nombre de archivo para que no
-    # esté normalizado
-    if tenia_cuatro:
-        fname_sinhtml = fname_sinhtml[:-5]  # los cuatro más el "_"
-    t = SACA_.sub(" ", fname_sinhtml)
+    t = " ".join(p)
     return p, t
 
 

@@ -89,7 +89,7 @@ class OmitirRedirects(Procesador):
             url_redirect = unquote(captura.groups()[0]).decode("utf-8")
             # le sacamos el /wiki/ del principio
             url_redirect = url_redirect[6:]
-            print "Redirect ->", repr(url_redirect)
+#            print "Redirect %r -> %r" % (wikiarchivo.url, url_redirect)
             linea = wikiarchivo.url + sep_col + url_redirect + "\n"
             self.log.write(linea)
             return (None, [])
