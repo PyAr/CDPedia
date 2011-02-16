@@ -396,14 +396,18 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             status = "DONE"
         if buscador.done_completa and buscador.results_completa:
-            res_completa = b64encode(self._formatear_resultados(buscador.results_completa))
+            r = self._formatear_resultados(buscador.results_completa,
+                                           buscador.buscando)
+            res_completa = b64encode(r)
         if buscador.done_detallada and buscador.results_detallada:
-            res_detallada = b64encode(self._formatear_resultados(buscador.results_detallada))
+            r = self._formatear_resultados(buscador.results_detallada,
+                                           buscador.buscando)
+            res_detallada = b64encode(r)
 
-        return "application/json", ('{"status":"%s","res_detallada":"%s","res_completa":"%s"}'
-                                                                        % (status,
-                                                                          res_detallada,
-                                                                          res_completa))
+        result = '{"status":"%s","res_detallada":"%s","res_completa":"%s"}' % (
+                                        status, res_detallada, res_completa)
+        return "application/json", result
+
     def watchdog_update(self):
         self._watchdog_update()
         seconds = str(config.BROWSER_WD_SECONDS/2)
@@ -439,7 +443,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # terminó la búsqueda completa
         candidatos = buscador.results_completa
         if candidatos:
-            results_completa = self._formatear_resultados(candidatos)
+            results_completa = self._formatear_resultados(candidatos,
+                                                          buscador.buscando)
         else:
             results_completa = ""
 
@@ -450,7 +455,8 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # terminó la búsqueda detallada
         candidatos = buscador.results_detallada
         if candidatos:
-            results_detallada = self._formatear_resultados(candidatos)
+            results_detallada = self._formatear_resultados(candidatos,
+                                                           buscador.buscando)
         else:
             results_detallada = BUSQ_NO_RESULTS.encode("utf8")
 
@@ -459,7 +465,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                              buscando=palabras)
         return "text/html", self._wrap(pag, "Buscando")
 
-    def _formatear_resultados(self, candidatos):
+    def _formatear_resultados(self, candidatos, buscando):
         """Arma los resultados."""
         # agrupamos por link, dando prioridad a los títulos de los
         # artículos originales
@@ -467,9 +473,15 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         for link, titulo, ptje, original, texto in candidatos:
             # quitamos 3 dirs del link y agregamos "wiki"
             link = u"wiki" + link[5:]
+
             # los tokens los ponemos en minúscula porque las mayúscula les
             # da un efecto todo entrecortado
             tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
+
+            # si el titulo coincide exactamente con lo buscado, le damos mucho
+            # puntaje para que aparezca primero...
+            if titulo == buscando:
+                ptje *= 10
 
             if link in agrupados:
                 (tit, prv_ptje, tokens, txt) = agrupados[link]
@@ -519,6 +531,7 @@ class Buscador(object):
         self.done_detallada = True
         self.busqueda = 0
         self._tardando = 0
+        self.buscando = None
 
     @property
     def tardando(self):
@@ -532,6 +545,7 @@ class Buscador(object):
         self.results = None
         self.busqueda += 1
         self._tardando = 0
+        self.buscando = palabras
 
         def _inner_completa(nrobusq):
             r = indice.search(palabras)
