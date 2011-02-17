@@ -67,7 +67,7 @@
 			<li>
 				<a href="/institucional/cdpedia.html">CDPedia</a>
 				es un proyecto de
-				<a class="external" href="http://www.python.org.ar/">Python Argentina</a>,
+				<a href="/institucional/pyar.html">Python Argentina</a>,
 				¡aprendé a programar en Python! acá tenés el <a href="/tutorial/index.html">tutorial</a>.
 			</li>
 
@@ -82,8 +82,8 @@
 
 		<ul id="f-info-wikipedia">
 			<li id="f-info-copyright">
-				Contenido disponible bajo los términos de la <a class="internal" href="/articles/extern/fdl.html">Licencia de documentación libre de GNU</a> (véase <b><a class="internal" href="/Wikipedia%7EDerechos_de_autor_3ece.html">Derechos de autor</a></b>).
-				Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a class="external" href="http://wikimediafoundation.org/wiki/Portada">Wikimedia Foundation, Inc.</a>
+                El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página externa los <a href="http://wikimediafoundation.org/wiki/T%C3%A9rminos_de_Uso">términos de uso</a> para más información.
+				Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
 			</li>
 			<li id="f-about">
 				<a href="/a/c/e/Wikipedia%7EAcerca_de_959f.html" title="Wikipedia:Acerca de">Acerca de Wikipedia</a>
