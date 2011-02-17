@@ -213,8 +213,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if orig_link is None:
             orig_link = ""
         else:
-            orig_link = u'Puedes visitar la <a class="external" '\
-                        u'href="%s">página original aquí</a>' % orig_link
+            orig_link = u'Si tenés conexión a Internet, podés visitar la '\
+                        u'<a class="external" href="%s">página original y '\
+                        u'actualizada</a> de éste artículo.'  % orig_link
 
         footer = self.templates("footer", stt_pag=self._stt_pag,
                                 stt_img=self._stt_img,
