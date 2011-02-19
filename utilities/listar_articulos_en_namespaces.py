@@ -15,7 +15,7 @@ UA = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) Gecko/20100915 Ubuntu
 
 WIKI = 'http://es.wikipedia.org'
 TODAS = '/wiki/Especial:Todas/'
-SPACES = ['Wikipedia:', 'Anexo:', 'Portal:']
+SPACES = [ u'Categoría:'.encode('utf-8'), 'Ayuda:', 'Anexo:', 'Portal:',]
 
 req = partial(urllib2.Request, data = None, headers = {'User-Agent': UA})
 

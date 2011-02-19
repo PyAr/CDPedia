@@ -5,6 +5,12 @@ import os
 NULL = u"_"
 BARRA = u"SLASH"
 
+NAMESPACES = [u'Portal_Discusión', u'Wikiproyecto', u'Categoría_Discusión',
+              u'Imagen',  u'Usuario', u'Plantilla_Discusión', u'Categoría',
+              u'Wikipedia_Discusión', u'Wikipedia',  u'Anexo', u'Portal',
+              u'Usuario_Discusión', u'Anexo_Discusión',  u'Plantilla', u'Ayuda',
+              u'Discusión', u'Wikiproyecto_Discusión']
+
 def _escape_dir(s):
     return s.replace(u"/", NULL).replace(u".", NULL)
 
@@ -19,7 +25,9 @@ def to_path(pagina):
         raise ValueError
 
     if ':' in pagina:
-        pagina = pagina[pagina.find(':')+1:]
+        namespace, posible_pagina = pagina.split(':',1)
+        if namespace in NAMESPACES:
+            pagina = posible_pagina
 
     pagina = _escape_dir(pagina)
     dirs = []
@@ -55,3 +63,4 @@ if __name__ == "__main__":
     assert os.path.join(u"a", u"b", u"c") == to_path(u"Anexo:abcdefgh")
 
     assert os.path.join(u'a',u':',u'b') == to_path(u'Anexo:a:blanco')
+    assert os.path.join(u'N',u'o',u'e') == to_path(u'Noestoy:Anexo:a:blanco')
