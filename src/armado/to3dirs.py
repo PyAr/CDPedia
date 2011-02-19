@@ -43,13 +43,7 @@ def to_path(pagina):
 def to_complete_path(pagina):
     return os.path.join(to_path(pagina), to_filename(pagina))
 
-def to_filename(pagina):
-    if ':' in pagina:
-        namespace = pagina[:pagina.find(':')+1]
-        pagina = pagina[pagina.find(':')+1:]
-    else:
-        namespace = ''
-    return namespace + _escape_filename(pagina)
+to_filename = _escape_filename
 
 if __name__ == "__main__":
     assert os.path.join(u"*", NULL, NULL) == to_path(u"*/")
@@ -64,3 +58,4 @@ if __name__ == "__main__":
 
     assert os.path.join(u'a',u':',u'b') == to_path(u'Anexo:a:blanco')
     assert os.path.join(u'N',u'o',u'e') == to_path(u'Noestoy:Anexo:a:blanco')
+    assert BARRA + BARRA + u':Tr3s.Jeans' == to_filename(u'//:Tr3s.Jeans')
