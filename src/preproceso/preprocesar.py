@@ -10,6 +10,8 @@ será (o no) incluída en la compilación.
 
 """
 
+from __future__ import with_statement
+
 import os
 import codecs
 from os.path import join, abspath, dirname
@@ -118,9 +120,23 @@ class WikiSitio(object):
                 if self.verbose:
                     print
 
+        # cargamos los redirects para tenerlos en cuenta
+        redirects = {}
+        sepcol = config.SEPARADOR_COLUMNAS
+        with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
+            for linea in fh:
+                r_from, r_to = linea.strip().split(sepcol)
+                redirects[r_from] = r_to
+
         # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
         perdidos = []
         for (pag, puntajes) in puntaje_extra.items():
+
+            # desreferenciamos el redirect
+            while pag in redirects:
+                pag = redirects[pag]
+
+            # asignamos los puntajes para las páginas que están
             if pag in resultados:
                 for (proc, ptje) in puntajes.items():
                     resultados[pag][proc] += ptje
