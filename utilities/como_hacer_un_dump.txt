@@ -1,0 +1,53 @@
+Para tener un dump HTML de Wikipedia el mejor método que encontramos es
+utilizar el listado de todos los artículos disponibles y descargarlos
+utilizando el script 'scraper.py'. Para esto hay que seguir los siguientes
+pasos:
+
+1) Descargar el listado actualizado:
+$wget http://dumps.wikimedia.org/eswiki/latest/eswiki-latest-all-titles-in-ns0.gz
+
+2) Descomprimirlo
+$gunzip eswiki-latest-all-titles-in-ns0.gz
+
+3) Si se desean incluir los artículos que se encuentran desntro de Namepsecaes
+(por ejmplo los Anexos) se puede obtener una listado similar, con el script
+'listar_articulos_en_namespaces.py'. Para elegir cuáles Namespaces se desean
+incluir se debe editar la lista SPACES dentro del script. Luego ejecutar:
+$python listar_articulos_en_namespaces.py
+
+4-Opcional)
+ a) Se puede comprobar cuántos artículos tiene cada listado:
+$wc -l articulos_en_namespaces.txt
+176779 articulos_en_namespaces.txt
+$wc -l eswiki-latest-all-titles-in-ns0
+1933961 eswiki-latest-all-titles-in-ns0
+ b) Para el caso de CdPedia se tienen 7 artículos que se deben incluir
+$wc -l include.txt
+7 include.txt
+
+5) A partir de los listados, generamos uno solo:
+$cat eswiki-latest-all-titles-in-ns0 > todos_los_articulos
+$cat include.txt >> todos_los_articulos
+$cat articulos_en_namespaces.txt >> todos_los_articulos
+$wc -l todos_los_articulos
+2110747 todos_los_articulos
+
+6) Ejecutamos scraper.py con 2 argumentos: el listado completo y el path base
+donde se guardaras los artículos. Para el dump completo hoy se requieren de 45G
+disponibles en el disco. (Nota: este programa demorará muchas horas en
+descargar todos los artículos):
+$python scraper.py todos_los_articulos /var/w/articulos
+
+El script mostrará en pantalla una línea similar a esta:
+TOTAL=2104825   BIEN=2103573    MAL=1252        velocidad = 14.51 art/s
+
+TOTAL: Consiste en el total de artículos procesados.
+BIEN: Artículos que pudieron descargarse correctamente
+MAL: Artículos que no se encontraron
+velocidad: sencillamente la división entre los artículos descargados y el
+           tiempo demorado hasta el momento.
+
+El script al detenerse guardará la posición actual (en posicion.txt) por lo que
+puede continuarse en otro momento.
+
+Cualquier duda, se puede consultar en el grupo  de CDPedia ( cdpedia@googlegroups.com )
