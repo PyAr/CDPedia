@@ -21,8 +21,8 @@ req = partial(urllib2.Request, data = None, headers = {'User-Agent': UA})
 
 def guardar_listado(soup, archivo):
     t = soup.findAll('table', {'class':'mw-allpages-table-chunk'})[0]
-    titulos = [l['title'] for l in t.findAll('a')]
-    archivo.write('\n'.join(titulos).encode('utf-8'))
+    links = [l['href'].replace('/wiki/','') for l in t.findAll('a')]
+    archivo.write('\n'.join(links).encode('utf-8'))
     archivo.write('\n')
 
 def siguiente_link(soup):
