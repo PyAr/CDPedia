@@ -73,11 +73,20 @@ class WikiSitio(object):
         puntaje_extra = {}
         de_antes = 0
 
+        dirant = None
         for cwd, directorios, archivos in os.walk(self.origen):
-            for pag in archivos:
-                partes_dir = cwd.split(os.path.sep)
-                ult3dirs = join(*partes_dir[-3:])
+            partes_dir = cwd.split(os.path.sep)
+            ult3dirs = join(*partes_dir[-3:])
+            if len(ult3dirs) == 5:  # ej: u"M/a/n"
+                primdir = ult3dirs[0]
+                if dirant != primdir:
+                    print "    dir:", primdir
+                    dirant = primdir
+            else:
+                if archivos:
+                    print "WARNING! Tenemos contenido en directorio no final:", cwd, archivos
 
+            for pag in archivos:
                 # vemos si lo teníamos de antes
                 if pag in resultados:
                     de_antes += 1
@@ -129,12 +138,14 @@ class WikiSitio(object):
                 redirects[r_from] = r_to
 
         # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
+        print "Repartiendo el puntaje extra:", len(puntaje_extra)
         perdidos = []
         for (pag, puntajes) in puntaje_extra.items():
 
-            # desreferenciamos el redirect
+            # desreferenciamos el redirect, vaciando el diccionario para
+            # evitar loops
             while pag in redirects:
-                pag = redirects[pag]
+                pag = redirects.pop(pag)
 
             # asignamos los puntajes para las páginas que están
             if pag in resultados:
