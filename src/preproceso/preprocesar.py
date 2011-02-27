@@ -24,14 +24,33 @@ class WikiArchivo:
     def __init__(self, cwd, ult3dirs, nombre_archivo):
         self.ruta_relativa = join(ult3dirs, nombre_archivo)
         self.url = nombre_archivo
-        self.html = open(join(cwd, nombre_archivo)).read()
+        self._filename = join(cwd, nombre_archivo)
+        self._html = None
+
+    def get_html(self):
+        """Devuelve el contenido del archivo, lo carga si no lo tenía."""
+        if self._html is None:
+            with open(self._filename) as fh:
+                self._html = fh.read()
+
+        return self._html
+
+    def set_html(self, data):
+        """Setea el html."""
+        self._html = data
+
+    html = property(get_html, set_html)
 
     def guardar(self):
+        """Guarda el archivo, crea los directorios si no están."""
         destino = join(config.DIR_PREPROCESADO, self.ruta_relativa)
-        try: os.makedirs(dirname(destino))
-        except os.error: pass
+        try:
+            os.makedirs(dirname(destino))
+        except os.error:
+            # ya estaba
+            pass
 
-        open(destino, 'w').write(self.html)
+        open(destino, 'w').write(self._html)
 
     def __str__(self):
         return "<WikiArchivo: %s>" % self.url.encode("utf8")
@@ -59,13 +78,16 @@ class WikiSitio(object):
                 for proc, ptje in zip(procs, map(int, partes[2:])):
                     d[proc] = ptje
 
-        # vemos que habíamos descartado antes
-        self.descartados = set()
-        self._descart = join(config.DIR_TEMP, "descartados.txt")
-        if os.path.exists(self._descart):
-            fh = codecs.open(self._descart, "r", "utf8")
-            for linea in fh:
-                self.descartados.add(linea.strip())
+        # vemos que habíamos descartado antes, y dejamos el archivo listo
+        # para seguir escribiendo
+        self.descartados_antes = []
+        nomarch = join(config.DIR_TEMP, "descartados.txt")
+        if os.path.exists(nomarch):
+            self.descartados_file = codecs.open(nomarch, 'r+', 'utf8')
+            for linea in self.descartados_file:
+                self.descartados_antes.append(linea.strip())
+        else:
+            self.descartados_file = codecs.open(nomarch, 'w', 'utf8')
 
 
     def procesar(self):
@@ -87,11 +109,13 @@ class WikiSitio(object):
                     print "WARNING! Tenemos contenido en directorio no final:", cwd, archivos
 
             for pag in archivos:
+                if " " in pag:
+                    print "WARNING! Tenemos nombres con espacios:", ult3dirs, pag
                 # vemos si lo teníamos de antes
                 if pag in resultados:
                     de_antes += 1
                     continue
-                if pag in self.descartados:
+                if pag in self.descartados_antes:
                     continue
 
                 wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
@@ -108,7 +132,7 @@ class WikiSitio(object):
                         del resultados[pag]
                         if self.verbose:
                             print '  omitido!'
-                        self.descartados.add(pag)
+                        self.descartados_file.write("%s\n" % pag)
                         break
 
                     # ponemos el puntaje
@@ -155,7 +179,7 @@ class WikiSitio(object):
                 perdidos.append((pag, puntajes))
         if perdidos:
             print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
-#            print perdidos
+            print perdidos
 
         return len(resultados)-de_antes, de_antes
 
@@ -178,11 +202,6 @@ class WikiSitio(object):
             columnas += [valores.get(p.nombre, p.valor_inicial)
                                                         for p in preprocs]
             salida.write(plantilla % tuple(columnas))
-
-        # descartados
-        with codecs.open(self._descart, "w", "utf8") as fh:
-            for arch in self.descartados:
-                fh.write("%s\n" % arch)
 
         if self.verbose:
             print 'Registro guardado en %s' % log

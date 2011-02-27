@@ -222,8 +222,12 @@ class Peishranc(Procesador):
                 continue
 
             lnk = self.limpiar.match(lnk).groups()[0]
+            lnk = lnk.decode("utf8")
 
-            lnk = unquote(lnk).decode('utf-8')
+            if lnk.startswith(u"Archivo:"):
+                continue
+
+            lnk = unquote(lnk)
             puntajes[lnk] = puntajes.get(lnk, 0) + 1
 
         # sacamos el "auto-bombo"
