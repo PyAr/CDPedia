@@ -37,7 +37,6 @@ class Procesador(object):
     """Procesador Genérico, no usar directamente."""
 
     def __init__(self, wikisitio):
-        self.valor_inicial = ''
         self.nombre = 'Procesador Genérico'
         self.log = None # ej.: open("archivo.log", "w")
 
@@ -102,7 +101,6 @@ class ExtraerContenido(Procesador):
     def __init__(self, wikisitio):
         super(ExtraerContenido, self).__init__(wikisitio)
         self.nombre = "Contenido"
-        self.valor_inicial = 0
         regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
         self.capturar = compile(regex, MULTILINE|DOTALL).search
         self.no_ocultas = compile('<div id="mw-hidden-catlinks".*?</div>',
@@ -205,7 +203,6 @@ class Peishranc(Procesador):
     def __init__(self, wikisitio):
         super(Peishranc, self).__init__(wikisitio)
         self.nombre = "Peishranc"
-        self.valor_inicial = 0
         regex = r'<a href="/wiki/.*?" .*?>'
         self.capturar = compile(regex).findall
         self.limpiar = compile(r'<a href="/wiki/(.*?)" .*?>')
@@ -248,7 +245,6 @@ class Longitud(Procesador):
     def __init__(self, wikisitio):
         super(Longitud, self).__init__(wikisitio)
         self.nombre = "Longitud"
-        self.valor_inicial = 0
 
     def __call__(self, wikiarchivo):
         largo = len(wikiarchivo.html)
@@ -261,7 +257,6 @@ class Destacado(Procesador):
     def __init__(self, wikisitio):
         super(Destacado, self).__init__(wikisitio)
         self.nombre = "Destacado"
-        self.valor_inicial = 0
         self.destacados = [x.strip().decode('utf8')
                            for x in open(config.DESTACADOS)]
 

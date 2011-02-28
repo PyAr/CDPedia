@@ -136,7 +136,8 @@ class WikiSitio(object):
                         break
 
                     # ponemos el puntaje
-                    resultados[pag][procesador.nombre] = puntaje
+                    if puntaje != 0:
+                        resultados[pag][procesador.nombre] = puntaje
 
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
@@ -199,8 +200,7 @@ class WikiSitio(object):
             #los rankings deben ser convertidos en str para evitar
             # literales como 123456L
             columnas = [pagina, valores["dir3"]]
-            columnas += [valores.get(p.nombre, p.valor_inicial)
-                                                        for p in preprocs]
+            columnas += [valores.get(p.nombre, 0) for p in preprocs]
             salida.write(plantilla % tuple(columnas))
 
         if self.verbose:
