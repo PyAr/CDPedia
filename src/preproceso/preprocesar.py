@@ -67,7 +67,7 @@ class WikiSitio(object):
         if os.path.exists(config.LOG_PREPROCESADO):
             fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
             fh.next() # título
-            procs = [p.nombre for p in self.preprocesadores]
+            procs = [p for p in self.preprocesadores]
             for linea in fh:
                 partes = linea.split(config.SEPARADOR_COLUMNAS)
                 arch = partes[0]
@@ -96,13 +96,16 @@ class WikiSitio(object):
         de_antes = 0
 
         dirant = None
+        print "  Cantidad de letras:", len(os.listdir(self.origen))
+        cant = 0
         for cwd, directorios, archivos in os.walk(self.origen):
             partes_dir = cwd.split(os.path.sep)
             ult3dirs = join(*partes_dir[-3:])
             if len(ult3dirs) == 5:  # ej: u"M/a/n"
                 primdir = ult3dirs[0]
                 if dirant != primdir:
-                    print "    dir:", primdir
+                    cant += 1
+                    print "    dir: %s (%d)" % (primdir, cant)
                     dirant = primdir
             else:
                 if archivos:
@@ -137,13 +140,12 @@ class WikiSitio(object):
 
                     # ponemos el puntaje
                     if puntaje != 0:
-                        resultados[pag][procesador.nombre] = puntaje
+                        resultados[pag][procesador] = puntaje
 
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
                         ant = puntaje_extra.setdefault(extra_pag, {})
-                        ant[procesador.nombre] = ant.get(
-                                            procesador.nombre, 0) + extra_ptje
+                        ant[procesador] = ant.get(procesador, 0) + extra_ptje
                 else:
                     if self.verbose:
                         print "  puntaje:", resultados[pag]
@@ -175,7 +177,7 @@ class WikiSitio(object):
             # asignamos los puntajes para las páginas que están
             if pag in resultados:
                 for (proc, ptje) in puntajes.items():
-                    resultados[pag][proc] += ptje
+                    resultados[pag][proc] = resultados[pag].get(proc, 0) + ptje
             else:
                 perdidos.append((pag, puntajes))
         if perdidos:
@@ -200,7 +202,7 @@ class WikiSitio(object):
             #los rankings deben ser convertidos en str para evitar
             # literales como 123456L
             columnas = [pagina, valores["dir3"]]
-            columnas += [valores.get(p.nombre, 0) for p in preprocs]
+            columnas += [valores.get(p, 0) for p in preprocs]
             salida.write(plantilla % tuple(columnas))
 
         if self.verbose:
