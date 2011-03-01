@@ -268,6 +268,8 @@ if __name__ == "__main__":
     parser.add_option("-p", "--preprocesado", action="store_true",
                   dest="preprocesado",
                   help="arranca el laburo con lo preprocesado de antes")
+    parser.add_option("-g", "--guppy", action="store_true",
+                  dest="guppy", help="arranca con guppy/heapy prendido")
 
     (options, args) = parser.parse_args()
 
@@ -281,5 +283,13 @@ if __name__ == "__main__":
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
     preprocesado = bool(options.preprocesado)
+
+    if options.guppy:
+        try:
+            import guppy.heapy.RM
+        except ImportError:
+            print "ERROR: Tratamos de levantar heapy pero guppy no está instalado!"
+            exit()
+        guppy.heapy.RM.on()
 
     main(args[0], options.create_iso, verbose, desconectado, preprocesado)
