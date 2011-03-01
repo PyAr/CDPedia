@@ -198,17 +198,19 @@ class Peishranc(Procesador):
     """Calcula el peishranc.
 
     Registra las veces que una página es referida por las demás páginas.
-    Ignora las auto-referencias y los duplicados
+    Ignora las auto-referencias y los duplicados.
+
+    NOTA: Si se cambia algo de esta clase, por favor correr los casos de prueba
+    en el directorio tests.
     """
     def __init__(self, wikisitio):
         super(Peishranc, self).__init__(wikisitio)
         self.nombre = "Peishranc"
 
-        # regex preparada por Perrito666, basicamente matchea todos los
+        # regex preparada por perrito666 y tuute, basicamente matchea todos los
         # href-algo, poniendo href como nombre de grupo de eso que matchea,
-        # más un "class=" que es opcional (y poniéndole nombre class)
-        self.capturar = compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
-                                r'(?:class="(?P<class>.*?)")?.*?>')
+        # más un "class=" que es opcional (y poniéndole nombre class);
+        self.capturar = compile(r'<a href="/wiki/(?P<href>[^"#]*).*?(?:class="(?P<class>.[^"]*)"|.*?)+>')
 
     def __call__(self, wikiarchivo):
         puntajes = {}
@@ -220,7 +222,8 @@ class Peishranc(Procesador):
             if clase in ('image', 'internal'):
                 continue
             lnk = data['href']
-            if lnk.startswith("Archivo:"):
+            namespace, _ = utiles.separaNombre(lnk)
+            if namespace is not None and not config.NAMESPACES.get(namespace):
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
