@@ -116,6 +116,8 @@ NAMESPACES = {
     u"Wikipedia_Discusión": False,
     u"Wikiproyecto": False,
     u"Wikiproyecto_Discusión": False,
+    u"Archivo": False,
+    u"Especial": False,
 }
 
 INCLUDE = [
