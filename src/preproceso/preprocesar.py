@@ -20,7 +20,7 @@ import operator
 
 from src.preproceso import preprocesadores
 
-class WikiArchivo:
+class WikiArchivo(object):
     def __init__(self, cwd, ult3dirs, nombre_archivo):
         self.ruta_relativa = join(ult3dirs, nombre_archivo)
         self.url = nombre_archivo
@@ -144,8 +144,14 @@ class WikiSitio(object):
 
                     # agregamos el puntaje extra
                     for extra_pag, extra_ptje in otras_pags:
-                        ant = puntaje_extra.setdefault(extra_pag, {})
-                        ant[procesador] = ant.get(procesador, 0) + extra_ptje
+                        if extra_pag in resultados:
+                            prev = resultados[extra_pag].get(procesador, 0)
+                            resultados[extra_pag][procesador] = prev + \
+                                                                    extra_ptje
+                        else:
+                            ant = puntaje_extra.setdefault(extra_pag, {})
+                            ant[procesador] = ant.get(procesador, 0) + \
+                                                                    extra_ptje
                 else:
                     if self.verbose:
                         print "  puntaje:", resultados[pag]

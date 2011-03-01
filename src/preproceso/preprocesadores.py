@@ -203,28 +203,36 @@ class Peishranc(Procesador):
     def __init__(self, wikisitio):
         super(Peishranc, self).__init__(wikisitio)
         self.nombre = "Peishranc"
-        regex = r'<a href="/wiki/.*?" .*?>'
-        self.capturar = compile(regex).findall
-        self.limpiar = compile(r'<a href="/wiki/(.*?)" .*?>')
+
+        # regex preparada por Perrito666, basicamente matchea todos los
+        # href-algo, poniendo href como nombre de grupo de eso que matchea,
+        # más un "class=" que es opcional (y poniéndole nombre class)
+        self.capturar = compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
+                                r'(?:class="(?P<class>.*?)")?.*?>')
 
     def __call__(self, wikiarchivo):
-        enlaces = self.capturar(wikiarchivo.html)
-        if not enlaces:
-            return (0, [])
-
-        # no damos puntaje a la página recibida, sino a todos sus apuntados
         puntajes = {}
-        for lnk in enlaces:
-            if 'class="image"' in lnk or 'class="internal"' in lnk:
+        for enlace in self.capturar.finditer(wikiarchivo.html):
+            data = enlace.groupdict()
+
+            # descartamos por clase y por comienzo del link
+            clase = data['class']
+            if clase in ('image', 'internal'):
+                continue
+            lnk = data['href']
+            if lnk.startswith("Archivo:"):
                 continue
 
-            lnk = self.limpiar.match(lnk).groups()[0]
-            lnk = lnk.decode("utf8")
+            # "/" are not really stored like that in disk, they are replaced
+            # by the SLASH word
+            lnk = lnk.replace("/", "SLASH")
 
-            if lnk.startswith(u"Archivo:"):
+            # decodificamos y unquoteamos
+            try:
+                lnk = unquote(lnk).decode('utf8')
+            except UnicodeDecodeError:
+                print "ERROR: problemas al unquotear/decodear el link", repr(lnk)
                 continue
-
-            lnk = unquote(lnk)
             puntajes[lnk] = puntajes.get(lnk, 0) + 1
 
         # sacamos el "auto-bombo"
