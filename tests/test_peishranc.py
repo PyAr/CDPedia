@@ -125,9 +125,15 @@ class PeishrancTests(unittest.TestCase):
         _, r = self.peishranc(fwa)
         self.assertEqual(r, [(u'Categoría:foobar', 1)])
 
-    def test_namespace_excluido(self):
+    def test_namespace_excluido_normal(self):
         """El link es parte de un namespace que NO incluímos."""
         fwa = FakeWikiArchivo('abd <a href="/wiki/Imagen:foobar">Foo</a> dcba')
+        _, r = self.peishranc(fwa)
+        self.assertEqual(r, [])
+
+    def test_namespace_excluido_quoteado(self):
+        """Algunos namespaces vienen quoteados."""
+        fwa = FakeWikiArchivo('d<a href="/wiki/Discusi%C3%B3n:foo">Foo</a>d')
         _, r = self.peishranc(fwa)
         self.assertEqual(r, [])
 

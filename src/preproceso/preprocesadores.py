@@ -221,7 +221,15 @@ class Peishranc(Procesador):
             clase = data['class']
             if clase in ('image', 'internal'):
                 continue
+
+            # decodificamos y unquoteamos
             lnk = data['href']
+            try:
+                lnk = unquote(lnk).decode('utf8')
+            except UnicodeDecodeError:
+                print "ERROR: problemas al unquotear/decodear el link", repr(lnk)
+                continue
+
             namespace, _ = utiles.separaNombre(lnk)
             if namespace is not None and not config.NAMESPACES.get(namespace):
                 continue
@@ -230,12 +238,6 @@ class Peishranc(Procesador):
             # by the SLASH word
             lnk = lnk.replace("/", "SLASH")
 
-            # decodificamos y unquoteamos
-            try:
-                lnk = unquote(lnk).decode('utf8')
-            except UnicodeDecodeError:
-                print "ERROR: problemas al unquotear/decodear el link", repr(lnk)
-                continue
             puntajes[lnk] = puntajes.get(lnk, 0) + 1
 
         # sacamos el "auto-bombo"
