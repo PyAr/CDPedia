@@ -254,7 +254,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return link, m.groups()
 
     def _main_page(self, msg=u"¡Bienvenido!"):
-        """Devuelve la pag principal."""
+        """Devuelve la pag principal con destacado y todo."""
         data_destacado = self._get_destacado()
         if data_destacado is not None:
             link, (titulo, primeros_parrafos) = data_destacado
@@ -265,6 +265,12 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             pag = self.templates("mainpage_sin_destacado", mensaje=msg.encode("utf8"),
                                  stt_pag=self._stt_pag, stt_img=self._stt_img)
+        return "text/html", self._wrap(pag, msg.encode("utf8"))
+
+    def _error_page(self, msg):
+        """Devuelve la pag pcipal sin un destacado."""
+        pag = self.templates("error_page", mensaje=msg.encode("utf8"),
+                             stt_pag=self._stt_pag, stt_img=self._stt_img)
         return "text/html", self._wrap(pag, msg.encode("utf8"))
 
     def _esperando(self):
@@ -349,7 +355,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         except ArticleNotFound, e:
             # Devolvemos el error del artículo no encontrado usando la página
             # principal.
-            _, msg = self._main_page(unicode(e))
+            _, msg = self._error_page(unicode(e))
             raise ArticleNotFound(msg)
 
         return data
@@ -363,7 +369,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def dosearch(self, query):
         params = cgi.parse_qs(query)
         if not "keywords" in params:
-            return self._main_page(u"¡Búsqueda mal armada!")
+            return self._error_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
 
         # search in a thread
@@ -381,7 +387,7 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise InternalServerError("Index not ready")
         params = cgi.parse_qs(query)
         if not "keywords" in params:
-            return self._main_page(u"¡Búsqueda mal armada!")
+            return self._error_page(u"¡Búsqueda mal armada!")
         keywords = params["keywords"][0]
 
         # search in a thread
