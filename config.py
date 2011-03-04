@@ -121,13 +121,13 @@ NAMESPACES = {
 }
 
 INCLUDE = [
-    u"Wikipedia~Acerca_de",
-    u"Wikipedia~Limitación_general_de_responsabilidad",
-    u"Wikipedia~Aviso_de_riesgo",
-    u"Wikipedia~Aviso_médico",
-    u"Wikipedia~Aviso_legal",
-    u"Wikipedia~Aviso_de_contenido",
-    u"Wikipedia~Derechos_de_autor",
+    u"Wikipedia:Acerca_de",
+    u"Wikipedia:Limitación_general_de_responsabilidad",
+    u"Wikipedia:Aviso_de_riesgo",
+    u"Wikipedia:Aviso_médico",
+    u"Wikipedia:Aviso_legal",
+    u"Wikipedia:Aviso_de_contenido",
+    u"Wikipedia:Derechos_de_autor",
 ]
 
 # Dump de Junio 2008
