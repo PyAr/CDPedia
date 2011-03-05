@@ -86,10 +86,10 @@
 				Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
 			</li>
 			<li id="f-about">
-				<a href="/A/c/e/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">Acerca de Wikipedia</a>
+				<a href="/wiki/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">Acerca de Wikipedia</a>
 			</li>
 			<li id="f-disclaimer">
-				<a href="/L/i/m/Wikipedia:Limitación_general_de_responsabilidad.html" title="Wikipedia:Limitación general de responsabilidad">Aviso legal</a>
+				<a href="/wiki/Wikipedia:Limitación_general_de_responsabilidad" title="Wikipedia:Limitación general de responsabilidad">Aviso legal</a>
 			</li>
 		</ul>
 
