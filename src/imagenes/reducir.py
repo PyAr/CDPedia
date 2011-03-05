@@ -1,5 +1,7 @@
 # -*- coding: utf8 -*-
 
+from __future__ import with_statement
+
 import os
 import shutil
 import config
@@ -83,12 +85,13 @@ def run(verbose):
 
         # cambiamos el tamaño si debemos, sino sólo copiamos
         if verbose:
-            print "Rescaling a {0}% la imagen {1}".format(escl, dskurl.encode("utf8"))
+            print "Reescalando a %d%% la imagen %s" % (escl,
+                                                       dskurl.encode("utf8"))
         if escl == 100:
             done_ahora[dskurl] = escl
             shutil.copyfile(frompath, topath)
         else:
-            cmd = ['convert', frompath, '-resize', '{0}%'.format(escl), topath]
+            cmd = ['convert', frompath, '-resize', '%d%%' % (escl,), topath]
             errorcode = subprocess.call(cmd)
             if not errorcode:
                 done_ahora[dskurl] = escl
@@ -108,5 +111,5 @@ def run(verbose):
 
     # si es verbose ya avisamos una por una
     if not verbose and notfound:
-        print "  WARNING: No encontramos {0} imágenes!".format(notfound)
+        print "  WARNING: No encontramos %d imágenes!" % (notfound,)
     return notfound

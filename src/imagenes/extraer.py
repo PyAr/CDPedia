@@ -338,8 +338,8 @@ def run(verbose):
     for i, (dir3, fname, _) in enumerate(preprocesados):
         escala = escalador(i)
         if verbose:
-            print "Extrayendo imgs (al {0}) de {1}/{2}".format(
-                             escala, dir3.encode("utf8"), fname.encode("utf8"))
+            print "Extrayendo imgs (al %d) de %s/%s" % (
+                            escala, dir3.encode("utf8"), fname.encode("utf8"))
         if escala != 0:
             info = ("%d" % escala, dir3, fname)
             log_fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
