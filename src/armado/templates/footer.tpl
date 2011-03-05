@@ -13,7 +13,7 @@
 		<ul>
 		<li id="n-mainpage"><a href="/">Portada</a></li>
 		<li id="n-portal"><a class="external" href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
-		<li id="n-help"><a href="/ayuda/index.html">Ayuda</a></li>
+		<li id="n-help"><a href="/institucional/ayuda.html">Ayuda</a></li>
 		</ul>
 		</div>
 	<br />

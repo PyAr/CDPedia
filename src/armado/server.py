@@ -53,7 +53,7 @@ else:
     destacados = None
 
 # construccion con todos los assets usados y lugares para servir data
-ALL_ASSETS = config.ASSETS + ["images",  "extern", "tutorial", "ayuda", "institucional"]
+ALL_ASSETS = config.ASSETS + ["images",  "extern", "tutorial"]
 if config.EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(config.EDICION_ESPECIAL)
 
@@ -305,6 +305,11 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if articulo:
                 path = to3dirs.to_complete_path(articulo)
 
+        # las páginas de 'institucional' están hechas a mano, pero van
+        # insertadas en el marco normal
+        elif arranque == "institucional":
+            return self.institucional(path)
+
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente
         elif arranque in ALL_ASSETS:
@@ -345,6 +350,25 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             raise ArticleNotFound(msg)
 
         return data
+
+    def institucional(self, path):
+        """Sirve las páginas institucionales, wrapeadas."""
+        asset_file = os.path.join(config.DIR_ASSETS, path)
+        if os.path.isdir(asset_file):
+            print "WARNING: ", repr(asset_file), "es un directorio"
+            raise ContentNotFound()
+        if not os.path.exists(asset_file):
+            print "WARNING: no pudimos encontrar", repr(asset_file)
+            raise ContentNotFound()
+
+        asset_data = open(asset_file, "rb").read()
+
+        type_ = guess_type(path)[0]
+        if type_ == "text/html":
+            s = re.search("<.*?body.*?>", asset_data)
+            if s:
+                asset_data = asset_data.replace(s.group(), s.group()+WATCHDOG_IFRAME)
+        return type_, asset_data
 
     @ei.espera_indice
     def al_azar(self, query):
