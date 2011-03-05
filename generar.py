@@ -1,11 +1,12 @@
 # -- encoding: utf-8 --
 
+from __future__ import with_statement
+
 import sys
 import os
 from os import path
 import shutil
 import time
-import glob
 import optparse
 import cPickle
 
