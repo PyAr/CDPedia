@@ -188,7 +188,10 @@ class WikiSitio(object):
                 perdidos.append((pag, puntajes))
         if perdidos:
             print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
-            print perdidos
+            fname = join(config.DIR_TEMP, 'perdidos.txt')
+            with codecs.open(fname, 'w', 'utf8') as fh:
+                for pag in perdidos:
+                    fh.write(u"%s\n" % (pag,))
 
         return len(resultados)-de_antes, de_antes
 
