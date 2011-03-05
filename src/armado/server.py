@@ -16,7 +16,6 @@ import urllib2  # .urlparse
 import cPickle
 import operator
 import threading
-import posixpath
 import BaseHTTPServer
 from base64 import b64encode
 from mimetypes import guess_type
@@ -30,7 +29,8 @@ import compresor
 __version__ = "0.2"
 
 reg = re.compile("\<title\>([^\<]*)\</title\>")
-reHeader1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
+re_header1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
+re_title = re.compile('<title>(.*)</title>')
 
 RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
                 'URL=http://localhost:%d/%s">'
@@ -99,9 +99,10 @@ Podés acceder al mismo en Wikipedia en
 def getTitleFromData(data):
     if data is None:
         return ""
-    match = reHeader1.search(data)
-    if match is not None:
-        return match.group(1)
+    for regexp in (re_header1, re_title):
+        match = regexp.search(data)
+        if match is not None:
+            return match.group(1)
     return ""
 
 def get_stats():
@@ -115,9 +116,10 @@ def get_stats():
     return pag, img
 
 
-# lista para guardar la espera al índice
 
 class EsperaIndice(object):
+    """Lista para guardar la espera al índice."""
+
     def __init__(self):
         self.data_esperando = None
         self.cuanta_espera = ""
@@ -134,6 +136,7 @@ class EsperaIndice(object):
         return _f
 
 ei = EsperaIndice()
+
 
 class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
@@ -361,14 +364,9 @@ class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             print "WARNING: no pudimos encontrar", repr(asset_file)
             raise ContentNotFound()
 
-        asset_data = open(asset_file, "rb").read()
-
-        type_ = guess_type(path)[0]
-        if type_ == "text/html":
-            s = re.search("<.*?body.*?>", asset_data)
-            if s:
-                asset_data = asset_data.replace(s.group(), s.group()+WATCHDOG_IFRAME)
-        return type_, asset_data
+        data = open(asset_file, "rb").read()
+        title = getTitleFromData(data)
+        return "text/html", self._wrap(data, title)
 
     @ei.espera_indice
     def al_azar(self, query):
