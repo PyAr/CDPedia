@@ -104,20 +104,6 @@ def getTitleFromData(data):
         return match.group(1)
     return ""
 
-def gettitle(zf, name):
-    data = open(name).read()
-    title_list = reg.findall(data)
-    if len(title_list)==1:
-        return title_list[0]
-    try:
-        soup = BeautifulSoup.BeautifulSoup( data )
-    except UnicodeEncodeError, e:
-        print data
-        raise e
-    if not soup("title"):
-        return ""
-    return str(soup("title")[0].contents[0])
-
 def get_stats():
     d = cPickle.load(open(os.path.join(config.DIR_ASSETS, "estad.pkl")))
     pag = "%5d (%2d%%)" % (d['pags_incl'], 100 * d['pags_incl'] / d['pags_total'])
