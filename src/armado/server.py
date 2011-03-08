@@ -5,18 +5,20 @@
 from __future__ import division
 from __future__ import with_statement
 
+import cPickle
+import cgi
+import operator
 import os
 import re
-import cgi
-import time
 import socket
 import string
+import sys
+import threading
+import time
 import urllib   # .quote, .unquote
 import urllib2  # .urlparse
-import cPickle
-import operator
-import threading
-import BaseHTTPServer
+
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from base64 import b64encode
 from mimetypes import guess_type
 from random import choice
@@ -25,6 +27,51 @@ import config
 import to3dirs
 import cdpindex
 import compresor
+
+
+# En Python 2.5 el SocketServer no tiene un shutdown, así que si estamos
+# en esa versión, lo ponemos nosotros (copiado de 2.6, basicamente).
+
+if sys.version_info < (2, 6):
+    import select
+
+    class MyHTTPServer(HTTPServer):
+        """Version that provides shutdown."""
+        def __init__(self, *args, **kwargs):
+            HTTPServer.__init__(self, *args, **kwargs)
+            self._is_shut_down = threading.Event()
+            self._shutdown_request = False
+
+        def serve_forever(self):
+            """Handle one request at a time until shutdown."""
+            self._is_shut_down.clear()
+            try:
+                while not self._shutdown_request:
+                    r, w, e = select.select([self], [], [], .5)
+                    if self not in r:
+                        continue
+                    try:
+                        request, client_address = self.get_request()
+                    except socket.error:
+                        continue
+                    if not self.verify_request(request, client_address):
+                        continue
+
+                    try:
+                        self.process_request(request, client_address)
+                    except:
+                        self.handle_error(request, client_address)
+                        self.close_request(request)
+            finally:
+                self._shutdown_request = False
+                self._is_shut_down.set()
+
+        def shutdown(self):
+            """Stops the serve_forever loop."""
+            self._shutdown_request = True
+            self._is_shut_down.wait()
+else:
+    MyHTTPServer = HTTPServer
 
 __version__ = "0.2"
 
@@ -138,7 +185,7 @@ class EsperaIndice(object):
 ei = EsperaIndice()
 
 
-class WikiHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     server_version = "WikiServer/" + __version__
 
     _tpl_mngr = TemplateManager(os.path.join("src", "armado", "templates"))
@@ -579,7 +626,6 @@ class Buscador(object):
         threading.Thread(target=_inner_completa, args=(self.busqueda,)).start()
         return self.busqueda
 
-
 buscador = Buscador()
 
 def run(server_up_event, watchdog_update):
@@ -591,8 +637,7 @@ def run(server_up_event, watchdog_update):
     WikiHTTPRequestHandler.protocol_version = "HTTP/1.0"
     for port in xrange(8000, 8099):
         try:
-            httpd = BaseHTTPServer.HTTPServer(('', port),
-                                              WikiHTTPRequestHandler)
+            httpd = MyHTTPServer(('', port), WikiHTTPRequestHandler)
         except socket.error, e:
             if e.errno != 98:
                 raise
