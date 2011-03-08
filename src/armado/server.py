@@ -639,7 +639,7 @@ def run(server_up_event, watchdog_update):
         try:
             httpd = MyHTTPServer(('', port), WikiHTTPRequestHandler)
         except socket.error, e:
-            if e.errno != 98:
+            if e.args[0] != 98:  # Address already in use
                 raise
         else:
             # server opened ok
