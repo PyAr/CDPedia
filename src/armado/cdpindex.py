@@ -112,7 +112,7 @@ class IndexInterface(threading.Thread):
         self.directory = directory
 
     def is_ready(self):
-        return self.ready.is_set()
+        return self.ready.isSet()
 
     def run(self):
         """Levanta el índice."""
