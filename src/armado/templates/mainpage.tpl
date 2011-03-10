@@ -15,7 +15,7 @@
 
     $primeros_parrafos
 
-    <div style="text-align: right; font-size:100%"><a href="$link" title="$titulo"><b>Leer más...</b></a></div>
+    <div style="text-align: right; font-size:100%"><a href="/wiki/$link" title="$titulo"><b>Leer más...</b></a></div>
   </div>
   </td></tr>
   </table>
