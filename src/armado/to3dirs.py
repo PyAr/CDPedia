@@ -38,10 +38,14 @@ def to_path(pagina):
     else:
         dirs = list(pagina[:3])
 
-    return os.path.join(*dirs)
+    #FIXME: Si se quiere generar en Windows se debe cambiar '/' por '\'
+    #       No se puede usar os.path.join porque al usarse cdpedia solo pueede
+    #       ejecutarse en la plataforma que fue generado el iso
+    return '/'.join(dirs)
 
 def to_complete_path(pagina):
-    return os.path.join(to_path(pagina), to_filename(pagina))
+    #FIXME: Si se quiere generar en Windows se debe cambiar '/' por '\'
+    return '/'.join((to_path(pagina), to_filename(pagina)))
 
 to_filename = _escape_filename
 
