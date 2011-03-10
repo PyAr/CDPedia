@@ -274,7 +274,8 @@ class Destacado(Procesador):
                            for x in open(config.DESTACADOS)]
 
     def __call__(self, wikiarchivo):
-        destac = wikiarchivo.url in self.destacados
+        destac = wikiarchivo.url in self.destacados or \
+                 mustInclude(wikiarchivo.url)
         return (int(destac), [])
 
 
