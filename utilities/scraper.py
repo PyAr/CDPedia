@@ -24,7 +24,6 @@ import to3dirs
 ARTICLES_TO_RETRY = "probar_de_nuevo.txt"
 
 WIKI = 'http://es.wikipedia.org/'
-LISTADO_POS_FNAME = "posicion.txt"
 
 UA = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) Gecko/20100915 ' \
      'Ubuntu/10.04 (lucid) Firefox/3.6.10'
@@ -37,39 +36,32 @@ OK, NO_EXISTE, HAY_QUE_PROBAR_DE_NUEVO = range(3)
 class URLAlizer(object):
     def __init__(self, listado_nombres, dest_dir):
         self.dest_dir = dest_dir
-        try:
-            self.posicion_en_listado = int(open(LISTADO_POS_FNAME, "r").readline())
-        except IOError:
-            self.posicion_en_listado = 0
-        self.fh = open(listado_nombres, 'r', buffering=0)
-        self.fh.seek(self.posicion_en_listado)
-        if self.posicion_en_listado == 0: # saltea la primera linea
-            self.fh.readline()
-
-    def _next_name(self):
-        return self.fh.readline().decode("utf-8").strip()
+        self.fh = open(listado_nombres, 'r')
+        # saltea la primera linea
+        self.fh.readline()
 
     def next(self):
-        basename = self._next_name()
-        path = os.path.join(self.dest_dir, to3dirs.to_path(basename))
-        if not os.path.exists(path.encode('utf-8')):
-            os.makedirs(path.encode('utf-8'))
+        while True:
+            line = self.fh.readline()
+            if line == "":
+                raise StopIteration
+            basename = line.decode("utf-8").strip()
+            path = os.path.join(self.dest_dir, to3dirs.to_path(basename))
+            disk_name = os.path.join(path, to3dirs.to_filename(basename))
+            if not os.path.exists(disk_name.encode('utf-8')):
+                if not os.path.exists(path.encode('utf-8')):
+                    os.makedirs(path.encode('utf-8'))
 
-        disk_name = os.path.join(path, to3dirs.to_filename(basename))
-        quoted_url = urllib.quote(basename.encode('utf-8'))
-        # Skip wikipedia automatic redirect
-        url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-        posicion = self.fh.tell()
-        return url, disk_name, self, posicion, basename
-
-    def update_posicion(self, posicion):
-        self.posicion_en_listado = posicion
+                quoted_url = urllib.quote(basename.encode('utf-8'))
+                # Skip wikipedia automatic redirect
+                url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
+                return url, disk_name, self, basename
 
     def __iter__(self):
         return self
 
 def fetch(datos):
-    url, disk_name, uralizer, posicion, basename = datos
+    url, disk_name, uralizer, basename = datos
     try:
         response = urllib2.urlopen(req(url))
         compressedstream = StringIO.StringIO(response.read())
@@ -90,7 +82,6 @@ def fetch(datos):
     with open(disk_name.encode("utf-8"), 'w') as fh:
         fh.write(html)
 
-    uralizer.update_posicion(posicion)
     return OK, basename
 
 def main(nombres, dest_dir, pool_size=20):
@@ -119,9 +110,6 @@ def main(nombres, dest_dir, pool_size=20):
 
     except (KeyboardInterrupt, SystemExit):
         print "\nStoping, plase wait."
-
-    with open(LISTADO_POS_FNAME, "w") as fh:
-        fh.write(str(urls.posicion_en_listado))
 
 USAGE = """
 Usar: scraper.py <NOMBRES_ARTICULOS> <DEST_DIR> [CONCURRENT]"
