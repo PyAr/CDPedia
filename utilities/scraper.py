@@ -10,6 +10,7 @@ from __future__ import with_statement
 import os
 import sys
 import gzip
+import tempfile
 import time
 import urllib
 import StringIO
@@ -36,6 +37,9 @@ OK, NO_EXISTE, HAY_QUE_PROBAR_DE_NUEVO = range(3)
 class URLAlizer(object):
     def __init__(self, listado_nombres, dest_dir):
         self.dest_dir = dest_dir
+        self.temp_dir = dest_dir + ".tmp"
+        if not os.path.exists(self.temp_dir):
+            os.makedirs(self.temp_dir)
         self.fh = open(listado_nombres, 'r')
         # saltea la primera linea
         self.fh.readline()
@@ -52,16 +56,18 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
+                temp_file = tempfile.NamedTemporaryFile(suffix=".html",
+                              prefix="scrap-", dir=self.temp_dir, delete=False)
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-                return url, disk_name, self, basename
+                return url, temp_file, disk_name, self, basename
 
     def __iter__(self):
         return self
 
 def fetch(datos):
-    url, disk_name, uralizer, basename = datos
+    url, temp_file, disk_name, uralizer, basename = datos
     try:
         response = urllib2.urlopen(req(url))
         compressedstream = StringIO.StringIO(response.read())
@@ -79,9 +85,9 @@ def fetch(datos):
         print>>sys.stderr, "%s : %s" % (url, e)
         return HAY_QUE_PROBAR_DE_NUEVO, basename
 
-    with open(disk_name.encode("utf-8"), 'w') as fh:
+    with temp_file as fh:
         fh.write(html)
-
+    os.rename(temp_file.name, disk_name.encode("utf-8"))
     return OK, basename
 
 def main(nombres, dest_dir, pool_size=20):
