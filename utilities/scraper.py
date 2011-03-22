@@ -87,7 +87,11 @@ def fetch(datos):
 
     with temp_file as fh:
         fh.write(html)
-    os.rename(temp_file.name, disk_name.encode("utf-8"))
+    try:
+        os.rename(temp_file.name, disk_name.encode("utf-8"))
+    except OSError as e:
+        print "error creating this file:", disk_name.encode("utf-8")
+        return HAY_QUE_PROBAR_DE_NUEVO, basename
     return OK, basename
 
 def main(nombres, dest_dir, pool_size=20):
