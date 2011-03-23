@@ -80,12 +80,12 @@ class WikiSitio(object):
 
         # vemos que habíamos descartado antes, y dejamos el archivo listo
         # para seguir escribiendo
-        self.descartados_antes = []
+        self.descartados_antes = set()
         nomarch = join(config.DIR_TEMP, "descartados.txt")
         if os.path.exists(nomarch):
             self.descartados_file = codecs.open(nomarch, 'r+', 'utf8')
             for linea in self.descartados_file:
-                self.descartados_antes.append(linea.strip())
+                self.descartados_antes.add(linea.strip())
         else:
             self.descartados_file = codecs.open(nomarch, 'w', 'utf8')
 
