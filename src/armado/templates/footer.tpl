@@ -82,7 +82,7 @@
 
 		<ul id="f-info-wikipedia">
 			<li id="f-info-copyright">
-                El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página externa los <a href="http://wikimediafoundation.org/wiki/T%C3%A9rminos_de_Uso">términos de uso</a> para más información.
+                El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página <a href="/institucional/Términos_de_Uso.htm">términos de uso</a> para más información.
 				Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
 			</li>
 			<li id="f-about">

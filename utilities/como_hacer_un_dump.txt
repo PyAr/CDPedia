@@ -50,4 +50,30 @@ velocidad: sencillamente la división entre los artículos descargados y el
 El script al detenerse guardará la posición actual (en posicion.txt) por lo que
 puede continuarse en otro momento.
 
+También hay que revisar si cambiaron los "Términos de uso":
+
+1. Ir a la página http://wikimediafoundation.org/wiki/T%C3%A9rminos_de_Uso
+
+2. Ver si la última vez que se modificó (ver el footer) es "30 December 2010, at 18:55"
+
+3. Si sí, listo, no hay nada que actualizar.
+
+4. Si no, bajar esa página a mano, guardarla en resources/institucional/Términos_de_uso.htm
+
+5. Aplicarle la misma limpieza que el preprocesador ExtraerContenido.
+
+6. Borrar todos los otros lenguajes (entre un <ul> y </ul>).
+
+7. Agregar un comentario class  InformationBox como el que ya está que informe que...
+
+    Esta página fue descargada de
+    <a href="http://wikimediafoundation.org/wiki/T%C3%A9rminos_de_Uso">
+    esta dirección externa</a> el ***FECHA***, por favor recurrir a la versión
+    on-line para asegurarse de estar leyendo la versión más actualizada. (mensaje
+    agregado para la CDPedia).
+
+8. Corregir ahí mismo el ícono de la "i" azulada para que apunte a
+   "/misc/32px-Information_icon.svg.png"
+
+
 Cualquier duda, se puede consultar en el grupo  de CDPedia ( cdpedia@googlegroups.com )

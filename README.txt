@@ -1,7 +1,9 @@
 Creación de la imagen
 ---------------------
 
-1. Hacer un dump con el scraper y descomprimirlo en algún lado.
+1. Hacer un dump con el scraper y descomprimirlo en algún lado. También
+   revisar los "Términos de uso", a ver si cambiaron (ver en
+   utilities/como_hacer_un_dump.txt)
 
 2. Crear un directorio fuente (por ejemplo, "fuentes"), y poner ahí los
    archivos del dump estático que querramos usar (en un dir 'articles'),
