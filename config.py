@@ -27,6 +27,9 @@ DIR_CDBASE = "temp/cdroot"
 # Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
 DIR_ASSETS = "temp/cdroot/cdpedia/assets"
 
+# Directorio de los archivos estáticos de origen
+DIR_SOURCE_ASSETS = "resources/static"
+
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 

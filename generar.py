@@ -54,7 +54,7 @@ def copiarAssets(src_info, dest):
         assets.append(config.EDICION_ESPECIAL)
 
     for d in assets:
-        src_dir = path.join(src_info, d)
+        src_dir = path.join(config.DIR_SOURCE_ASSETS, d)
         dst_dir = path.join(dest, d)
         if not os.path.exists(src_dir):
             print "\nERROR: No se encuentra el directorio %r" % src_dir
