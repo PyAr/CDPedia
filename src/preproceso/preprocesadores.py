@@ -279,6 +279,28 @@ class Destacado(Procesador):
         return (int(destac), [])
 
 
+class QuitaCategoria(Procesador):
+    """Quita el link de "Categoria" porque es feo"""
+    def __init__(self, wikisitio):
+        super(QuitaCategoria, self).__init__(wikisitio)
+        self.nombre = "QuitaCategoria"
+        regex = '<a.*?title="Especial:Categorías".*?>(?P<texto>.+?)</a>'
+        self.categoria_regex = compile(regex)
+
+    def __call__(self, wikiarchivo):
+        try:
+            newhtml = self.categoria_regex.sub("\g<texto>", wikiarchivo.html)
+        except Exception:
+            print "Path del html", wikiarchivo.url
+            raise
+
+        # reemplazamos el html original
+        wikiarchivo.html = newhtml
+
+        # no damos puntaje ni nada
+        return (0, [])
+
+
 class QuitaLinkRojo(Procesador):
     """Quita los links rojos (nunca creados en wikipedia) del html."""
     def __init__(self, wikisitio):
@@ -309,6 +331,7 @@ TODOS = [
     ExtraerContenido,
     FixLinksDescartados,
     QuitaEditarSpan,
+    QuitaCategoria,
     QuitaLinkRojo,
     Peishranc,
     Destacado,
