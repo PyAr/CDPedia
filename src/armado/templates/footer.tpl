@@ -12,7 +12,7 @@
 		<div class="pBody">
 		<ul>
 		<li id="n-mainpage"><a href="/">Portada</a></li>
-		<li id="n-portal"><a class="external" href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
+		<li id="n-portal"><a href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
 		<li id="n-help"><a href="/institucional/ayuda.html">Ayuda</a></li>
 		</ul>
 		</div>
@@ -76,13 +76,13 @@
 			</li>
 
 			<li>
-				Todos los contenidos de los artículos provienen del <a class="external" href="http://es.wikipedia.org/">sitio online de Wikipedia</a>.
+				Todos los contenidos de los artículos provienen del <a href="http://es.wikipedia.org/">sitio online de Wikipedia</a>.
 			</li>
 		</ul>
 
 		<ul id="f-info-wikipedia">
 			<li id="f-info-copyright">
-                El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página <a href="/institucional/Términos_de_Uso.htm">términos de uso</a> para más información.
+                El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página los <a href="/institucional/Términos_de_Uso.htm">términos de uso</a> para más información.
 				Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
 			</li>
 			<li id="f-about">
