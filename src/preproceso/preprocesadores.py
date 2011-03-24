@@ -279,6 +279,28 @@ class Destacado(Procesador):
         return (int(destac), [])
 
 
+class QuitaLinkRojo(Procesador):
+    """Quita los links rojos (nunca creados en wikipedia) del html."""
+    def __init__(self, wikisitio):
+        super(QuitaLinkRojo, self).__init__(wikisitio)
+        self.nombre = "QuitaLinkRojo"
+        regex = '<a href="[^\"]+?&amp;redlink=1".+?>(?P<texto>.+?)</a>'
+        self.link_rojo_regex = compile(regex)
+
+    def __call__(self, wikiarchivo):
+        try:
+            newhtml = self.link_rojo_regex.sub("\g<texto>", wikiarchivo.html)
+        except Exception:
+            print "Path del html", wikiarchivo.url
+            raise
+
+        # reemplazamos el html original
+        wikiarchivo.html = newhtml
+
+        # no damos puntaje ni nada
+        return (0, [])
+
+
 # Clases que serán utilizadas para el preprocesamiento
 # de cada una de las páginas, en orden de ejecución.
 TODOS = [
@@ -287,6 +309,7 @@ TODOS = [
     ExtraerContenido,
     FixLinksDescartados,
     QuitaEditarSpan,
+    QuitaLinkRojo,
     Peishranc,
     Destacado,
     #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
