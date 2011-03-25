@@ -29,7 +29,7 @@ body {
 }
 /* Content */
 #content {
-	margin-left: 10em;
+	margin-left: 180px;
 	padding: 1em;
 	background-image: url(images/border.png?1);
 	background-position: top left;
@@ -444,7 +444,7 @@ div#mw-panel {
 	}
 /* Footer */
 #footer {
-	margin-left: 10em;
+	margin-left: 180px;
 	margin-top: 0;
 	padding: 0.75em;
 	background-image: url(images/border.png?1);
@@ -491,16 +491,17 @@ body.ltr #footer #footer-places {
 	position: absolute;
 	top: -190px;
 	left: 0;
-	width: 10em;
+	width: 180px;
 	height: 200px;
 }
 #p-logo a {
 	display: block;
-	width: 10em;
+	width: 180px;
 	height: 200px;
 	background-repeat: no-repeat;
 	background-position: center center;
 	text-decoration: none;
+	margin:auto;
 }
 
 /*
