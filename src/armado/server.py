@@ -194,6 +194,9 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     _stt_pag, _stt_img = get_stats()
 
+    _portales = open(os.path.join("src", "armado", "templates",
+                     "portales.tpl")).read()
+
     def do_GET(self):
         """Serve a GET request."""
         try:
@@ -297,10 +300,12 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
                                  link=link.encode('utf-8'), titulo=titulo,
                                  primeros_parrafos=primeros_parrafos,
-                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
+                                 stt_pag=self._stt_pag, stt_img=self._stt_img,
+                                 portales=self._portales)
         else:
             pag = self.templates("mainpage_sin_destacado", mensaje=msg.encode("utf8"),
-                                 stt_pag=self._stt_pag, stt_img=self._stt_img)
+                                 stt_pag=self._stt_pag, stt_img=self._stt_img,
+                                 portales=self._portales)
         return "text/html", self._wrap(pag, msg.encode("utf8"))
 
     def _error_page(self, msg):
