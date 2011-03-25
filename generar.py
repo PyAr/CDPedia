@@ -17,7 +17,7 @@ if sys.stdout.encoding is None:
 
 import config
 from src.preproceso import preprocesar
-from src.armado import compresor
+from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.imagenes import extraer, download, reducir
 
@@ -210,6 +210,10 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
     mensaje("Reduciendo las imágenes descargadas")
     notfound = reducir.run(verbose)
 
+    mensaje("Emblocando las imágenes reducidas")
+    # agrupamos las imagenes en bloques
+    ImageManager.generar_bloques(verbose)
+
     # esto no es lo más exacto, pero good enough
     estad.imgs_incl -= notfound
     estad.imgs_bogus += notfound
@@ -220,7 +224,7 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
     estad.pags_incl = result
 
     mensaje("Generando los bloques")
-    result = compresor.generar(verbose)
+    result = ArticleManager.generar_bloques(verbose)
     print '  total: %d bloques con %d archivos' % result
 
     estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))

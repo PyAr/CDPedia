@@ -11,12 +11,15 @@ import operator
 import sys
 import os
 sys.path.append(os.getcwd())
-from src.armado import compresor
+from src.armado.compresor import Comprimido, BloqueImagenes
 
 def main(fname, a_extraer):
     fsize = os.stat(fname).st_size
     print "Mostrando info del archivo %r (tamaño: %d bytes)" % (fname, fsize)
-    c = compresor.Comprimido(fname)
+    if fname.endswith('.cdi'):
+        c = BloqueImagenes(fname)
+    else:
+        c = Comprimido(fname)
     print "Del header (%d bytes): %d archivos en total" % (
                                                   c.header_size, len(c.header))
 
@@ -46,15 +49,15 @@ def main(fname, a_extraer):
         # extraemos los archivos indicados
         for arch in a_extraer:
             print "Extrayendo", arch.encode("utf8")
-            data = c.get_articulo(arch)
-            with open(arch, "wb") as fdest:
+            data = c.get_item(arch)
+            with open(os.path.basename(arch), "wb") as fdest:
                 fdest.write(data)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print "Usar:  verComprimido.py <comprimido> [archivo [...]]"
-        print "           donde el archivo comprimido es un .odp"
+        print "           donde el archivo comprimido es un .cdp / .cdi"
         print "           opcionalmente, se pueden pasar archivos a extraer"
         sys.exit()
 

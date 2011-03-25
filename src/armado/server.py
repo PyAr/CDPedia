@@ -192,6 +192,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     _art_mngr = compresor.ArticleManager()
 
+    _img_mngr = compresor.ImageManager()
+
     _stt_pag, _stt_img = get_stats()
 
     _portales = open(os.path.join("src", "armado", "templates",
@@ -228,13 +230,29 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
         return orig_link
 
+    def _get_imagen(self, path):
+        assert path.startswith('images/')
+        try:
+            normpath = os.path.normpath(path[len('images/'):])
+            asset_data = self._img_mngr.get_item(normpath)
+        except Exception, e:
+            msg = u"Error interno al buscar contenido: %s" % e
+            raise InternalServerError(msg)
+        if asset_data is None:
+            print "WARNING: no pudimos encontrar", repr(path)
+            raise ContentNotFound()
+        type_ = guess_type(path)[0]
+        print "Obtenido", path
+        print "Tipo:", type_
+        return type_, asset_data
+
     def _get_contenido(self, path):
         match = re.match("[^/]+\/[^/]+\/[^/]+\/(.*)", path)
         if match is not None:
             path = match.group(1)
         orig_link = self._get_orig_link(path)
         try:
-            data = self._art_mngr.getArticle(path)
+            data = self._art_mngr.get_item(path)
         except Exception, e:
             msg = u"Error interno al buscar contenido: %s" % e
             raise InternalServerError(msg)
@@ -266,7 +284,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         data = None
         while destacados and not data:
             link = choice(destacados)
-            data = self._art_mngr.getArticle(link)
+            data = self._art_mngr.get_item(link)
 
             if data:
                 break
@@ -364,6 +382,10 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         # insertadas en el marco normal
         elif arranque == "institucional":
             return self.institucional(path)
+
+        # Las imagenes las buscamos de bloques:
+        elif arranque == 'images':
+            return self._get_imagen(path)
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente

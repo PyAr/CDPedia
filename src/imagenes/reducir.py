@@ -54,7 +54,7 @@ def run(verbose):
                 escala_imag[url] = max(escala_imag.get(url, 0), escala)
 
     src = os.path.join(config.DIR_TEMP, "images")
-    dst = os.path.join(config.DIR_ASSETS, "images")
+    dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # reducimos las imágenes
     for dskurl, escl in escala_imag.iteritems():

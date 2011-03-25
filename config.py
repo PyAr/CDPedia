@@ -21,6 +21,12 @@ DIR_PREPROCESADO = DIR_TEMP + "/preprocesado"
 # Directorio de los archivos ya listos para inclusión
 DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 
+# Directorio de las imágenes ya listas para inclusión
+DIR_IMGSLISTAS = DIR_TEMP + "/imglistas"
+
+# Cantidad de imágenes por bloque
+IMAGES_PER_BLOCK = 10
+
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "temp/cdroot"
 
