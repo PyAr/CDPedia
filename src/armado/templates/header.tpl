@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="shortcut icon" href="/misc/favicon.ico" />
         <link rel="copyright" href="../../../COPYING.html" />
-    <title>$titulo - Wikipedia, la enciclopedia libre</title>
+    <title>$titulo - CDPedia, la Wikipedia offline</title>
 
 
     <link rel="stylesheet" href="../../../skins/css/main.css" type="text/css" media="screen" />

@@ -23,7 +23,6 @@ from base64 import b64encode
 from mimetypes import guess_type
 from random import choice
 
-import bmp
 import config
 import to3dirs
 import cdpindex
@@ -111,8 +110,9 @@ class ContentNotFound(Exception):
 class ArticleNotFound(ContentNotFound):
     """No se encontró el artículo!"""
 
-class Redirection301(Exception):
+class Redirection(Exception):
     """Es una redireccion http"""
+    
 
 class InternalServerError(Exception):
     """Error interno al buscar contenido!"""
@@ -200,7 +200,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     _stt_pag, _stt_img = get_stats()
 
-    _portales = open(os.path.join(_tpl_mngr.basedir, "portales.tpl")).read()
+    _portales = open(os.path.join("src", "armado", "templates",
+                     "portales.tpl")).read()
 
     def do_GET(self):
         """Serve a GET request."""
@@ -217,9 +218,9 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
                     "max-age=86400, must-revalidate")
             self.end_headers()
             self.wfile.write(data)
-        except Redirection301, e:
-            self.send_response(code=301)
-            self.send_header("Location", e.message)
+        except Redirection, e:
+            self.send_response(code=e.args[0])
+            self.send_header("Location", e.args[1])
             self.end_headers()
             self.wfile.write(str('redirigiendo'))
         except ArticleNotFound, e:
@@ -238,7 +239,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
         return orig_link
 
-    def _get_imagen(self, path, query):
+    def _get_imagen(self, path):
         assert path.startswith('images/')
         try:
             normpath = os.path.normpath(path[len('images/'):])
@@ -248,14 +249,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             raise InternalServerError(msg)
         if asset_data is None:
             print "WARNING: no pudimos encontrar", repr(path)
-            try:
-                width, _, height = query[2:].partition('-')
-                width = int(width)
-                height = int(height)
-            except Exception, e:
-                raise ContentNotFound()
-            img = bmp.BogusBitMap(width, height)
-            return "img/bmp", img.data
+            raise ContentNotFound()
         type_ = guess_type(path)[0]
         print "Obtenido", path
         print "Tipo:", type_
@@ -400,7 +394,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # Las imagenes las buscamos de bloques:
         elif arranque == 'images':
-            return self._get_imagen(path, query)
+            return self._get_imagen(path)
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente
@@ -461,7 +455,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     def al_azar(self, query):
         link, tit = self.index.get_random()
         link = u"wiki" + link[5:]        
-        raise Redirection301(urllib.quote(link.encode('utf-8')))
+        raise Redirection(302, urllib.quote(link.encode('utf-8')))
 
     @ei.espera_indice
     def dosearch(self, query):

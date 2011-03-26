@@ -5,6 +5,7 @@
 URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
 IDIOMA = "es"
 
+
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
 DIR_BLOQUES = "temp/cdroot/cdpedia/bloques"
