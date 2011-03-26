@@ -76,7 +76,7 @@ else:
 __version__ = "0.2"
 
 reg = re.compile("\<title\>([^\<]*)\</title\>")
-re_header1 = re.compile('\<h1 class="firstHeading"\>([^\<]*)\</h1\>')
+re_header1 = re.compile('\<h1 id="firstHeading" class="firstHeading"\>([^\<]*)\</h1\>')
 re_title = re.compile('<title>(.*)</title>')
 
 RELOAD_HEADER = '<meta http-equiv="refresh" content="2;'\
