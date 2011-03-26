@@ -7,9 +7,14 @@
 	overflow: hidden;
 }
 
+ul#navegacionBody {
+	list-style-type: none;
+	list-style-image: none;
+	margin-left: 0.2em;
+}
 ul#f-info-cdpedia {
 	margin-right: 2%;
-    width: 64%;
+	width: 64%;
 	float: left;
 	font-size: 1.1em;
 }
@@ -40,4 +45,27 @@ a.nopo {
 a.external {
     border-bottom: 1px dashed blue;
     text-decoration:none;
+}
+
+div#searchBody {
+    border: 1px solid #AAA;
+    background: white;
+    width: 10em;
+    padding: .1em;
+}
+
+input#searchInput, input#searchInput:focus {
+    border: 0;
+    width: 130px;
+    outline: 0;
+}
+
+#mw-panel h5 {
+    font-weight: normal;
+}
+
+button#searchButton {
+    border: 0;
+    background: white;
+    padding: .1em;
 }

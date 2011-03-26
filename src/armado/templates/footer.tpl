@@ -8,50 +8,33 @@
 		<div id="p-logo"> <a style="background-image: url(&quot;../../../extern/logo-esquina-articulos.png&quot;);" href="/" title="Portada"></a> </div>
 	<!-- /logo -->
 	<br />
-		<h5>Navegación</h5>
 		<div class="pBody">
-		<ul>
+		<ul id="navegacionBody">
 		<li id="n-mainpage"><a href="/">Portada</a></li>
 		<li id="n-portal"><a href="http://es.wikipedia.org/">Wikipedia en la Web</a></li>
 		<li id="n-help"><a href="/institucional/ayuda.html">Ayuda</a></li>
 		</ul>
 		</div>
 	<br />
-	<h5>Búsquedas:</h5>
+	<h5>Búsqueda</h5>
 		<div id="searchBody" class="pBody">
 		<form id="search-form" method="get" action="/dosearch">
-		<input id="searchInput" name="keywords" size="16"/>
-		<input value="Buscar" type="submit"/>
+		<input id="searchInput" name="keywords" size="13"/>
+		<button title="Busca páginas con este texto." name="button" type="submit" id="searchButton">
+		<img alt="Buscar" src="/extern/search-ltr.png"></button>
 		</form>
 		</div>
 	<br />
-	<h5>Sorprendete:</h5>
+	<h5>Sorprendete</h5>
 		<div class="pBody">
 		<form method="get" action="/al_azar">
 		<input value="Página al azar" type="submit"/>
 		</form>
 		</div>
 	<br />
-	<h5>Estadísticas:</h5>
-	<div class="pBody" style="font-size: 60%;">
-		<br />
-		<table>
-		<tbody><tr>
-		<td>Páginas</td>
-           <td>$stt_pag</td>
-          </tr>
-          <tr>
-           <td>Imágenes</td>
-           <td>$stt_img</td>
-          </tr>
-          </tbody></table>
-        <br />
-      </div>
-      <br />
 	<h5>Presentada por</h5>
 	<div class="pBody">
 		<center>
-		<br />
 		<a href="/institucional/pyar.html"><img src="/extern/pyar-logo.png" alt="Python Argentina"/></a>
 		</center>
 	</div>

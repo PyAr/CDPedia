@@ -319,7 +319,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
         return link, m.groups()
 
-    def _main_page(self, msg=u"¡Bienvenido!"):
+    def _main_page(self, msg=u""):
         """Devuelve la pag principal con destacado y todo."""
         data_destacado = self._get_destacado()
         if data_destacado is not None:
