@@ -23,6 +23,7 @@ from base64 import b64encode
 from mimetypes import guess_type
 from random import choice
 
+import bmp
 import config
 import to3dirs
 import cdpindex
@@ -230,7 +231,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
         return orig_link
 
-    def _get_imagen(self, path):
+    def _get_imagen(self, path, query):
         assert path.startswith('images/')
         try:
             normpath = os.path.normpath(path[len('images/'):])
@@ -240,7 +241,14 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             raise InternalServerError(msg)
         if asset_data is None:
             print "WARNING: no pudimos encontrar", repr(path)
-            raise ContentNotFound()
+            try:
+                width, _, height = query[2:].partition('-')
+                width = int(width)
+                height = int(height)
+            except Exception, e:
+                raise ContentNotFound()
+            img = bmp.BogusBitMap(width, height)
+            return "img/bmp", img.data
         type_ = guess_type(path)[0]
         print "Obtenido", path
         print "Tipo:", type_
@@ -385,7 +393,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # Las imagenes las buscamos de bloques:
         elif arranque == 'images':
-            return self._get_imagen(path)
+            return self._get_imagen(path, query)
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente

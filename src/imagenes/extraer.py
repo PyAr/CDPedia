@@ -29,8 +29,6 @@ import urllib2
 import config
 from src.preproceso import preprocesar
 
-BOGUS_IMAGE = "../../../extern/sinimagen.png"
-
 class ParseaImagenes(object):
     """
     Tenemos que loguear únicas, ya que tenemos muchísimos, muchísimos
@@ -39,7 +37,7 @@ class ParseaImagenes(object):
     def __init__(self, test=False):
         self.test = test
         self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
-        self.anchalt_regex = re.compile('width="\d+" height="\d+"')
+        self.anchalt_regex = re.compile('width="(\d+)" height="(\d+)"')
         self.links_regex = re.compile('<a(.*?)href="(.*?)"(.*?)>(.*?)</a>',
                                       re.MULTILINE|re.DOTALL)
         self.seplink = re.compile("/wiki/(.*)")
@@ -174,9 +172,12 @@ class ParseaImagenes(object):
         if self.test:
             print "img", img
 
-        # recortamos ancho y alto
-        if not bogus:
-            p3 = self.anchalt_regex.sub("", p3)
+        # reemplazamos ancho y alto por un fragment en la URL de la imagen
+        msize = self.anchalt_regex.search(p3)
+        p3 = self.anchalt_regex.sub("", p3)
+        if '?' in img:
+            raise ValueError(u"Encontramos una URL que ya venía con GET args :(")
+        img += '?s=%s-%s' % msize.groups()
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
@@ -253,12 +254,10 @@ class ParseaImagenes(object):
         # es builtin...
         if dsk_url not in self.a_descargar and web_url is not None:
             if bogus:
-                # apunta a bogus!
-                dsk_url = BOGUS_IMAGE
                 self.imgs_bogus += 1
             else:
                 # es útil!
-                newimgs.append((dsk_url, web_url))
+                newimgs.append((dsk_url[:dsk_url.find('?')], web_url[:web_url.find('?')]))
                 self.imgs_ok += 1
 
         # devolvemos lo cambiado para el html
