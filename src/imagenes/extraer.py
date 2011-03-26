@@ -175,9 +175,6 @@ class ParseaImagenes(object):
         # reemplazamos ancho y alto por un fragment en la URL de la imagen
         msize = self.anchalt_regex.search(p3)
         p3 = self.anchalt_regex.sub("", p3)
-        if '?' in img:
-            raise ValueError(u"Encontramos una URL que ya venía con GET args :(")
-        img += '?s=%s-%s' % msize.groups()
 
         if img.startswith("../../../../images/shared/thumb"):
             # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
@@ -257,11 +254,15 @@ class ParseaImagenes(object):
                 self.imgs_bogus += 1
             else:
                 # es útil!
-                newimgs.append((dsk_url[:dsk_url.find('?')], web_url[:web_url.find('?')]))
+                newimgs.append((dsk_url, web_url))
                 self.imgs_ok += 1
 
+        if '?' in dsk_url:
+            raise ValueError(u"Encontramos una URL que ya venía con GET args :(")
         # devolvemos lo cambiado para el html
-        htm_url = '<img%ssrc="%s"%s/>' % (p1, urllib.quote(dsk_url.encode("latin-1")), p3)
+        htm_url = '<img%ssrc="%s?s=%s-%s"%s/>' % (p1,
+            urllib.quote(dsk_url.encode("latin-1")), msize.group(1),
+            msize.group(2), p3)
         return htm_url
 
     def _fixlinks(self, mlink):
