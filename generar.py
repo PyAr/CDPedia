@@ -128,6 +128,8 @@ def genera_run_config():
     f.write('INDEX = "%s"\n' % config.INDEX)
     f.write('DESTACADOS = "cdpedia/%s"\n' % config.DESTACADOS)
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
+    f.write('IMAGES_PER_BLOCK = %d\n' % config.IMAGES_PER_BLOCK)
+    f.write('ARTICLES_PER_BLOCK = %d\n' % config.ARTICLES_PER_BLOCK)
     f.close()
 
 def preparaTemporal():

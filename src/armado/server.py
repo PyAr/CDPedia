@@ -197,8 +197,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     _stt_pag, _stt_img = get_stats()
 
-    _portales = open(os.path.join("src", "armado", "templates",
-                     "portales.tpl")).read()
+    _portales = open(os.path.join(_tpl_mngr.basedir, "portales.tpl")).read()
 
     def do_GET(self):
         """Serve a GET request."""
