@@ -111,6 +111,9 @@ class ContentNotFound(Exception):
 class ArticleNotFound(ContentNotFound):
     """No se encontró el artículo!"""
 
+class Redirection301(Exception):
+    """Es una redireccion http"""
+
 class InternalServerError(Exception):
     """Error interno al buscar contenido!"""
 
@@ -214,6 +217,11 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
                     "max-age=86400, must-revalidate")
             self.end_headers()
             self.wfile.write(data)
+        except Redirection301, e:
+            self.send_response(code=301)
+            self.send_header("Location", e.message)
+            self.end_headers()
+            self.wfile.write(str('redirigiendo'))
         except ArticleNotFound, e:
             self.send_response(code=404)
             self.send_header("Content-type", "text/html")
@@ -452,7 +460,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     @ei.espera_indice
     def al_azar(self, query):
         link, tit = self.index.get_random()
-        return self._get_contenido(link)
+        link = u"wiki" + link[5:]        
+        raise Redirection301(urllib.quote(link.encode('utf-8')))
 
     @ei.espera_indice
     def dosearch(self, query):
