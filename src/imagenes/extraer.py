@@ -258,11 +258,15 @@ class ParseaImagenes(object):
                 self.imgs_ok += 1
 
         if '?' in dsk_url:
-            raise ValueError(u"Encontramos una URL que ya venía con GET args :(")
+            print u"WARNING: Encontramos una URL que ya venía con GET args :("
         # devolvemos lo cambiado para el html
-        htm_url = '<img%ssrc="%s?s=%s-%s"%s/>' % (p1,
-            urllib.quote(dsk_url.encode("latin-1")), msize.group(1),
-            msize.group(2), p3)
+        querystr = ''
+        if msize is None:
+            print u"WARNING: Imagen sin width y/o height:", img
+        else:
+            querystr = '?s=%s-%s' % msize.groups()
+        htm_url = '<img%ssrc="%s%s"%s/>' % (p1,
+            urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
         return htm_url
 
     def _fixlinks(self, mlink):
