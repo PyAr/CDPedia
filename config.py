@@ -59,6 +59,9 @@ ASSETS = ["skins", "misc"]
 EDICION_ESPECIAL = None
 #EDICION_ESPECIAL = "educar"
 
+# Versión de la CDPedia
+VERSION = '0.7beta'
+
 # Primera página que se abrirá en el browser.
 # Para ir a la portada de cdpedia dejar ""
 INDEX = "index.html"

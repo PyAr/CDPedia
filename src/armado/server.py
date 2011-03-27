@@ -23,6 +23,7 @@ from base64 import b64encode
 from mimetypes import guess_type
 from random import choice
 
+import bmp
 import config
 import to3dirs
 import cdpindex
@@ -200,8 +201,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     _stt_pag, _stt_img = get_stats()
 
-    _portales = open(os.path.join("src", "armado", "templates",
-                     "portales.tpl")).read()
+    _portales = open(os.path.join(_tpl_mngr.basedir, "portales.tpl")).read()
 
     def do_GET(self):
         """Serve a GET request."""
@@ -239,7 +239,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
         return orig_link
 
-    def _get_imagen(self, path):
+    def _get_imagen(self, path, query):
         assert path.startswith('images/')
         try:
             normpath = os.path.normpath(path[len('images/'):])
@@ -249,7 +249,14 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             raise InternalServerError(msg)
         if asset_data is None:
             print "WARNING: no pudimos encontrar", repr(path)
-            raise ContentNotFound()
+            try:
+                width, _, height = query[2:].partition('-')
+                width = int(width)
+                height = int(height)
+            except Exception, e:
+                raise ContentNotFound()
+            img = bmp.BogusBitMap(width, height)
+            return "img/bmp", img.data
         type_ = guess_type(path)[0]
         print "Obtenido", path
         print "Tipo:", type_
@@ -319,7 +326,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
         return link, m.groups()
 
-    def _main_page(self, msg=u""):
+    def _main_page(self, msg=u"CDPedia v" + config.VERSION):
         """Devuelve la pag principal con destacado y todo."""
         data_destacado = self._get_destacado()
         if data_destacado is not None:
@@ -333,7 +340,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             pag = self.templates("mainpage_sin_destacado", mensaje=msg.encode("utf8"),
                                  stt_pag=self._stt_pag, stt_img=self._stt_img,
                                  portales=self._portales)
-        return "text/html", self._wrap(pag, msg.encode("utf8"))
+        return "text/html", self._wrap(pag, title="Portada".encode("utf8"))
 
     def _error_page(self, msg):
         """Devuelve la pag pcipal sin un destacado."""
@@ -394,7 +401,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # Las imagenes las buscamos de bloques:
         elif arranque == 'images':
-            return self._get_imagen(path)
+            return self._get_imagen(path, query)
 
         # a todo lo que está afuera de los artículos, en assets, lo tratamos
         # diferente

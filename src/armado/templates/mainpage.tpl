@@ -1,7 +1,6 @@
-<h1 class="firstHeading">CDpedia</h1>
-<h2><font color="#ff0000">$mensaje</font></h2>
+<h1 class="firstHeading">$mensaje</h1>
 
-<h2>¡Bienvenido a la CDPedia!</h2>
+<h2>¡Bienvenido a la <a href="/institucional/cdpedia.html">CDPedia</a>!</h2>
 
 <div id="articulo-destacado">
   <table>
