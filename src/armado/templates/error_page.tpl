@@ -1,2 +1,2 @@
-<h1 class="firstHeading">Hubo un inconveniente:</h1>
-<h2><font color="#ff0000">$mensaje</font></h2>
+<h1 class="firstHeading">Hubo un inconveniente</h1>
+<div style="size: 1.5em; color:#ff0000;">$mensaje</div>

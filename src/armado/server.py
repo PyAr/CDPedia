@@ -346,7 +346,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         """Devuelve la pag pcipal sin un destacado."""
         pag = self.templates("error_page", mensaje=msg.encode("utf8"),
                              stt_pag=self._stt_pag, stt_img=self._stt_img)
-        return "text/html", self._wrap(pag, msg.encode("utf8"))
+        return "text/html", self._wrap(pag, u"Página inexistente".encode("utf8"))
 
     def _esperando(self):
         """Se fija si debemos seguir esperando o entregamos la data."""
