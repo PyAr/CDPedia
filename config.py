@@ -26,7 +26,7 @@ DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 DIR_IMGSLISTAS = DIR_TEMP + "/imglistas"
 
 # Cantidad de imágenes por bloque
-IMAGES_PER_BLOCK = 10
+IMAGES_PER_BLOCK = 200
 
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "temp/cdroot"
