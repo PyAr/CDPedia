@@ -136,16 +136,7 @@ def genera_run_config():
 def preparaTemporal():
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
-        # borramos el cdroot excepto las imágenes de assets!
-        imag_path = path.join(config.DIR_ASSETS, "images")
-        if os.path.exists(imag_path):
-            bkup_path = path.join(dtemp, "asset_imag_backup")
-            os.rename(imag_path, bkup_path)
-            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
-            os.makedirs(config.DIR_ASSETS)
-            os.rename(bkup_path, imag_path)
-        else:
-            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+        shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
     else:
         os.makedirs(dtemp)
 
@@ -168,18 +159,18 @@ class Estadisticas(object):
             cPickle.dump(obj, fh)
 
 
-def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
+def main(src_info, evitar_iso, verbose, desconectado, evitar_articles):
 
     articulos = path.join(src_info, "articles")
     estad = Estadisticas()
 
-    if not preprocesado:
-        mensaje("Comenzando!")
-        preparaTemporal()
+    mensaje("Comenzando!")
+    preparaTemporal()
 
-        mensaje("Copiando los assets")
-        copiarAssets(src_info, config.DIR_ASSETS)
+    mensaje("Copiando los assets")
+    copiarAssets(src_info, config.DIR_ASSETS)
 
+    if not evitar_articles:
         mensaje("Preprocesando")
         if not path.exists(articulos):
             print "\nERROR: No se encuentra el directorio %r" % articulos
@@ -200,16 +191,11 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
         print '         %5d a descargar' % adesc
         estad.imgs_incl = taken
         estad.imgs_bogus = bogus
-    else:
-        estad.pags_total = 0
-        estad.imgs_incl = 0
-        estad.imgs_bogus = 0
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
         download.traer(verbose)
 
-    # de acá para adelante es posterior al pre-procesado
     mensaje("Reduciendo las imágenes descargadas")
     notfound = reducir.run(verbose)
 
@@ -217,20 +203,21 @@ def main(src_info, evitar_iso, verbose, desconectado, preprocesado):
     # agrupamos las imagenes en bloques
     ImageManager.generar_bloques(verbose)
 
-    # esto no es lo más exacto, pero good enough
-    estad.imgs_incl -= notfound
-    estad.imgs_bogus += notfound
+    if not evitar_articles:
+        # esto no es lo más exacto, pero good enough
+        estad.imgs_incl -= notfound
+        estad.imgs_bogus += notfound
 
-    mensaje("Generando el índice")
-    result = cdpindex.generar_de_html(articulos, verbose)
-    print '  total: %d archivos' % result
-    estad.pags_incl = result
+        mensaje("Generando el índice")
+        result = cdpindex.generar_de_html(articulos, verbose)
+        print '  total: %d archivos' % result
+        estad.pags_incl = result
 
-    mensaje("Generando los bloques")
-    result = ArticleManager.generar_bloques(verbose)
-    print '  total: %d bloques con %d archivos' % result
+        mensaje("Generando los bloques")
+        result = ArticleManager.generar_bloques(verbose)
+        print '  total: %d bloques con %d archivos' % result
 
-    estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
+        estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
 
     if not evitar_iso:
         mensaje("Copiando las fuentes")
@@ -268,8 +255,8 @@ if __name__ == "__main__":
                   dest="verbose", help="muestra info de lo que va haciendo")
     parser.add_option("-d", "--desconectado", action="store_true",
                   dest="desconectado", help="trabaja desconectado de la red")
-    parser.add_option("-p", "--preprocesado", action="store_true",
-                  dest="preprocesado",
+    parser.add_option("-a", "--no-articles", action="store_true",
+                  dest="noarticles",
                   help="arranca el laburo con lo preprocesado de antes")
     parser.add_option("-g", "--guppy", action="store_true",
                   dest="guppy", help="arranca con guppy/heapy prendido")
@@ -285,7 +272,7 @@ if __name__ == "__main__":
     evitar_iso = bool(options.create_iso)
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
-    preprocesado = bool(options.preprocesado)
+    evitar_articles = bool(options.noarticles)
 
     if options.guppy:
         try:
@@ -295,4 +282,4 @@ if __name__ == "__main__":
             exit()
         guppy.heapy.RM.on()
 
-    main(args[0], options.create_iso, verbose, desconectado, preprocesado)
+    main(args[0], options.create_iso, verbose, desconectado, evitar_articles)
