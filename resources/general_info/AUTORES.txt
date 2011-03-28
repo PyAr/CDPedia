@@ -2,12 +2,20 @@ Este proyecto es una colaboración de distintas personas, aquí aquellas que
 más participaron:
 
  - Agustin Henze
+ - Antonio Lenton
  - Alejandro David Weil
  - Alejandro J. Cura
  - Diego Mascialino
+ - Ezequiel Diaz Marquez
  - Facundo Batista
+ - Felipe Lerena
+ - Gonzalo Delgado
+ - Gonzalo García
  - Guillermo Gonzalez
+ - Hugo Ruscitti
  - Marcos Dione
+ - Martín Gaitán
+ - Maximiliano David Bustos
  - Nicolás Miyasato
  - Pablo Zilliani
  - Piukeyen Tappa
