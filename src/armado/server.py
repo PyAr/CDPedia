@@ -113,7 +113,7 @@ class ArticleNotFound(ContentNotFound):
 
 class Redirection(Exception):
     """Es una redireccion http"""
-    
+
 
 class InternalServerError(Exception):
     """Error interno al buscar contenido!"""
@@ -157,17 +157,6 @@ def getTitleFromData(data):
             return match.group(1)
     return ""
 
-def get_stats():
-    d = cPickle.load(open(os.path.join(config.DIR_ASSETS, "estad.pkl")))
-    pag = "%5d (%2d%%)" % (d['pags_incl'], 100 * d['pags_incl'] / d['pags_total'])
-    i_tot = d['imgs_incl'] + d['imgs_bogus']
-    if i_tot == 0:
-        img = 0
-    else:
-        img = "%5d (%2d%%)" % (d['imgs_incl'], 100 * d['imgs_incl'] / i_tot)
-    return pag, img
-
-
 
 class EsperaIndice(object):
     """Lista para guardar la espera al índice."""
@@ -198,8 +187,6 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     _art_mngr = compresor.ArticleManager()
 
     _img_mngr = compresor.ImageManager()
-
-    _stt_pag, _stt_img = get_stats()
 
     _portales = open(os.path.join(_tpl_mngr.basedir, "portales.tpl")).read()
 
@@ -290,9 +277,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
                         u'<a class="external" href="%s">página original y '\
                         u'actualizada</a> de éste artículo.'  % orig_link
 
-        footer = self.templates("footer", stt_pag=self._stt_pag,
-                                stt_img=self._stt_img,
-                                orig_link=orig_link.encode("utf8"))
+        footer = self.templates("footer", orig_link=orig_link.encode("utf8"))
         return header + contenido + footer
 
     def _get_destacado(self):
@@ -334,18 +319,15 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             pag = self.templates("mainpage", mensaje=msg.encode("utf8"),
                                  link=link.encode('utf-8'), titulo=titulo,
                                  primeros_parrafos=primeros_parrafos,
-                                 stt_pag=self._stt_pag, stt_img=self._stt_img,
                                  portales=self._portales)
         else:
             pag = self.templates("mainpage_sin_destacado", mensaje=msg.encode("utf8"),
-                                 stt_pag=self._stt_pag, stt_img=self._stt_img,
                                  portales=self._portales)
         return "text/html", self._wrap(pag, title="Portada".encode("utf8"))
 
     def _error_page(self, msg):
         """Devuelve la pag pcipal sin un destacado."""
-        pag = self.templates("error_page", mensaje=msg.encode("utf8"),
-                             stt_pag=self._stt_pag, stt_img=self._stt_img)
+        pag = self.templates("error_page", mensaje=msg.encode("utf8"))
         return "text/html", self._wrap(pag, u"Página inexistente".encode("utf8"))
 
     def _esperando(self):
@@ -461,7 +443,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     @ei.espera_indice
     def al_azar(self, query):
         link, tit = self.index.get_random()
-        link = u"wiki" + link[5:]        
+        link = u"wiki" + link[5:]
         raise Redirection(302, urllib.quote(link.encode('utf-8')))
 
     @ei.espera_indice

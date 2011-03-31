@@ -8,7 +8,6 @@ from os import path
 import shutil
 import time
 import optparse
-import cPickle
 
 #Para poder hacer generar.py > log.txt
 if sys.stdout.encoding is None:
@@ -163,28 +162,9 @@ def preparaTemporal(procesar_articles):
         os.makedirs(dtemp)
 
 
-class Estadisticas(object):
-    '''Junta los nros de todo lo hecho.'''
-    def __init__(self):
-        self._attrs = "pags_total", "pags_incl", "imgs_incl"
-        for attr in self._attrs:
-            setattr(self, attr, None)
-
-    def dump(self, nomarch):
-        '''Baja la info a un pickle'''
-        for attr in self._attrs:
-            if attr is None:
-                raise ValueError("{0} en None al hacer el dump!".format(attr))
-
-        obj = dict((x, getattr(self, x)) for x in self._attrs)
-        with open(nomarch, "w") as fh:
-            cPickle.dump(obj, fh)
-
-
 def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
 
     articulos = path.join(src_info, "articles")
-    estad = Estadisticas()
 
     mensaje("Comenzando!")
     preparaTemporal(procesar_articles)
@@ -201,7 +181,6 @@ def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
         cantnew, cantold = preprocesar.run(articulos, verbose)
         print '  total %d páginas procesadas' % cantnew
         print '      y %d que ya estaban de antes' % cantold
-        estad.pags_total = cantnew + cantold
 
         mensaje("Calculando los que quedan y los que no")
         preprocesar.calcula_top_htmls()
@@ -210,7 +189,6 @@ def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
         taken, adesc = extraer.run(verbose)
         print '  total: %5d imágenes extraídas' % taken
         print '         %5d a descargar' % adesc
-        estad.imgs_incl = taken
     else:
         mensaje("Evitamos procesar artículos y generar el log de imágenes")
 
@@ -229,19 +207,13 @@ def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
     ImageManager.generar_bloques(verbose)
 
     if procesar_articles:
-        # esto no es lo más exacto, pero good enough
-        estad.imgs_incl -= notfound
-
         mensaje("Generando el índice")
         result = cdpindex.generar_de_html(articulos, verbose)
         print '  total: %d archivos' % result
-        estad.pags_incl = result
 
         mensaje("Generando los bloques")
         result = ArticleManager.generar_bloques(verbose)
         print '  total: %d bloques con %d archivos' % result
-
-        estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
     else:
         mensaje("Evitamos generar el índice y los bloques")
 
