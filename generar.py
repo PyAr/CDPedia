@@ -19,7 +19,7 @@ import config
 from src.preproceso import preprocesar
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
-from src.imagenes import extraer, download, reducir
+from src.imagenes import extraer, download, reducir, calcular
 
 def mensaje(texto):
     fh = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -114,8 +114,8 @@ def dir_a_cero(path):
 
 def armarIso(dest):
     """Arma el .iso de la CDPedia."""
-    os.system("mkisofs -hide-rr-moved -quiet -V CDPedia -volset CDPedia -o %s "
-              "-R -J %s" % (dest, config.DIR_CDBASE))
+    os.system("mkisofs -hide-rr-moved -quiet -V CDPedia -volset "
+              "CDPedia -o %s -R -J %s" % (dest, config.DIR_CDBASE))
 
 
 def genera_run_config():
@@ -133,10 +133,32 @@ def genera_run_config():
     f.write('VERSION = %s\n' % repr(config.VERSION))
     f.close()
 
-def preparaTemporal():
+def preparaTemporal(procesar_articles):
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
-        shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+        if not procesar_articles:
+            # preparamos paths y vemos que todo esté ok
+            src_indices = path.join(config.DIR_CDBASE, "cdpedia", "indice")
+            src_bloques = config.DIR_BLOQUES
+            if not os.path.exists(src_indices):
+                print "ERROR: quiere evitar articulos pero no hay indices en", src_indices
+                exit()
+            if not os.path.exists(src_bloques):
+                print "ERROR: quiere evitar articulos pero no hay bloques en", src_bloques
+                exit()
+            tmp_indices = path.join(dtemp, "indices_backup")
+            tmp_bloques = path.join(dtemp, "bloques_backup")
+
+            # movemos a backup, borramos todo, y restablecemos
+            os.rename(src_indices, tmp_indices)
+            os.rename(src_bloques, tmp_bloques)
+            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+            os.makedirs(path.join(config.DIR_CDBASE, "cdpedia"))
+            os.rename(tmp_indices, src_indices)
+            os.rename(tmp_bloques, src_bloques)
+
+        else:
+            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
     else:
         os.makedirs(dtemp)
 
@@ -144,7 +166,7 @@ def preparaTemporal():
 class Estadisticas(object):
     '''Junta los nros de todo lo hecho.'''
     def __init__(self):
-        self._attrs = "pags_total", "pags_incl", "imgs_incl", "imgs_bogus"
+        self._attrs = "pags_total", "pags_incl", "imgs_incl"
         for attr in self._attrs:
             setattr(self, attr, None)
 
@@ -159,18 +181,18 @@ class Estadisticas(object):
             cPickle.dump(obj, fh)
 
 
-def main(src_info, evitar_iso, verbose, desconectado, evitar_articles):
+def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
 
     articulos = path.join(src_info, "articles")
     estad = Estadisticas()
 
     mensaje("Comenzando!")
-    preparaTemporal()
+    preparaTemporal(procesar_articles)
 
     mensaje("Copiando los assets")
     copiarAssets(src_info, config.DIR_ASSETS)
 
-    if not evitar_articles:
+    if procesar_articles:
         mensaje("Preprocesando")
         if not path.exists(articulos):
             print "\nERROR: No se encuentra el directorio %r" % articulos
@@ -185,12 +207,15 @@ def main(src_info, evitar_iso, verbose, desconectado, evitar_articles):
         preprocesar.calcula_top_htmls()
 
         mensaje("Generando el log de imágenes")
-        taken, bogus, adesc = extraer.run(verbose)
+        taken, adesc = extraer.run(verbose)
         print '  total: %5d imágenes extraídas' % taken
-        print '         %5d marcadas como bogus' % bogus
         print '         %5d a descargar' % adesc
         estad.imgs_incl = taken
-        estad.imgs_bogus = bogus
+    else:
+        mensaje("Evitamos procesar artículos y generar el log de imágenes")
+
+    mensaje("Recalculando porcentajes de reducción")
+    calcular.run(verbose)
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
@@ -203,10 +228,9 @@ def main(src_info, evitar_iso, verbose, desconectado, evitar_articles):
     # agrupamos las imagenes en bloques
     ImageManager.generar_bloques(verbose)
 
-    if not evitar_articles:
+    if procesar_articles:
         # esto no es lo más exacto, pero good enough
         estad.imgs_incl -= notfound
-        estad.imgs_bogus += notfound
 
         mensaje("Generando el índice")
         result = cdpindex.generar_de_html(articulos, verbose)
@@ -218,6 +242,8 @@ def main(src_info, evitar_iso, verbose, desconectado, evitar_articles):
         print '  total: %d bloques con %d archivos' % result
 
         estad.dump(path.join(config.DIR_ASSETS, "estad.pkl"))
+    else:
+        mensaje("Evitamos generar el índice y los bloques")
 
     if not evitar_iso:
         mensaje("Copiando las fuentes")
@@ -257,7 +283,7 @@ if __name__ == "__main__":
                   dest="desconectado", help="trabaja desconectado de la red")
     parser.add_option("-a", "--no-articles", action="store_true",
                   dest="noarticles",
-                  help="arranca el laburo con lo preprocesado de antes")
+                  help="no reprocesa todo lo relacionado con articulos")
     parser.add_option("-g", "--guppy", action="store_true",
                   dest="guppy", help="arranca con guppy/heapy prendido")
 
@@ -272,7 +298,7 @@ if __name__ == "__main__":
     evitar_iso = bool(options.create_iso)
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
-    evitar_articles = bool(options.noarticles)
+    procesar_articles = not bool(options.noarticles)
 
     if options.guppy:
         try:
@@ -282,4 +308,4 @@ if __name__ == "__main__":
             exit()
         guppy.heapy.RM.on()
 
-    main(args[0], options.create_iso, verbose, desconectado, evitar_articles)
+    main(args[0], options.create_iso, verbose, desconectado, procesar_articles)

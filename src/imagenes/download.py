@@ -58,12 +58,12 @@ def traer(verbose):
     else:
         imgs_problemas = set()
 
-    for linea in codecs.open(config.LOG_IMAGENES, "r", "utf8"):
+    for linea in codecs.open(config.LOG_REDUCCION, "r", "utf8"):
         linea = linea.strip()
         if not linea:
             continue
 
-        arch, url = linea.split(config.SEPARADOR_COLUMNAS)
+        _, arch, url = linea.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
 
         if url not in imgs_problemas and not os.path.exists(fullpath):
