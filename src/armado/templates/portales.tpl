@@ -1,4 +1,4 @@
-  <td style="width: 400px;">
+  <td style="width: 400px; vertical-align: top;">
   <table style="width: 100%; padding: 2px; vertical-align: top; background: none repeat scroll 0% 0% rgb(245, 250, 255);">
     <tr>
       <th>
