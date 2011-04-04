@@ -244,9 +244,7 @@ class ParseaImagenes(object):
             print u"WARNING: Encontramos una URL que ya venía con GET args :("
         # devolvemos lo cambiado para el html
         querystr = ''
-        if msize is None:
-            print u"WARNING: Imagen sin width y/o height:", img
-        else:
+        if msize is not None:
             querystr = '?s=%s-%s' % msize.groups()
         htm_url = '<img%ssrc="%s%s"%s/>' % (p1,
             urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
@@ -282,8 +280,7 @@ class ParseaImagenes(object):
 
 
 def run(verbose):
-    # pedimos LIMITE_PAGINAS porque a todas hay que sacarle las imagenes
-    preprocesados = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
+    preprocesados = preprocesar.get_top_htmls()
     pi = ParseaImagenes()
 
     for dir3, fname, _ in preprocesados:

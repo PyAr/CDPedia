@@ -19,29 +19,20 @@ Para probar el funcionamiento:
 """
 
 import codecs
+import operator
 
 import config
 from src.preproceso import preprocesar
 
 
 class Escalador(object):
-    '''Indica en que escala dejar la imágen.'''
-    def __init__(self):
-        # validamos porcentajes de la config
-        porc_escala = [x[1] for x in config.ESCALA_IMAGS]
-        if max(porc_escala) != 100 or min(porc_escala) != 0:
-            raise ValueError(u"Error en los extremos de config.ESCALA_IMAGS")
-        if sorted(porc_escala, reverse=True) != porc_escala:
-            raise ValueError(u"Los % de escala no están ordenados")
-        if sum(x[0] for x in config.ESCALA_IMAGS) != 100:
-            raise ValueError(
-                        u"Los % de cant de config.ESCALA_IMAGS no suman 100")
-
+    """Indica en que escala dejar la imagen."""
+    def __init__(self, total_items):
         # preparamos nuestro generador de límites
         vals = []
         base = 0
         for (porc_cant, escala) in config.ESCALA_IMAGS:
-            cant = config.LIMITE_PAGINAS * porc_cant / 100
+            cant = total_items * porc_cant / 100
             vals.append((cant + base, escala))
             base += cant
 
@@ -56,9 +47,10 @@ class Escalador(object):
 
 
 def run(verbose):
-    preprocesados = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
-    escalador = Escalador()
+    # tomar los preprocesador ordenados de más importante a menos
+    preprocesados = preprocesar.get_top_htmls()
 
+    # levantamos la relación artículos -> imágenes
     pag_imagenes = {}
     with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
         for linea in fh:
@@ -68,31 +60,40 @@ def run(verbose):
             dskurls = partes[2:]
             pag_imagenes[dir3, fname] = dskurls
 
-    escala_imag = {}
-    for i, (dir3, fname, _) in enumerate(preprocesados):
-        escala = escalador(i)
-        if escala == 0:
-            continue
-
+    # hacemos una lista de las páginas, anotando en que posición la
+    # encontramos por primera vez, para luego ordenar por eso (de esta manera,
+    # si una misma imagen está en un artículo importante y en otro que no, la
+    # imagen va a quedar al 100%)
+    imagenes = {}
+    for posic_archivo, (dir3, fname, _) in enumerate(preprocesados):
         # sacamos qué imágenes le corresponde a este archivo
         dskurls = pag_imagenes[(dir3, fname)]
 
-        # para cada imágen, guardamos el máximo
+        # para cada imagen (si no estaba de antes), guardamos la posición
+        # del archivo
         for url in dskurls:
-            escala_imag[url] = max(escala_imag.get(url, 0), escala)
-    del pag_imagenes
+            if url not in imagenes:
+                imagenes[url] = posic_archivo
 
-    # ya tenemos la escala para todas las imagenes, ahora a relacionarlas
-    # con la weburl, y a escribir el log de reduccion
+    total_imagenes = len(imagenes)
+    imagenes = sorted(imagenes.items(), key=operator.itemgetter(1))
 
+    # levantamos la lista de imágenes para a relacionarlas con la weburl
     dskweb = {}
     with codecs.open(config.LOG_IMAGENES, "r", "utf-8") as fh:
         for linea in fh:
             dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
             dskweb[dsk] = web
 
+    escalador = Escalador(total_imagenes)
     log_reduccion = codecs.open(config.LOG_REDUCCION, "w", "utf8")
-    for dskurl, escala in escala_imag.items():
+    for i, (dskurl, _) in enumerate(imagenes):
+        escala = escalador(i)
+        if escala == 0:
+            # ya estamos, no más imágenes
+            log_reduccion.close()
+            return
+
         weburl = dskweb[dskurl]
         info = (str(int(escala)), dskurl, weburl)
         log_reduccion.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")

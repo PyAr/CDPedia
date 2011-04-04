@@ -93,10 +93,10 @@ LIMITE_PAGINAS = 1000000
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 ####  Para el DVD: (size max: DVD+R, 12cm:  4,700,372,992 bytes)
 ESCALA_IMAGS = [
-    ( 7, 100),  # 16       18       20
+    ( 8, 100),  # 16       18       20
     ( 8,  75),  # 17       20       25
-    (15,  50),  # 32       37       45
-    (70,   0),  #  = 4.1    = 4.3    = 4.5
+    (16,  50),  # 32       37       45
+    (68,   0),  #  = 4.1    = 4.3    = 4.5
 ]
 ##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
 #ESCALA_IMAGS = [
@@ -105,6 +105,17 @@ ESCALA_IMAGS = [
 #    ( 4,  50),
 #    (90,   0),
 #]
+
+
+# validamos los porcentajes de lo que acabamos de escribir arriba
+_porc_escala = [x[1] for x in ESCALA_IMAGS]
+if max(_porc_escala) != 100 or min(_porc_escala) != 0:
+    raise ValueError(u"Error en los extremos de ESCALA_IMAGS")
+if sorted(_porc_escala, reverse=True) != _porc_escala:
+    raise ValueError(u"Los % de escala no están ordenados")
+if sum(x[0] for x in ESCALA_IMAGS) != 100:
+    raise ValueError(u"Los % de cant de ESCALA_IMAGS no suman 100")
+
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
 # mayoría de las páginas no tienen namespace, esas entran todas)

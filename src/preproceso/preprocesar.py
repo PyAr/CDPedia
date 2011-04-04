@@ -255,7 +255,7 @@ def calcula_top_htmls():
     print u"  puntaje del último artículo que entró:", puntaje
 
 
-def get_top_htmls(limite):
+def get_top_htmls():
     '''Devuelve los htmls con más puntaje.'''
     data = []
     for linea in codecs.open(config.PAG_ELEGIDAS, "r", "utf8"):

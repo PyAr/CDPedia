@@ -173,7 +173,7 @@ def generar_de_html(dirbase, verbose):
         palabras, titulo = filename2palabras(orig)
         redirs.setdefault(dest, []).append((palabras, titulo))
 
-    filenames = preprocesar.get_top_htmls(config.LIMITE_PAGINAS)
+    filenames = preprocesar.get_top_htmls()
 
     def gen():
         for dir3, arch, puntaje in filenames:

@@ -24,10 +24,10 @@ import struct
 import cPickle as pickle
 from os import path
 from bz2 import BZ2File as CompressedFile
-import random
 import shutil
 
 import config
+
 
 class BloqueManager(object):
     """Clase base para los manejadores de bloques de archivos.
@@ -223,7 +223,7 @@ class ArticleManager(BloqueManager):
 
         # pedir todos los articulos, y ordenarlos en un dict por
         # su numero de bloque, segun el hash
-        fileNames = list(preprocesar.get_top_htmls(config.LIMITE_PAGINAS))
+        fileNames = preprocesar.get_top_htmls()
         if verbose:
             print "Procesando", len(fileNames), "articulos"
 
