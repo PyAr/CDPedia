@@ -91,12 +91,19 @@ LIMITE_PAGINAS = 1000000
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
-####  Para el DVD: (size max: DVD+R, 12cm:  4,700,372,992 bytes)
+#####  Para el DVD-9: (size max: DVD-R DL, 12cm:  8,543,666,176 bytes)
+#ESCALA_IMAGS = [
+#    (10, 100),  # 16       18       20
+#    (10,  75),  # 17       20       25
+#    (20,  50),  # 32       37       45
+#    (60,   0),  #  = 4.1    = 4.3    = 4.5
+#]
+####  Para el DVD-5: (size: DVD-R SL, 12cm:  4,700,319,808 bytes)
 ESCALA_IMAGS = [
-    ( 8, 100),  # 16       18       20
-    ( 8,  75),  # 17       20       25
-    (16,  50),  # 32       37       45
-    (68,   0),  #  = 4.1    = 4.3    = 4.5
+    (10, 100),  # 16       18       20
+    (10,  75),  # 17       20       25
+    (20,  50),  # 32       37       45
+    (60,   0),  #  = 4.1    = 4.3    = 4.5
 ]
 ##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
 #ESCALA_IMAGS = [
