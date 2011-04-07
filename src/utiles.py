@@ -6,6 +6,8 @@ import re
 import time
 import threading
 
+from hashlib import md5
+
 import config
 
 if hasattr(config, 'NAMESPACES'):
@@ -49,4 +51,9 @@ class WatchDog(threading.Thread):
             self._tick = True
             time.sleep(self.sleep)
         self.callback()
+
+
+def coherent_hash(txt):
+    """Devuelve el mismo número en distintas versiones de Py y plataformas."""
+    return int(md5(txt).hexdigest()[-6:], 16)
 

@@ -8,6 +8,7 @@ import glob
 from bz2 import BZ2File as CompressedFile
 
 from lru_cache import lru_cache
+from src import utiles
 
 class Index(object):
     '''Handles the index.'''
@@ -48,7 +49,7 @@ class Index(object):
         # group the id per file
         cuales = {}
         for i in allids:
-            cual = hash(i) % self.idfiles_count
+            cual = utiles.coherent_hash(i) % self.idfiles_count
             cuales.setdefault(cual, []).append(i)
 
         # get the info for each file
@@ -199,7 +200,7 @@ class Index(object):
             N = 1
         all_idshelves = [{} for i in range(N)]
         for k,v in ids_shelf.iteritems():
-            cual = hash(k) % N
+            cual = utiles.coherent_hash(k) % N
             all_idshelves[cual][k] = v
 
         # save dict where corresponds

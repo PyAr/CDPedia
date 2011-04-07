@@ -20,7 +20,7 @@ def main(manager, nom_item, verbose):
 
 if __name__ == "__main__":
     msg = u"""
-  buscarEnBloque.py [-v] [-i] nombre_item 
+  buscarEnBloque.py [-v] [-i] nombre_item
 """
 
     parser = optparse.OptionParser()

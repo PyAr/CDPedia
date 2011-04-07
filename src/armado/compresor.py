@@ -28,6 +28,8 @@ import shutil
 
 import config
 
+from src import utiles
+
 
 class BloqueManager(object):
     """Clase base para los manejadores de bloques de archivos.
@@ -42,9 +44,8 @@ class BloqueManager(object):
     items_per_block = 0 # Cantidad de items por bloque
 
     def __init__(self, verbose=False):
-        self.num_bloques = len(
-            [n for n in os.listdir(self.archive_dir)
-                if n.endswith(self.archive_extension)])
+        fname = os.path.join(self.archive_dir, 'numbloques.txt')
+        self.num_bloques = int(open(fname).read().strip())
         self.cache = {}
         self.verbose = verbose
 
@@ -55,18 +56,25 @@ class BloqueManager(object):
             shutil.rmtree(self.archive_dir)
         os.makedirs(self.archive_dir)
 
+    @classmethod
+    def guardarNumBloques(self, cant):
+        """Guarda a disco la cantidad de bloques."""
+        fname = os.path.join(self.archive_dir, 'numbloques.txt')
+        f = open(fname, 'w')
+        f.write(str(cant) + '\n')
+        f.close()
 
     def getBloque(self, nombre):
         try:
             comp = self.cache[nombre]
         except KeyError:
             comp = self.archive_class(os.path.join(self.archive_dir, nombre),
-                self.verbose, self)
+                                      self.verbose, self)
             self.cache[nombre] = comp
         return comp
 
     def get_item(self, fileName):
-        bloqNum = hash(fileName) % self.num_bloques
+        bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % self.num_bloques
         bloqName = "%08x%s" % (bloqNum, self.archive_extension)
         if self.verbose:
             print "bloque:", bloqName
@@ -105,10 +113,15 @@ class BloqueImagenes(Bloque):
     header, como las imágenes en sí, van sin comprimir.
     """
     def __init__(self, fname, verbose=False, manager=None):
-        self.fh = open(fname, "rb")
-        self.header_size = struct.unpack("<l", self.fh.read(4))[0]
-        header_bytes = self.fh.read(self.header_size)
-        self.header = pickle.loads(bz2.decompress(header_bytes))
+        if os.path.exists(fname):
+            self.fh = open(fname, "rb")
+            self.header_size = struct.unpack("<l", self.fh.read(4))[0]
+            header_bytes = self.fh.read(self.header_size)
+            self.header = pickle.loads(bz2.decompress(header_bytes))
+        else:
+            # no hace falta definir self.fh ni self.header_size porque no va
+            # a llegar a usarlo porque nunca va a tener el item en el header
+            self.header = {}
         self.verbose = verbose
         self.manager = manager
 
@@ -158,10 +171,15 @@ class Comprimido(Bloque):
     """
 
     def __init__(self, fname, verbose=False, manager=None):
-        self.fh = CompressedFile(fname, "rb")
-        self.header_size = struct.unpack("<l", self.fh.read(4))[0]
-        header_bytes = self.fh.read(self.header_size)
-        self.header = pickle.loads(header_bytes)
+        if os.path.exists(fname):
+            self.fh = CompressedFile(fname, "rb")
+            self.header_size = struct.unpack("<l", self.fh.read(4))[0]
+            header_bytes = self.fh.read(self.header_size)
+            self.header = pickle.loads(header_bytes)
+        else:
+            # no hace falta definir self.fh ni self.header_size porque no va
+            # a llegar a usarlo porque nunca va a tener el item en el header
+            self.header = {}
         self.verbose = verbose
         self.manager = manager
 
@@ -228,9 +246,10 @@ class ArticleManager(BloqueManager):
             print "Procesando", len(fileNames), "articulos"
 
         numBloques = len(fileNames) // self.items_per_block + 1
+        self.guardarNumBloques(numBloques)
         bloques = {}
         for dir3, fileName, _ in fileNames:
-            bloqNum = hash(fileName) % numBloques
+            bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, fileName))
             if verbose:
                 print "  archs:", bloqNum, repr(dir3), repr(fileName)
@@ -240,7 +259,7 @@ class ArticleManager(BloqueManager):
         redirects = {}
         for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
             orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
-            bloqNum = hash(orig) % numBloques
+            bloqNum = utiles.coherent_hash(orig.encode('utf8')) % numBloques
             redirects.setdefault(bloqNum, []).append((orig, dest))
             if verbose:
                 print "  redirs:", bloqNum, repr(orig), repr(dest)
@@ -249,7 +268,7 @@ class ArticleManager(BloqueManager):
         tot = 0
         for bloqNum, fileNames in bloques.items():
             tot += len(fileNames)
-            redirs_thisblock = redirects[bloqNum]
+            redirs_thisblock = redirects.get(bloqNum, [])
             Comprimido.crear(redirs_thisblock, bloqNum, fileNames, verbose)
 
         return (len(bloques), tot)
@@ -276,9 +295,10 @@ class ImageManager(BloqueManager):
             print "Procesando", len(fileNames), "imágenes"
 
         numBloques = len(fileNames) // self.items_per_block + 1
+        self.guardarNumBloques(numBloques)
         bloques = {}
         for fileName in fileNames:
-            bloqNum = hash(fileName) % numBloques
+            bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append(fileName)
             if verbose:
                 print "  archs:", bloqNum, repr(fileName)
