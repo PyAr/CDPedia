@@ -193,6 +193,25 @@ class QuitaEditarSpan(Procesador):
         # no damos puntaje ni nada
         return (0, [])
 
+class QuitaLinksEditar(Procesador):
+    """Quita los links que llevan a editar un artículo"""
+    def __init__(self, wikisitio):
+        super(QuitaLinksEditar, self).__init__(wikisitio)
+        self.nombre = "QuitaLinksEditar"
+        self.editar_links = compile('<a href="[^\"]*?action=edit.*?</a>')
+
+    def __call__(self, wikiarchivo):
+        try:
+            newhtml = self.editar_links.sub("", wikiarchivo.html)
+        except Exception:
+            print "Path del html", wikiarchivo.url
+            raise
+
+        # reemplazamops el html original
+        wikiarchivo.html = newhtml
+
+        # no damos puntaje ni nada
+        return (0, [])
 
 class Peishranc(Procesador):
     """Calcula el peishranc.
@@ -331,6 +350,7 @@ TODOS = [
     ExtraerContenido,
     FixLinksDescartados,
     QuitaEditarSpan,
+    QuitaLinksEditar,
     QuitaCategoria,
     QuitaLinkRojo,
     Peishranc,
