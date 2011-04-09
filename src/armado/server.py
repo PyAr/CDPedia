@@ -17,6 +17,7 @@ import threading
 import time
 import urllib   # .quote, .unquote
 import urllib2  # .urlparse
+import posixpath
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from base64 import b64encode
@@ -229,7 +230,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     def _get_imagen(self, path, query):
         assert path.startswith('images/')
         try:
-            normpath = os.path.normpath(path[len('images/'):])
+            normpath = posixpath.normpath(path[len('images/'):])
             asset_data = self._img_mngr.get_item(normpath)
         except Exception, e:
             msg = u"Error interno al buscar contenido: %s" % e
@@ -245,8 +246,6 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             img = bmp.BogusBitMap(width, height)
             return "img/bmp", img.data
         type_ = guess_type(path)[0]
-        print "Obtenido", path
-        print "Tipo:", type_
         return type_, asset_data
 
     def _get_contenido(self, path):
