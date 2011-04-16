@@ -7,8 +7,10 @@ from __future__ import with_statement
 
 import cPickle
 import cgi
+import itertools
 import operator
 import os
+import posixpath
 import re
 import socket
 import string
@@ -17,7 +19,6 @@ import threading
 import time
 import urllib   # .quote, .unquote
 import urllib2  # .urlparse
-import posixpath
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from base64 import b64encode
@@ -478,18 +479,14 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         res_completa = ""
         res_detallada = ""
 
-        if not buscador.done_completa or not buscador.done_detallada:
-            status = "NOTDONE"
-        else:
+        if buscador.done_completa and buscador.done_detallada:
             status = "DONE"
-        if buscador.done_completa and buscador.results_completa:
-            r = self._formatear_resultados(buscador.results_completa,
-                                           buscador.buscando)
-            res_completa = b64encode(r)
-        if buscador.done_detallada and buscador.results_detallada:
-            r = self._formatear_resultados(buscador.results_detallada,
-                                           buscador.buscando)
-            res_detallada = b64encode(r)
+        else:
+            status = "NOTDONE"
+        if buscador.done_completa:
+            res_completa = b64encode(buscador.results_completa)
+        if buscador.done_detallada:
+            res_detallada = b64encode(buscador.results_detallada)
 
         result = '{"status":"%s","res_detallada":"%s","res_completa":"%s"}' % (
                                         status, res_detallada, res_completa)
@@ -528,10 +525,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             return self._get_reloading_page(palabras)
 
         # terminó la búsqueda completa
-        candidatos = buscador.results_completa
-        if candidatos:
-            results_completa = self._formatear_resultados(candidatos,
-                                                          buscador.buscando)
+        if buscador.done_completa:
+            results_completa = buscador.results_completa
         else:
             results_completa = ""
 
@@ -540,10 +535,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             return self._get_reloading_page(palabras, results_completa)
 
         # terminó la búsqueda detallada
-        candidatos = buscador.results_detallada
-        if candidatos:
-            results_detallada = self._formatear_resultados(candidatos,
-                                                           buscador.buscando)
+        if buscador.results_detallada:
+            results_detallada = buscador.results_detallada
         else:
             results_detallada = BUSQ_NO_RESULTS.encode("utf8")
 
@@ -552,7 +545,96 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
                              buscando=palabras)
         return "text/html", self._wrap(pag, "Buscando")
 
-    def _formatear_resultados(self, candidatos, buscando):
+    def templates(self, nombre_tpl, **kwrds):
+        '''Devuelve el texto del template, con la info reemplazada.'''
+        t = self._tpl_mngr.get_template(nombre_tpl)
+        r = t.substitute(**kwrds)
+        return r
+
+
+class Buscador(object):
+    def __init__(self):
+        self.results_completa = ""
+        self.results_detallada = ""
+        self.done_completa = False
+        self.done_detallada = False
+        self.busqueda = 0
+        self._tardando = 0
+        self.buscando = None
+
+    @property
+    def tardando(self):
+        self._tardando += 1
+        return self._tardando
+
+    def buscar(self, indice, palabras):
+        """Busca en otro thread."""
+        self.done_completa = False
+        self.done_detallada = False
+        self.results_completa = ""
+        self.results_detallada = ""
+        self.busqueda += 1
+        self._tardando = 0
+        self.buscando = palabras
+
+        def _inner(nrobusq):
+            """Función real que busca.
+
+            Va tomando el resultado en chunks, y formatea la página con esa
+            actualización lo menos posible, liberando el "done" de cada una
+            sólo cuando hay datos o se terminó.
+
+            Siempre revisa que sea la búsqueda activa antes de actualizar, y
+            también antes de mandar la búsqueda detallada.
+            """
+            # busquedas completas
+            result = indice.search(palabras)
+            c = 0
+            completa = set()
+            for r in result:
+                completa.add(r)
+                c += 1
+                if c == 50:
+                    # after the chunk, update the result and tell we have info
+                    if self.busqueda != nrobusq:
+                        return
+                    self.results_completa = self.formatear(completa)
+                    self.done_completa = True
+                    c = 0
+            if self.busqueda != nrobusq:
+                return
+            if c != 0:
+                # some final results were added
+                self.results_completa = self.formatear(completa)
+                self.done_completa = True
+
+            # busquedas parciales
+            result = indice.partial_search(palabras)
+            detallada = []
+            c = 0
+            for r in result:
+                if r not in completa:
+                    detallada.append(r)
+                    c += 1
+                    if c == 50:
+                        # after the chunk, update the result and tell
+                        # we have info
+                        if self.busqueda != nrobusq:
+                            return
+                        self.results_detallada = self.formatear(detallada)
+                        self.done_detallada = True
+                        c = 0
+            if self.busqueda != nrobusq:
+                return
+            if c != 0:
+                # some final results were added
+                self.results_detallada = self.formatear(detallada)
+                self.done_detallada = True
+
+        threading.Thread(target=_inner, args=(self.busqueda,)).start()
+        return self.busqueda
+
+    def formatear(self, candidatos):
         """Arma los resultados."""
         # agrupamos por link, dando prioridad a los títulos de los
         # artículos originales
@@ -567,7 +649,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
             # si el titulo coincide exactamente con lo buscado, le damos mucho
             # puntaje para que aparezca primero...
-            if titulo == buscando:
+            if titulo == self.buscando:
                 ptje *= 10
 
             if link in agrupados:
@@ -592,7 +674,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         cand = sorted(candidatos, key=operator.itemgetter(2), reverse=True)
         for link, titulo, ptje, tokens, texto in cand:
             res.append(u'<font size=+1><a href="/%s">%s</a></font><br/>' % (
-                                                                urllib.quote(link.encode("utf-8")), titulo))
+                                  urllib.quote(link.encode("utf-8")), titulo))
             if tokens:
                 res.append(u'<font color="#A05A2C"><i>%s</i></font><br/>' % (
                                                             " ".join(tokens)))
@@ -602,54 +684,6 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         results = "\n".join(res)
 
         return results.encode("utf8")
-
-    def templates(self, nombre_tpl, **kwrds):
-        '''Devuelve el texto del template, con la info reemplazada.'''
-        t = self._tpl_mngr.get_template(nombre_tpl)
-        r = t.substitute(**kwrds)
-        return r
-
-
-class Buscador(object):
-    def __init__(self):
-        self.results_completa = None
-        self.results_detallada = None
-        self.done_completa = True
-        self.done_detallada = True
-        self.busqueda = 0
-        self._tardando = 0
-        self.buscando = None
-
-    @property
-    def tardando(self):
-        self._tardando += 1
-        return self._tardando
-
-    def buscar(self, indice, palabras):
-        """Busca en otro thread."""
-        self.done_completa = False
-        self.done_detallada = False
-        self.results = None
-        self.busqueda += 1
-        self._tardando = 0
-        self.buscando = palabras
-
-        def _inner_completa(nrobusq):
-            r = indice.search(palabras)
-            if self.busqueda == nrobusq:
-                self.results_completa = list(r)
-                self.done_completa = True
-                threading.Thread(target=_inner_detallada,
-                                 args=(self.busqueda,)).start()
-
-        def _inner_detallada(nrobusq):
-            r = indice.partial_search(palabras)
-            if self.busqueda == nrobusq:
-                self.results_detallada = set(r) - set(self.results_completa)
-                self.done_detallada = True
-
-        threading.Thread(target=_inner_completa, args=(self.busqueda,)).start()
-        return self.busqueda
 
 buscador = Buscador()
 
