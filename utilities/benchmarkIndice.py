@@ -58,6 +58,12 @@ def main(direct):
     # palabras completas
     azar = functools.partial(random.choice, palabras)
 
+    # levantar los resultados
+    pals = [azar() for i in range(BLOQUE)]
+    with Timer("Buscar palabras completas, y obtener el resultado", BLOQUE):
+        for p in pals:
+            list(indice.search(p))
+
     # palabras completas, de a una
     pals = [azar() for i in range(BLOQUE)]
     with Timer("Palabras completas, de a una", BLOQUE):
