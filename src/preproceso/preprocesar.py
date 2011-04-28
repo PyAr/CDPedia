@@ -240,7 +240,7 @@ def calcula_top_htmls():
         ptj_destacado = int(partes[idx_destacado])
 
         # cálculo de puntaje, mezclando y ponderando los individuales
-        puntaje = ptj_content + ptj_peishranc * 5000 + ptj_destacado * 1000000
+        puntaje = ptj_content + ptj_peishranc * 5000 + ptj_destacado * 100000000
 
         data.append((dir3, arch, puntaje))
 
