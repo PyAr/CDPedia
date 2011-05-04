@@ -606,7 +606,7 @@ class Buscador(object):
             if c != 0:
                 # some final results were added
                 self.results_completa = self.formatear(completa)
-                self.done_completa = True
+            self.done_completa = True
 
             # busquedas parciales
             result = indice.partial_search(palabras)
@@ -629,7 +629,7 @@ class Buscador(object):
             if c != 0:
                 # some final results were added
                 self.results_detallada = self.formatear(detallada)
-                self.done_detallada = True
+            self.done_detallada = True
 
         threading.Thread(target=_inner, args=(self.busqueda,)).start()
         return self.busqueda
