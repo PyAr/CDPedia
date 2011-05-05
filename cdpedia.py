@@ -86,6 +86,7 @@ browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
 threading.Thread(target=start_browser_watchdog).start()
 
 print "Levantando el server..."
-server.run(server_up, browser_watchdog.update)
+server.run(server_up, browser_watchdog.update,
+                      debug_destacados=config.DEBUG_DESTACADOS)
 print "Terminado, saliendo."
 wd_timer.cancel()

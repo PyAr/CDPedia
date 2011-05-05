@@ -16,7 +16,6 @@ Campaña_al_Desierto
 Carlos_Alonso
 Carlos_Gardel
 Cartografía
-Cataratas_del_iguazú
 Charly_García
 Che_guevara
 Cromosoma
@@ -27,6 +26,7 @@ Delta_del_Paraná
 Desarrollo_sostenible
 Dictadura_Militar_en_la_Argentina
 Diego_Armando_Maradona
+Domingo_Faustino_Sarmiento
 Don_Segundo_Sombra
 Década_Infame
 Eduardo_Sívori
@@ -88,7 +88,6 @@ Roberto_Fontanarrosa
 Rodolfo_Walsh
 Río_Paraná
 Río_de_la_Plata
-Sarmiento
 Selknam
 Soja
 Surgimiento_del_Estado_Argentino

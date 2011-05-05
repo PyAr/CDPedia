@@ -282,9 +282,17 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _get_destacado(self):
         """Devuelve un destacado... eventualmente."""
+
         data = None
+
         while destacados and not data:
-            link = choice(destacados)
+            if hasattr(self, 'iter_destacados'):
+                try:
+                    link = self.iter_destacados.next()
+                except StopIteration:
+                    return None
+            else:
+                link = choice(destacados)
             data = self._art_mngr.get_item(link)
 
             if data:
@@ -303,7 +311,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
         # Si hay una tabla antes del primer párrafo, la elimina
         # FIXME: Escribir mejor la regex (por lo menos en varias líneas)
         #        o tal vez usar BeautifulSoup
-        m = re.search('<h1 id="firstHeading" class="firstHeading">([^<]+).*?<!-- bodytext -->.*?(?:<table .*</table>)?\n(<p>.*?)(?:(?:<table id="toc" class="toc">)|(?:<h2))', data, re.MULTILINE | re.DOTALL)
+        m = re.search(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))', data, re.MULTILINE | re.DOTALL)
 
         if not m:
             print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
@@ -687,7 +695,7 @@ class Buscador(object):
 
 buscador = Buscador()
 
-def run(server_up_event, watchdog_update):
+def run(server_up_event, watchdog_update, debug_destacados):
     global serving_port
     global shutdown
 
@@ -710,6 +718,8 @@ def run(server_up_event, watchdog_update):
     shutdown = httpd.shutdown
     server_up_event.set()
     WikiHTTPRequestHandler._watchdog_update = watchdog_update
+    if debug_destacados and destacados:
+        WikiHTTPRequestHandler.iter_destacados = iter(destacados)
     httpd.serve_forever()
 
 if __name__ == '__main__':
