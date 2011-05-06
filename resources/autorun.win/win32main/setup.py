@@ -17,9 +17,10 @@ opts = {
             "cgi",
             "urllib2",
             "shutil",
+			"encodings", "encodings.*",
         ],
-		"packages": ["win32api"]
+		"packages": ["win32api", "encodings"]
     }
 }
 
-setup(windows=["win32main.py"], options=opts)
+setup(windows=["win32main.py"], console=["console.py"], options=opts)
