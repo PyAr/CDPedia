@@ -71,6 +71,11 @@ INDEX = "index.html"
 # Si no hay destacados debe ser None
 DESTACADOS = 'destacados.txt'
 
+# Para revisar la página inicial de CDPedia con cada artículo destacado se
+# debe poner esta variable en True y cada vez que se cargué la página inicial
+# se irán mostrando en orden los destacados.
+DEBUG_DESTACADOS = False
+
 # Tiempo de espera máxima para actualización del browser_watchdog
 BROWSER_WD_SECONDS = 60
 
