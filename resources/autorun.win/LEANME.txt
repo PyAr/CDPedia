@@ -1,12 +1,43 @@
+======
+LEANME
+======
+
 Este directorio contiene todo lo necesario para hacer un cd autoejecutable en windows.
 
 Al insertar un CD, windows trata de abrir un archivo llamado autorun.inf
-Este tiene información del ejecutable que se arrancará automáticamente. En nuestro caso dicho ejecutable es win32\autorun\start.exe, que muestra una pantalla de carga y llama al ejecutable principal de la cdpedia.
+Este tiene información del ejecutable que se arrancará automáticamente. En nuestro  
+caso dicho ejecutable es cdpedia.exe, que muestra una pantalla de carga y llama al
+ejecutable principal de la cdpedia, win32main.exe.
 
-El ejecutable principal de la cdpedia está hecho con py2exe y es minimalista. Básicamente lo único que hace es agregar la raíz del cdrom al sys.path y tratar de importar un modulo llamado main, que actualmente está en la raíz del cdrom.
+win32main.exe está hecho con pyinstaller y es minimalista. Básicamente lo único 
+que hace es agregar la raíz del cdrom al sys.path y tratar de importar un modulo
+llamado cdpedia.py que está en la raíz del cdrom.
 
-En win32main\setup.py hay que incluir todos aquellos módulos de la stdlib que sean importados en el codigo de la cdpedia, y que no existan todavía en cdroot\win32\main\library.zip
+Pyinstaller busca automáticamente los módulos de la stdlib que se usan en la cdpedia
+y los embebe en win32main.exe.
 
-Si se agregan módulos en win32main\setup.py hay que volver a reconstruir el win32main.exe, usando el script mkautorun.bat
+Si se agregan modulos de la stdlib en la cdpedia hay que regenerar el win32main.exe!
 
-En cdroot\ quedan todos los archivos y directorios que deben ser copiados a la raíz del cdrom.
+En cdroot\ quedan todos los archivos y directorios que deben ser copiados a la
+raíz del cdrom.
+
+Instrucciones
+=============
+
+Dependencias
+------------
+
+* Python 2.5
+* PyInstaller 1.4. 
+
+Configurar el entorno (se hace una sola vez)
+--------------------------------------------
+
+Descargar y descomprimir pyinstaller en c:\pyinstaller
+Ejecutar c:\Python25\python.exe c:\pyinstaller\Configure.py 
+
+Generar win32main.exe
+---------------------
+
+Ejecutar mkautorrun.bat y listo! Lo mejor es correrlo desde una consola para 
+asegurarse que no hay errores.

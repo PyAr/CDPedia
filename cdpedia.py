@@ -1,15 +1,27 @@
 #!/usr/bin/env python
 # -- coding: utf8 --
 
-import threading
-import webbrowser
 import os
 import sys
+import codecs
+import platform
+import threading
 import traceback
+import webbrowser
 
 # fix path if needed
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
+
+# Logeamos stdout y stderr si estamos en windows
+if platform.system() == 'Windows':
+    log_filename = os.path.join(os.path.expanduser('~'), 'cdpedia.log')
+    try:
+        log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
+        sys.stdout = log
+        sys.stderr = log
+    except:     # Si no podemos logear ni mostrar el error porque no 
+        pass    # tenemos una consola no podemos hacer nada.
 
 from src.armado import server
 from src.utiles import WatchDog
