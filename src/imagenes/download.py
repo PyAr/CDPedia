@@ -79,7 +79,7 @@ def traer(verbose):
             with codecs.open(log_errores, "a", "utf8") as fh:
                 fh.write(url + "\n")
 
-        print "   %5d/%d  (%s)  %s" % (i, tot, stt, url)
+        print "   %5d/%d  (%s)  %s" % (i+1, tot, stt, url)
 
     if errores:
         print "WARNING! Tuvimos errores:"
