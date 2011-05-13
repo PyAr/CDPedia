@@ -1,5 +1,10 @@
 
 $(document).ready(function() {
+
+    $.ajaxSetup({
+          cache: false
+    });
+    
     var search_string = "";
     var buscando = "buscando";
     var esperando = "generando índice"
