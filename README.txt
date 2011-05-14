@@ -29,7 +29,7 @@ Para desarrolladores
 
 Si lo que se desea es hacer pruebas y mejoras al código de cdpedia, se cuenta
 con un dump para desarrollo.
-Se debe descargar `fuentes_dev <http://pyar.usla.org.ar/fuentes_dev.tar.gz>`_
+Se debe descargar `dump-dev <http://pyar.usla.org.ar/eswiki_dump_20110219-dev.tar.gz>`_
 Y crear los links para ''misc'' y ''skins''
 
 Prueba de los sistemas
