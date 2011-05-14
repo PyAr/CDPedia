@@ -17,6 +17,12 @@ def _escape_dir(s):
 def _escape_filename(s):
     return s.replace(u"/", BARRA)
 
+def to_pagina(filename):
+    """
+    s == to_pagina(_escape_filename(s))
+    """
+    return filename.replace(BARRA, u"/")
+
 def to_path(pagina):
     """
     Pagina tiene que ser unicode.

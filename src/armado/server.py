@@ -225,7 +225,8 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _get_orig_link(self, path):
         """A partir del path devuelve el link original externo."""
-        orig_link = u"http://es.wikipedia.org/wiki/" + urllib.quote(path.encode("utf-8"))
+        orig_link = u"http://es.wikipedia.org/wiki/" + \
+                    urllib.quote(to3dirs.to_pagina(path).encode("utf-8"))
         return orig_link
 
     def _get_imagen(self, path, query):
