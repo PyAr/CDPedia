@@ -1,10 +1,11 @@
 Este proyecto es una colaboración de distintas personas, aquí aquellas que
 más participaron:
 
- - Agustin Henze
+ - Agustín Henze
  - Antonio Lenton
  - Alejandro David Weil
  - Alejandro J. Cura
+ - Claudio D. Freire
  - Diego Mascialino
  - Ezequiel Diaz Marquez
  - Facundo Batista
