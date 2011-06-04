@@ -198,11 +198,11 @@ class QuitaLinksEditar(Procesador):
     def __init__(self, wikisitio):
         super(QuitaLinksEditar, self).__init__(wikisitio)
         self.nombre = "QuitaLinksEditar"
-        self.editar_links = compile('<a href="[^\"]*?action=edit.*?</a>')
+        self.editar_links = compile('<a href="[^\"]*?action=edit.*?>(?P<texto>.+?)</a>')
 
     def __call__(self, wikiarchivo):
         try:
-            newhtml = self.editar_links.sub("", wikiarchivo.html)
+            newhtml = self.editar_links.sub("\g<texto>", wikiarchivo.html)
         except Exception:
             print "Path del html", wikiarchivo.url
             raise
