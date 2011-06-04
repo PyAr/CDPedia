@@ -113,9 +113,17 @@ class ContentNotFound(Exception):
 class ArticleNotFound(ContentNotFound):
     """No se encontró el artículo!"""
 
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __unicode__(self):
+        return unicode(self.msg)
+
 class Redirection(Exception):
     """Es una redireccion http"""
-
+    def __init__(self, location):
+        self.location = location
+        self.code = 302
 
 class InternalServerError(Exception):
     """Error interno al buscar contenido!"""
@@ -208,14 +216,14 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
         except Redirection, e:
-            self.send_response(code=e.args[0])
-            self.send_header("Location", e.args[1])
+            self.send_response(code=e.code)
+            self.send_header("Location", e.location)
             self.end_headers()
             self.wfile.write(str('redirigiendo'))
         except ArticleNotFound, e:
             self.send_response(code=404)
             self.send_header("Content-type", "text/html")
-            self.send_header("Content-Length", len(e.args[0]))
+            self.send_header("Content-Length", len(e.msg))
             self.end_headers()
             self.wfile.write(str(e))
         except ContentNotFound, e:
@@ -453,7 +461,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
     def al_azar(self, query):
         link, tit = self.index.get_random()
         link = u"wiki" + link[5:]
-        raise Redirection(302, urllib.quote(link.encode('utf-8')))
+        raise Redirection(urllib.quote(link.encode('utf-8')))
 
     @ei.espera_indice
     def dosearch(self, query):

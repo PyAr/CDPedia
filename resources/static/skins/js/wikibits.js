@@ -147,7 +147,7 @@ function showTocToggle() {
 		toggleLink.className = 'internal';
 		toggleLink.href = '#';
 		addClickHandler( toggleLink, function( evt ) { toggleToc(); return killEvt( evt ); } );
-		
+
 		toggleLink.appendChild( document.createTextNode( tocHideText ) );
 
 		outerSpan.appendChild( document.createTextNode( '[' ) );
@@ -541,7 +541,7 @@ function redirectToFragment( fragment ) {
  * @todo support all accepted date formats (bug 8226)
  */
 
-var ts_image_path = stylepath + '/common/images/';
+var ts_image_path = stylepath + '/skins/css/images/';
 var ts_image_up = 'sort_up.gif';
 var ts_image_down = 'sort_down.gif';
 var ts_image_none = 'sort_none.gif';
@@ -663,7 +663,7 @@ function ts_resortTable( lnk ) {
 		if( (' ' + row.className + ' ').indexOf(' unsortable ') < 0 ) {
 			var keyText = ts_getInnerText( row.cells[column] );
 			if( keyText === undefined ) {
-				keyText = ''; 
+				keyText = '';
 			}
 			var oldIndex = ( reverse ? -j : j );
 			var preprocessed = preprocessor( keyText.replace(/^[\s\xa0]+/, '').replace(/[\s\xa0]+$/, '') );
