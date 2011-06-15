@@ -7,9 +7,9 @@ la información, y la información propiamente dicha.
 
 El código es parte del proyecto CDPedia...
 
-    http://code.google.com/p/cdpedia/
+    http://cdpedia.python.org.ar/
 
-... (c) 2009 Python Argentina (mirá el archivo AUTORES.txt) para una lista de
+... (c) 2006-2011 Python Argentina (mirá el archivo AUTORES.txt) para una lista de
 los principales, y es licenciado bajo la licencia Licencia Pública General de
 GNU versión 3 (Gnu GPL 3).  El detalle de esta licencia la podés encontrar en
 el archivo gpl-3.0.txt en este mismo disco, o en:
