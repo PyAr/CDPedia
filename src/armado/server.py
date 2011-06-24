@@ -270,7 +270,7 @@ class WikiHTTPRequestHandler(BaseHTTPRequestHandler):
             raise InternalServerError(msg)
 
         if data is None:
-            msg  = NOTFOUND % (path, orig_link)
+            msg = NOTFOUND % (path, orig_link)
             raise ArticleNotFound(msg)
 
         title = getTitleFromData(data)

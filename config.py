@@ -55,13 +55,6 @@ SEPARADOR_COLUMNAS = '|'
 # páginas en sí
 ASSETS = ["skins", "misc"]
 
-# Nombre de la edicion especial, modifica el INDEX y ASSETS en código
-EDICION_ESPECIAL = None
-#EDICION_ESPECIAL = "educar"
-
-# Versión de la CDPedia
-VERSION = '0.7beta'
-
 # Primera página que se abrirá en el browser.
 # Para ir a la portada de cdpedia dejar ""
 INDEX = "index.html"
@@ -89,7 +82,7 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 ####  Para el DVD:
 LIMITE_PAGINAS = 1000000
 ##  Para el CD:
-#LIMITE_PAGINAS = 85500
+#LIMITE_PAGINAS = 93500
 ##  Devel
 #LIMITE_PAGINAS = 180
 
@@ -97,27 +90,39 @@ LIMITE_PAGINAS = 1000000
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 #####  Para el DVD-9: (size max: DVD-R DL, 12cm:  8,543,666,176 bytes)
-#ESCALA_IMAGS = [
-#    (10, 100),  # 16       18       20
-#    (10,  75),  # 17       20       25
-#    (20,  50),  # 32       37       45
-#    (60,   0),  #  = 4.1    = 4.3    = 4.5
-#]
-####  Para el DVD-5: (size: DVD-R SL, 12cm:  4,700,319,808 bytes)
 ESCALA_IMAGS = [
-    (10, 100),  # 16       18       20
-    (10,  75),  # 17       20       25
-    (20,  50),  # 32       37       45
-    (60,   0),  #  = 4.1    = 4.3    = 4.5
+    (10, 100),  # 20           15           10
+    (25,  75),  # 30           25           20
+    (65,  50),  # 50           60           70
+    (00,   0),  # 9190309888   8861982720   8525170688
 ]
+#####  Para el DVD-5: (size: DVD-R SL, 12cm:  4,700,319,808 bytes)
+#ESCALA_IMAGS = [
+#    (10, 100),
+#    (10,  75),
+#    (25,  50),
+#    (55,   0),
+#]
+#ESCALA_IMAGS = [  # para las XO
+#    (20, 100),
+#    (20,  75),
+#    (20,  50),
+#    (40,   0),
+#]
 ##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
 #ESCALA_IMAGS = [
-#    ( 2, 100),
-#    ( 4,  75),
-#    ( 4,  50),
+#    ( 0, 100),
+#    ( 0,  75),
+#    (10,  50),
 #    (90,   0),
 #]
 
+# Nombre de la edicion especial, modifica el INDEX y ASSETS en código
+#EDICION_ESPECIAL = None
+EDICION_ESPECIAL = "educar"
+
+# Versión de la CDPedia
+VERSION = '0.7'
 
 # validamos los porcentajes de lo que acabamos de escribir arriba
 _porc_escala = [x[1] for x in ESCALA_IMAGS]
