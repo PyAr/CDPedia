@@ -80,9 +80,11 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 
 # Límites de cantidades de páginas a incluir
 ####  Para el DVD:
-LIMITE_PAGINAS = 1000000
+#LIMITE_PAGINAS = 1000000
 ##  Para el CD:
 #LIMITE_PAGINAS = 93500
+#  Para las XO
+LIMITE_PAGINAS = 5000
 ##  Devel
 #LIMITE_PAGINAS = 180
 
