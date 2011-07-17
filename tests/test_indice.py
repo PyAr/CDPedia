@@ -6,6 +6,10 @@ import tempfile
 import os
 import shutil
 
+from src.armado import compressed_index
+from src.armado import easy_index
+
+
 class TestIndex(unittest.TestCase):
     '''Base class.'''
 
@@ -17,8 +21,8 @@ class TestIndex(unittest.TestCase):
 
     def create_index(self, info):
         '''Creates an index and then opens it again to return it.'''
-        Index.create(self.tempdir, info)
-        return Index(self.tempdir)
+        self.index.create(self.tempdir, info)
+        return self.index(self.tempdir)
 
 
 class TestItems(TestIndex):
@@ -255,47 +259,56 @@ class TestCreate(TestIndex):
 
     def test_non_iterable(self):
         '''It must iterate on what receives.'''
-        self.assertRaises(TypeError, Index.create, self.tempdir, None)
+        self.assertRaises(TypeError, self.index.create, self.tempdir, None)
 
     def test_key_string(self):
         '''Keys can be string.'''
-        Index.create(self.tempdir, [("aa", 33)])
+        self.index.create(self.tempdir, [("aa", 33)])
 
     def test_key_unicode(self):
         '''Keys can be unicode.'''
-        Index.create(self.tempdir, [(u"año", 33)])
+        self.index.create(self.tempdir, [(u"año", 33)])
 
     def test_key_badtype(self):
         '''Keys must be strings or unicode.'''
-        self.assertRaises(TypeError, Index.create, self.tempdir, [(1, 3)])
+        self.assertRaises(TypeError, self.index.create, self.tempdir, [(1, 3)])
 
     def test_return_quantity(self):
         '''Must return the quantity indexed.'''
-        q = Index.create(self.tempdir, [])
+        q = self.index.create(self.tempdir, [])
         self.assertEqual(q, 0)
-        q = Index.create(self.tempdir, [("a", 1)])
+        q = self.index.create(self.tempdir, [("a", 1)])
         self.assertEqual(q, 1)
-        q = Index.create(self.tempdir, [("a", 1), ("b", 2)])
+        q = self.index.create(self.tempdir, [("a", 1), ("b", 2)])
         self.assertEqual(q, 2)
-        q = Index.create(self.tempdir, [("a", 1), ("a", 2)])
+        q = self.index.create(self.tempdir, [("a", 1), ("a", 2)])
         self.assertEqual(q, 2)
 
+_testcases = [TestIndex, TestItems, TestValues, TestRandom, TestContains,
+              TestSearch, TestPartialSearch, TestCreate]
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usar test_indice.py <path_to_indice.py>"
-        sys.exit()
+# Para correr los tests de los distintos indices (compressed y easy) y no duplicar
+# las clases de los tests, generamos las clases dinamicamente con la funcion/metaclase
+# indexed_testcase
 
-    # get the index path and remove the argument to not confuse unittest
-    index_path = sys.argv[1]
-    del sys.argv[1]
+def indexed_testcase(testcase, name, index):
+    new_testcase = type(testcase.__name__ + name, (testcase, ), {})
+    new_testcase.index = index
+    return new_testcase
 
-    # import the module
-    (basepath, modname) = os.path.split(index_path)
-    if modname.endswith(".py"):
-        modname = modname[:-3]
-    sys.path.insert(0, basepath)
-    mod = __import__(modname)
-    Index = mod.Index
+_compressed_testcases = [indexed_testcase(testcase, "Compressed", \
+                                          compressed_index.Index) \
+                                                  for testcase in _testcases]
+_easy_testcases = [indexed_testcase(testcase, "Easy", easy_index.Index) \
+                                                  for testcase in _testcases]
 
-    unittest.main()
+_all_testcases = _compressed_testcases + _easy_testcases
+
+def suite():
+    suite = unittest.TestSuite()
+    for test_case in _all_testcases:
+        suite.addTest(unittest.makeSuite(test_case))
+    return suite
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")
