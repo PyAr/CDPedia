@@ -20,10 +20,11 @@ if platform.system() == 'Windows':
         log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
-    except:     # Si no podemos logear ni mostrar el error porque no 
+    except:     # Si no podemos logear ni mostrar el error porque no
         pass    # tenemos una consola no podemos hacer nada.
 
-from src.armado import server
+raise NotImplementedError("Aun no implementado. Para correr el servidor hacer:\n" \
+                      "$ PYTHONPATH=. python src/web/web_app.py")
 from src.utiles import WatchDog
 import config
 

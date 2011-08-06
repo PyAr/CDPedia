@@ -2,7 +2,7 @@
 
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
-URL_WIKIPEDIA = "http://download.wikimedia.org/static/"
+URL_WIKIPEDIA = u"http://es.wikipedia.org/"
 IDIOMA = "es"
 
 
@@ -120,8 +120,8 @@ ESCALA_IMAGS = [
 #]
 
 # Nombre de la edicion especial, modifica el INDEX y ASSETS en código
-#EDICION_ESPECIAL = None
-EDICION_ESPECIAL = "educar"
+EDICION_ESPECIAL = None
+#EDICION_ESPECIAL = "educar"
 
 # Versión de la CDPedia
 VERSION = '0.7'

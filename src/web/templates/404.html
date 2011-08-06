@@ -1,0 +1,7 @@
+{% extends "cdpedia_base.html" %}
+{% block title %}Artículo no encontrado{% endblock %}
+{% block content %}
+El artículo {{article_name}} no pudo ser incluido en el disco <br/><br>
+Podés acceder al mismo en Wikipedia en
+<a class="external" href="{{original_link}}">este enlace</a> externo.
+{% endblock %}

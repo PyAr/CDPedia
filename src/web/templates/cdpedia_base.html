@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="../../../skins/css/main.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../../../skins/css/shared.css" type="text/css" media="screen" />
+
+    <link rel="stylesheet" href="../../../skins/css/commonPrint.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="../../../skins/css/combined.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/Common.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="../../../skins/css/Print.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="../../../skins/css/Handheld.css" type="text/css" media="handheld" />
+    <link rel="stylesheet" href="../../../skins/css/Vector.css" type="text/css" media="all" />
+
+    <link rel="stylesheet" href="../../../extern/cdpedia.css" type="text/css" media="all" />
+
+    <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
+    <!--[if IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE55Fixes.css";</style><![endif]-->
+    <!--[if IE 6]><style type="text/css">@import "../../../skins/monobook/IE60Fixes.css";</style><![endif]-->
+    <!--[if IE]><script type="text/javascript" src="../../../skins/common/IEFixes.js"></script>
+    <meta http-equiv="imagetoolbar" content="no" /><![endif]-->
+
+    <script type="text/javascript" src="../../../skins/js/header.js"></script>
+    <script type="text/javascript" src="../../../skins/js/wikibits.js"></script>
+    <script type="text/javascript" src="../../../extern/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="../../../extern/jquery.base64.js"></script>
+    <script type="text/javascript" src="../../../extern/search.js"></script>
+    <!--<script type="text/javascript" src="../../../skins/js/ajax.js"></script>-->
+    <!--<script type="text/javascript" src="../../../skins/js/mwsuggest.js"></script>-->
+    <!--<script type="text/javascript" src="../../../skins/js/Vector.js"></script>
+    <script type="text/javascript" src="../../../skins/js/plugins.js"></script>-->
+    <script type="text/javascript" src="../../../skins/js/md5.js"></script>
+    <script type="text/javascript" src="../../../skins/js/utf8.js"></script>
+    <script type="text/javascript" src="../../../skins/js/lookup.js"></script>
+{% endblock %}
+{% block body %}
+  <!-- Watchdog iframe -->
+  <iframe src="/watchdog/update" style="width:1px;height:1px;display:none;"></iframe>
+  <!-- /WatchDog iframe -->
+  <div id="content">
+    <a id="top"></a>
+    <div id="mw-js-message" style="display:none;"></div>
+    <!-- sitenotice -->
+    <div id="siteNotice"><!-- centralNotice loads here --></div>
+    <!-- /sitenotice -->
+    {% block content %}
+    {% endblock %}
+    </div>
+    <!-- /bodyContent -->
+  </div>
+  <!-- /content -->
+  {% include "sidebar.html" %}
+  <!-- footer -->
+  <div id="footer">
+    <ul id="f-info-cdpedia">
+      <li id="f-info-original">
+        Si tenés conexión a Internet, podés visitar la <a class="external" href="{{orig_link}}">página original y actualizada</a> de éste artículo.
+      </li>
+      <li>
+        <a href="/institucional/cdpedia.html">CDPedia</a> es un proyecto de
+        <a href="/institucional/pyar.html">Python Argentina</a>,
+        ¡aprendé a programar en Python! Acá tenés el <a href="/tutorial/index.html">tutorial</a>.
+      </li>
+      <li>
+        Los artículos e imágenes son mostrados aquí sin ningún procesamiento más que el estrictamente necesario para la correcta navegación del usuario.
+      </li>
+      <li>
+        Todos los contenidos de los artículos provienen del <a href="http://es.wikipedia.org/">sitio online de Wikipedia</a>.
+      </li>
+    </ul>
+    <ul id="f-info-wikipedia">
+      <li id="f-info-copyright">
+        El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página los <a href="/institucional/Términos_de_Uso.htm">términos de uso</a> para más información.
+        Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
+      </li>
+      <li id="f-about">
+        <a href="/wiki/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">Acerca de Wikipedia</a>
+      </li>
+      <li id="f-disclaimer">
+        <a href="/wiki/Wikipedia:Limitación_general_de_responsabilidad" title="Wikipedia:Limitación general de responsabilidad">Aviso legal</a>
+      </li>
+    </ul>
+    <ul id="f-icons" class="noprint">
+      <li id="f-icon-copyright">
+        <a href="/institucional/wikimedia.html">
+          <img src="/misc/wikimedia-button.png" alt="Wikimedia Foundation" />
+        </a>
+      </li>
+      <li id="f-icon-poweredby-pyar">
+        <a href="/institucional/pyar.html">
+          <img src="/extern/pyar-logo-chico.png" alt="Powered by PyAr" />
+        </a>
+      </li>
+    </ul>
+  </div><!-- #footer -->
+  <!-- fixalpha -->
+  <script type="text/javascript"> if ( window.isMSIE55 ) fixalpha(); </script>
+  <!-- /fixalpha -->
+{% endblock %}
