@@ -205,16 +205,17 @@ def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
 
     mensaje("Emblocando las imágenes reducidas")
     # agrupamos las imagenes en bloques
-    ImageManager.generar_bloques(verbose)
+    result = ImageManager.generar_bloques(verbose)
+    print '  total: %d bloques con %d imags' % result
 
     if procesar_articles:
         mensaje("Generando el índice")
         result = cdpindex.generar_de_html(articulos, verbose)
         print '  total: %d archivos' % result
 
-        mensaje("Generando los bloques")
+        mensaje("Generando los bloques de artículos")
         result = ArticleManager.generar_bloques(verbose)
-        print '  total: %d bloques con %d archivos' % result
+        print '  total: %d bloques con %d archivos y %d redirects' % result
     else:
         mensaje("Evitamos generar el índice y los bloques")
 

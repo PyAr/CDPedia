@@ -248,7 +248,9 @@ class ArticleManager(BloqueManager):
         numBloques = len(fileNames) // self.items_per_block + 1
         self.guardarNumBloques(numBloques)
         bloques = {}
+        all_filenames = set()
         for dir3, fileName, _ in fileNames:
+            all_filenames.add(fileName)
             bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, fileName))
             if verbose:
@@ -259,19 +261,29 @@ class ArticleManager(BloqueManager):
         redirects = {}
         for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
             orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+
+            # solamente nos quedamos con este redirect si realmente apunta a
+            # un artículo útil (descartando el 'fragment' si hubiera)
+            only_name = dest.split("#")[0]
+            if only_name not in all_filenames:
+                continue
+
+            # metemos en bloque
             bloqNum = utiles.coherent_hash(orig.encode('utf8')) % numBloques
             redirects.setdefault(bloqNum, []).append((orig, dest))
             if verbose:
                 print "  redirs:", bloqNum, repr(orig), repr(dest)
 
         # armamos cada uno de los comprimidos
-        tot = 0
+        tot_archs = 0
+        tot_redirs = 0
         for bloqNum, fileNames in bloques.items():
-            tot += len(fileNames)
+            tot_archs += len(fileNames)
             redirs_thisblock = redirects.get(bloqNum, [])
+            tot_redirs += len(redirs_thisblock)
             Comprimido.crear(redirs_thisblock, bloqNum, fileNames, verbose)
 
-        return (len(bloques), tot)
+        return (len(bloques), tot_archs, tot_redirs)
 
 
 class ImageManager(BloqueManager):

@@ -84,9 +84,9 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 ##  Para el CD:
 #LIMITE_PAGINAS = 93500
 #  Para las XO
-LIMITE_PAGINAS = 5000
+#LIMITE_PAGINAS = 5000
 ##  Devel
-#LIMITE_PAGINAS = 180
+LIMITE_PAGINAS = 10
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
