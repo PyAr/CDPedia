@@ -81,11 +81,6 @@ def copiarAssets(src_info, dest):
     copy_dir(src_dir, dst_dir)
 
 
-def copiarAutorun():
-    src_dir = "resources/autorun.win/cdroot"
-    copy_dir(src_dir, config.DIR_CDBASE)
-
-
 def copiarSources():
     """Copiar los fuentes."""
     # el src
@@ -163,7 +158,22 @@ def preparaTemporal(procesar_articles):
         os.makedirs(dtemp)
 
 
-def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
+def build_tarball(tarball_name):
+    """Build the tarball."""
+    # the symlink must be something like 'cdroot' -> 'temp/nicename'
+    base, cdroot = os.path.split(config.DIR_CDBASE)
+    nice_name = os.path.join(base, tarball_name)
+    os.symlink(cdroot, nice_name)
+
+    # build the .tar positioned on the temp dir, and using the symlink for
+    # all files to be under the nice name
+    args = dict(base=base, tarname=tarball_name, cdroot=tarball_name)
+    os.system("tar --dereference --xz --directory %(base)s -c "
+              "-f %(tarname)s.tar.xz %(cdroot)s" % args)
+
+
+def main(src_info, evitar_iso, verbose, desconectado,
+         procesar_articles, include_windows, tarball):
 
     articulos = path.join(src_info, "articles")
 
@@ -219,24 +229,29 @@ def main(src_info, evitar_iso, verbose, desconectado, procesar_articles):
     else:
         mensaje("Evitamos generar el índice y los bloques")
 
+    mensaje("Copiando las fuentes")
+    copiarSources()
+
+    mensaje("Copiando los indices")
+    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "indice")
+    if os.path.exists(dest_src):
+        shutil.rmtree(dest_src)
+    shutil.copytree(config.DIR_INDICE, dest_src)
+
+    if include_windows:
+        mensaje("Copiando cosas para Windows")
+        copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
+
+    mensaje("Generamos la config para runtime")
+    genera_run_config()
+
     if not evitar_iso:
-        mensaje("Copiando las fuentes")
-        copiarSources()
-
-        mensaje("Copiando los indices")
-        dest_src = path.join(config.DIR_CDBASE, "cdpedia", "indice")
-        if os.path.exists(dest_src):
-            shutil.rmtree(dest_src)
-        shutil.copytree(config.DIR_INDICE, dest_src)
-
-        mensaje("Copiando el autorun")
-        copiarAutorun()
-
-        mensaje("Generamos la config para runtime")
-        genera_run_config()
-
         mensaje("Armamos el ISO")
         armarIso("cdpedia.iso")
+
+    if tarball:
+        mensaje("Armamos el tarball con %r" % (tarball,))
+        build_tarball(tarball)
 
     mensaje("Todo terminado!")
 
@@ -250,7 +265,13 @@ if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.set_usage(msg)
     parser.add_option("-n", "--no-iso", action="store_true",
-                  dest="create_iso", help="evita crear el ISO al final")
+                      dest="create_iso",
+                      help="evita crear el ISO al final")
+    parser.add_option("-w", "--no-windows", action="store_true",
+                      dest="no_windows",
+                      help="no incorpora todo lo extra para correr en Windows")
+    parser.add_option("-t", "--tarball", metavar="NAME",
+                      help="arma un tarball usando el nombre NAME")
     parser.add_option("-v", "--verbose", action="store_true",
                   dest="verbose", help="muestra info de lo que va haciendo")
     parser.add_option("-d", "--desconectado", action="store_true",
@@ -270,6 +291,7 @@ if __name__ == "__main__":
     direct = args[0]
 
     evitar_iso = bool(options.create_iso)
+    include_windows = not bool(options.no_windows)
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
     procesar_articles = not bool(options.noarticles)
@@ -282,4 +304,5 @@ if __name__ == "__main__":
             exit()
         guppy.heapy.RM.on()
 
-    main(args[0], options.create_iso, verbose, desconectado, procesar_articles)
+    main(args[0], evitar_iso, verbose, desconectado,
+         procesar_articles, include_windows, options.tarball)
