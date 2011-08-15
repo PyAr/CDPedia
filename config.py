@@ -5,7 +5,6 @@
 URL_WIKIPEDIA = u"http://es.wikipedia.org/"
 IDIOMA = "es"
 
-
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
 DIR_BLOQUES = "temp/cdroot/cdpedia/bloques"
@@ -84,20 +83,20 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 ##  Para el CD:
 #LIMITE_PAGINAS = 93500
 #  Para las XO
-#LIMITE_PAGINAS = 5000
+LIMITE_PAGINAS = 5000
 ##  Devel
-LIMITE_PAGINAS = 10
+#LIMITE_PAGINAS = 10
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
 #####  Para el DVD-9: (size max: DVD-R DL, 12cm:  8,543,666,176 bytes)
-ESCALA_IMAGS = [
-    (10, 100),  # 20           15           10
-    (25,  75),  # 30           25           20
-    (65,  50),  # 50           60           70
-    (00,   0),  # 9190309888   8861982720   8525170688
-]
+#ESCALA_IMAGS = [
+#    (10, 100),  # 20           15           10
+#    (25,  75),  # 30           25           20
+#    (65,  50),  # 50           60           70
+#    (00,   0),  # 9190309888   8861982720   8525170688
+#]
 #####  Para el DVD-5: (size: DVD-R SL, 12cm:  4,700,319,808 bytes)
 #ESCALA_IMAGS = [
 #    (10, 100),
@@ -105,17 +104,17 @@ ESCALA_IMAGS = [
 #    (25,  50),
 #    (55,   0),
 #]
-#ESCALA_IMAGS = [  # para las XO
-#    (20, 100),
-#    (20,  75),
-#    (20,  50),
-#    (40,   0),
-#]
+ESCALA_IMAGS = [  # para las XO
+    ( 0, 100),
+    ( 0,  75),
+    (10,  50),
+    (90,   0),
+]
 ##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
 #ESCALA_IMAGS = [
-#    ( 0, 100),
-#    ( 0,  75),
-#    (10,  50),
+#    ( 2, 100),
+#    ( 4,  75),
+#    ( 4,  50),
 #    (90,   0),
 #]
 
