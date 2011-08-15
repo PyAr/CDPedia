@@ -107,8 +107,8 @@ LIMITE_PAGINAS = 5000
 ESCALA_IMAGS = [  # para las XO
     ( 0, 100),
     ( 0,  75),
-    (10,  50),
-    (90,   0),
+    ( 5,  50),
+    (95,   0),
 ]
 ##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
 #ESCALA_IMAGS = [

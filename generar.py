@@ -168,7 +168,7 @@ def build_tarball(tarball_name):
     # build the .tar positioned on the temp dir, and using the symlink for
     # all files to be under the nice name
     args = dict(base=base, tarname=tarball_name, cdroot=tarball_name)
-    os.system("tar --dereference --xz --directory %(base)s -c "
+    os.system("tar --dereference --xz --directory %(base)s --create "
               "-f %(tarname)s.tar.xz %(cdroot)s" % args)
 
     # remove the symlink
