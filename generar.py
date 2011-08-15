@@ -171,6 +171,9 @@ def build_tarball(tarball_name):
     os.system("tar --dereference --xz --directory %(base)s -c "
               "-f %(tarname)s.tar.xz %(cdroot)s" % args)
 
+    # remove the symlink
+    os.remove(nice_name)
+
 
 def main(src_info, evitar_iso, verbose, desconectado,
          procesar_articles, include_windows, tarball):
