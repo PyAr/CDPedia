@@ -1,0 +1,1288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="800"
+   height="600"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.0 r9654"
+   sodipodi:docname="process.svg"
+   inkscape:export-filename="/tmp/cdpedia_process.png"
+   inkscape:export-xdpi="120"
+   inkscape:export-ydpi="120">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.74115478"
+     inkscape:cx="1127.0708"
+     inkscape:cy="109.50963"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     width="800px"
+     inkscape:window-width="1920"
+     inkscape:window-height="1005"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <defs
+     id="defs4">
+    <marker
+       style="overflow:visible"
+       id="Arrow1Mstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mstart">
+      <path
+         transform="scale(0.4) translate(10,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5493" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart">
+      <path
+         transform="scale(0.8) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5487" />
+    </marker>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective367" />
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         transform="scale(0.4) translate(10,0)"
+         style="marker-start:none;stroke:#23597b;stroke-width:1.0pt;fill:#23597b;fill-rule:evenodd"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path6216" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-9"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-8" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-6"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-0" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-8"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-5" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-85"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-4" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-1"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-87" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-13"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-0"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-46" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-4"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-14"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-66" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-18"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-27" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-188"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-61" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-3" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-9" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-58"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-96" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-2"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-95" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-82"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-1" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-03"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-16" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-854"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-12" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-33"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-24" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-72"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-961" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-22"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-85" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1MstartV-339"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1MstartV">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill:#23597b;fill-rule:evenodd;stroke:#23597b;stroke-width:1pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         id="path6216-07" />
+    </marker>
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-452.36218)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Capa 1">
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7-8-5"
+       d="M 676.83879,823.58467 556.44497,724.87993"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7-8-5-1"
+       d="M 678.8361,866.51727 555.6049,963.30348"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7-8"
+       d="m 669.39229,844.12071 -74.8674,0"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-8"
+       d="m 702.11298,812.16349 0,-53.38922"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-5"
+       d="m 702.11298,876.22802 0,53.38921"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7"
+       d="m 490.99996,844.12071 -143.6235,0"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <g
+       id="g6971"
+       transform="matrix(2.9795051,0,0,2.9795051,-365.727,-1092.9711)">
+      <path
+         sodipodi:nodetypes="cc"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.56;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         d="M 204.53285,665.68907 186.02707,653.83604"
+         id="path4272-7-7-5-9"
+         inkscape:connector-curvature="0" />
+      <path
+         sodipodi:nodetypes="cc"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.56;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         d="m 205.74907,636.78289 -19.722,11.91384"
+         id="path4272-7-7-5-9-3"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g6901"
+       transform="matrix(2.9795051,0,0,2.9795051,-365.727,-1097.2428)">
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path6551-5-1"
+         d="m 166.93622,640.56914 c 0,-3.82802 -1.31318,-3.04674 -1.31318,-4.91501"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.25293148;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <path
+         sodipodi:nodetypes="csc"
+         inkscape:connector-curvature="0"
+         id="path6551"
+         d="m 162.21074,624.89648 c 0,0 -1.9625,-2.63527 -5.00403,-2.63527 -3.20712,0 -12.94359,-0.0218 -12.94359,-0.0218"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.34557295;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <path
+         sodipodi:nodetypes="csc"
+         inkscape:connector-curvature="0"
+         id="path6551-5"
+         d="m 182.57195,684.82992 c 0,0 -7.7573,-0.0818 -10.7544,-0.0818 -3.20712,0 -4.74026,-2.09274 -4.74026,-2.09274"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.34557295;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path6551-5-1-9"
+         d="m 166.93622,656.17978 c 0,-3.82802 -1.31318,-3.04674 -1.31318,-4.91501"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.25293148;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path6551-5-1-8"
+         d="m 166.93622,671.86262 c 0,-3.82802 -1.31318,-3.04674 -1.31318,-4.91501"
+         style="color:#000000;fill:none;stroke:#23597b;stroke-width:0.25293148;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.63598174;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7686"
+         width="49.437397"
+         height="69.066391"
+         x="136.68063"
+         y="619.54303"
+         ry="3.011858"
+         rx="3.011858" />
+      <text
+         xml:space="preserve"
+         style="font-size:6.42612648px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+         x="167.5285"
+         y="647.80981"
+         id="text3919"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           style="font-size:4.49828911px;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1"
+           sodipodi:role="line"
+           x="167.5285"
+           y="647.80981"
+           id="tspan3921">Redirects</tspan></text>
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.37001398;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4815"
+         width="27.885778"
+         height="10.318604"
+         x="153.69543"
+         y="640.97351"
+         ry="0.79574019"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"
+         rx="0.79574019" />
+      <text
+         xml:space="preserve"
+         style="font-size:6.42612648px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+         x="167.75803"
+         y="678.98932"
+         id="text3919-0"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           style="font-size:4.49828911px;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1"
+           sodipodi:role="line"
+           x="167.75803"
+           y="678.98932"
+           id="tspan3921-9">etc...</tspan></text>
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.37001398;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4815-6"
+         width="27.885778"
+         height="10.318604"
+         x="153.69543"
+         y="656.62811"
+         ry="0.79574019"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"
+         rx="0.79574019" />
+      <text
+         xml:space="preserve"
+         style="font-size:6.42612648px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+         x="167.55925"
+         y="663.46442"
+         id="text3919-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           style="font-size:4.49828911px;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1"
+           sodipodi:role="line"
+           x="167.55925"
+           y="663.46442"
+           id="tspan3921-5">Peishranc</tspan></text>
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.37001398;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4815-7"
+         width="27.885778"
+         height="10.318604"
+         x="153.69543"
+         y="672.28265"
+         ry="0.79574019"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"
+         rx="0.79574019" />
+      <text
+         xml:space="preserve"
+         style="font-size:6.42612648px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+         x="167.5285"
+         y="632.15527"
+         id="text3919-1"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           style="font-size:4.49828911px;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1"
+           sodipodi:role="line"
+           x="167.5285"
+           y="632.15527"
+           id="tspan3921-4">Filtros</tspan></text>
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.37001398;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4815-9"
+         width="27.885778"
+         height="10.318604"
+         x="153.69543"
+         y="625.31903"
+         ry="0.79574019"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"
+         rx="0.79574019" />
+      <text
+         xml:space="preserve"
+         style="font-size:7.11553144px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="-654.74774"
+         y="146.60977"
+         id="text4060-4"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"
+         transform="matrix(0,-1,1,0,0,0)"><tspan
+           sodipodi:role="line"
+           id="tspan4589"
+           x="-654.74774"
+           y="146.60977">Preprocesadores</tspan></text>
+    </g>
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5"
+       d="m 115.1631,638.61563 0,-54.42907"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1"
+       d="m 115.1631,745.8186 0,-32.97179"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-499.90531,-1421.8108)"
+       id="g5274">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="223.83414"
+         y="545.89917"
+         id="text7355"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434"
+           sodipodi:role="line"
+           x="223.83414"
+           y="545.89917">Scrap links</tspan></text>
+      <rect
+         style="fill:none;stroke:#003294;stroke-width:0.42643693;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347"
+         width="31.360607"
+         height="8.7811985"
+         x="208.14073"
+         y="540.02435"
+         ry="1.6674693"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="1.6674693" />
+    </g>
+    <g
+       transform="matrix(2.4647911,0,0,2.4647911,2.7156202,-832.50764)"
+       id="g4470">
+      <g
+         id="g4405"
+         transform="matrix(0.79521823,0,0,0.79521823,14.26734,108.24618)">
+        <path
+           sodipodi:open="true"
+           sodipodi:end="3.3419312"
+           sodipodi:start="0.11018039"
+           transform="matrix(-0.37844053,0.00707229,-0.00756736,-0.40493123,73.601378,576.15353)"
+           d="M 94.367206,72.708697 C 92.641625,87.28626 78.598094,97.796364 63.000101,96.183671 47.402108,94.570979 36.156297,81.446183 37.881878,66.86862 c 0.09391,-0.793377 0.226055,-1.582392 0.39602,-2.364644"
+           sodipodi:ry="26.556042"
+           sodipodi:rx="28.414965"
+           sodipodi:cy="69.788658"
+           sodipodi:cx="66.124542"
+           id="path2404"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.9427098;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           sodipodi:type="arc" />
+        <path
+           sodipodi:open="true"
+           sodipodi:type="arc"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.9427104;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           id="path2406"
+           sodipodi:cx="66.124542"
+           sodipodi:cy="69.788658"
+           sodipodi:rx="28.414965"
+           sodipodi:ry="26.556042"
+           d="M 93.948425,75.177038 C 90.764191,89.538445 75.725682,98.768207 60.358976,95.792287 44.99227,92.816367 35.116425,78.761686 38.300659,64.400279 38.986437,61.307311 40.25714,58.35349 42.053045,55.677646"
+           transform="matrix(-0.16176408,-0.34219816,0.36615188,-0.17308756,46.20795,595.4182)"
+           sodipodi:start="0.20432472"
+           sodipodi:end="3.7018064" />
+        <path
+           sodipodi:open="true"
+           sodipodi:end="3.3789688"
+           sodipodi:start="0.0086827308"
+           transform="matrix(0.29147753,-0.2414705,0.25837331,0.31188106,14.342792,572.33623)"
+           d="M 94.538436,70.019234 C 94.402178,84.685178 81.570386,96.471042 65.877826,96.343699 50.185266,96.216355 37.574391,84.224026 37.710649,69.558082 c 0.01883,-2.026529 0.285809,-4.044385 0.795732,-6.014161"
+           sodipodi:ry="26.556042"
+           sodipodi:rx="28.414965"
+           sodipodi:cy="69.788658"
+           sodipodi:cx="66.124542"
+           id="path2408"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.94271016;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           sodipodi:type="arc" />
+        <path
+           sodipodi:type="arc"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.9427098;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           id="path2410"
+           sodipodi:cx="66.124542"
+           sodipodi:cy="69.788658"
+           sodipodi:rx="28.414965"
+           sodipodi:ry="26.556042"
+           d="M 92.424544,79.842237 C 86.483435,93.417087 69.892302,99.920537 55.367213,94.368099 43.377549,89.784866 36.222265,78.203293 37.969132,66.20749"
+           transform="matrix(0.37850663,0,0,0.405002,6.9714785,550.48027)"
+           sodipodi:start="0.38826133"
+           sodipodi:end="3.276858"
+           sodipodi:open="true" />
+        <path
+           sodipodi:open="true"
+           sodipodi:end="3.6306846"
+           sodipodi:start="0.16131042"
+           transform="matrix(0.18160095,0.33209689,-0.35534352,0.19431313,30.583276,531.54238)"
+           d="M 94.170614,74.053871 C 91.65011,88.529962 77.050183,98.355552 61.560765,95.99994 46.071347,93.644329 35.557966,79.999537 38.07847,65.523446 c 0.49976,-2.870286 1.500576,-5.644367 2.962482,-8.211467"
+           sodipodi:ry="26.556042"
+           sodipodi:rx="28.414965"
+           sodipodi:cy="69.788658"
+           sodipodi:cx="66.124542"
+           id="path2412"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.9427098;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           sodipodi:type="arc" />
+        <path
+           sodipodi:type="arc"
+           style="opacity:0.7;fill:none;stroke:#000000;stroke-width:1.94270992;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+           id="path2414"
+           sodipodi:cx="66.124542"
+           sodipodi:cy="69.788658"
+           sodipodi:rx="28.414965"
+           sodipodi:ry="26.556042"
+           d="M 91.913141,80.939503 C 85.323608,94.250391 68.435787,100.04859 54.193138,93.890152 40.128786,87.808805 33.871811,72.317059 40.128391,59.067017"
+           transform="matrix(-0.25065852,0.28361511,-0.30346797,-0.26820462,65.331433,551.93621)"
+           sodipodi:start="0.43333361"
+           sodipodi:end="3.5571899"
+           sodipodi:open="true" />
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-size:21.89214516px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="46.51609"
+         y="564.22693"
+         id="text2814-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="564.22693"
+           x="46.51609"
+           id="tspan3426-2"
+           sodipodi:role="line"
+           style="font-size:21.89214516px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;font-family:Linux Libertine O C;-inkscape-font-specification:Linux Libertine O C">W</tspan></text>
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-590.33499,-1317.7224)"
+       id="g4724">
+      <g
+         id="g4309-9"
+         transform="matrix(0.67071668,0,0,0.67071668,142.17705,107.55)">
+        <path
+           transform="translate(-6.493282,433.56428)"
+           d="m 96.78809,198.56242 c 0,2.99549 -7.182349,5.4238 -16.042225,5.4238 -8.859876,0 -16.042225,-2.42831 -16.042225,-5.4238 0,-2.99548 7.182349,-5.4238 16.042225,-5.4238 8.859876,0 16.042225,2.42832 16.042225,5.4238 z"
+           sodipodi:ry="5.4238"
+           sodipodi:rx="16.042225"
+           sodipodi:cy="198.56242"
+           sodipodi:cx="80.745865"
+           id="path3443-0"
+           style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           sodipodi:type="arc" />
+        <path
+           sodipodi:open="true"
+           sodipodi:end="3.1415927"
+           sodipodi:start="0"
+           transform="translate(-6.4932817,459.54298)"
+           d="m 96.78809,198.56242 c 0,2.99549 -7.182349,5.4238 -16.042225,5.4238 -8.859876,0 -16.042225,-2.42831 -16.042225,-5.4238 0,0 0,0 0,0"
+           sodipodi:ry="5.4238"
+           sodipodi:rx="16.042225"
+           sodipodi:cy="198.56242"
+           sodipodi:cx="80.745865"
+           id="path3443-5-8"
+           style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           sodipodi:type="arc" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path4272-4"
+           d="m 58.210358,658.13105 0,-26.04951"
+           style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path4272-7-7"
+           d="m 90.294808,658.13105 0,-26.04951"
+           style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-size:4.49891472px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="191.87518"
+         y="541.38208"
+         id="text2814-6-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="541.38208"
+           x="191.87518"
+           sodipodi:role="line"
+           id="tspan4369-9">Dump</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:4.49891472px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="191.96873"
+         y="547.67255"
+         id="text2814-6-2-9"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="547.67255"
+           x="191.96873"
+           sodipodi:role="line"
+           id="tspan4369-6-1">artículos</tspan></text>
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-453.14089,-1491.8232)"
+       id="g5009">
+      <rect
+         style="fill:none;stroke:#3c3c3c;stroke-width:0.25999999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:0.25999999, 0.77999997;stroke-dashoffset:0"
+         id="rect4568"
+         width="32.464317"
+         height="50.022095"
+         x="185.38164"
+         y="611.55811"
+         ry="1.2135904"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200" />
+      <path
+         sodipodi:type="arc"
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="path3443-0-8"
+         sodipodi:cx="80.745865"
+         sodipodi:cy="198.56242"
+         sodipodi:rx="16.042225"
+         sodipodi:ry="5.4238"
+         d="m 96.78809,198.56242 c 0,2.99549 -7.182349,5.4238 -16.042225,5.4238 -8.859876,0 -16.042225,-2.42831 -16.042225,-5.4238 0,-2.99548 7.182349,-5.4238 16.042225,-5.4238 8.859876,0 16.042225,2.42832 16.042225,5.4238 z"
+         transform="matrix(0.67071668,0,0,0.67071668,147.90369,487.44424)" />
+      <path
+         sodipodi:type="arc"
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.6772185;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="path3443-5-8-3"
+         sodipodi:cx="80.745865"
+         sodipodi:cy="198.56242"
+         sodipodi:rx="16.042225"
+         sodipodi:ry="5.4238"
+         d="m 96.78809,198.56242 c 0,2.99549 -7.182349,5.4238 -16.042225,5.4238 -8.859876,0 -16.042225,-2.42831 -16.042225,-5.4238 0,0 0,0 0,0"
+         transform="matrix(0.67071668,0,0,0.67071668,147.90369,504.86859)"
+         sodipodi:start="0"
+         sodipodi:end="3.1415927"
+         sodipodi:open="true" />
+      <path
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.45422176;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         d="m 191.3015,638.06492 0,-17.47184"
+         id="path4272-4-3"
+         inkscape:connector-curvature="0" />
+      <path
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.45422176;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         d="m 212.82107,638.06492 0,-17.47184"
+         id="path4272-7-7-8"
+         inkscape:connector-curvature="0" />
+      <text
+         xml:space="preserve"
+         style="font-size:4.49891472px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="201.95697"
+         y="630.47754"
+         id="text2814-6-7-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="630.47754"
+           x="201.95697"
+           sodipodi:role="line"
+           id="tspan4369-9-0">HTMLs</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:4.49891472px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#3c3c3c;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="202.05052"
+         y="636.76801"
+         id="text2814-6-2-9-2"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="636.76801"
+           x="202.05052"
+           sodipodi:role="line"
+           id="tspan4369-6-1-7">útiles</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:4.49891472px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="201.62817"
+         y="653.68152"
+         id="text2814-6"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="653.68152"
+           x="201.62817"
+           sodipodi:role="line"
+           id="tspan4369">Metadata</tspan></text>
+      <rect
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.45422173;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="rect4838"
+         width="22.804199"
+         height="8.8388348"
+         x="190.2117"
+         y="647.54352"
+         rx="1.2374368"
+         ry="1.2374368" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-485.47486,-1410.8358)"
+       id="g5269">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="230.02339"
+         y="558.95471"
+         id="text7355-9"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-1"
+           sodipodi:role="line"
+           x="230.02339"
+           y="558.95471">Descarga</tspan></text>
+      <rect
+         style="fill:none;stroke:#003294;stroke-width:0.42643693;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-9"
+         width="31.360607"
+         height="8.7811985"
+         x="214.37476"
+         y="553.27832"
+         ry="1.6674693"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="1.6674693" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-449.77146,-1394.1062)"
+       id="g5264">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="230.47049"
+         y="571.27307"
+         id="text7355-0"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#003294;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-18"
+           sodipodi:role="line"
+           x="230.47049"
+           y="571.27307">Reducción</tspan></text>
+      <rect
+         style="fill:none;stroke:#003294;stroke-width:0.42643693;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-6"
+         width="31.360607"
+         height="8.7811985"
+         x="214.82001"
+         y="564.96631"
+         ry="1.6674693"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="1.6674693" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-522.84578,-1313.7145)"
+       id="g5259">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#008600;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="250.29671"
+         y="628.81165"
+         id="text7355-0-2"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:129.99999523%;writing-mode:lr-tb;text-anchor:middle;fill:#008600;fill-opacity:1;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-18-4"
+           sodipodi:role="line"
+           x="250.29671"
+           y="628.81165">Indizado</tspan></text>
+      <rect
+         style="fill:none;stroke:#008600;stroke-width:0.42643693;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-6-7"
+         width="31.360607"
+         height="8.7811985"
+         x="234.70493"
+         y="622.50488"
+         ry="1.6674693"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="1.6674693" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-497.83192,-1347.8819)"
+       id="g5250">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#003294;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="283.49481"
+         y="554.9903"
+         id="text7355-7-1"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           sodipodi:role="line"
+           x="283.49481"
+           y="554.9903"
+           id="tspan7359-2-5">Bloques</tspan><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#003294;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-7-0"
+           sodipodi:role="line"
+           x="283.49481"
+           y="561.51984">Imagenes</tspan></text>
+      <rect
+         style="fill:none;stroke:#003294;stroke-width:0.38516489;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-5-6"
+         width="27.119551"
+         height="15.063977"
+         x="430.03058"
+         y="571.77307"
+         ry="0.56447691"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="0.56447685"
+         transform="matrix(1,0,-0.27615078,0.96111433,0,0)" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-497.83185,-1117.5717)"
+       id="g5244">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#008600;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="283.49478"
+         y="572.17517"
+         id="text7355-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           sodipodi:role="line"
+           x="283.49478"
+           y="572.17517"
+           id="tspan7359-2">Bloques</tspan><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#008600;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-7"
+           sodipodi:role="line"
+           x="283.49478"
+           y="578.70471">Índice</tspan></text>
+      <rect
+         style="fill:none;stroke:#008600;stroke-width:0.38516489;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-5-6-8"
+         width="27.119551"
+         height="15.063977"
+         x="434.84119"
+         y="589.19336"
+         ry="0.56447691"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="0.56447685"
+         transform="matrix(1,0,-0.27615078,0.96111433,0,0)" />
+    </g>
+    <g
+       transform="matrix(3.6748617,0,0,3.6748617,-497.83196,-1336.2169)"
+       id="g5238">
+      <text
+         xml:space="preserve"
+         style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ff1417;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="283.6907"
+         y="591.96289"
+         id="text7355-7-7"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"><tspan
+           sodipodi:role="line"
+           x="283.6907"
+           y="591.96289"
+           id="tspan7359-2-55">Bloques</tspan><tspan
+           style="font-size:5.02273893px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#ff1417;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+           id="tspan2434-7-1"
+           sodipodi:role="line"
+           x="283.6907"
+           y="598.49243">Artículos</tspan></text>
+      <rect
+         style="fill:none;stroke:#ff1417;stroke-width:0.38516489;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect4347-5-6-7"
+         width="27.119551"
+         height="15.063977"
+         x="440.5274"
+         y="609.78424"
+         ry="0.56447691"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\Movistar\DiagramaGeneral.png"
+         inkscape:export-xdpi="399.92471"
+         inkscape:export-ydpi="399.92471"
+         rx="0.56447685"
+         transform="matrix(1,0,-0.27615078,0.96111433,0,0)" />
+    </g>
+    <g
+       transform="matrix(3.2438194,0,0,3.2438194,-507.82776,-1695.2558)"
+       id="g5414">
+      <text
+         xml:space="preserve"
+         style="font-size:5.09673548px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="372.94135"
+         y="745.79877"
+         id="text2814-6-6"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="745.79877"
+           x="372.94135"
+           sodipodi:role="line"
+           id="tspan4369-6">Recursos</tspan><tspan
+           y="752.4245"
+           x="372.94135"
+           sodipodi:role="line"
+           id="tspan5392">estáticos</tspan></text>
+      <rect
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.51457924;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="rect4838-6"
+         width="25.834446"
+         height="17.791599"
+         x="360.08157"
+         y="738.46509"
+         rx="1.4018687"
+         ry="1.4018687" />
+    </g>
+    <g
+       transform="matrix(3.2438194,0,0,3.2438194,-656.92005,-1539.6689)"
+       id="g5366">
+      <text
+         xml:space="preserve"
+         style="font-size:5.09673548px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="418.94739"
+         y="736.71368"
+         id="text2814-6-7-7-6"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="736.71368"
+           x="418.94739"
+           sodipodi:role="line"
+           id="tspan4369-9-0-7">.iso</tspan></text>
+      <path
+         sodipodi:type="arc"
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.51457924;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="path5347"
+         sodipodi:cx="418.96075"
+         sodipodi:cy="282.50906"
+         sodipodi:rx="8.8388357"
+         sodipodi:ry="8.8388357"
+         d="m 427.79959,282.50906 c 0,4.88156 -3.95728,8.83884 -8.83884,8.83884 -4.88155,0 -8.83883,-3.95728 -8.83883,-8.83884 0,-4.88155 3.95728,-8.83883 8.83883,-8.83883 4.88156,0 8.83884,3.95728 8.83884,8.83883 z"
+         transform="translate(0,452.36218)" />
+    </g>
+    <g
+       transform="matrix(3.2438194,0,0,3.2438194,-614.48614,-1395.9245)"
+       id="g5420">
+      <text
+         xml:space="preserve"
+         style="font-size:5.09673548px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:129.99999523%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#3c3c3c;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
+         x="405.86066"
+         y="724.21796"
+         id="text2814-6-6-1"
+         sodipodi:linespacing="130%"
+         inkscape:export-filename="C:\Documents and Settings\efacbat\My Documents\Proyectos\MMS\loadbalancers.png"
+         inkscape:export-xdpi="200"
+         inkscape:export-ydpi="200"><tspan
+           y="724.21796"
+           x="405.86066"
+           sodipodi:role="line"
+           id="tspan4369-6-9">Código</tspan><tspan
+           y="730.84369"
+           x="405.86066"
+           sodipodi:role="line"
+           id="tspan5394">Python</tspan></text>
+      <rect
+         style="color:#000000;fill:none;stroke:#3c3c3c;stroke-width:0.51457924;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="rect4838-6-5"
+         width="25.834446"
+         height="17.791599"
+         x="392.96207"
+         y="717.1366"
+         rx="1.4018687"
+         ry="1.4018687" />
+    </g>
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-0"
+       d="m 281.09529,597.40445 0,158.0668"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-6"
+       d="M 361.66903,621.26334 323.78051,595.37582"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-6-0"
+       d="M 394.57692,680.51253 356.6884,654.62501"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7-4"
+       d="m 490.35413,698.20174 -35.55509,0"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-1-7-4-0"
+       d="m 490.35413,990.03971 -35.55509,0"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4272-7-7-5-6-0-6"
+       d="M 337.3136,989.21787 285.64744,940.08053"
+       style="color:#000000;fill:none;stroke:#23597b;stroke-width:1.66852283;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;marker-start:url(#Arrow1MstartV);visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
