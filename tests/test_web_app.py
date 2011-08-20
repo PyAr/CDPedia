@@ -66,5 +66,17 @@ class CDPediaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue("Ayuda" in response.data)
 
+    def test_watchdog_off(self):
+        app = web_app.create_app(watchdog=None, with_static=False)
+        client = Client(app, BaseResponse)
+        response = client.get("/")
+        self.assertTrue("watchdog" not in response.data)
+
+    def test_watchdog_on(self):
+        app = web_app.create_app(watchdog=True, with_static=False)
+        client = Client(app, BaseResponse)
+        response = client.get("/")
+        self.assertTrue("watchdog" in response.data)
+
 if __name__ == '__main__':
     unittest.main()
