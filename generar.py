@@ -18,6 +18,7 @@ import config
 from src.preproceso import preprocesar
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
+from src.armado.compressed_index import  NO_ST_MSG
 from src.imagenes import extraer, download, reducir, calcular
 
 def mensaje(texto):
@@ -185,6 +186,12 @@ def build_tarball(tarball_name):
 
 def main(src_info, evitar_iso, verbose, desconectado,
          procesar_articles, include_windows, tarball):
+
+    if procesar_articles:
+        try:
+            import SuffixTree
+        except ImportError:
+            print NO_ST_MSG
 
     articulos = path.join(src_info, "articles")
 

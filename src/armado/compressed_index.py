@@ -227,7 +227,7 @@ class TermSimilitudeMatrixBase:
                 i = self.lookup_term_index(tv)
             except KeyError:
                 i = None
-                
+
             if i is not None:
                 candidates = delta_decode_str(self.matrix[i])
                 candidates.add(i) # <- the matrix omits the diagnoal
@@ -283,7 +283,6 @@ try:
             return set(self.stree[t])
 
 except ImportError:
-    print NO_ST_MSG
 
     class TermSimilitudeMatrix(TermSimilitudeMatrixBase):
         def similar_impl(self, t):
