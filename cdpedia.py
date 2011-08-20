@@ -77,9 +77,9 @@ def cd_watch_dog():
 def sleep_and_browse():
     server_up.wait()
     if config.EDICION_ESPECIAL is None:
-        index = "http://%s:%d/" % (config.HOSTNAME, port)
+        index = "http://%s:%d/" % (config.HOSTNAME, config.PORT)
     else:
-        index = "http://%s:%d/%s/%s" % (config.HOSTNAME, port,
+        index = "http://%s:%d/%s/%s" % (config.HOSTNAME, config.PORT,
                                         config.EDICION_ESPECIAL, config.INDEX)
     webbrowser.open(index)
 
@@ -98,8 +98,10 @@ browser_watchdog.start()
 print "Levantando el server..."
 
 app = create_app()
-port = find_open_port(starting_from=config.PORT, host=config.HOSTNAME)
-server = ThreadedWSGIServer(config.HOSTNAME, port, app, handler=None,
+if not config.PORT:
+    config.PORT = find_open_port(starting_from=8000, host=config.HOSTNAME)
+
+server = ThreadedWSGIServer(config.HOSTNAME, config.PORT, app, handler=None,
                             passthrough_errors=False)
 server_up.set()
 server.serve_forever()
