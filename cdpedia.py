@@ -89,6 +89,7 @@ cd_wd_timer.start()
 
 threading.Thread(target=sleep_and_browse).start()
 
+browser_watchdog=None
 if config.BROWSER_WD_SECONDS:
     browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
     # Iniciamos el watchdog por más que aún no esté levantado el browser ya que
@@ -98,7 +99,7 @@ if config.BROWSER_WD_SECONDS:
 
 print "Levantando el server..."
 
-app = create_app()
+app = create_app(browser_watchdog)
 if not config.PORT:
     config.PORT = find_open_port(starting_from=8000, host=config.HOSTNAME)
 

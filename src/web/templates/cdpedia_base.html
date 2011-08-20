@@ -34,9 +34,11 @@
     <script type="text/javascript" src="../../../skins/js/lookup.js"></script>
 {% endblock %}
 {% block body %}
+  {% if watchdog %}
   <!-- Watchdog iframe -->
   <iframe src="/watchdog/update" style="width:1px;height:1px;display:none;"></iframe>
   <!-- /WatchDog iframe -->
+  {% endif %}
   <div id="content">
     <a id="top"></a>
     <div id="mw-js-message" style="display:none;"></div>

@@ -22,8 +22,6 @@ from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
 
-WATCHDOG_IFRAME = '<iframe src="/watchdog/update" style="width:1px;height:1px;'\
-                  'display:none;"></iframe>'
 
 class ArticleNotFound(HTTPException):
     code = 404
@@ -36,10 +34,13 @@ class ArticleNotFound(HTTPException):
 
 class CDPedia(object):
 
-    def __init__(self, conf=None):
+    def __init__(self, watchdog):
         template_path = os.path.join(os.path.dirname(__file__), 'templates')
         self.jinja_env = Environment(loader=FileSystemLoader(template_path),
                                  autoescape=False)
+
+        self.jinja_env.globals["watchdog"] = True if watchdog else False
+
         self.template_manager = TemplateManager(template_path)
         self._art_mngr = compresor.ArticleManager()
         self._img_mngr = compresor.ImageManager()
@@ -48,13 +49,15 @@ class CDPedia(object):
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
         self.index.start()
 
+        self.watchdog = watchdog
+
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
             Rule('/wiki/<nombre>', endpoint='articulo'),
             Rule('/al_azar', endpoint='al_azar'),
             Rule('/images/<path:nombre>', endpoint='imagen'),
-            Rule('/institucional/<path:path>', endpoint='institucional')
-
+            Rule('/institucional/<path:path>', endpoint='institucional'),
+            Rule('/watchdog/update', endpoint='watchdog_update'),
         ])
 
     def on_main_page(self, request):
@@ -130,6 +133,14 @@ class CDPedia(object):
         link = u"wiki/" + to3dirs.from_path(link)
         return redirect(urllib.quote(link.encode("utf-8")))
 
+    def on_watchdog_update(self, request):
+        self.watchdog.update()
+        seconds = str(int(config.BROWSER_WD_SECONDS * 0.85))
+        resp = Response("<html><head><meta http-equiv='refresh' content='%s'" \
+                        "></head><body></body></html>" % seconds,
+                        mimetype="text/html")
+        return resp
+
     def render_template(self, template_name, **context):
         t = self.jinja_env.get_template(template_name)
         return Response(t.render(context), mimetype='text/html')
@@ -161,10 +172,10 @@ class CDPedia(object):
         return self.wsgi_app(environ, start_response)
 
 
-def create_app(with_static=True, with_debugger=True, use_evalex=True):
+def create_app(watchdog, with_static=True, with_debugger=True, use_evalex=True):
     from werkzeug.wsgi import SharedDataMiddleware
     from werkzeug.debug import DebuggedApplication
-    app = CDPedia()
+    app = CDPedia(watchdog)
     if with_static:
         paths = [("/" + path, os.path.join(config.DIR_ASSETS, path))
                  for path in config.ALL_ASSETS]

@@ -13,7 +13,7 @@ from werkzeug.wrappers import BaseResponse
 class CDPediaTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.app = web_app.create_app(with_static=False)
+        self.app = web_app.create_app(watchdog=None, with_static=False)
         self.client = Client(self.app, BaseResponse)
 
     def tearDown(self):
@@ -60,6 +60,11 @@ class CDPediaTestCase(unittest.TestCase):
         response = self.client.get("/al_azar", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue("De Wikipedia, la enciclopedia libre" in response.data)
+
+    def test_institucional(self):
+        response = self.client.get("/institucional/ayuda.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("Ayuda" in response.data)
 
 if __name__ == '__main__':
     unittest.main()
