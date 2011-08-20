@@ -53,29 +53,9 @@ class CDPedia(object):
             Rule('/wiki/<nombre>', endpoint='articulo'),
             Rule('/al_azar', endpoint='al_azar'),
             Rule('/images/<path:nombre>', endpoint='imagen'),
+            Rule('/institucional/<path:path>', endpoint='institucional')
 
         ])
-
-    def on_imagen(self, request, nombre):
-        try:
-            normpath = posixpath.normpath(nombre)
-            asset_data = self._img_mngr.get_item(normpath)
-        except Exception, e:
-            msg = u"Error interno al buscar imagen: %s" % e
-            raise InternalServerError(msg)
-        if asset_data is None:
-            print "WARNING: no pudimos encontrar", repr(nombre)
-            try:
-                width, _, height = request.args["s"].partition('-')
-                width = int(width)
-                height = int(height)
-            except Exception, e:
-                raise InternalServerError("Error al generar imagen")
-            img = bmp.BogusBitMap(width, height)
-            return Response(img.data, mimetype="img/bmp")
-        type_ = guess_type(nombre)[0]
-        return Response(asset_data, mimetype=type_)
-
 
     def on_main_page(self, request):
         data_destacado = self._destacados_mngr.get_destacado()
@@ -104,6 +84,44 @@ class CDPedia(object):
             article_name=nombre,
             orig_link=orig_link,
             article=data.decode("utf-8")
+        )
+
+    def on_imagen(self, request, nombre):
+        try:
+            normpath = posixpath.normpath(nombre)
+            asset_data = self._img_mngr.get_item(normpath)
+        except Exception, e:
+            msg = u"Error interno al buscar imagen: %s" % e
+            raise InternalServerError(msg)
+        if asset_data is None:
+            print "WARNING: no pudimos encontrar", repr(nombre)
+            try:
+                width, _, height = request.args["s"].partition('-')
+                width = int(width)
+                height = int(height)
+            except Exception, e:
+                raise InternalServerError("Error al generar imagen")
+            img = bmp.BogusBitMap(width, height)
+            return Response(img.data, mimetype="img/bmp")
+        type_ = guess_type(nombre)[0]
+        return Response(asset_data, mimetype=type_)
+
+    def on_institucional(self, request, path):
+        path = os.path.join("institucional", path)
+        asset_file = os.path.join(config.DIR_ASSETS, path)
+        if os.path.isdir(asset_file):
+            print "WARNING: ", repr(asset_file), "es un directorio"
+            raise NotFound()
+        if not os.path.exists(asset_file):
+            print "WARNING: no pudimos encontrar", repr(asset_file)
+            raise NotFound()
+
+        data = open(asset_file, "rb").read()
+        title = utils.get_title_from_data(data)
+
+        return self.render_template('institucional.html',
+            title=title,
+            asset=data.decode("utf-8")
         )
 
     #@ei.espera_indice # TODO
