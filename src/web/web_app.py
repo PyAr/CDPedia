@@ -19,17 +19,11 @@ from src import third_party # Need this to import thirdparty (werkzeug and jinja
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
-from werkzeug.wsgi import SharedDataMiddleware
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
 
 WATCHDOG_IFRAME = '<iframe src="/watchdog/update" style="width:1px;height:1px;'\
                   'display:none;"></iframe>'
-
-ALL_ASSETS = config.ASSETS + ["images",  "extern", "tutorial"]
-if config.EDICION_ESPECIAL is not None:
-    ALL_ASSETS.append(config.EDICION_ESPECIAL)
-
 
 class ArticleNotFound(HTTPException):
     code = 404
@@ -149,11 +143,16 @@ class CDPedia(object):
         return self.wsgi_app(environ, start_response)
 
 
-def create_app(with_static=True):
+def create_app(with_static=True, with_debugger=True, use_evalex=True):
+    from werkzeug.wsgi import SharedDataMiddleware
+    from werkzeug.debug import DebuggedApplication
     app = CDPedia()
     if with_static:
-        paths = [("/"+path, os.path.join(config.DIR_ASSETS, path)) for path in ALL_ASSETS]
+        paths = [("/" + path, os.path.join(config.DIR_ASSETS, path))
+                 for path in config.ALL_ASSETS]
         app.wsgi_app = SharedDataMiddleware(app.wsgi_app, dict(paths))
+    if with_debugger:
+        app.wsgi_app = DebuggedApplication(app.wsgi_app, use_evalex)
     return app
 
 if __name__ == '__main__':
