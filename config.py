@@ -42,7 +42,8 @@ DESTACADOS = 'destacados.txt'
 # se irán mostrando en orden los destacados.
 DEBUG_DESTACADOS = False
 
-# Tiempo de espera máxima, en segundos, para actualización del browser_watchdog
+# Tiempo de espera máxima, en segundos, para actualización del browser_watchdog.
+# Usar BROWSER_WD_SECONDS = 0 para desactivar el watchdog.
 BROWSER_WD_SECONDS = 120
 
 # info para el compresor / decompresor

@@ -89,11 +89,12 @@ cd_wd_timer.start()
 
 threading.Thread(target=sleep_and_browse).start()
 
-browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
-# Iniciamos el watchdog por más que aún no esté levantado el browser ya que
-# el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
-# y el browser.
-browser_watchdog.start()
+if config.BROWSER_WD_SECONDS:
+    browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
+    # Iniciamos el watchdog por más que aún no esté levantado el browser ya que
+    # el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
+    # y el browser.
+    browser_watchdog.start()
 
 print "Levantando el server..."
 
