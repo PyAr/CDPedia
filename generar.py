@@ -90,6 +90,10 @@ def copiarSources():
     shutil.copy(path.join("src", "utiles.py"), dest_src)
     copy_dir(path.join("src", "armado"),
              path.join(config.DIR_CDBASE, "cdpedia", "src", "armado"))
+    copy_dir(path.join("src", "web"),
+             path.join(config.DIR_CDBASE, "cdpedia", "src", "web"))
+    copy_dir(path.join("src", "third_party"),
+             path.join(config.DIR_CDBASE, "cdpedia", "src", "third_party"))
 
     # el main va al root
     shutil.copy("cdpedia.py", config.DIR_CDBASE)
@@ -114,18 +118,22 @@ def armarIso(dest):
 
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
-    f.write('DIR_BLOQUES = "cdpedia/bloques"\n')
-    f.write('DIR_ASSETS = "cdpedia/assets"\n')
-    f.write('ASSETS = %s\n' % config.ASSETS)
+    f.write('VERSION = %s\n' % repr(config.VERSION))
     f.write('EDICION_ESPECIAL = %s\n' % repr(config.EDICION_ESPECIAL))
-    f.write('DIR_INDICE = "cdpedia/indice"\n')
+    f.write('HOSTNAME = "%s"\n' % config.HOSTNAME)
+    f.write('PORT = %d\n' % config.PORT)
     f.write('INDEX = "%s"\n' % config.INDEX)
+    f.write('ASSETS = %s\n' % config.ASSETS)
+    f.write('ALL_ASSETS = %s\n' % config.ALL_ASSETS)
     f.write('DESTACADOS = "cdpedia/%s"\n' % config.DESTACADOS)
     f.write('DEBUG_DESTACADOS = %s\n' % repr(config.DEBUG_DESTACADOS))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
+    f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
+    f.write('DIR_BLOQUES = "cdpedia/bloques"\n')
+    f.write('DIR_ASSETS = "cdpedia/assets"\n')
+    f.write('DIR_INDICE = "cdpedia/indice"\n')
     f.write('IMAGES_PER_BLOCK = %d\n' % config.IMAGES_PER_BLOCK)
     f.write('ARTICLES_PER_BLOCK = %d\n' % config.ARTICLES_PER_BLOCK)
-    f.write('VERSION = %s\n' % repr(config.VERSION))
     f.close()
 
 def preparaTemporal(procesar_articles):

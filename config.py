@@ -1,9 +1,48 @@
 # -*- coding: utf-8 -*-
 
+# Versión de la CDPedia
+VERSION = '0.7.1'
+
+# This should be set to the hostname or address of the server.
+# Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
+HOSTNAME = "localhost"
+
+# The port address to bind the server.
+PORT = 8000
+
+# Nombre de la edicion especial, modifica el INDEX y ASSETS en código
+EDICION_ESPECIAL = None
+#EDICION_ESPECIAL = "educar"
+
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final
 URL_WIKIPEDIA = u"http://es.wikipedia.org/"
 IDIOMA = "es"
+
+# Directorios especiales con metadata y cosas que no son los HTMLs de las
+# páginas en sí
+ASSETS = ["skins", "misc"]
+
+ALL_ASSETS = ASSETS + ["images",  "extern", "tutorial"]
+if EDICION_ESPECIAL is not None:
+    ALL_ASSETS.append(EDICION_ESPECIAL)
+
+# Primera página que se abrirá en el browser.
+# Para ir a la portada de cdpedia dejar ""
+INDEX = "index.html"
+
+# PATH del archivo que contiene los artículos destacados de donde se
+# seleccionará el que se muestra en la página principal
+# Si no hay destacados debe ser None
+DESTACADOS = 'destacados.txt'
+
+# Para revisar la página inicial de CDPedia con cada artículo destacado se
+# debe poner esta variable en True y cada vez que se cargué la página inicial
+# se irán mostrando en orden los destacados.
+DEBUG_DESTACADOS = False
+
+# Tiempo de espera máxima, en segundos, para actualización del browser_watchdog
+BROWSER_WD_SECONDS = 120
 
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
@@ -49,27 +88,6 @@ LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
-
-# Directorios especiales con metadata y cosas que no son los HTMLs de las
-# páginas en sí
-ASSETS = ["skins", "misc"]
-
-# Primera página que se abrirá en el browser.
-# Para ir a la portada de cdpedia dejar ""
-INDEX = "index.html"
-
-# PATH del archivo que contiene los artículos destacados de donde se
-# seleccionará el que se muestra en la página principal
-# Si no hay destacados debe ser None
-DESTACADOS = 'destacados.txt'
-
-# Para revisar la página inicial de CDPedia con cada artículo destacado se
-# debe poner esta variable en True y cada vez que se cargué la página inicial
-# se irán mostrando en orden los destacados.
-DEBUG_DESTACADOS = False
-
-# Tiempo de espera máxima para actualización del browser_watchdog
-BROWSER_WD_SECONDS = 60
 
 # Comando externo para convertir en HTML en texto, para extraer las palabras
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.
@@ -117,13 +135,6 @@ ESCALA_IMAGS = [  # para las XO
 #    ( 4,  50),
 #    (90,   0),
 #]
-
-# Nombre de la edicion especial, modifica el INDEX y ASSETS en código
-EDICION_ESPECIAL = None
-#EDICION_ESPECIAL = "educar"
-
-# Versión de la CDPedia
-VERSION = '0.7'
 
 # validamos los porcentajes de lo que acabamos de escribir arriba
 _porc_escala = [x[1] for x in ESCALA_IMAGS]

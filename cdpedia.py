@@ -23,16 +23,16 @@ if platform.system() == 'Windows':
     except:     # Si no podemos logear ni mostrar el error porque no
         pass    # tenemos una consola no podemos hacer nada.
 
-raise NotImplementedError("Aun no implementado. Para correr el servidor hacer:\n" \
-                      "$ PYTHONPATH=. python src/web/web_app.py")
-from src.utiles import WatchDog
+from src import third_party # Need this to import thirdparty (werkzeug and jinja2)
+from werkzeug.serving import ThreadedWSGIServer
+from src.utiles import WatchDog, find_open_port
+from src.web.web_app import create_app
 import config
 
 server_up = threading.Event()
-browser_up = threading.Event()
 
-# WatchDog timer
-wd_timer = None
+# CD WatchDog timer
+cd_wd_timer = None
 
 # Tiempo entre llamadas a cd_watch_dog en segundos
 CD_WD_SECONDS = 10
@@ -41,7 +41,7 @@ def handle_crash(type, value, tb):
     '''Function to handle any exception that is not addressed explicitly.'''
     if issubclass(type, KeyboardInterrupt):
         # Nos vamos!
-        wd_timer.cancel()
+        cd_wd_timer.cancel()
         sys.exit(0)
     else:
         exception = traceback.format_exception(type, value, tb)
@@ -57,7 +57,7 @@ def close():
 
 def cd_watch_dog():
     ''' Comprueba que el CD está puesto '''
-    global wd_timer
+    global cd_wd_timer
 
     try:
         archivos = os.listdir('.')
@@ -70,36 +70,39 @@ def cd_watch_dog():
         close()
 
     # Sigue andando, probemos mas tarde
-    wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
-    wd_timer.start()
+    cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
+    cd_wd_timer.daemon = True
+    cd_wd_timer.start()
 
 def sleep_and_browse():
-    global wd_timer
     server_up.wait()
-    port = server.serving_port
-    wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
-    wd_timer.start()
     if config.EDICION_ESPECIAL is None:
-        index = "http://localhost:%d/" % (port,)
+        index = "http://%s:%d/" % (config.HOSTNAME, port)
     else:
-        index = "http://localhost:%d/%s/%s" % (port, config.EDICION_ESPECIAL,
-                                                                config.INDEX)
+        index = "http://%s:%d/%s/%s" % (config.HOSTNAME, port,
+                                        config.EDICION_ESPECIAL, config.INDEX)
     webbrowser.open(index)
-    browser_up.set()
 
-
-def start_browser_watchdog():
-    browser_up.wait()
-    browser_watchdog.start()
-
+cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
+cd_wd_timer.daemon = True
+cd_wd_timer.start()
 
 threading.Thread(target=sleep_and_browse).start()
 
 browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
-threading.Thread(target=start_browser_watchdog).start()
+# Iniciamos el watchdog por más que aún no esté levantado el browser ya que
+# el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
+# y el browser.
+browser_watchdog.start()
 
 print "Levantando el server..."
-server.run(server_up, browser_watchdog.update,
-                      debug_destacados=config.DEBUG_DESTACADOS)
+
+app = create_app()
+port = find_open_port(starting_from=config.PORT, host=config.HOSTNAME)
+server = ThreadedWSGIServer(config.HOSTNAME, port, app, handler=None,
+                            passthrough_errors=False)
+server_up.set()
+server.serve_forever()
+
 print "Terminado, saliendo."
-wd_timer.cancel()
+cd_wd_timer.cancel()

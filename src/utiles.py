@@ -4,6 +4,7 @@
 
 import re
 import time
+import socket
 import threading
 
 from hashlib import md5
@@ -57,3 +58,18 @@ def coherent_hash(txt):
     """Devuelve el mismo número en distintas versiones de Py y plataformas."""
     return int(md5(txt).hexdigest()[-6:], 16)
 
+def find_open_port(starting_from=8000, host="127.0.0.1"):
+    """
+    Finds a free port.
+    """
+    port = starting_from
+    while 1:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind((host, port))
+        except socket.error, e:
+            port += 1
+        else:
+            s.close()
+            return port

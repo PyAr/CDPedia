@@ -110,6 +110,7 @@ class IndexInterface(threading.Thread):
         super(IndexInterface, self).__init__()
         self.ready = threading.Event()
         self.directory = directory
+        self.daemon = True
 
     def is_ready(self):
         return self.ready.isSet()
