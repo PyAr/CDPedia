@@ -3,12 +3,16 @@
 
 import Queue
 import collections
+import operator
+import re
 import threading
 import uuid
 
 # just a token to show the End Of Search
 EOS = object()
 
+# regex used in untested code, see get_grouped() below
+LIMPIA = re.compile("[(),]")
 
 class Cache(dict):
     """A dict-like, but with a max limit."""
@@ -107,3 +111,44 @@ class Searcher(object):
 
             self.active_searches[search_id] = (search, prev_results, lock)
         return prev_results[start:start+quantity]
+
+    def get_grouped(self, search_id, quantity=10):
+        """Get the results, old fashion grouped.
+
+        WARNING: this code is untested, but it's basically the old grouping
+        code that used to live in server.py.
+        """
+        candidatos = self.get_results(search_id, quantity=quantity)
+
+        # -------------- start of old untested code --------------------
+
+        # agrupamos por link, dando prioridad a los títulos de los
+        # artículos originales
+        agrupados = {}
+        for link, titulo, ptje, original, texto in candidatos:
+            # quitamos 3 dirs del link y agregamos "wiki"
+            link = u"wiki" + link[5:]
+
+            # los tokens los ponemos en minúscula porque las mayúscula les
+            # da un efecto todo entrecortado
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
+
+            if link in agrupados:
+                (tit, prv_ptje, tokens, txt) = agrupados[link]
+                tokens.update(tit_tokens)
+                if original:
+                    # guardamos la info del artículo original
+                    tit = titulo
+                    txt = texto
+                agrupados[link] = (tit, prv_ptje + ptje, tokens, txt)
+            else:
+                agrupados[link] = (titulo, ptje, tit_tokens, texto)
+
+        # limpiamos los tokens
+        for link, (tit, ptje, tokens, texto) in agrupados.iteritems():
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
+            tokens.difference_update(tit_tokens)
+
+        # ordenamos la nueva info descendiente y devolvemos todo
+        candidatos = ((k,) + tuple(v) for k,v in agrupados.iteritems())
+        return sorted(candidatos, key=operator.itemgetter(2), reverse=True)
