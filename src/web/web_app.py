@@ -66,7 +66,7 @@ class CDPedia(object):
         if data_destacado is not None:
             link, title, first_paragraphs = data_destacado
             destacado = {"link":link, "title":title,
-                         "first_paragraphs":first_paragraphs.decode("utf-8")}
+                         "first_paragraphs":first_paragraphs}
         return self.render_template('main_page.html',
             title="Portada",
             destacado=destacado,
@@ -86,7 +86,7 @@ class CDPedia(object):
         return self.render_template('article.html',
             article_name=nombre,
             orig_link=orig_link,
-            article=data.decode("utf-8")
+            article=data
         )
 
     def on_imagen(self, request, nombre):

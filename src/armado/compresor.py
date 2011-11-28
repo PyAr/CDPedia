@@ -103,7 +103,7 @@ class Bloque(object):
             (seek, size) = info
             self.fh.seek(4 + self.header_size + seek)
             data = self.fh.read(size)
-        return data
+        return data.decode("utf-8")
 
 
 class BloqueImagenes(Bloque):
