@@ -12,8 +12,10 @@ import bmp
 import config
 from src.armado import compresor
 from src.armado import cdpindex
+from src.armado.cdpindex import normaliza as normalize_keyword
 from src.armado import to3dirs
 from destacados import Destacados
+from searcher import Searcher, Cache
 from utils import TemplateManager
 from src import third_party # Need this to import thirdparty (werkzeug and jinja2)
 from werkzeug.wrappers import Request, Response
@@ -34,34 +36,40 @@ class ArticleNotFound(HTTPException):
 
 class CDPedia(object):
 
-    def __init__(self, watchdog):
+    def __init__(self, watchdog=None, verbose=False, search_cache_size=100):
+        self.search_cache_size = search_cache_size
+        self.watchdog = watchdog
+        self.verbose = verbose
+
         template_path = os.path.join(os.path.dirname(__file__), 'templates')
         self.jinja_env = Environment(loader=FileSystemLoader(template_path),
                                  autoescape=False)
-
         self.jinja_env.globals["watchdog"] = True if watchdog else False
 
         self.template_manager = TemplateManager(template_path)
-        self._art_mngr = compresor.ArticleManager()
-        self._img_mngr = compresor.ImageManager()
-        self._destacados_mngr = Destacados(self._art_mngr, debug=False)
+        self.art_mngr = compresor.ArticleManager()
+        self.img_mngr = compresor.ImageManager()
+        self.destacados_mngr = Destacados(self.art_mngr, debug=False)
 
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
         self.index.start()
 
-        self.watchdog = watchdog
+        self.searcher = Searcher(self.index, self.search_cache_size)
+        self.search_key_norm_cache = Cache(self.search_cache_size, lambda _: _)
 
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
             Rule('/wiki/<nombre>', endpoint='articulo'),
             Rule('/al_azar', endpoint='al_azar'),
+            Rule('/search', endpoint='search'),
+            Rule('/search/<key>', endpoint='search_results'),
             Rule('/images/<path:nombre>', endpoint='imagen'),
             Rule('/institucional/<path:path>', endpoint='institucional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
         ])
 
     def on_main_page(self, request):
-        data_destacado = self._destacados_mngr.get_destacado()
+        data_destacado = self.destacados_mngr.get_destacado()
         destacado = None
         if data_destacado is not None:
             link, title, first_paragraphs = data_destacado
@@ -75,7 +83,7 @@ class CDPedia(object):
     def on_articulo(self, request, nombre):
         orig_link = utils.get_orig_link(nombre)
         try:
-            data = self._art_mngr.get_item(nombre)
+            data = self.art_mngr.get_item(nombre)
         except Exception, e:
             raise InternalServerError(u"Error interno al buscar contenido: %s" % e)
 
@@ -92,12 +100,13 @@ class CDPedia(object):
     def on_imagen(self, request, nombre):
         try:
             normpath = posixpath.normpath(nombre)
-            asset_data = self._img_mngr.get_item(normpath)
+            asset_data = self.img_mngr.get_item(normpath)
         except Exception, e:
             msg = u"Error interno al buscar imagen: %s" % e
             raise InternalServerError(msg)
         if asset_data is None:
-            print "WARNING: no pudimos encontrar", repr(nombre)
+            if self.verbose:
+                print "WARNING: no pudimos encontrar", repr(nombre)
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
@@ -132,6 +141,24 @@ class CDPedia(object):
         link, tit = self.index.get_random()
         link = u"wiki/" + to3dirs.from_path(link)
         return redirect(urllib.quote(link.encode("utf-8")))
+
+    #@ei.espera_indice # TODO
+    def on_search(self, request):
+        if request.method == "GET":
+            return self.render_template('search.html')
+        elif request.method == "POST":
+            search_string = request.form.get("keywords", None)
+            if search_string:
+                search_string_norm = normalize_keyword(search_string)
+                #keywords = map(normalize_keyword, search_string.split())
+                id_ = self.searcher.start_search(search_string)
+                return redirect("/search/%s" % search_string_norm)
+            return redirect("/")
+
+    def on_search_results(self, request, key):
+        #results = self.searcher.get_results(id_)
+        return Response("")
+
 
     def on_watchdog_update(self, request):
         self.watchdog.update()
@@ -172,10 +199,11 @@ class CDPedia(object):
         return self.wsgi_app(environ, start_response)
 
 
-def create_app(watchdog, with_static=True, with_debugger=True, use_evalex=True):
+def create_app(watchdog, verbose=False, with_static=True, with_debugger=True,
+               use_evalex=True):
     from werkzeug.wsgi import SharedDataMiddleware
     from werkzeug.debug import DebuggedApplication
-    app = CDPedia(watchdog)
+    app = CDPedia(watchdog, verbose=verbose)
     if with_static:
         paths = [("/" + path, os.path.join(config.DIR_ASSETS, path))
                  for path in config.ALL_ASSETS]

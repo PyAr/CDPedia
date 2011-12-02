@@ -4,17 +4,17 @@ import sys
 import unittest
 
 from src import third_party # Need this to import werkzeug
-from src.web import web_app
+from src.web import web_app, searcher
 
 from werkzeug.test import Client
-from werkzeug.wrappers import BaseResponse
+from werkzeug.wrappers import Request, Response
 
 
-class CDPediaTestCase(unittest.TestCase):
+class WebAppTestCase(unittest.TestCase):
 
     def setUp(self):
         self.app = web_app.create_app(watchdog=None, with_static=False)
-        self.client = Client(self.app, BaseResponse)
+        self.client = Client(self.app, Response)
 
     def tearDown(self):
         pass
@@ -26,7 +26,7 @@ class CDPediaTestCase(unittest.TestCase):
 
     def test_main_page_destacado(self):
         response = self.client.get("/")
-        if len(self.app._destacados_mngr.destacados) > 0:
+        if len(self.app.destacados_mngr.destacados) > 0:
             self.assertTrue(u"Artículo destacado".encode("utf-8") in response.data)
 
     def test_main_page_portales(self):
@@ -48,7 +48,10 @@ class CDPediaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_wiki_article_maradona(self):
-        response = self.client.get("/wiki/Diego_Armando_Maradona")
+        app = web_app.create_app(watchdog=None, with_static=False)
+        app.art_mngr.get_item = lambda x: "Fake article <a>Yo soy el Diego</a>"
+        client = Client(app, Response)
+        response = client.get("/wiki/Diego_Armando_Maradona")
         self.assertEqual(response.status_code, 200)
         self.assertTrue("Yo soy el Diego" in response.data)
 
@@ -68,15 +71,36 @@ class CDPediaTestCase(unittest.TestCase):
 
     def test_watchdog_off(self):
         app = web_app.create_app(watchdog=None, with_static=False)
-        client = Client(app, BaseResponse)
+        client = Client(app, Response)
         response = client.get("/")
         self.assertTrue("watchdog" not in response.data)
 
     def test_watchdog_on(self):
         app = web_app.create_app(watchdog=True, with_static=False)
-        client = Client(app, BaseResponse)
+        client = Client(app, Response)
         response = client.get("/")
         self.assertTrue("watchdog" in response.data)
+
+    def test_search_get(self):
+        response = self.client.get("/search")
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_post_url(self):
+        response = self.client.post("/search")
+        self.assertEqual(response.status_code, 302)
+
+    def test_search_post(self):
+        response = self.client.post("/search", data={"keywords":"a"})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue("/search/" in response.location)
+        response = self.client.post("/search", data={"keywords":"a"},
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_term(self):
+        response = self.client.post("/search", data={"keywords":"a"},
+                                    follow_redirects=True)
+
 
 if __name__ == '__main__':
     unittest.main()
