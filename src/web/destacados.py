@@ -12,9 +12,10 @@ destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*
                            re.MULTILINE | re.DOTALL)
 
 class Destacados(object):
-    def __init__(self, article_manager, debug=False):
+    def __init__(self, article_manager, debug=False, verbose=False):
         self.article_manager = article_manager
         self.debug = debug
+        self.verbose = verbose
 
         with open(config.DESTACADOS) as destacados:
             self.destacados = [x.strip().decode('utf8') for x in destacados]
@@ -40,7 +41,8 @@ class Destacados(object):
                 break
 
             # destacado roto :|
-            print (u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
+            if self.verbose:
+                print (u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
             self.destacados.remove(link)
         else:
             # no hay destacado
@@ -55,7 +57,8 @@ class Destacados(object):
         m = re.search(destacado_re, data)
 
         if not m:
-            print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
+            if self.verbose:
+                print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
             return None
         titulo, primeros_parrafos = m.groups()
         return link, titulo, primeros_parrafos
