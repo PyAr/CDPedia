@@ -5,6 +5,7 @@ import os
 import sys
 import codecs
 import platform
+import optparse
 import threading
 import traceback
 import webbrowser
@@ -29,13 +30,6 @@ from src.utiles import WatchDog, find_open_port
 from src.web.web_app import create_app
 import config
 
-server_up = threading.Event()
-
-# CD WatchDog timer
-cd_wd_timer = None
-
-# Tiempo entre llamadas a cd_watch_dog en segundos
-CD_WD_SECONDS = 10
 
 def handle_crash(type, value, tb):
     '''Function to handle any exception that is not addressed explicitly.'''
@@ -47,8 +41,6 @@ def handle_crash(type, value, tb):
         exception = traceback.format_exception(type, value, tb)
         exception = "".join(exception)
         print exception
-
-sys.excepthook = handle_crash
 
 def close():
     ''' Cierra el servidor y termina cdpedia '''
@@ -83,30 +75,66 @@ def sleep_and_browse():
                                         config.EDICION_ESPECIAL, config.INDEX)
     webbrowser.open(index)
 
-cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
-cd_wd_timer.daemon = True
-cd_wd_timer.start()
+if __name__ == "__main__":
+    parser = optparse.OptionParser()
+    parser.add_option("-v", "--verbose", action="store_true", default=False,
+                  dest="verbose", help="muestra info de lo que va haciendo")
+    parser.add_option("-d", "--daemon", action="store_true", default=False,
+                  dest="daemon", help="daemonize server")
+    parser.add_option("-p", "--port", type="int", dest="port",
+                      default=config.PORT)
+    parser.add_option("-m", "--host", type="str", dest="hostname",
+                      default=config.HOSTNAME)
+    (options, args) = parser.parse_args()
 
-threading.Thread(target=sleep_and_browse).start()
+    sys.excepthook = handle_crash
 
-browser_watchdog=None
-if config.BROWSER_WD_SECONDS:
-    browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
-    # Iniciamos el watchdog por más que aún no esté levantado el browser ya que
-    # el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
-    # y el browser.
-    browser_watchdog.start()
+    if options.daemon:
+        port = options.port
+    else:
+        port = find_open_port(starting_from=options.port, host=options.hostname)
 
-print "Levantando el server..."
+    config.PORT, config.HOSTNAME = port, options.hostname
 
-app = create_app(browser_watchdog)
-if not config.PORT:
-    config.PORT = find_open_port(starting_from=8000, host=config.HOSTNAME)
+    if not options.daemon:
+        server_up = threading.Event()
 
-server = ThreadedWSGIServer(config.HOSTNAME, config.PORT, app, handler=None,
-                            passthrough_errors=False)
-server_up.set()
-server.serve_forever()
+        # CD WatchDog timer
+        cd_wd_timer = None
 
-print "Terminado, saliendo."
-cd_wd_timer.cancel()
+        # Tiempo entre llamadas a cd_watch_dog en segundos
+        CD_WD_SECONDS = 10
+
+        cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
+        cd_wd_timer.daemon = True
+        cd_wd_timer.start()
+
+        threading.Thread(target=sleep_and_browse).start()
+
+        browser_watchdog = None
+        if config.BROWSER_WD_SECONDS:
+            browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
+            # Iniciamos el watchdog por más que aún no esté levantado el browser ya que
+            # el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
+            # y el browser.
+            browser_watchdog.start()
+
+        if options.verbose:
+            print "Levantando el server..."
+
+        app = create_app(browser_watchdog, verbose=options.verbose)
+
+        server = ThreadedWSGIServer(config.HOSTNAME, config.PORT, app, handler=None,
+                                    passthrough_errors=False)
+        server_up.set()
+        server.serve_forever()
+
+        if options.verbose:
+            print "Terminado, saliendo."
+        cd_wd_timer.cancel()
+
+    else:
+        app = create_app(watchdog=None, verbose=options.verbose)
+        server = ThreadedWSGIServer(config.HOSTNAME, port, app, handler=None,
+                                    passthrough_errors=False)
+        server.serve_forever()

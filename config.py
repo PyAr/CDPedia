@@ -7,9 +7,9 @@ VERSION = '0.7.1'
 # Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
 HOSTNAME = "localhost"
 
-# The port address to bind the server. If PORT=0 then the first open port, starting
-# from 8000, will be used.
-PORT = 0
+# The port address to bind the server. If not daemon mode, the port used
+# will be the first free port starting from PORT
+PORT = 8000
 
 # Nombre de la edicion especial, modifica el INDEX y ASSETS en código
 EDICION_ESPECIAL = None
