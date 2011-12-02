@@ -103,7 +103,7 @@ class Bloque(object):
             (seek, size) = info
             self.fh.seek(4 + self.header_size + seek)
             data = self.fh.read(size)
-        return data.decode("utf-8")
+        return data
 
 
 class BloqueImagenes(Bloque):
@@ -285,6 +285,10 @@ class ArticleManager(BloqueManager):
 
         return (len(bloques), tot_archs, tot_redirs)
 
+    def get_item(self, name):
+        article = super(ArticleManager, self).get_item(name)
+        if article is not None:
+            return article.decode("utf-8")
 
 class ImageManager(BloqueManager):
     archive_dir = os.path.join(config.DIR_ASSETS, 'images')
