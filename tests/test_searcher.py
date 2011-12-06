@@ -45,7 +45,7 @@ class SearcherTestCase(unittest.TestCase):
         self.index.ready.set()
         search_id = self.searcher.start_search(['words'])
         uuid.UUID(search_id)
-        real_search, results, lock = self.searcher.active_searches[search_id]
+        real_search, results, _, _ = self.searcher.active_searches[search_id]
         self.assertTrue(isinstance(real_search, threading.Thread))
         self.assertFalse(results)
 
@@ -54,9 +54,27 @@ class SearcherTestCase(unittest.TestCase):
         assert not self.index.ready.is_set()
         search_id = self.searcher.start_search(['words'])
         uuid.UUID(search_id)
-        real_search, results, lock = self.searcher.active_searches[search_id]
+        real_search, results, _, _ = self.searcher.active_searches[search_id]
         self.assertTrue(isinstance(real_search, threading.Thread))
         self.assertFalse(results)
+
+    def test_startsearch_samesearch_cached(self):
+        """Same search returns same id."""
+        self.index.ready.set()
+        search_id_1 = self.searcher.start_search(['words'])
+        assert search_id_1 in self.searcher.active_searches
+        search_id_2 = self.searcher.start_search(['words'])
+        search_id_3 = self.searcher.start_search(['other'])
+        self.assertEqual(search_id_1, search_id_2)
+        self.assertNotEqual(search_id_1, search_id_3)
+
+    def test_startsearch_samesearch_notcached(self):
+        """Same search returns other id if search was lost."""
+        self.index.ready.set()
+        search_id_1 = self.searcher.start_search(['words'])
+        del self.searcher.active_searches[search_id_1]
+        search_id_2 = self.searcher.start_search(['words'])
+        self.assertNotEqual(search_id_1, search_id_2)
 
     def test_cache_size(self):
         """How the cache works."""
@@ -145,7 +163,7 @@ class SearcherTestCase(unittest.TestCase):
         """Check that sets the search to stop."""
         self.index.ready.set()
         search_id = self.searcher.start_search(['words'])
-        real_search, results, lock_ = self.searcher.active_searches[search_id]
+        real_search, results, _, _ = self.searcher.active_searches[search_id]
         assert not real_search.discarded
 
         # do three more searchs to discard the first one

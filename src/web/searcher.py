@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf8 -*-
 """The Searcher."""
 
 import Queue
@@ -33,8 +33,9 @@ class Cache(dict):
         super(Cache, self).__setitem__(key, value)
 
     def __delitem__(self, key):
-        super(Cache, self).__delitem__(key)
+        old_item = super(Cache, self).pop(key)
         self._items.remove(key)
+        self._discard_func(old_item)
 
 
 class ThreadedSearch(threading.Thread):
@@ -78,23 +79,31 @@ class Searcher(object):
     def __init__(self, index, cache_size):
         self.index = index
         self.active_searches = Cache(cache_size, self.discard_item)
+        self._searched_words = {}
 
     def discard_item(self, search_item):
         """Discard the search."""
-        search, _, _ = search_item
+        search, _, _, words = search_item
         search.discarded = True
+        del self._searched_words[words]
 
     def start_search(self, words):
         """Start the search."""
+        tw = tuple(words)
+        if tw in self._searched_words:
+            # previous search active for those words!
+            return self._searched_words[tw]
+
         search_id = str(uuid.uuid4())
         ts = ThreadedSearch(self.index, words)
-        self.active_searches[search_id] = (ts, [], threading.Lock())
+        self.active_searches[search_id] = (ts, [], threading.Lock(), tw)
+        self._searched_words[tw] = search_id
         ts.start()
         return search_id
 
     def get_results(self, search_id, start=0, quantity=10):
         """Get results from the search."""
-        search, prev_results, lock = self.active_searches[search_id]
+        search, prev_results, lock, words = self.active_searches[search_id]
 
         # maybe the requested results are already retrieved from index
         need_to_retrieve = start + quantity - len(prev_results)
@@ -109,7 +118,8 @@ class Searcher(object):
                     break
                 prev_results.append(result)
 
-            self.active_searches[search_id] = (search, prev_results, lock)
+            self.active_searches[search_id] = (search, prev_results,
+                                               lock, words)
         return prev_results[start:start+quantity]
 
     def get_grouped(self, search_id, quantity=10):
