@@ -310,5 +310,8 @@ def suite():
         suite.addTest(unittest.makeSuite(test_case))
     return suite
 
+def load_tests(loader, tests, pattern):
+    return suite()
+
 if __name__ == '__main__':
     unittest.main(defaultTest="suite")
