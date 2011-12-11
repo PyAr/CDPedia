@@ -139,14 +139,12 @@ class IndexInterface(threading.Thread):
     def search(self, words):
         """Busca palabras completas en el índice."""
         self.ready.wait()
-        pals = PALABRAS.findall(normaliza(words))
-        return self.indice.search(pals)
+        return self.indice.search(words)
 
     def partial_search(self, words):
         """Busca palabras parciales en el índice."""
         self.ready.wait()
-        pals = PALABRAS.findall(normaliza(words))
-        return self.indice.partial_search(pals)
+        return self.indice.partial_search(words)
 
 
 def filename2palabras(fname):

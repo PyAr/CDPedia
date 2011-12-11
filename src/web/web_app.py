@@ -66,6 +66,7 @@ class CDPedia(object):
             Rule('/images/<path:nombre>', endpoint='imagen'),
             Rule('/institucional/<path:path>', endpoint='institucional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
+            Rule('/search_index/ready', endpoint='index_ready'),
         ])
 
     def on_main_page(self, request):
@@ -150,14 +151,20 @@ class CDPedia(object):
             search_string = request.form.get("keywords", None)
             if search_string:
                 search_string_norm = normalize_keyword(search_string)
-                #keywords = map(normalize_keyword, search_string.split())
-                id_ = self.searcher.start_search(search_string)
-                return redirect("/search/%s" % search_string_norm)
+                words = search_string_norm.split()
+                id_ = self.searcher.start_search(words)
+                return redirect("/search/%s" % "+".join(words))
             return redirect("/")
 
     def on_search_results(self, request, key):
-        #results = self.searcher.get_results(id_)
-        return Response("")
+        search_string_norm = normalize_keyword(key)
+        words = search_string_norm.split()
+        id_ = self.searcher.start_search(words)
+        results = self.searcher.get_grouped(id_)
+        return self.render_template('search.html',
+            search_words=words,
+            results=results
+        )
 
 
     def on_watchdog_update(self, request):
@@ -167,6 +174,12 @@ class CDPedia(object):
                         "></head><body></body></html>" % seconds,
                         mimetype="text/html")
         return resp
+
+    def on_index_ready(self, request):
+        r = 'false'
+        if self.index.is_ready():
+            r = 'true'
+        return Response(r, mimetype="application/json")
 
     def render_template(self, template_name, **context):
         t = self.jinja_env.get_template(template_name)

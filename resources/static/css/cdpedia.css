@@ -75,6 +75,10 @@ li.search-result{
     padding-bottom: 1em;
 }
 
+li.search-result-title{
+    font-size: 105%;
+}
+
 li.search-result-text{
-    font-size: 95%;
+    font-size: 85%;
 }

@@ -81,6 +81,25 @@ class WebAppTestCase(unittest.TestCase):
         response = client.get("/")
         self.assertTrue("watchdog" in response.data)
 
+    def test_index_ready(self):
+        app = web_app.create_app(watchdog=None, with_static=False)
+        client = Client(app, Response)
+
+        class FakeIndex(object):
+            def __init__(self):
+                self.ready = False
+
+            def is_ready(self):
+                return self.ready
+
+        app.index = FakeIndex()
+        response = client.get("/search_index/ready")
+        self.assertEqual(response.data, "false")
+
+        app.index.ready = True
+        response = client.get("/search_index/ready")
+        self.assertEqual(response.data, "true")
+
     def test_search_get(self):
         response = self.client.get("/search")
         self.assertEqual(response.status_code, 200)
@@ -97,10 +116,14 @@ class WebAppTestCase(unittest.TestCase):
                                     follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
-    def test_search_term(self):
-        response = self.client.post("/search", data={"keywords":"a"},
-                                    follow_redirects=True)
+    def test_search_term_url(self):
+        words = (u"foo", u"bar")
+        response = self.client.post("/search", data={"keywords": u" ".join(words)})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue("/search/%s" % "+".join(words) in response.location)
 
+        response = self.client.post("/search", data={"keywords": u" ".join(words)}, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
     unittest.main()
