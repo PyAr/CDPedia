@@ -1,37 +1,37 @@
 {% extends "layout.html" %}
 {% block title %}{{title}}{% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="../../../skins/css/main.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="../../../skins/css/shared.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/static/skins/css/main.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/static/skins/css/shared.css" type="text/css" media="screen" />
 
-    <link rel="stylesheet" href="../../../skins/css/commonPrint.css" type="text/css" media="print" />
-    <link rel="stylesheet" href="../../../skins/css/combined.min.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="../../../skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="../../../skins/css/Common.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="../../../skins/css/Print.css" type="text/css" media="print" />
-    <link rel="stylesheet" href="../../../skins/css/Handheld.css" type="text/css" media="handheld" />
-    <link rel="stylesheet" href="../../../skins/css/Vector.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/commonPrint.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="/static/skins/css/combined.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/Common.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/Print.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="/static/skins/css/Handheld.css" type="text/css" media="handheld" />
+    <link rel="stylesheet" href="/static/skins/css/Vector.css" type="text/css" media="all" />
 
-    <link rel="stylesheet" href="../../../extern/cdpedia.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/css/cdpedia.css" type="text/css" media="all" />
 
-    <!--[if lt IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE50Fixes.css";</style><![endif]-->
-    <!--[if IE 5.5000]><style type="text/css">@import "../../../skins/monobook/IE55Fixes.css";</style><![endif]-->
-    <!--[if IE 6]><style type="text/css">@import "../../../skins/monobook/IE60Fixes.css";</style><![endif]-->
-    <!--[if IE]><script type="text/javascript" src="../../../skins/common/IEFixes.js"></script>
+    <!--[if lt IE 5.5000]><style type="text/css">@import "/static/skins/monobook/IE50Fixes.css";</style><![endif]-->
+    <!--[if IE 5.5000]><style type="text/css">@import "/static/skins/monobook/IE55Fixes.css";</style><![endif]-->
+    <!--[if IE 6]><style type="text/css">@import "/static/skins/monobook/IE60Fixes.css";</style><![endif]-->
+    <!--[if IE]><script type="text/javascript" src="/static/skins/common/IEFixes.js"></script>
     <meta http-equiv="imagetoolbar" content="no" /><![endif]-->
 
-    <script type="text/javascript" src="../../../skins/js/header.js"></script>
-    <script type="text/javascript" src="../../../skins/js/wikibits.js"></script>
-    <script type="text/javascript" src="../../../extern/jquery-1.4.4.min.js"></script>
-    <script type="text/javascript" src="../../../extern/jquery.base64.js"></script>
-    <script type="text/javascript" src="../../../extern/search.js"></script>
-    <!--<script type="text/javascript" src="../../../skins/js/ajax.js"></script>-->
-    <!--<script type="text/javascript" src="../../../skins/js/mwsuggest.js"></script>-->
-    <!--<script type="text/javascript" src="../../../skins/js/Vector.js"></script>
-    <script type="text/javascript" src="../../../skins/js/plugins.js"></script>-->
-    <script type="text/javascript" src="../../../skins/js/md5.js"></script>
-    <script type="text/javascript" src="../../../skins/js/utf8.js"></script>
-    <script type="text/javascript" src="../../../skins/js/lookup.js"></script>
+    <script type="text/javascript" src="/static/skins/static/js/header.js"></script>
+    <script type="text/javascript" src="/static/skins/static/js/wikibits.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.base64.js"></script>
+    <script type="text/javascript" src="/static/js/search.js"></script>
+    <!--<script type="text/javascript" src="/static/skins/static/js/ajax.js"></script>-->
+    <!--<script type="text/javascript" src="/static/skins/static/js/mwsuggest.js"></script>-->
+    <!--<script type="text/javascript" src="/static/skins/static/js/Vector.js"></script>
+    <script type="text/javascript" src="/static/skins/static/js/plugins.js"></script>-->
+    <script type="text/javascript" src="/static/skins/static/js/md5.js"></script>
+    <script type="text/javascript" src="/static/skins/static/js/utf8.js"></script>
+    <script type="text/javascript" src="/static/skins/static/js/lookup.js"></script>
 {% endblock %}
 {% block body %}
   {% if watchdog %}
@@ -85,12 +85,12 @@
     <ul id="f-icons" class="noprint">
       <li id="f-icon-copyright">
         <a href="/institucional/wikimedia.html">
-          <img src="/misc/wikimedia-button.png" alt="Wikimedia Foundation" />
+          <img src="/static/misc/wikimedia-button.png" alt="Wikimedia Foundation" />
         </a>
       </li>
       <li id="f-icon-poweredby-pyar">
         <a href="/institucional/pyar.html">
-          <img src="/extern/pyar-logo-chico.png" alt="Powered by PyAr" />
+          <img src="/static/img/pyar-logo-chico.png" alt="Powered by PyAr" />
         </a>
       </li>
     </ul>

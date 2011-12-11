@@ -4,18 +4,18 @@ $(document).ready(function() {
     $.ajaxSetup({
           cache: false
     });
-    
+
     var search_string = "";
     var buscando = "buscando";
     var esperando = "generando índice"
     var index_ready = false;
     var get_resultados = function () {
         var status="NOTDONE";
-        
+
         var res_completa="";
         var res_detallada="";
-        
-        $.get('/ajax/buscar/resultado', function(data) { 
+
+        $.get('/ajax/buscar/resultado', function(data) {
                 var html;
                 status = data.status;
                 res_completa = $.fn.base64Decode(data.res_completa);
@@ -34,12 +34,12 @@ $(document).ready(function() {
                         {html = "<h2>Resultados para: "+search_string+"</h2><br/>"+res_completa + res_detallada;}
                 }
                 $("#content").html(html);
-                
+
         });
     };
-    
+
     var index_is_ready = function(on_ready){
-        $.get('/ajax/index/ready', function(data) {
+        $.get('/search_index/ready', function(data) {
             if (data===true){
                 index_ready = true;
                 if (on_ready){
@@ -54,15 +54,15 @@ $(document).ready(function() {
             }
         });
     };
-    
+
     var buscar = function(){
         $.get('/ajax/buscar', {keywords:search_string});
         buscando = "buscando";
         setTimeout(get_resultados,500);
         $("#content").html("<h2>Resultados para: "+search_string+"</h2> <br/> <i>buscando</i><br/>");
     };
-    
 
+    /*
     $("#search-form").submit(function(event){
         event.preventDefault();
         search_string = $("#searchInput").val();
@@ -70,5 +70,6 @@ $(document).ready(function() {
             index_is_ready(buscar);
         }
     });
+    */
 
 });

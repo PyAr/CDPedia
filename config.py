@@ -22,7 +22,7 @@ IDIOMA = "es"
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
-ASSETS = ["skins", "misc"]
+ASSETS = ["static"]
 
 ALL_ASSETS = ASSETS + ["images",  "extern", "tutorial"]
 if EDICION_ESPECIAL is not None:
@@ -75,7 +75,7 @@ DIR_CDBASE = "temp/cdroot"
 DIR_ASSETS = "temp/cdroot/cdpedia/assets"
 
 # Directorio de los archivos estáticos de origen
-DIR_SOURCE_ASSETS = "resources/static"
+DIR_SOURCE_ASSETS = "resources"
 
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"

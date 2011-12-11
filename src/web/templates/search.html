@@ -1,5 +1,16 @@
 {% extends "cdpedia_base.html" %}
-{% block title %}{% endblock %}
+{% block title %}Search{% endblock %}
 {% block content %}
-Búsqueda
+
+<h1 class="firstHeading">Resultados de la búsqueda para <i>'{{ search_words|join(', ') }}'</i></h1>
+
+  <ul>
+  {% for link, title, _, tokens, text in results %}
+    <li class="search-result">
+        <div class="search-result-title"><a href="/{{ link }}">{{ title }}</a></div>
+        {% if tokens %}<div class="search-result-tokens">{{ tokens|join(', ') }}</div>{% endif %}
+        {% if text %}<div class="search-result-text"> {{ text }} </div>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
 {% endblock %}

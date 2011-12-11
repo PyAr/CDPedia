@@ -69,3 +69,12 @@ button#searchButton {
     background: white;
     padding: .1em;
 }
+
+li.search-result{
+    list-style: none;
+    padding-bottom: 1em;
+}
+
+li.search-result-text{
+    font-size: 95%;
+}
