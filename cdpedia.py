@@ -10,6 +10,11 @@ import threading
 import traceback
 import webbrowser
 
+# change execution path, so we can access all cdpedia internals (code and
+# libraries)
+cdpedia_path = os.path.abspath(__file__)
+os.chdir(os.path.dirname(cdpedia_path))
+
 # fix path if needed
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
