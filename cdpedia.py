@@ -35,6 +35,7 @@ def handle_crash(type, value, tb):
     '''Function to handle any exception that is not addressed explicitly.'''
     if issubclass(type, KeyboardInterrupt):
         # Nos vamos!
+        print "Saliendo por pedido del usuario"
         cd_wd_timer.cancel()
         sys.exit(0)
     else:
@@ -44,6 +45,7 @@ def handle_crash(type, value, tb):
 
 def close():
     ''' Cierra el servidor y termina cdpedia '''
+    print "Saliendo por watchdog timer"
     server.shutdown()
     sys.exit(0)
 
@@ -74,6 +76,49 @@ def sleep_and_browse():
         index = "http://%s:%d/%s/%s" % (config.HOSTNAME, config.PORT,
                                         config.EDICION_ESPECIAL, config.INDEX)
     webbrowser.open(index)
+
+
+# En Python 2.5 el SocketServer no tiene un shutdown, así que si estamos
+# en esa versión, lo ponemos nosotros (copiado de 2.6, basicamente).
+
+if sys.version_info < (2, 6):
+    import select
+    import socket
+
+    ThreadedWSGIServer._is_shut_down = threading.Event()
+    ThreadedWSGIServer._shutdown_request = False
+
+    def serve_forever(self):
+        """Handle one request at a time until shutdown."""
+        self._is_shut_down.clear()
+        try:
+            while not self._shutdown_request:
+                r, w, e = select.select([self], [], [], .5)
+                if self not in r:
+                    continue
+                try:
+                    request, client_address = self.get_request()
+                except socket.error:
+                    continue
+                if not self.verify_request(request, client_address):
+                    continue
+
+                try:
+                    self.process_request(request, client_address)
+                except:
+                    self.handle_error(request, client_address)
+                    self.close_request(request)
+        finally:
+            self._shutdown_request = False
+            self._is_shut_down.set()
+    ThreadedWSGIServer.serve_forever = serve_forever
+
+    def shutdown(self):
+        """Stops the serve_forever loop."""
+        self._shutdown_request = True
+        self._is_shut_down.wait()
+    ThreadedWSGIServer.shutdown = shutdown
+
 
 if __name__ == "__main__":
     parser = optparse.OptionParser()
