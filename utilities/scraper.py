@@ -1,9 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-Descarga la wikipedia escrapeándola.
-"""
+# Copyright 2010-2012 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  http://code.google.com/p/cdpedia/
+
+"""Download the whole wikipedia."""
 
 from __future__ import with_statement
 
@@ -41,8 +55,10 @@ class URLAlizer(object):
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
         self.fh = open(listado_nombres, 'r')
+
         # saltea la primera linea
-        self.fh.readline()
+        prim_linea = self.fh.readline()
+        assert prim_linea.strip() == "page_title"
 
     def next(self):
         while True:
@@ -83,6 +99,15 @@ def fetch(datos):
         return HAY_QUE_PROBAR_DE_NUEVO, basename
     except Exception, e:
         print>>sys.stderr, "%s : %s" % (url, e)
+        return HAY_QUE_PROBAR_DE_NUEVO, basename
+
+    # ok, downloaded the html, let's check that it complies with some rules
+    if "</html>" not in html:
+        # we surely didn't download it all
+        return HAY_QUE_PROBAR_DE_NUEVO, basename
+    try:
+        html.decode("utf8")
+    except UnicodeDecodeError:
         return HAY_QUE_PROBAR_DE_NUEVO, basename
 
     with temp_file as fh:
@@ -134,7 +159,7 @@ Usar: scraper.py <NOMBRES_ARTICULOS> <DEST_DIR> [CONCURRENT]"
 
   CONCURRENT es la cantidad de corrutinas que realizan la descarga. Se puede
   tunear para incrementar velocidad de artículos por segundo. Depende mayormente
-  de la conección: latencia, ancho de banda, etc. El default es 20.
+  de la conexión: latencia, ancho de banda, etc. El default es 20.
 
   Los nombres de los artículos que no pudieron descargarse correctamente se
   guardan en probar_de_nuevo.txt.
