@@ -1,4 +1,22 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# Copyright 2006-2012 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  http://code.google.com/p/cdpedia/
+
 
 import os
 import re
@@ -18,7 +36,7 @@ from src.armado import to3dirs
 from destacados import Destacados
 from searcher import Searcher, Cache
 from utils import TemplateManager
-from src import third_party # Need this to import thirdparty (werkzeug and jinja2)
+from src import third_party  # Need this to import 3rd_party (werkzeug, jinja2)
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
@@ -44,6 +62,7 @@ class CDPedia(object):
         self.watchdog = watchdog
         self.verbose = verbose
 
+        # Configure template engine (jinja)
         template_path = os.path.join(os.path.dirname(__file__), 'templates')
         self.jinja_env = Environment(loader=FileSystemLoader(template_path),
                                  autoescape=False)
@@ -58,7 +77,6 @@ class CDPedia(object):
         self.index.start()
 
         self.searcher = Searcher(self.index, self.search_cache_size)
-        self.search_key_norm_cache = Cache(self.search_cache_size, lambda _: _)
 
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
@@ -167,37 +185,37 @@ class CDPedia(object):
         id_ = self.searcher.start_search(words)
         results = self.searcher.get_results(id_, start, quantity)
 
-        LIMPIA = re.compile("[(),]")
+        CLEAN = re.compile("[(),]")
 
         # group by link, giving priority to the title of the original articles
-        agrupados = {}
+        grouped_results = {}
         for link, title, ptje, original, texto in results:
             # remove 3 dirs from link and add the proper base url
             link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
 
             # convert tokens to lower case
-            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in title.split())
+            tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
 
-            if link in agrupados:
-                (tit, prv_ptje, tokens, txt) = agrupados[link]
+            if link in grouped_results:
+                (tit, prv_ptje, tokens, txt) = grouped_results[link]
                 tokens.update(tit_tokens)
                 if original:
                     # save the info of the original article
                     tit = title
                     txt = texto
-                agrupados[link] = (tit, prv_ptje + ptje, tokens, txt)
+                grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
             else:
-                agrupados[link] = (title, ptje, tit_tokens, texto)
+                grouped_results[link] = (title, ptje, tit_tokens, texto)
 
         # clean the tokens
-        for link, (tit, ptje, tokens, texto) in agrupados.iteritems():
-            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
+        for link, (tit, ptje, tokens, texto) in grouped_results.iteritems():
+            tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
         # sort the results
-        candidatos = ((k, ) + tuple(v) for k, v in agrupados.iteritems())
-        sorted_results = sorted(candidatos, key=operator.itemgetter(2),
-                                   reverse=True)
+        candidates = ((k, ) + tuple(v) for k, v in grouped_results.iteritems())
+        sorted_results = sorted(candidates, key=operator.itemgetter(2),
+                                reverse=True)
 
         return self.render_template('search.html',
             search_words=words,

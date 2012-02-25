@@ -122,7 +122,8 @@ class WebAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue("/search/%s" % "+".join(words) in response.location)
 
-        response = self.client.post("/search", data={"keywords": u" ".join(words)}, follow_redirects=True)
+        response = self.client.post("/search", data={"keywords": u" ".join(words)},
+                                                     follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
