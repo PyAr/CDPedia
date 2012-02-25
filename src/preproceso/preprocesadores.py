@@ -96,39 +96,6 @@ class OmitirRedirects(Procesador):
             return (0, [])
 
 
-class ExtraerContenido(Procesador):
-    """Extrae el contenido principal del html de un artículo."""
-    def __init__(self, wikisitio):
-        super(ExtraerContenido, self).__init__(wikisitio)
-        self.nombre = "Contenido"
-        regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
-        self.capturar = compile(regex, MULTILINE|DOTALL).search
-        self.no_ocultas = compile('<div id="mw-hidden-catlinks".*?</div>',
-                                                            MULTILINE|DOTALL)
-        self.no_pp_report = compile("<!--\s*?NewPP limit report.*?-->",
-                                                            MULTILINE|DOTALL)
-
-    def __call__(self, wikiarchivo):
-        html = wikiarchivo.html
-        encontrado = self.capturar(html)
-        if not encontrado:
-            # Si estamos acá, el html tiene un formato diferente.
-            # Por el momento queremos que se sepa.
-            raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
-        newhtml = "\n".join(encontrado.groups())
-
-        # algunas limpiezas más
-        newhtml = self.no_ocultas.sub("", newhtml)
-        newhtml = self.no_pp_report.sub("", newhtml)
-
-        tamanio = len(newhtml)
-        wikiarchivo.html = newhtml
-#        print "Tamaño original: %s, Tamaño actual: %s" % (len(html), tamanio)
-
-        # damos puntaje en función del tamaño del contenido
-        return (tamanio, [])
-
-
 class FixLinksDescartados(Procesador):
     """Corrige los links de lo que descartamos.
 
@@ -347,7 +314,6 @@ class QuitaLinkRojo(Procesador):
 TODOS = [
     Namespaces,
     OmitirRedirects,
-    ExtraerContenido,
     FixLinksDescartados,
     QuitaEditarSpan,
     QuitaLinksEditar,

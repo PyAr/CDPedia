@@ -28,6 +28,7 @@ import tempfile
 import time
 import urllib
 import StringIO
+import re
 from functools import partial
 
 import eventlet
@@ -82,6 +83,26 @@ class URLAlizer(object):
     def __iter__(self):
         return self
 
+regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
+capturar = re.compile(regex, re.MULTILINE|re.DOTALL).search
+no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
+                                                re.MULTILINE|re.DOTALL)
+no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->",
+                                                re.MULTILINE|re.DOTALL)
+def extract_content(html):
+    encontrado = capturar(html)
+    if not encontrado:
+        # Si estamos acá, el html tiene un formato diferente.
+        # Por el momento queremos que se sepa.
+        raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
+    newhtml = "\n".join(encontrado.groups())
+
+    # algunas limpiezas más
+    newhtml = no_ocultas.sub("", newhtml)
+    newhtml = no_pp_report.sub("", newhtml)
+
+    return newhtml
+
 def fetch(datos):
     url, temp_file, disk_name, uralizer, basename = datos
     try:
@@ -108,6 +129,11 @@ def fetch(datos):
     try:
         html.decode("utf8")
     except UnicodeDecodeError:
+        return HAY_QUE_PROBAR_DE_NUEVO, basename
+
+    try:
+        html = extract_content(html)
+    except ValueError:
         return HAY_QUE_PROBAR_DE_NUEVO, basename
 
     with temp_file as fh:
