@@ -1,5 +1,21 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# Copyright 2006-2012 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  http://code.google.com/p/cdpedia/
 
 """
 Funciones para generar los ránkings de las páginas.
@@ -234,20 +250,14 @@ class Peishranc(Procesador):
 
 
 class Longitud(Procesador):
-    """
-    Califica las páginas según la longitud del contenido (html).
-    Actualmente es innecesario si se usa ExtraerContenido, pero es
-    hipotéticamente útil si otros (futuros) procesadores alteraran
-    el html de forma significativa.
+    """Score the page based on its length (html)."""
 
-    """
     def __init__(self, wikisitio):
         super(Longitud, self).__init__(wikisitio)
         self.nombre = "Longitud"
 
     def __call__(self, wikiarchivo):
         largo = len(wikiarchivo.html)
-#        print "-- Tamaño útil: %d --\n" % largo
         return (largo, [])
 
 
@@ -321,5 +331,5 @@ TODOS = [
     QuitaLinkRojo,
     Peishranc,
     Destacado,
-    #Longitud, # No hace más falta, ExtraerContenido lo hace "gratis"
+    Longitud,
 ]

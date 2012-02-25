@@ -225,9 +225,8 @@ def calcula_top_htmls():
     fh.next() # título
     data = []
 
-    # tomamos la posición de los puntajes (más dos de arch y dir3)
-    idx_content = preprocesadores.TODOS.index(
-                                        preprocesadores.ExtraerContenido) + 2
+    # get the position of the scores (plus two of arch and dir3)
+    idx_longitud = preprocesadores.TODOS.index(preprocesadores.Longitud) + 2
     idx_peishranc = preprocesadores.TODOS.index(preprocesadores.Peishranc) + 2
     idx_destacado = preprocesadores.TODOS.index(preprocesadores.Destacado) + 2
 
@@ -235,12 +234,12 @@ def calcula_top_htmls():
         partes = linea.split(config.SEPARADOR_COLUMNAS)
         arch = partes[0]
         dir3 = partes[1]
-        ptj_content = int(partes[idx_content])
+        ptj_longitud = int(partes[idx_longitud])
         ptj_peishranc = int(partes[idx_peishranc])
         ptj_destacado = int(partes[idx_destacado])
 
-        # cálculo de puntaje, mezclando y ponderando los individuales
-        puntaje = ptj_content + ptj_peishranc * 5000 + ptj_destacado * 100000000
+        # get the total score weighting the diferent score sources
+        puntaje = ptj_longitud + ptj_peishranc * 5000 + ptj_destacado * 100000000
 
         data.append((dir3, arch, puntaje))
 
