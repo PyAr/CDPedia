@@ -3,6 +3,7 @@
 import os
 import re
 import urllib
+import operator
 import urlparse
 import posixpath
 from mimetypes import guess_type
@@ -23,6 +24,8 @@ from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
+
+ARTICLES_BASE_URL = u"wiki"
 
 
 class ArticleNotFound(HTTPException):
@@ -59,7 +62,7 @@ class CDPedia(object):
 
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
-            Rule('/wiki/<nombre>', endpoint='articulo'),
+            Rule('/%s/<nombre>' % ARTICLES_BASE_URL, endpoint='articulo'),
             Rule('/al_azar', endpoint='al_azar'),
             Rule('/search', endpoint='search'),
             Rule('/search/<key>', endpoint='search_results'),
@@ -74,8 +77,8 @@ class CDPedia(object):
         destacado = None
         if data_destacado is not None:
             link, title, first_paragraphs = data_destacado
-            destacado = {"link":link, "title":title,
-                         "first_paragraphs":first_paragraphs}
+            destacado = {"link": link, "title": title,
+                         "first_paragraphs": first_paragraphs}
         return self.render_template('main_page.html',
             title="Portada",
             destacado=destacado,
@@ -140,7 +143,7 @@ class CDPedia(object):
     #@ei.espera_indice # TODO
     def on_al_azar(self, request):
         link, tit = self.index.get_random()
-        link = u"wiki/" + to3dirs.from_path(link)
+        link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
         return redirect(urllib.quote(link.encode("utf-8")))
 
     #@ei.espera_indice # TODO
@@ -159,13 +162,49 @@ class CDPedia(object):
     def on_search_results(self, request, key):
         search_string_norm = normalize_keyword(key)
         words = search_string_norm.split()
+        start = int(request.args.get("start", 0))
+        quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
         id_ = self.searcher.start_search(words)
-        results = self.searcher.get_grouped(id_)
+        results = self.searcher.get_results(id_, start, quantity)
+
+        LIMPIA = re.compile("[(),]")
+
+        # group by link, giving priority to the title of the original articles
+        agrupados = {}
+        for link, title, ptje, original, texto in results:
+            # remove 3 dirs from link and add the proper base url
+            link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
+
+            # convert tokens to lower case
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in title.split())
+
+            if link in agrupados:
+                (tit, prv_ptje, tokens, txt) = agrupados[link]
+                tokens.update(tit_tokens)
+                if original:
+                    # save the info of the original article
+                    tit = title
+                    txt = texto
+                agrupados[link] = (tit, prv_ptje + ptje, tokens, txt)
+            else:
+                agrupados[link] = (title, ptje, tit_tokens, texto)
+
+        # clean the tokens
+        for link, (tit, ptje, tokens, texto) in agrupados.iteritems():
+            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
+            tokens.difference_update(tit_tokens)
+
+        # sort the results
+        candidatos = ((k, ) + tuple(v) for k, v in agrupados.iteritems())
+        sorted_results = sorted(candidatos, key=operator.itemgetter(2),
+                                   reverse=True)
+
         return self.render_template('search.html',
             search_words=words,
-            results=results
+            results=sorted_results,
+            start=start,
+            quantity=quantity
         )
-
 
     def on_watchdog_update(self, request):
         self.watchdog.update()
@@ -191,9 +230,9 @@ class CDPedia(object):
             endpoint, values = adapter.match()
             return getattr(self, 'on_' + endpoint)(request, **values)
         except ArticleNotFound, e:
-            response =  self.render_template("404.html",
-                                             article_name=e.article_name,
-                                             original_link=e.original_link)
+            response = self.render_template("404.html",
+                                            article_name=e.article_name,
+                                            original_link=e.original_link)
             response.status_code = 404
             return response
         except InternalServerError, e:

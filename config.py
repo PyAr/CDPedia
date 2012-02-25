@@ -46,6 +46,9 @@ DEBUG_DESTACADOS = False
 # Usar BROWSER_WD_SECONDS = 0 para desactivar el watchdog.
 BROWSER_WD_SECONDS = 120
 
+# Quantity of default search results per page
+SEARCH_RESULTS = 20
+
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
 DIR_BLOQUES = "temp/cdroot/cdpedia/bloques"

@@ -129,6 +129,7 @@ def genera_run_config():
     f.write('DESTACADOS = "cdpedia/%s"\n' % config.DESTACADOS)
     f.write('DEBUG_DESTACADOS = %s\n' % repr(config.DEBUG_DESTACADOS))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
+    f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
     f.write('DIR_BLOQUES = "cdpedia/bloques"\n')
     f.write('DIR_ASSETS = "cdpedia/assets"\n')

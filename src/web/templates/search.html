@@ -4,6 +4,21 @@
 
 <h1 class="firstHeading">Resultados de la búsqueda para <i>'{{ search_words|join(', ') }}'</i></h1>
 
+{% if results %}
+  <div class="paging-results">
+    <div style="float:left;">
+      {% if start - quantity >= 0 %}
+        <a href="?start={{start - quantity}}&quantity={{quantity}}">Anteriores | </a>
+      {% endif %}
+      Resultados <b>{{start + 1}}-{{start + quantity}}</b>
+      <a href="?start={{start + quantity}}&quantity={{quantity}}"> | Siguientes</a>
+    </div>
+    <div style="float:right;">
+      Mostrar <a href="?quantity=20">20</a>, <a href="?quantity=50">50</a>,
+      <a href="?quantity=100">100</a> o <a href="?quantity=500">500</a> resultados.
+    </div>
+  </div>
+{% endif %}
   <ul>
   {% for link, title, _, tokens, text in results %}
     <li class="search-result">
