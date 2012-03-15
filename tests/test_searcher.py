@@ -172,6 +172,14 @@ class SearcherTestCase(unittest.TestCase):
 
         self.assertTrue(real_search.discarded)
 
+    def test_hanging_bug(self):
+        """Test taken from issue 140."""
+        self.index.ready.set()
+
+        _id = self.searcher.start_search(['words'])
+        self.searcher.get_results(_id)
+        self.searcher.get_results(_id)
+
 
 class CacheTestCase(unittest.TestCase):
     """Tests for the Cache."""

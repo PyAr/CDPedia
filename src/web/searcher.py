@@ -110,16 +110,21 @@ class Searcher(object):
         if not need_to_retrieve:
             return prev_results[start:start+quantity]
 
-        with lock:
-            # we need to get more results from index
-            for _ in xrange(need_to_retrieve):
-                result = search.queue.get()
-                if result is EOS:
-                    break
-                prev_results.append(result)
+        # lock may be EOS, signaling that the search already finished
+        if lock is not EOS:
+            with lock:
+                # we need to get more results from index
+                for _ in xrange(need_to_retrieve):
+                    result = search.queue.get()
+                    if result is EOS:
+                        vals = (search, prev_results, EOS, words)
+                        self.active_searches[search_id] = vals
+                        break
+                    prev_results.append(result)
 
-            self.active_searches[search_id] = (search, prev_results,
-                                               lock, words)
+                else:
+                    self.active_searches[search_id] = (search, prev_results,
+                                                       lock, words)
         return prev_results[start:start+quantity]
 
     def get_grouped(self, search_id, quantity=10):
