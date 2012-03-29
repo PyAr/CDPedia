@@ -29,6 +29,9 @@ import urllib2
 import config
 from src.preproceso import preprocesar
 
+WIKIMEDIA = "http://upload.wikimedia.org/"
+WIKIPEDIA = "http://es.wikipedia.org/"
+
 class ParseaImagenes(object):
     """
     Tenemos que loguear únicas, ya que tenemos muchísimos, muchísimos
@@ -68,15 +71,18 @@ class ParseaImagenes(object):
         # levantamos los archivos que incluimos, y de los redirects a los
         # que incluimos
         sep = config.SEPARADOR_COLUMNAS
-        with codecs.open(config.PAG_ELEGIDAS, "r", "utf-8") as fh:
-            self.pag_elegidas = set(x.strip().split(sep)[1] for x in fh)
+        self.pag_elegidas = set()
+        if not test:
+            with codecs.open(config.PAG_ELEGIDAS, "r", "utf-8") as fh:
+                self.pag_elegidas = set(x.strip().split(sep)[1] for x in fh)
 
         pageleg = self.pag_elegidas
-        with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
-            for linea in fh:
-                orig, dest = linea.strip().split(sep)
-                if dest in pageleg:
-                    pageleg.add(orig)
+        if not test:
+            with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
+                for linea in fh:
+                    orig, dest = linea.strip().split(sep)
+                    if dest in pageleg:
+                        pageleg.add(orig)
 
 
     # la cantidad es cuantas tenemos en a_descargar
@@ -153,9 +159,6 @@ class ParseaImagenes(object):
 
     def _reemplaza(self, newimgs, m):
         p1, img, p3 = m.groups()
-        WIKIMEDIA = "http://upload.wikimedia.org/"
-        WIKIPEDIA = "http://es.wikipedia.org/"
-        BITS = "http://bits.wikimedia.org/"
         if self.test:
             print "img", img
 
@@ -163,72 +166,70 @@ class ParseaImagenes(object):
         msize = self.anchalt_regex.search(p3)
         p3 = self.anchalt_regex.sub("", p3)
 
-        if img.startswith("../../../../images/shared/thumb"):
-            # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
-            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
-
-            partes = img.split("/")
-            if len(partes) != 11:
-                raise ValueError("Formato de imagen feo! %r" % partes)
-            del partes[9]
-            dsk_url = "/".join(partes)
-
-        elif img.startswith("../../../../math/"):
-            # ../../../../math/5/9/6/596cd268dabd23b450bcbf069f733e4a.png
-            web_url = WIKIMEDIA + img[12:]
-            dsk_url="../../../../images/" + img[12:]
-
-        elif img.startswith("http://upload.wikimedia.org/math"):
-            web_url = img
-            dsk_url = "../../../../images/" + img[28:]
-
-        elif img.startswith("../../../../extensions/"):
-            web_url = WIKIPEDIA + "w/" + img[12:]
-            dsk_url = "../../../../images/" + img[12:]
-
-        elif img.startswith("/w/extensions/"):
-            web_url = WIKIMEDIA + img[1:]
-            dsk_url = "../../../../images/" + img[1:]
-
-        elif img.startswith("../../../../images/shared"):
-            # ../../../../images/shared/b/ba/LocatieZutphen.png
-            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
-            dsk_url = img
-
-        elif img.startswith("../../../../images/timeline"):
-            # ../../../../images/timeline/8f9a24cab55663baf5110f82ebb97d17.png
-            web_url = WIKIMEDIA + "wikipedia/es/timeline/%s" % img[27:]
-            dsk_url = img
-
-        elif img.startswith("http://upload.wikimedia.org/wikipedia/es/timeline/"):
-              web_url = img
-              dsk_url = "../../../../images/timeline/" + img[50:]
-
-        elif img.startswith("http://upload.wikimedia.org/wikipedia/commons/"):
-            # http://upload.wikimedia.org/wikipedia/commons/
-            #   thumb/2/22/Heckert_GNU_white.svg/64px-Heckert_GNU_white.svg.png
-            web_url = WIKIMEDIA + img[28:]
-            partes = img[46:].split("/")
+        if img.startswith("//upload.wikimedia.org/wikipedia/commons/"):
+            web_url = "http:" + img
+            partes = img[41:].split("/")
             if len(partes) == 5:
                 del partes[3]
             elif len(partes) == 3:
                 pass
             else:
-                raise ValueError("Formato de imagen feo! %r" % partes)
+                raise ValueError("Formato de imagen feo! %r" % img)
 
-            dsk_url = "../../../../images/shared/" + "/".join(partes)
+            dsk_url = "/images/" + "/".join(partes)
 
-        elif img.startswith("http://bits.wikimedia.org/"):
-            web_url = img
-            dsk_url = "../../../../images/shared/" + img
+        elif img.startswith("//bits.wikimedia.org/"):
+            web_url = 'http:' + img
+            dsk_url = img[31:]
 
-        elif img.startswith("../../../../misc") or\
-             img.startswith("../../../../skins"):
-            # these should be included in the html dump we download
-            web_url = None
-            dsk_url = img
+        elif img.startswith("//upload.wikimedia.org/wikipedia/es/timeline/"):
+            web_url = 'http:' + img
+            dsk_url = img[35:]
+
+        elif img.startswith("//upload.wikimedia.org/wikipedia/es/math"):
+            web_url = 'http:' + img
+            dsk_url = img[35:]
+
         else:
             raise ValueError("Formato de imagen no soportado! %r" % img)
+
+#        if img.startswith("../../../../images/shared/thumb"):
+#            # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
+#            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
+#
+#            partes = img.split("/")
+#            if len(partes) != 11:
+#                raise ValueError("Formato de imagen feo! %r" % partes)
+#            del partes[9]
+#            dsk_url = "/".join(partes)
+#
+#        elif img.startswith("http://upload.wikimedia.org/math"):
+#            web_url = img
+#            dsk_url = "../../../../images/" + img[28:]
+#
+#        elif img.startswith("../../../../extensions/"):
+#            web_url = WIKIPEDIA + "w/" + img[12:]
+#            dsk_url = "../../../../images/" + img[12:]
+#
+#        elif img.startswith("/w/extensions/"):
+#            web_url = WIKIMEDIA + img[1:]
+#            dsk_url = "../../../../images/" + img[1:]
+#
+#        elif img.startswith("../../../../images/shared"):
+#            # ../../../../images/shared/b/ba/LocatieZutphen.png
+#            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
+#            dsk_url = img
+#
+#        elif img.startswith("../../../../images/timeline"):
+#            # ../../../../images/timeline/8f9a24cab55663baf5110f82ebb97d17.png
+#            web_url = WIKIMEDIA + "wikipedia/es/timeline/%s" % img[27:]
+#            dsk_url = img
+#
+#        elif img.startswith("../../../../misc") or\
+#             img.startswith("../../../../skins"):
+#            # these should be included in the html dump we download
+#            web_url = None
+#            dsk_url = img
 
         if self.test:
             print "  web url:", web_url
