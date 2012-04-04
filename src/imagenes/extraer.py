@@ -84,7 +84,6 @@ class ParseaImagenes(object):
                     if dest in pageleg:
                         pageleg.add(orig)
 
-
     # la cantidad es cuantas tenemos en a_descargar
     cant = property(lambda s: len(s.a_descargar))
 
@@ -149,13 +148,12 @@ class ParseaImagenes(object):
 
         # guardamos al archivo como procesado
         # tomamos la dsk_url, sin el path relativo
-        imgs = [x[0][19:] for x in newimgs]
+        imgs = [x[0] for x in newimgs]
         self.proces_ahora[dir3, fname] = imgs
 
         # guardamos las imágenes nuevas
         for dsk, web in newimgs:
-            # le sacamos el "../../../../images/"
-            self.a_descargar[dsk[19:]] = web
+            self.a_descargar[dsk] = web
 
     def _reemplaza(self, newimgs, m):
         p1, img, p3 = m.groups()
@@ -165,71 +163,27 @@ class ParseaImagenes(object):
         # reemplazamos ancho y alto por un fragment en la URL de la imagen
         msize = self.anchalt_regex.search(p3)
         p3 = self.anchalt_regex.sub("", p3)
+        web_url = 'http:' + img
 
         if img.startswith("//upload.wikimedia.org/wikipedia/commons/"):
-            web_url = "http:" + img
-            partes = img[41:].split("/")
-            if len(partes) == 5:
-                del partes[3]
-            elif len(partes) == 3:
+            partes = img[33:].split("/")
+            if len(partes) == 6:
+                del partes[4]
+            elif len(partes) == 4:
                 pass
             else:
-                raise ValueError("Formato de imagen feo! %r" % img)
+                raise ValueError("Strange image format! %r" % img)
 
-            dsk_url = "/images/" + "/".join(partes)
+            dsk_url = "/".join(partes)
 
         elif img.startswith("//bits.wikimedia.org/"):
-            web_url = 'http:' + img
-            dsk_url = img[31:]
+            dsk_url = img[46:]
 
-        elif img.startswith("//upload.wikimedia.org/wikipedia/es/timeline/"):
-            web_url = 'http:' + img
-            dsk_url = img[35:]
-
-        elif img.startswith("//upload.wikimedia.org/wikipedia/es/math"):
-            web_url = 'http:' + img
-            dsk_url = img[35:]
+        elif img.startswith("//upload.wikimedia.org/wikipedia/es/"):
+            dsk_url = img[36:]
 
         else:
-            raise ValueError("Formato de imagen no soportado! %r" % img)
-
-#        if img.startswith("../../../../images/shared/thumb"):
-#            # ../../../../images/shared/thumb/0/0d/Álava.svg/20px-Álava.svg.png
-#            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
-#
-#            partes = img.split("/")
-#            if len(partes) != 11:
-#                raise ValueError("Formato de imagen feo! %r" % partes)
-#            del partes[9]
-#            dsk_url = "/".join(partes)
-#
-#        elif img.startswith("http://upload.wikimedia.org/math"):
-#            web_url = img
-#            dsk_url = "../../../../images/" + img[28:]
-#
-#        elif img.startswith("../../../../extensions/"):
-#            web_url = WIKIPEDIA + "w/" + img[12:]
-#            dsk_url = "../../../../images/" + img[12:]
-#
-#        elif img.startswith("/w/extensions/"):
-#            web_url = WIKIMEDIA + img[1:]
-#            dsk_url = "../../../../images/" + img[1:]
-#
-#        elif img.startswith("../../../../images/shared"):
-#            # ../../../../images/shared/b/ba/LocatieZutphen.png
-#            web_url = WIKIMEDIA + "wikipedia/commons/%s" % img[26:]
-#            dsk_url = img
-#
-#        elif img.startswith("../../../../images/timeline"):
-#            # ../../../../images/timeline/8f9a24cab55663baf5110f82ebb97d17.png
-#            web_url = WIKIMEDIA + "wikipedia/es/timeline/%s" % img[27:]
-#            dsk_url = img
-#
-#        elif img.startswith("../../../../misc") or\
-#             img.startswith("../../../../skins"):
-#            # these should be included in the html dump we download
-#            web_url = None
-#            dsk_url = img
+            raise ValueError("Unsupported image type! %r" % img)
 
         if self.test:
             print "  web url:", web_url
@@ -247,7 +201,7 @@ class ParseaImagenes(object):
         querystr = ''
         if msize is not None:
             querystr = '?s=%s-%s' % msize.groups()
-        htm_url = '<img%ssrc="%s%s"%s/>' % (p1,
+        htm_url = '<img%ssrc="/images/%s%s"%s/>' % (p1,
             urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
         return htm_url
 

@@ -65,7 +65,7 @@ class SearcherTestCase(unittest.TestCase):
             "250px-Coat_of_arms_of_the_Netherlands_-_02.svg.png"
         )
         should_dsk = (
-            "/images/thumb/a/aa/"
+            "commons/thumb/a/aa/"
             "250px-Coat_of_arms_of_the_Netherlands_-_02.svg.png"
         )
         self._check(url, should_web, should_dsk)
@@ -80,7 +80,7 @@ class SearcherTestCase(unittest.TestCase):
             "http://upload.wikimedia.org/wikipedia/commons/8/88/"
             "Marshall_Islands_coa.jpg"
         )
-        should_dsk = "/images/8/88/Marshall_Islands_coa.jpg"
+        should_dsk = "commons/8/88/Marshall_Islands_coa.jpg"
         self._check(url, should_web, should_dsk)
 
     def test_reemplazar_bits(self):
@@ -90,7 +90,7 @@ class SearcherTestCase(unittest.TestCase):
             "http://bits.wikimedia.org/"
             "skins-1.18/common/images/magnify-clip.png"
         )
-        should_dsk = "/common/images/magnify-clip.png"
+        should_dsk = "magnify-clip.png"
         self._check(url, should_web, should_dsk)
 
     def test_reemplazar_timeline(self):
@@ -103,7 +103,7 @@ class SearcherTestCase(unittest.TestCase):
             "http://upload.wikimedia.org/wikipedia/es/"
             "timeline/cc707d3b957628b5e432d7242096abc5.png"
         )
-        should_dsk = "/timeline/cc707d3b957628b5e432d7242096abc5.png"
+        should_dsk = "timeline/cc707d3b957628b5e432d7242096abc5.png"
         self._check(url, should_web, should_dsk)
 
     def test_reemplazar_math(self):
@@ -116,5 +116,5 @@ class SearcherTestCase(unittest.TestCase):
             "http://upload.wikimedia.org/wikipedia/es/"
             "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         )
-        should_dsk = "/math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
+        should_dsk = "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         self._check(url, should_web, should_dsk)
