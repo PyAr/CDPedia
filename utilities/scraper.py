@@ -21,19 +21,20 @@
 
 from __future__ import with_statement
 
-import re
-import os
-import sys
+import StringIO
+import datetime
 import gzip
+import os
+import re
+import sys
+import tempfile
 import time
 import urllib
-import datetime
-import tempfile
-import StringIO
-import re
+
 from functools import partial
 
 import eventlet
+
 from eventlet.green import urllib2
 
 import to3dirs
@@ -50,7 +51,6 @@ req = partial(urllib2.Request, data = None,
               headers = {'User-Agent': UA, 'Accept-encoding':'gzip'})
 
 OK, NO_EXISTE, HAY_QUE_PROBAR_DE_NUEVO = range(3)
-
 
 
 class URLAlizer(object):
@@ -89,10 +89,8 @@ class URLAlizer(object):
 
 
 def fetch_html(url):
-    """
-    Note: this follows redirects
-    """
-    #print 'fetching:', repr(url)
+    """Fetch an url following redirects."""
+#    print 'fetching:', repr(url)
     response = urllib2.urlopen(req(url))
     compressedstream = StringIO.StringIO(response.read())
     gzipper = gzip.GzipFile(fileobj=compressedstream)
@@ -115,10 +113,10 @@ class WikipediaWebBase:
 
 class WikipediaUser(WikipediaWebBase):
     """
-    Given a user-id or a line of a wikipedia-page's history, create the 
+    Given a user-id or a line of a wikipedia-page's history, create the
     asociated user.
 
-    It will be able to answer (by querying the web) if it's a bot, a registered 
+    It will be able to answer (by querying the web) if it's a bot, a registered
     user or none of them (ie: an anonymouse user).
     """
     USUARIO_RE = re.compile('title="Usuario\:([^"]*)"')
@@ -156,7 +154,7 @@ class WikipediaUser(WikipediaWebBase):
             # Assume that if the user have no page defined,
             # it shouldn't be not a robot..
             self.BotDict[self.userid]=False
-    
+
     def __str__(self):
         return '<id:%s registered:%s bot:%s>'%(self.userid, self.registered, self.is_bot())
 
@@ -198,37 +196,34 @@ class WikipediaUser(WikipediaWebBase):
 
 
 class WikipediaPage(WikipediaWebBase):
-    """
-    Represents a wikipedia page. 
-    
+    """Represent a wikipedia page.
+
     It should know how to retrive the asociated history page and any revision.
     """
     #these should be setup by a localized subclass
     HISTORY_BASE = None
-    HISTORY_CLASS = None 
+    HISTORY_CLASS = None
     REVISION_URL = None
 
-    def __init__(self, datos):
-        """
-        datos : tuple with:  url, temp_file, disk_name, uralizer, basename
-        """
-        self.url, temp_file, disk_name, uralizer, self.basename = datos
+    def __init__(self, url, basename):
+        self.url = url
+        self.basename = basename
         self._history = None
 
     def __str__(self):
-        return '<wp: %s>'%self.basename
+        return '<wp: %r>' % (self.basename,)
 
     @property
     def history_url(self):
         return self.URL_ENC( self.HISTORY_BASE % self.QUOTE(self.basename) )
 
     def get_revision_url(self, revision=None):
-        """ 
-        Return the revision url when revision is provided, elsewhere the basic 
-        url for the page 
+        """
+        Return the revision url when revision is provided, elsewhere the basic
+        url for the page
         """
         if revision is None:
-            return self.url 
+            return self.url
         return self.URL_ENC(self.REVISION_URL % self.QUOTE(self.basename, revision))
 
     def get_history(self):
@@ -242,32 +237,37 @@ class WikipediaPage(WikipediaWebBase):
 
     def iter_history(self):
         for line in self._iter_history():
-            yield self.HISTORY_CLASS (self, line)
+            yield self.HISTORY_CLASS(self, line)
 
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
-        """ 
-        This function will search for a "good-enough" version of the page wanted.
-        
-        Where good-enough means:
-         * Page version is commited by a registered user (being it human or bot).
-         * Page version is commited by an unregistered user and stayed alive longer
-            than 'acceptance_days'.
+        """Search for a "good-enough" version of the page wanted.
 
-        Check issue #124 at: http://code.google.com/p/cdpedia/issues/detail?id=124
+        Where good-enough means:
+
+         * Page version is commited by a registered user (being it
+           human or bot).
+
+         * Page version is commited by an unregistered user and stayed
+           alive longer than 'acceptance_days'.
+
+        Return None if no version page was found.
+
+        For more info, check issue #124 at:
+            http://code.google.com/p/cdpedia/issues/detail?id=124
         """
         self.acceptance_delta = datetime.timedelta(acceptance_days)
         prev_date = datetime.datetime.now()
-        
-        for idx, hi in enumerate(self.iter_history()):
-            if self.validate_revision(hi, prev_date):
-                break #return hi.page_rev_id
-            prev_date = hi.date
+
+        for idx, hist in enumerate(self.iter_history()):
+            if self.validate_revision(hist, prev_date):
+                break
+            prev_date = hist.date
         else:
-            raise Exception('No version for: %s'%str(self))
-        
-        if idx!=0 and 1:
-            print 'warning: possible vandalism:', str(self), idx
-        return self.get_revision_url(hi.page_rev_id)
+            return None
+
+        if idx != 0:
+            print 'warning: possible vandalism:', self, idx
+        return self.get_revision_url(hist.page_rev_id)
 
     def validate_revision(self, hist_item, prev_date):
         # if the user is registered, it's enough for us! (even if it's a bot)
@@ -283,7 +283,7 @@ class WikipediaPageHistoryItem:
     def __init__(self, page, line):
         self.page = page
         self.user = WikipediaUser.FromHistory(line)
-        self.page_rev_id = self._get_page_version_id(line) 
+        self.page_rev_id = self._get_page_version_id(line)
         self.date = self._get_page_version_date(line)
 
     @classmethod
@@ -312,7 +312,7 @@ class WikipediaPageHistoryItem:
 
     def __str__(self):
         return '<rev: by %s id %r %r>'%(self.user, self.page_rev_id, self.date)
-   
+
 
 class WikipediaPageHistoryItemES (WikipediaPageHistoryItem):
     PAGE_VERSION_ID = re.compile('.*<a href="([^"]*)" title="[^"]*">act</a>.*')
@@ -320,14 +320,14 @@ class WikipediaPageHistoryItemES (WikipediaPageHistoryItem):
                        '.*>([0-9]*):([0-9]*) ([0-9]*) ([a-z]*) ([0-9]*)</a>.*')
     COMMENT_RE = re.compile('<span class="comment">([^]]*)')
     ID_RE = re.compile(".*oldid=([0-9]*).*")
-    MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 
+    MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago',
                     'sep', 'oct', 'nov', 'dic']
 
 
 class WikipediaPageES(WikipediaPage):
     REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
     HISTORY_BASE = 'http://es.wikipedia.org/w/index.php?title=%s&action=history'
-    HISTORY_CLASS =  WikipediaPageHistoryItemES 
+    HISTORY_CLASS =  WikipediaPageHistoryItemES
 
 
 
@@ -353,10 +353,11 @@ def extract_content(html):
     return newhtml
 
 def fetch(datos):
-    page = WikipediaPageES(datos)
-    version_url = page.search_valid_version()
     url, temp_file, disk_name, uralizer, basename = datos
-    url = version_url
+    page = WikipediaPageES(url, basename)
+    url = page.search_valid_version()
+    if url is None:
+        return NO_EXISTE, basename
 
     try:
         html = fetch_html(url)
@@ -399,7 +400,7 @@ def main(nombres, dest_dir, pool_size=20):
     urls = URLAlizer(nombres, dest_dir)
 
     probar_de_nuevo_file = open(ARTICLES_TO_RETRY, "a", buffering=0)
-    total, bien, mal, hay_que_probar_de_nuevo = 0, 0, 0, 0
+    total = bien = mal = hay_que_probar_de_nuevo = 0
     tiempo_inicial = time.time()
     try:
         for status, basename in pool.imap(fetch, urls):
