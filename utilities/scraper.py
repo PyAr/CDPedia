@@ -91,8 +91,21 @@ class URLAlizer(object):
 def fetch_html(url):
     """Fetch an url following redirects."""
 #    print 'fetching:', repr(url)
-    response = urllib2.urlopen(req(url))
-    compressedstream = StringIO.StringIO(response.read())
+    retries = 3
+    while True:
+        try:
+            response = urllib2.urlopen(req(url))
+            data = response.read()
+        except Exception, err:
+            if isinstance(err, urllib2.HTTPError) and err.code == 404:
+                raise
+            retries -= 1
+            if not retries:
+                raise
+        else:
+            break
+
+    compressedstream = StringIO.StringIO(data)
     gzipper = gzip.GzipFile(fileobj=compressedstream)
     html = gzipper.read()
     return html
