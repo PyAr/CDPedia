@@ -11,6 +11,10 @@ HOSTNAME = "localhost"
 # will be the first free port starting from PORT
 PORT = 8000
 
+# User Server mode True when cdpedia will be used in a centralized server
+# configuration. If SERVER_MODE is False it must be used onli in localhost.
+SERVER_MODE = False
+
 # Nombre de la edicion especial, modifica el INDEX y ASSETS en código
 EDICION_ESPECIAL = None
 #EDICION_ESPECIAL = "educar"
@@ -24,7 +28,9 @@ IDIOMA = "es"
 # páginas en sí
 ASSETS = ["static"]
 
-ALL_ASSETS = ASSETS + ["images",  "extern", "tutorial"]
+COMPRESSED_ASSETS = ['tutorial.tar.bz2']
+
+ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images",  "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 

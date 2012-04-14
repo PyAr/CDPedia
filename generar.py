@@ -5,8 +5,9 @@ from __future__ import with_statement
 import sys
 import os
 from os import path
-import shutil
 import time
+import shutil
+import tarfile
 import optparse
 
 #Para poder hacer generar.py > log.txt
@@ -76,10 +77,10 @@ def copiarAssets(src_info, dest):
     dst_dir = path.join(dest, "institucional")
     copy_dir(src_dir, dst_dir)
 
-    # el tutorial de python
-    src_dir = "resources/tutorial"
-    dst_dir = path.join(dest, "tutorial")
-    copy_dir(src_dir, dst_dir)
+    # compressed assets
+    src_dir = "resources"
+    for asset in config.COMPRESSED_ASSETS:
+        shutil.copy(path.join(src_dir, asset), dest)
 
 
 def copiarSources():

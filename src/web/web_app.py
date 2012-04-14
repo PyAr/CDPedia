@@ -21,6 +21,8 @@
 import os
 import re
 import urllib
+import tarfile
+import tempfile
 import operator
 import urlparse
 import posixpath
@@ -77,6 +79,7 @@ class CDPedia(object):
         self.index.start()
 
         self.searcher = Searcher(self.index, self.search_cache_size)
+        self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
 
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
@@ -88,6 +91,7 @@ class CDPedia(object):
             Rule('/institucional/<path:path>', endpoint='institucional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
             Rule('/search_index/ready', endpoint='index_ready'),
+            Rule('/tutorial', endpoint='tutorial'),
         ])
 
     def on_main_page(self, request):
@@ -224,6 +228,22 @@ class CDPedia(object):
             quantity=quantity
         )
 
+    def on_tutorial(self, request):
+        tmpdir = os.path.join(self.tmpdir)
+        if not hasattr(self, "_tutorial_ready"):
+            if not os.path.exists(tmpdir):
+                tar = tarfile.open(os.path.join(config.DIR_ASSETS,
+                                   "tutorial.tar.bz2"), mode="r:bz2")
+                tar.extractall(tmpdir)
+                tar.close()
+            self._tutorial_ready = True
+        asset = "/cmp/tutorial/index.html"
+        return self.render_template('compressed_asset.html',
+                                    server_mode=config.SERVER_MODE,
+                                    asset_url=asset,
+                                    asset_name=u"Tutorial de python")
+
+
     def on_watchdog_update(self, request):
         self.watchdog.update()
         seconds = str(int(config.BROWSER_WD_SECONDS * 0.85))
@@ -277,6 +297,7 @@ def create_app(watchdog, verbose=False, with_static=True, with_debugger=True,
     if with_static:
         paths = [("/" + path, os.path.join(config.DIR_ASSETS, path))
                  for path in config.ALL_ASSETS]
+        paths += [('/cmp', app.tmpdir)]
         app.wsgi_app = SharedDataMiddleware(app.wsgi_app, dict(paths))
     if with_debugger:
         app.wsgi_app = DebuggedApplication(app.wsgi_app, use_evalex)
