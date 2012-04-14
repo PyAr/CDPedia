@@ -39,7 +39,7 @@ from re import compile, MULTILINE, DOTALL
 from urllib2 import unquote
 import urllib
 import codecs
-import os
+import os, re
 
 from src import utiles
 import config
@@ -319,9 +319,29 @@ class QuitaLinkRojo(Procesador):
         return (0, [])
 
 
+class NotLastVersion(Procesador):
+    """Quita los mensajes indicandoque no es la ultima version del articulo, 
+       asi como tambien los links para navegar entre dichas revisiones.."""
+    RE = compile( '<!-- subtitle -->.*<!-- /subtitle -->', re.S )
+    def __init__(self, wikisitio):
+        super(NotLastVersion, self).__init__(wikisitio)
+        self.nombre = "NotLastVersion"
+
+    def __call__(self, wikiarchivo):
+        m = self.RE.search(wikiarchivo.html)
+        if m:
+            ### reemplazamos el html original
+            old = wikiarchivo.html 
+            wikiarchivo.html = old[:m.start()]+old[m.end():]
+            
+        # no damos puntaje ni nada
+        return (0, [])
+
+
 # Clases que serán utilizadas para el preprocesamiento
 # de cada una de las páginas, en orden de ejecución.
 TODOS = [
+    NotLastVersion,
     Namespaces,
     OmitirRedirects,
     FixLinksDescartados,
