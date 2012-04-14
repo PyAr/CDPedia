@@ -97,7 +97,7 @@ def fetch_html(url):
             response = urllib2.urlopen(req(url))
             data = response.read()
         except Exception, err:
-            if isinstance(err, urllib3.HTTPError) and err.code == 404:
+            if isinstance(err, urllib2.HTTPError) and err.code == 404:
                 raise
             retries -= 1
             if not retries:
