@@ -94,9 +94,10 @@ def fetch_html(url):
     retries = 3
     while True:
         try:
-            response = urllib2.urlopen(req(url))
+            response = urllib2.urlopen(req(url), timeout=60)
             data = response.read()
         except Exception, err:
+            print "error", repr(url), err
             if isinstance(err, urllib2.HTTPError) and err.code == 404:
                 raise
             retries -= 1
@@ -351,12 +352,12 @@ no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
                                                 re.MULTILINE|re.DOTALL)
 no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->",
                                                 re.MULTILINE|re.DOTALL)
-def extract_content(html):
+def extract_content(html, url):
     encontrado = capturar(html)
     if not encontrado:
         # Si estamos acá, el html tiene un formato diferente.
         # Por el momento queremos que se sepa.
-        raise ValueError, "El archivo %s posee un formato desconocido" % wikiarchivo.url
+        raise ValueError, "El archivo %s posee un formato desconocido" % url
     newhtml = "\n".join(encontrado.groups())
 
     # algunas limpiezas más
@@ -395,7 +396,7 @@ def fetch(datos):
         return HAY_QUE_PROBAR_DE_NUEVO, basename
 
     try:
-        html = extract_content(html)
+        html = extract_content(html, url)
     except ValueError:
         return HAY_QUE_PROBAR_DE_NUEVO, basename
 
