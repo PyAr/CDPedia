@@ -121,6 +121,7 @@ def armarIso(dest):
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
     f.write('VERSION = %s\n' % repr(config.VERSION))
+    f.write('SERVER_MODE = %s\n' % config.SERVER_MODE)
     f.write('EDICION_ESPECIAL = %s\n' % repr(config.EDICION_ESPECIAL))
     f.write('HOSTNAME = "%s"\n' % config.HOSTNAME)
     f.write('PORT = %d\n' % config.PORT)
