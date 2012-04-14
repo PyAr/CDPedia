@@ -97,7 +97,7 @@ def fetch_html(url):
             response = urllib2.urlopen(req(url))
             data = response.read()
         except Exception, err:
-            if isinstance(err, urllib2.HTTPError) and err.code == 404:
+            if isinstance(err, urllib3.HTTPError) and err.code == 404:
                 raise
             retries -= 1
             if not retries:
@@ -224,7 +224,7 @@ class WikipediaPage(WikipediaWebBase):
         self._history = None
 
     def __str__(self):
-        return '<wp: %r>' % (self.basename,)
+        return '<wp: %s>' % (self.basename.encode('utf-8'),)
 
     @property
     def history_url(self):
