@@ -23,7 +23,9 @@ from __future__ import with_statement
 
 import StringIO
 import datetime
+import functools
 import gzip
+import logging
 import os
 import re
 import sys
@@ -39,8 +41,14 @@ from eventlet.green import urllib2
 
 import to3dirs
 
-# Artículos que no se descargaron por alguna razón.
-ARTICLES_TO_RETRY = "probar_de_nuevo.txt"
+# log all bad stuff
+_logger = logging.getLogger()
+_logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler("scraper.log")
+_logger.addHandler(handler)
+formatter = logging.Formatter("%(asctime)s  %(message)s")
+handler.setFormatter(formatter)
+logger = functools.partial(_logger.log, logging.INFO)
 
 WIKI = 'http://es.wikipedia.org/'
 
@@ -49,8 +57,6 @@ UA = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) Gecko/20100915 ' \
 
 req = partial(urllib2.Request, data = None,
               headers = {'User-Agent': UA, 'Accept-encoding':'gzip'})
-
-OK, NO_EXISTE, HAY_QUE_PROBAR_DE_NUEVO = range(3)
 
 
 class URLAlizer(object):
@@ -97,7 +103,7 @@ def fetch_html(url):
             response = urllib2.urlopen(req(url), timeout=60)
             data = response.read()
         except Exception, err:
-            print "error", repr(url), err
+            print "\n===== Error", repr(url), err, repr(err)
             if isinstance(err, urllib2.HTTPError) and err.code == 404:
                 raise
             retries -= 1
@@ -280,7 +286,7 @@ class WikipediaPage(WikipediaWebBase):
             return None
 
         if idx != 0:
-            print 'warning: possible vandalism:', self, idx
+            logger("Possible vandalism (idx=%d) in %r", idx, self.basename)
         return self.get_revision_url(hist.page_rev_id)
 
     def validate_revision(self, hist_item, prev_date):
@@ -371,65 +377,68 @@ def fetch(datos):
     page = WikipediaPageES(url, basename)
     url = page.search_valid_version()
     if url is None:
-        return NO_EXISTE, basename
+        logger("Version not found: %s", basename)
+        return
 
     try:
         html = fetch_html(url)
-    except urllib2.HTTPError, e:
+    except urllib2.HTTPError as e:
         if e.code == 404:
-            return NO_EXISTE, basename
-        if e.code == 403:
-            return HAY_QUE_PROBAR_DE_NUEVO, basename
-        print>>sys.stderr, "%s : %s" % (url, e.code)
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
-    except Exception, e:
-        print>>sys.stderr, "%s : %s" % (url, e)
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
+            logger("HTML not found (404): %s", basename)
+        else:
+            logger("Try again (HTTP error %s):", e.code, basename)
+        return
+    except Exception as e:
+        logger("Try again (Exception while fetching: %r): %s", e, basename)
+        return
 
     # ok, downloaded the html, let's check that it complies with some rules
     if "</html>" not in html:
         # we surely didn't download it all
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
+        logger("Try again (unfinished download): %s", basename)
+        return
     try:
         html.decode("utf8")
     except UnicodeDecodeError:
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
+        logger("Try again (not utf8): %s", basename)
+        return
 
     try:
         html = extract_content(html, url)
-    except ValueError:
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
+    except ValueError as e:
+        logger("Try again (Exception while extracting content: %r): %s",
+               e, basename)
+        return
 
     with temp_file as fh:
         fh.write(html)
     try:
         os.rename(temp_file.name, disk_name.encode("utf-8"))
     except OSError as e:
-        print "error creating this file:", disk_name.encode("utf-8")
-        return HAY_QUE_PROBAR_DE_NUEVO, basename
-    return OK, basename
+        logger("Try again (Error creating file %r: %r): %s",
+               disk_name, e, basename)
+        return
+
+    # return True when it was OK!
+    return True
+
 
 def main(nombres, dest_dir, pool_size=20):
     pool = eventlet.GreenPool(size=int(pool_size))
     urls = URLAlizer(nombres, dest_dir)
 
-    probar_de_nuevo_file = open(ARTICLES_TO_RETRY, "a", buffering=0)
-    total = bien = mal = hay_que_probar_de_nuevo = 0
+    total = bien = mal = 0
     tiempo_inicial = time.time()
     try:
-        for status, basename in pool.imap(fetch, urls):
+        for ok in pool.imap(fetch, urls):
             total += 1
-            if status == OK:
+            if ok:
                 bien += 1
-            elif status == NO_EXISTE:
+            else:
                 mal += 1
-            elif status == HAY_QUE_PROBAR_DE_NUEVO:
-                mal += 1
-                probar_de_nuevo_file.write(basename.encode("utf-8")+"\n")
-                probar_de_nuevo_file.flush()
 
-            velocidad = total/(time.time()-tiempo_inicial)
-            sys.stdout.write("\r TOTAL=%d \t BIEN=%d \t MAL=%d \t velocidad = %.2f art/s" %
+            velocidad = total / (time.time() - tiempo_inicial)
+            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
                              (total, bien, mal, velocidad))
             sys.stdout.flush()
 
