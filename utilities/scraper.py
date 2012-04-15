@@ -24,6 +24,7 @@ from __future__ import with_statement
 import StringIO
 import datetime
 import functools
+import itertools
 import gzip
 import logging
 import os
@@ -203,6 +204,8 @@ class WikipediaUser(WikipediaWebBase):
         preurl = 'http://es.wikipedia.org/w/index.php?title=Especial:ListaUsuarios&group=bot&limit=1&username=%s'
         return self.URL_ENC( preurl % self.QUOTE(self.userid) )
 
+class PageHaveNoRevisions(Exception):
+    pass
 
 class WikipediaPage(WikipediaWebBase):
     """Represent a wikipedia page.
@@ -210,7 +213,7 @@ class WikipediaPage(WikipediaWebBase):
     It should know how to retrive the asociated history page and any revision.
     """
     #these should be setup by a localized subclass
-    HISTORY_BASE_JSON = None
+    HISTORY_BASE = None
     HISTORY_CLASS = None
     REVISION_URL = None
 
@@ -218,13 +221,14 @@ class WikipediaPage(WikipediaWebBase):
         self.url = url
         self.basename = basename
         self._history = None
+        self.history_size = 6
 
     def __str__(self):
         return '<wp: %s>' % (self.basename.encode('utf-8'),)
 
     @property
     def history_url(self):
-        return self.URL_ENC( self.HISTORY_BASE_JSON % self.QUOTE(self.basename) )
+        return self.URL_ENC( self.HISTORY_BASE % ( self.history_size, self.QUOTE(self.basename)[0] ) )
 
     def get_revision_url(self, revision=None):
         """
@@ -235,20 +239,24 @@ class WikipediaPage(WikipediaWebBase):
             return self.url
         return self.URL_ENC(self.REVISION_URL % self.QUOTE(self.basename, revision))
 
-    def get_history(self):
-        if self._history is None:
+    def get_history(self, size=6):
+        if self._history is None or size!=self.history_size:
+            self.history_size = size
             self._history = fetch_html(self.history_url)
         return self._history
 
-    def iter_history_json(self):
-        json_rev_history = json.loads(self.get_history())
+    def iter_history_json(self, history_size):
+        json_rev_history = json.loads(self.get_history(size=history_size))
         pages = json_rev_history['query']['pages']
         pageid = pages.keys().pop()
-        if pageid==-1 or not pages[pageid].has_key("revisions"):
+        if (pageid==-1 or not pages[pageid].has_key("revisions") or
+            (len(pages[pageid]['revisions'])==0)):
             # page deleted / moved / whatever but not now..
-            return
-        for item in pages[pageid]['revisions']:
-            yield self.HISTORY_CLASS.FromJSON(self, item)
+            raise PageHaveNoRevisions(self)
+
+        for idx, item in enumerate(pages[pageid]['revisions']):
+            yield idx, self.HISTORY_CLASS.FromJSON(self, item)
+
 
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
         """Search for a "good-enough" version of the page wanted.
@@ -269,13 +277,14 @@ class WikipediaPage(WikipediaWebBase):
         self.acceptance_delta = datetime.timedelta(acceptance_days)
         prev_date = datetime.datetime.now()
 
-        for idx, hist in enumerate(self.iter_history_json()):
+        history_gen = itertools.chain(*list(
+                            itertools.imap(self.iter_history_json, [6,100])))
+
+        for idx, hist in history_gen:
             if self.validate_revision(hist, prev_date):
                 break
             prev_date = hist.date
-        else:
-            return None
-
+       
         if idx != 0:
             logger("Possible vandalism (idx=%d) in %r", idx, self.basename)
         return self.get_revision_url(hist.page_rev_id)
@@ -333,7 +342,7 @@ class WikipediaPageHistoryItemES (WikipediaPageHistoryItem):
 
 class WikipediaPageES(WikipediaPage):
     REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
-    HISTORY_BASE_JSON = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=50&titles=%s'
+    HISTORY_BASE = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=%d&titles=%s'
     HISTORY_CLASS =  WikipediaPageHistoryItemES
 
 
@@ -362,8 +371,9 @@ def extract_content(html, url):
 def fetch(datos):
     url, temp_file, disk_name, uralizer, basename = datos
     page = WikipediaPageES(url, basename)
-    url = page.search_valid_version()
-    if url is None:
+    try:
+        url = page.search_valid_version()
+    except PageHaveNoRevisions:
         logger("Version not found: %s", basename)
         return
 
