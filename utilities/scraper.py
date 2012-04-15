@@ -32,6 +32,7 @@ import sys
 import tempfile
 import time
 import urllib
+import json
 
 from functools import partial
 
@@ -96,7 +97,6 @@ class URLAlizer(object):
 
 def fetch_html(url):
     """Fetch an url following redirects."""
-#    print 'fetching:', repr(url)
     retries = 3
     while True:
         try:
@@ -141,25 +141,14 @@ class WikipediaUser(WikipediaWebBase):
     """
     USUARIO_RE = re.compile('title="Usuario\:([^"]*)"')
     CONTRIB_RE = re.compile('title="Especial\:([^"]*)"')
-    NO_USER_PAGE_YET = ' (aún no redactado)'
+    NO_USER_PAGE_YET = u' (aún no redactado)'
     BotDict = {}
 
     @classmethod
-    def FromHistory(cls, history_line):
-        _USER_REs = [(cls.USUARIO_RE, True), (cls.CONTRIB_RE, False) ]
-        user = None #user = ('not','found')
-        first = None
-        for user_re, registered in _USER_REs:
-            m = user_re.search(history_line)
-            if m:
-                userid = m.groups()[0]
-                pos = history_line.find(userid)
-                if first is None or pos<first[0]:
-                    # we need to track which occurres first
-                    first = pos, userid, registered
-        if first is not None:
-            _, userid, registered = first
-            return WikipediaUser(userid, registered)
+    def FromJSON(cls, jsonitem):
+        userid = jsonitem['userid']
+        user = jsonitem['user']
+        return WikipediaUser(user, userid!=0)
 
     def __init__(self, userid, registered):
         self.has_page = not userid.endswith(self.NO_USER_PAGE_YET)
@@ -221,7 +210,7 @@ class WikipediaPage(WikipediaWebBase):
     It should know how to retrive the asociated history page and any revision.
     """
     #these should be setup by a localized subclass
-    HISTORY_BASE = None
+    HISTORY_BASE_JSON = None
     HISTORY_CLASS = None
     REVISION_URL = None
 
@@ -235,7 +224,7 @@ class WikipediaPage(WikipediaWebBase):
 
     @property
     def history_url(self):
-        return self.URL_ENC( self.HISTORY_BASE % self.QUOTE(self.basename) )
+        return self.URL_ENC( self.HISTORY_BASE_JSON % self.QUOTE(self.basename) )
 
     def get_revision_url(self, revision=None):
         """
@@ -251,13 +240,15 @@ class WikipediaPage(WikipediaWebBase):
             self._history = fetch_html(self.history_url)
         return self._history
 
-    def _iter_history(self):
-        for line in self.get_history().split('<li>')[1:]:
-            yield line.split('</li>',1)[0]
-
-    def iter_history(self):
-        for line in self._iter_history():
-            yield self.HISTORY_CLASS(self, line)
+    def iter_history_json(self):
+        json_rev_history = json.loads(self.get_history())
+        pages = json_rev_history['query']['pages']
+        pageid = pages.keys().pop()
+        if pageid==-1 or not pages[pageid].has_key("revisions"):
+            # page deleted / moved / whatever but not now..
+            return
+        for item in pages[pageid]['revisions']:
+            yield self.HISTORY_CLASS.FromJSON(self, item)
 
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
         """Search for a "good-enough" version of the page wanted.
@@ -278,7 +269,7 @@ class WikipediaPage(WikipediaWebBase):
         self.acceptance_delta = datetime.timedelta(acceptance_days)
         prev_date = datetime.datetime.now()
 
-        for idx, hist in enumerate(self.iter_history()):
+        for idx, hist in enumerate(self.iter_history_json()):
             if self.validate_revision(hist, prev_date):
                 break
             prev_date = hist.date
@@ -300,33 +291,29 @@ class WikipediaPage(WikipediaWebBase):
 
 
 class WikipediaPageHistoryItem:
-    def __init__(self, page, line):
+    def __init__(self, page, user, page_rev_id, date):
         self.page = page
-        self.user = WikipediaUser.FromHistory(line)
-        self.page_rev_id = self._get_page_version_id(line)
-        self.date = self._get_page_version_date(line)
+        self.user = user
+        self.page_rev_id = page_rev_id 
+        self.date = date
+
+    @classmethod 
+    def FromJSON(cls, page, jsonitem):
+        user = WikipediaUser.FromJSON(jsonitem)
+        page_rev_id = str(jsonitem['revid'])
+        date = cls._get_page_version_date_json(jsonitem)
+        return cls(page, user, page_rev_id, date)
 
     @classmethod
-    def _get_page_version_id(cls, line):
+    def _get_page_version_date_json(cls, jsonitem):
         """
-        Returns the version id if found, None if not
-        """
-        m = cls.PAGE_VERSION_ID.match(line)
-        if m:
-            id_url = m.groups()[0]
-            m = cls.ID_RE.match(id_url)
-            if m:
-                return m.groups()[0]
-
-    @classmethod
-    def _get_page_version_date(cls, line):
-        """
+        # 2012-04-08T18:48:45Z
         Returns the version date if found, None if not
         """
-        m = cls.PAGE_VERSION_DATE.match(line)
+        r = re.compile("([0-9]*)-([0-9]*)-([0-9]*)T([0-9]*):([0-9]*):([0-9]*)Z")
+        m = r.match(jsonitem['timestamp'])
         if m:
-            hour, minute, day, month, year = m.groups()
-            month = cls.MONTH_NAMES.index(month)+1
+            year, month, day, hour, minute, second = m.groups()
             tdate = tuple([int(x) for x in (year, month, day, hour, minute)])
             return datetime.datetime(*tdate)
 
@@ -346,7 +333,7 @@ class WikipediaPageHistoryItemES (WikipediaPageHistoryItem):
 
 class WikipediaPageES(WikipediaPage):
     REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
-    HISTORY_BASE = 'http://es.wikipedia.org/w/index.php?title=%s&action=history'
+    HISTORY_BASE_JSON = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=50&titles=%s'
     HISTORY_CLASS =  WikipediaPageHistoryItemES
 
 
