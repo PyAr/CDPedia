@@ -147,8 +147,8 @@ class WikipediaUser(WikipediaWebBase):
 
     @classmethod
     def FromJSON(cls, jsonitem):
-        userid = jsonitem['userid']
-        user = jsonitem['user']
+        userid = jsonitem.get('userid',0)
+        user = jsonitem.get('user','hidden')
         return WikipediaUser(user, userid!=0)
 
     def __init__(self, userid, registered):
