@@ -284,7 +284,7 @@ class WikipediaPage(WikipediaWebBase):
             if self.validate_revision(hist, prev_date):
                 break
             prev_date = hist.date
-       
+
         if idx != 0:
             logger("Possible vandalism (idx=%d) in %r", idx, self.basename)
         return self.get_revision_url(hist.page_rev_id)
@@ -303,10 +303,10 @@ class WikipediaPageHistoryItem:
     def __init__(self, page, user, page_rev_id, date):
         self.page = page
         self.user = user
-        self.page_rev_id = page_rev_id 
+        self.page_rev_id = page_rev_id
         self.date = date
 
-    @classmethod 
+    @classmethod
     def FromJSON(cls, page, jsonitem):
         user = WikipediaUser.FromJSON(jsonitem)
         page_rev_id = str(jsonitem['revid'])
@@ -375,6 +375,9 @@ def fetch(datos):
         url = page.search_valid_version()
     except PageHaveNoRevisions:
         logger("Version not found: %s", basename)
+        return
+    except:
+        _logger.exception("ERROR while getting valid version for %r", url)
         return
 
     try:
