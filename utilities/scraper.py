@@ -21,27 +21,27 @@
 
 from __future__ import with_statement
 
-import StringIO
 import datetime
 import functools
-import itertools
 import gzip
+import itertools
+import json
 import logging
 import os
 import re
+import StringIO
 import sys
 import tempfile
 import time
 import urllib
-import json
 
 from functools import partial
 
-import eventlet
-
-from eventlet.green import urllib2
+from twisted.internet import defer, reactor
+from twisted.web import client, error, http
 
 import to3dirs
+import workerpool
 
 # log all bad stuff
 _logger = logging.getLogger()
@@ -54,11 +54,10 @@ logger = functools.partial(_logger.log, logging.INFO)
 
 WIKI = 'http://es.wikipedia.org/'
 
-UA = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) Gecko/20100915 ' \
-     'Ubuntu/10.04 (lucid) Firefox/3.6.10'
+USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
+             'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
 
-req = partial(urllib2.Request, data = None,
-              headers = {'User-Agent': UA, 'Accept-encoding':'gzip'})
+REQUEST_HEADERS = {'Accept-encoding':'gzip'}
 
 
 class URLAlizer(object):
@@ -96,30 +95,30 @@ class URLAlizer(object):
         return self
 
 
+@defer.inlineCallbacks
 def fetch_html(url):
     """Fetch an url following redirects."""
     retries = 3
     while True:
         try:
-            response = urllib2.urlopen(req(url), timeout=60)
-            data = response.read()
+            data = yield client.getPage(url, headers=REQUEST_HEADERS,
+                                        timeout=60, agent=USER_AGENT)
+            compressedstream = StringIO.StringIO(data)
+            gzipper = gzip.GzipFile(fileobj=compressedstream)
+            html = gzipper.read()
+
+            defer.returnValue(html)
         except Exception, err:
             print "\n===== Error", repr(url), err, repr(err)
-            if isinstance(err, urllib2.HTTPError) and err.code == 404:
+            if isinstance(err, error.Error) and err.status == http.NOT_FOUND:
                 raise
             retries -= 1
             if not retries:
                 raise
-        else:
-            break
-
-    compressedstream = StringIO.StringIO(data)
-    gzipper = gzip.GzipFile(fileobj=compressedstream)
-    html = gzipper.read()
-    return html
 
 
 compose_funcs = lambda f,g: (lambda x: f(g(x)))
+
 
 class WikipediaWebBase:
     @staticmethod
@@ -185,27 +184,32 @@ class WikipediaUser(WikipediaWebBase):
     def _is_bot(self):
         return self.BotDict.get(self.userid)
 
+    @defer.inlineCallbacks
     def is_bot(self):
         if self._is_bot is None:
-            self._check_botness()
-        return self._is_bot
+            yield self._check_botness()
+        defer.returnValue(self._is_bot)
 
     def is_anonymous(self):
         return not self.registered
 
+    @defer.inlineCallbacks
     def _check_botness(self):
-        user_info_page = fetch_html(self.bot_check_url)
+        user_info_page = yield fetch_html(self.bot_check_url)
         self._is_bot = self.url_to_relative(self.user_url) in user_info_page
         self.BotDict[self.userid] = self._is_bot
-        return self._is_bot
+        defer.returnValue(self._is_bot)
 
     @property
     def bot_check_url(self):
-        preurl = 'http://es.wikipedia.org/w/index.php?title=Especial:ListaUsuarios&group=bot&limit=1&username=%s'
+        preurl = 'http://es.wikipedia.org/w/index.php?' \
+                 'title=Especial:ListaUsuarios&group=bot&limit=1&username=%s'
         return self.URL_ENC( preurl % self.QUOTE(self.userid) )
+
 
 class PageHaveNoRevisions(Exception):
     pass
+
 
 class WikipediaPage(WikipediaWebBase):
     """Represent a wikipedia page.
@@ -239,14 +243,14 @@ class WikipediaPage(WikipediaWebBase):
             return self.url
         return self.URL_ENC(self.REVISION_URL % self.QUOTE(self.basename, revision))
 
+    @defer.inlineCallbacks
     def get_history(self, size=6):
         if self._history is None or size!=self.history_size:
             self.history_size = size
-            self._history = fetch_html(self.history_url)
-        return self._history
+            self._history = yield fetch_html(self.history_url)
+        defer.returnValue(self._history)
 
-    def iter_history_json(self, history_size):
-        json_rev_history = json.loads(self.get_history(size=history_size))
+    def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
         pageid = pages.keys().pop()
         if (pageid==-1 or not pages[pageid].has_key("revisions") or
@@ -258,6 +262,7 @@ class WikipediaPage(WikipediaWebBase):
             yield idx, self.HISTORY_CLASS.FromJSON(self, item)
 
 
+    @defer.inlineCallbacks
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
         """Search for a "good-enough" version of the page wanted.
 
@@ -275,19 +280,25 @@ class WikipediaPage(WikipediaWebBase):
             http://code.google.com/p/cdpedia/issues/detail?id=124
         """
         self.acceptance_delta = datetime.timedelta(acceptance_days)
-        prev_date = datetime.datetime.now()
-
-        history_gen = itertools.chain(*list(
-                            itertools.imap(self.iter_history_json, [6,100])))
-
-        for idx, hist in history_gen:
-            if self.validate_revision(hist, prev_date):
-                break
-            prev_date = hist.date
-
+        idx, hist = yield self.iterate_history()
         if idx != 0:
             logger("Possible vandalism (idx=%d) in %r", idx, self.basename)
-        return self.get_revision_url(hist.page_rev_id)
+        defer.returnValue(self.get_revision_url(hist.page_rev_id))
+
+    @defer.inlineCallbacks
+    def iterate_history(self):
+        prev_date = datetime.datetime.now()
+
+        for history_size in [6, 100]:
+            history = yield self.get_history(size=history_size)
+            json_rev_history = json.loads(history)
+
+            for idx, hist in self.iter_history_json(json_rev_history):
+                if self.validate_revision(hist, prev_date):
+                    defer.returnValue((idx, hist))
+                prev_date = hist.date
+
+        defer.returnValue((idx, hist))
 
     def validate_revision(self, hist_item, prev_date):
         # if the user is registered, it's enough for us! (even if it's a bot)
@@ -346,14 +357,14 @@ class WikipediaPageES(WikipediaPage):
     HISTORY_CLASS =  WikipediaPageHistoryItemES
 
 
-
-
 regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
 capturar = re.compile(regex, re.MULTILINE|re.DOTALL).search
 no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
                                                 re.MULTILINE|re.DOTALL)
 no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->",
                                                 re.MULTILINE|re.DOTALL)
+
+
 def extract_content(html, url):
     encontrado = capturar(html)
     if not encontrado:
@@ -368,47 +379,49 @@ def extract_content(html, url):
 
     return newhtml
 
+
+@defer.inlineCallbacks
 def fetch(datos):
     url, temp_file, disk_name, uralizer, basename = datos
     page = WikipediaPageES(url, basename)
     try:
-        url = page.search_valid_version()
+        url = yield page.search_valid_version()
     except PageHaveNoRevisions:
         logger("Version not found: %s", basename)
-        return
+        defer.returnValue(False)
     except:
         _logger.exception("ERROR while getting valid version for %r", url)
-        return
+        defer.returnValue(False)
 
     try:
-        html = fetch_html(url)
-    except urllib2.HTTPError as e:
-        if e.code == 404:
+        html = yield fetch_html(url)
+    except error.Error as e:
+        if e.status == http.NOT_FOUND:
             logger("HTML not found (404): %s", basename)
         else:
-            logger("Try again (HTTP error %s):", e.code, basename)
-        return
+            logger("Try again (HTTP error %s): %s", e.status, basename)
+        defer.returnValue(False)
     except Exception as e:
         logger("Try again (Exception while fetching: %r): %s", e, basename)
-        return
+        defer.returnValue(False)
 
     # ok, downloaded the html, let's check that it complies with some rules
     if "</html>" not in html:
         # we surely didn't download it all
         logger("Try again (unfinished download): %s", basename)
-        return
+        defer.returnValue(False)
     try:
         html.decode("utf8")
     except UnicodeDecodeError:
         logger("Try again (not utf8): %s", basename)
-        return
+        defer.returnValue(False)
 
     try:
         html = extract_content(html, url)
     except ValueError as e:
         logger("Try again (Exception while extracting content: %r): %s",
                e, basename)
-        return
+        defer.returnValue(False)
 
     with temp_file as fh:
         fh.write(html)
@@ -417,33 +430,42 @@ def fetch(datos):
     except OSError as e:
         logger("Try again (Error creating file %r: %r): %s",
                disk_name, e, basename)
-        return
+        defer.returnValue(False)
 
     # return True when it was OK!
-    return True
+    defer.returnValue(True)
 
 
+class StatusBoard(object):
+
+    def __init__(self):
+        self.total = 0
+        self.bien = 0
+        self.mal = 0
+        self.tiempo_inicial = time.time()
+
+    @defer.inlineCallbacks
+    def process(self, datos):
+        ok = yield fetch(datos)
+        self.total += 1
+        if ok:
+            self.bien += 1
+        else:
+            self.mal += 1
+
+        velocidad = self.total / (time.time() - self.tiempo_inicial)
+        sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
+                         (self.total, self.bien, self.mal, velocidad))
+        sys.stdout.flush()
+
+
+@defer.inlineCallbacks
 def main(nombres, dest_dir, pool_size=20):
-    pool = eventlet.GreenPool(size=int(pool_size))
+    pool = workerpool.WorkerPool(size=int(pool_size))
     urls = URLAlizer(nombres, dest_dir)
+    board = StatusBoard()
+    yield pool.start(board.process, urls)
 
-    total = bien = mal = 0
-    tiempo_inicial = time.time()
-    try:
-        for ok in pool.imap(fetch, urls):
-            total += 1
-            if ok:
-                bien += 1
-            else:
-                mal += 1
-
-            velocidad = total / (time.time() - tiempo_inicial)
-            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
-                             (total, bien, mal, velocidad))
-            sys.stdout.flush()
-
-    except (KeyboardInterrupt, SystemExit):
-        print "\nStoping, plase wait."
 
 USAGE = """
 Usar: scraper.py <NOMBRES_ARTICULOS> <DEST_DIR> [CONCURRENT]"
@@ -470,4 +492,6 @@ if __name__ == "__main__":
         print USAGE
         sys.exit(1)
 
-    main(*sys.argv[1:])
+    d = main(*sys.argv[1:])
+    d.addCallback(lambda _: reactor.stop())
+    reactor.run()
