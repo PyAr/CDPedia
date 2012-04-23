@@ -24,7 +24,6 @@ from __future__ import with_statement
 import datetime
 import functools
 import gzip
-import itertools
 import json
 import logging
 import os
@@ -34,8 +33,6 @@ import sys
 import tempfile
 import time
 import urllib
-
-from functools import partial
 
 from twisted.internet import defer, reactor
 from twisted.web import client, error, http
@@ -109,7 +106,6 @@ def fetch_html(url):
 
             defer.returnValue(html)
         except Exception, err:
-            print "\n===== Error", repr(url), err, repr(err)
             if isinstance(err, error.Error) and err.status == http.NOT_FOUND:
                 raise
             retries -= 1
@@ -117,101 +113,11 @@ def fetch_html(url):
                 raise
 
 
-compose_funcs = lambda f,g: (lambda x: f(g(x)))
-
-
-class WikipediaWebBase:
-    @staticmethod
-    def URL_ENC(preurl):
-        return preurl.replace(' ', '_')
-
-    @staticmethod
-    def QUOTE(*args):
-        conv = lambda s: s if type(s)==type('') else s.encode('utf-8')
-        return tuple(map(compose_funcs(urllib.quote, conv), args))
-
-
-class WikipediaUser(WikipediaWebBase):
-    """
-    Given a user-id or a line of a wikipedia-page's history, create the
-    asociated user.
-
-    It will be able to answer (by querying the web) if it's a bot, a registered
-    user or none of them (ie: an anonymouse user).
-    """
-    USUARIO_RE = re.compile('title="Usuario\:([^"]*)"')
-    CONTRIB_RE = re.compile('title="Especial\:([^"]*)"')
-    NO_USER_PAGE_YET = u' (aún no redactado)'
-    BotDict = {}
-
-    @classmethod
-    def FromJSON(cls, jsonitem):
-        userid = jsonitem.get('userid',0)
-        user = jsonitem.get('user','hidden')
-        return WikipediaUser(user, userid!=0)
-
-    def __init__(self, userid, registered):
-        self.has_page = not userid.endswith(self.NO_USER_PAGE_YET)
-
-        if self.has_page:
-            self.userid = userid
-        else:
-            self.userid = userid[:-len(self.NO_USER_PAGE_YET)]
-
-        self.registered = registered # False=anonymous
-        if not registered or not self.has_page:
-            # Assume that if the user have no page defined,
-            # it shouldn't be not a robot..
-            self.BotDict[self.userid]=False
-
-    def __str__(self):
-        return '<id:%s registered:%s bot:%s>'%(self.userid, self.registered, self.is_bot())
-
-    @property
-    def user_url(self):
-        if not self.has_page:
-            return None
-        preurl = 'http://es.wikipedia.org/wiki/Usuario:%s'
-        return self.URL_ENC( preurl % self.QUOTE(self.userid) )
-
-    @staticmethod
-    def url_to_relative(url):
-        globaldomain = 'wikipedia.org'
-        assert globaldomain in url
-        return url.split(globaldomain, 1)[1]
-
-    @property
-    def _is_bot(self):
-        return self.BotDict.get(self.userid)
-
-    @defer.inlineCallbacks
-    def is_bot(self):
-        if self._is_bot is None:
-            yield self._check_botness()
-        defer.returnValue(self._is_bot)
-
-    def is_anonymous(self):
-        return not self.registered
-
-    @defer.inlineCallbacks
-    def _check_botness(self):
-        user_info_page = yield fetch_html(self.bot_check_url)
-        self._is_bot = self.url_to_relative(self.user_url) in user_info_page
-        self.BotDict[self.userid] = self._is_bot
-        defer.returnValue(self._is_bot)
-
-    @property
-    def bot_check_url(self):
-        preurl = 'http://es.wikipedia.org/w/index.php?' \
-                 'title=Especial:ListaUsuarios&group=bot&limit=1&username=%s'
-        return self.URL_ENC( preurl % self.QUOTE(self.userid) )
-
-
 class PageHaveNoRevisions(Exception):
     pass
 
 
-class WikipediaPage(WikipediaWebBase):
+class WikipediaPage(object):
     """Represent a wikipedia page.
 
     It should know how to retrive the asociated history page and any revision.
@@ -224,6 +130,8 @@ class WikipediaPage(WikipediaWebBase):
     def __init__(self, url, basename):
         self.url = url
         self.basename = basename
+        self.quoted_basename = urllib.quote(basename.encode('utf-8')
+                                            ).replace(' ', '_')
         self._history = None
         self.history_size = 6
 
@@ -232,7 +140,7 @@ class WikipediaPage(WikipediaWebBase):
 
     @property
     def history_url(self):
-        return self.URL_ENC( self.HISTORY_BASE % ( self.history_size, self.QUOTE(self.basename)[0] ) )
+        return self.HISTORY_BASE % (self.history_size, self.quoted_basename)
 
     def get_revision_url(self, revision=None):
         """
@@ -241,7 +149,7 @@ class WikipediaPage(WikipediaWebBase):
         """
         if revision is None:
             return self.url
-        return self.URL_ENC(self.REVISION_URL % self.QUOTE(self.basename, revision))
+        return self.REVISION_URL % (self.quoted_basename, revision)
 
     @defer.inlineCallbacks
     def get_history(self, size=6):
@@ -252,15 +160,19 @@ class WikipediaPage(WikipediaWebBase):
 
     def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
-        pageid = pages.keys().pop()
-        if (pageid==-1 or not pages[pageid].has_key("revisions") or
-            (len(pages[pageid]['revisions'])==0)):
+        pageid = pages.keys()[0]
+        if pageid == -1:
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisions(self)
 
-        for idx, item in enumerate(pages[pageid]['revisions']):
-            yield idx, self.HISTORY_CLASS.FromJSON(self, item)
+        revisions = pages[pageid].get("revisions")
+        if not revisions:
+            # None, or there but empty
+            # page deleted / moved / whatever but not now..
+            raise PageHaveNoRevisions(self)
 
+        for idx, item in enumerate(revisions):
+            yield idx, self.HISTORY_CLASS.FromJSON(item)
 
     @defer.inlineCallbacks
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
@@ -302,7 +214,7 @@ class WikipediaPage(WikipediaWebBase):
 
     def validate_revision(self, hist_item, prev_date):
         # if the user is registered, it's enough for us! (even if it's a bot)
-        if hist_item.user.registered:
+        if hist_item.user_registered:
             return True
         #if it's not registered, check for how long this version lasted
         if hist_item.date + self.acceptance_delta < prev_date:
@@ -310,51 +222,29 @@ class WikipediaPage(WikipediaWebBase):
         return False
 
 
-class WikipediaPageHistoryItem:
-    def __init__(self, page, user, page_rev_id, date):
-        self.page = page
-        self.user = user
+class WikipediaPageHistoryItem(object):
+    def __init__(self, user_registered, page_rev_id, date):
+        self.user_registered = user_registered
         self.page_rev_id = page_rev_id
         self.date = date
 
     @classmethod
-    def FromJSON(cls, page, jsonitem):
-        user = WikipediaUser.FromJSON(jsonitem)
+    def FromJSON(cls, jsonitem):
+        user_registered = jsonitem.get('userid', 0) != 0
         page_rev_id = str(jsonitem['revid'])
-        date = cls._get_page_version_date_json(jsonitem)
-        return cls(page, user, page_rev_id, date)
-
-    @classmethod
-    def _get_page_version_date_json(cls, jsonitem):
-        """
-        # 2012-04-08T18:48:45Z
-        Returns the version date if found, None if not
-        """
-        r = re.compile("([0-9]*)-([0-9]*)-([0-9]*)T([0-9]*):([0-9]*):([0-9]*)Z")
-        m = r.match(jsonitem['timestamp'])
-        if m:
-            year, month, day, hour, minute, second = m.groups()
-            tdate = tuple([int(x) for x in (year, month, day, hour, minute)])
-            return datetime.datetime(*tdate)
+        tstamp = jsonitem['timestamp']
+        date = datetime.datetime.strptime(tstamp, "%Y-%m-%dT%H:%M:%SZ")
+        return cls(user_registered, page_rev_id, date)
 
     def __str__(self):
-        return '<rev: by %s id %r %r>'%(self.user, self.page_rev_id, self.date)
-
-
-class WikipediaPageHistoryItemES (WikipediaPageHistoryItem):
-    PAGE_VERSION_ID = re.compile('.*<a href="([^"]*)" title="[^"]*">act</a>.*')
-    PAGE_VERSION_DATE = re.compile(
-                       '.*>([0-9]*):([0-9]*) ([0-9]*) ([a-z]*) ([0-9]*)</a>.*')
-    COMMENT_RE = re.compile('<span class="comment">([^]]*)')
-    ID_RE = re.compile(".*oldid=([0-9]*).*")
-    MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago',
-                    'sep', 'oct', 'nov', 'dic']
+        return '<rev: regist %s id %r %r>' % (self.user_registered,
+                                              self.page_rev_id, self.date)
 
 
 class WikipediaPageES(WikipediaPage):
     REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
     HISTORY_BASE = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=%d&titles=%s'
-    HISTORY_CLASS =  WikipediaPageHistoryItemES
+    HISTORY_CLASS =  WikipediaPageHistoryItem
 
 
 regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
@@ -368,9 +258,8 @@ no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->",
 def extract_content(html, url):
     encontrado = capturar(html)
     if not encontrado:
-        # Si estamos acá, el html tiene un formato diferente.
-        # Por el momento queremos que se sepa.
-        raise ValueError, "El archivo %s posee un formato desconocido" % url
+        # unknown html format
+        raise ValueError("El archivo %s posee un formato desconocido" % url)
     newhtml = "\n".join(encontrado.groups())
 
     # algunas limpiezas más
@@ -568,6 +457,7 @@ def main(nombres, dest_dir, pool_size=20):
     urls = URLAlizer(nombres, dest_dir)
     board = StatusBoard()
     yield pool.start(board.process, urls)
+    print # LF&CR after all is done
 
 
 USAGE = """
