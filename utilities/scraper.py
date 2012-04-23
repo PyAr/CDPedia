@@ -339,7 +339,7 @@ def replace_previous_and_next_links(html, n):
     def replace(m):
         # Be care about the delta 'global' param
         pre, link, post = m.groups()
-        idx = '"' if (n==2 and delta=-1) else '_%d"'%(n+delta)
+        idx = '"' if (n==2 and delta==-1) else '_%d"'%(n+delta)
         return '<a href="/wiki/' + link.replace('_',' ') + idx + post
 
     # Replace 'next' link
