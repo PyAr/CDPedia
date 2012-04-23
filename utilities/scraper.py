@@ -86,7 +86,7 @@ class URLAlizer(object):
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-                return url, self.temp_dir, disk_name, self, basename
+                return url, temp_file, disk_name, self, basename
 
     def __iter__(self):
         return self
@@ -117,7 +117,7 @@ class PageHaveNoRevisions(Exception):
     pass
 
 
-class WikipediaPage(object):
+class WikipediaArticle(object):
     """Represent a wikipedia page.
 
     It should know how to retrive the asociated history page and any revision.
@@ -174,6 +174,7 @@ class WikipediaPage(object):
         for idx, item in enumerate(revisions):
             yield idx, self.HISTORY_CLASS.FromJSON(item)
 
+
     @defer.inlineCallbacks
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
         """Search for a "good-enough" version of the page wanted.
@@ -222,7 +223,7 @@ class WikipediaPage(object):
         return False
 
 
-class WikipediaPageHistoryItem(object):
+class WikipediaArticleHistoryItem(object):
     def __init__(self, user_registered, page_rev_id, date):
         self.user_registered = user_registered
         self.page_rev_id = page_rev_id
@@ -241,10 +242,10 @@ class WikipediaPageHistoryItem(object):
                                               self.page_rev_id, self.date)
 
 
-class WikipediaPageES(WikipediaPage):
+class WikipediaArticleES(WikipediaArticle):
     REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
     HISTORY_BASE = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=%d&titles=%s'
-    HISTORY_CLASS =  WikipediaPageHistoryItem
+    HISTORY_CLASS =  WikipediaArticleHistoryItem
 
 
 regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
@@ -268,10 +269,11 @@ def extract_content(html, url):
 
     return newhtml
 
+
 @defer.inlineCallbacks
 def fetch(datos):
     url, temp_file, disk_name, uralizer, basename = datos
-    page = WikipediaPageES(url, basename)
+    page = WikipediaArticleES(url, basename)
     try:
         url = yield page.search_valid_version()
     except PageHaveNoRevisions:
@@ -280,12 +282,6 @@ def fetch(datos):
     except:
         _logger.exception("ERROR while getting valid version for %r", url)
         defer.returnValue(False)
-
-def get_html(url, basename):
-    ''' Returns the html of an article.
-
-        If an error occurs returns None
-    '''
 
     try:
         html = yield fetch_html(url)
@@ -317,112 +313,14 @@ def get_html(url, basename):
                e, basename)
         defer.returnValue(False)
 
-    return html
-
-def find_next_page_link(html):
-    ''' Returns the link for the next page
-
-        If there is no next page, returns None
-    '''
-    links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>',html)
-    if links == []:
+    with temp_file as fh:
+        fh.write(html)
+    try:
+        os.rename(temp_file.name, disk_name.encode("utf-8"))
+    except OSError as e:
+        logger("Try again (Error creating file %r: %r): %s",
+               disk_name, e, basename)
         defer.returnValue(False)
-    return '%s%s' % (WIKI[:-1], links[0])
-
-def replace_previous_and_next_links(html, n):
-    ''' Replace the links
-
-        In the case of the first page, will not find the previous link, but
-        this does not break the regex behaivor
-    '''
-
-    def replace(m):
-        # Be care about the delta 'global' param
-        pre, link, post = m.groups()
-        idx = '"' if (n==2 and delta==-1) else '_%d"'%(n+delta)
-        return '<a href="/wiki/' + link.replace('_',' ') + idx + post
-
-    # Replace 'next' link
-    delta = 1
-    html = re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)',
-                  replace, html)
-
-    # Replace 'previous' link
-    delta = -1
-    return re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)',
-                  replace, html)
-
-def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html',
-                                       prefix='scrap-',
-                                       dir=temp_dir,
-                                       delete=False)
-
-def save_htmls(datos):
-    ''' Save to a temporary file the article,
-
-        If it is a category, process pagination and save all pages
-    '''
-    url, temp_dir, disk_name, _, basename = datos
-
-    html = get_html(url, basename)
-    if html is None:
-        return
-
-    temp_file = get_temp_file(temp_dir)
-
-    if u"Categoría" not in basename:
-        # normal case, not Categories or any paginated stuff
-        with temp_file as fh:
-            fh.write(html)
-
-        return [(temp_file, disk_name)]
-
-    temporales = []
-    # cat!
-    n = 1
-
-    while True:
-
-        idx = '' if (n == 1) else '_%d' % n
-        temporales.append((temp_file, disk_name + idx))
-
-        prox_url = find_next_page_link(html)
-
-        html = replace_previous_and_next_links(html, n)
-
-        if not prox_url:
-            with temp_file as fh:
-                fh.write(html)
-            return temporales
-
-        with temp_file as fh:
-            fh.write(html)
-
-        html = get_html(prox_url.replace('&amp;','&'), basename)
-        if html is None:
-            return temporales
-
-        temp_file = get_temp_file(temp_dir)
-        n += 1
-
-def fetch(datos):
-    url, temp_dir, disk_name, uralizer, basename = datos
-    page = WikipediaPageES(url, basename)
-    url = page.search_valid_version()
-    if url is None:
-        logger("Version not found: %s", basename)
-        return
-
-    temporales = save_htmls(datos)
-
-    for temp_file, disk_name in temporales:
-        try:
-            os.rename(temp_file.name, disk_name.encode("utf-8"))
-        except OSError as e:
-            logger("Try again (Error creating file %r: %r): %s",
-                   disk_name, e, basename)
-            return
 
     # return True when it was OK!
     defer.returnValue(True)
@@ -457,7 +355,6 @@ def main(nombres, dest_dir, pool_size=20):
     urls = URLAlizer(nombres, dest_dir)
     board = StatusBoard()
     yield pool.start(board.process, urls)
-    print # LF&CR after all is done
 
 
 USAGE = """
