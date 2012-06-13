@@ -86,7 +86,7 @@ class URLAlizer(object):
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-                return url, temp_file, disk_name, self, basename
+                return url, self.temp_dir, disk_name, self, basename
 
     def __iter__(self):
         return self
@@ -271,17 +271,7 @@ def extract_content(html, url):
 
 
 @defer.inlineCallbacks
-def fetch(datos):
-    url, temp_file, disk_name, uralizer, basename = datos
-    page = WikipediaArticleES(url, basename)
-    try:
-        url = yield page.search_valid_version()
-    except PageHaveNoRevisions:
-        logger("Version not found: %s", basename)
-        defer.returnValue(False)
-    except:
-        _logger.exception("ERROR while getting valid version for %r", url)
-        defer.returnValue(False)
+def get_html(url, basename):
 
     try:
         html = yield fetch_html(url)
@@ -313,14 +303,116 @@ def fetch(datos):
                e, basename)
         defer.returnValue(False)
 
-    with temp_file as fh:
-        fh.write(html)
-    try:
-        os.rename(temp_file.name, disk_name.encode("utf-8"))
-    except OSError as e:
-        logger("Try again (Error creating file %r: %r): %s",
-               disk_name, e, basename)
+    defer.returnValue(html)
+
+def obtener_link_200_siguientes(html):
+    links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>',html)
+    if links == []:
+        return
+    return '%s%s' % (WIKI[:-1], links[0])
+
+def reemplazar_links_paginado(html, n):
+    ''' Reemplaza lar urls anteriores y siguientes
+
+        En el caso de la primera no encontrará el link 'anterior', no hay problema
+        con llamar esta función
+    '''
+
+    def reemplazo(m):
+        pre, link, post = m.groups()
+        idx = '"' if (n==2 and delta==-1) else '_%d"'%(n+delta)
+        return '<a href="/wiki/' + link.replace('_',' ') + idx + post
+
+    # Reemplazo el link 'siguiente'
+    delta = 1
+    html = re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)', reemplazo, html)
+
+    # Reemplazo el link 'anterior'
+    delta = -1
+    return re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)', reemplazo, html)
+
+def get_temp_file(temp_dir):
+    return tempfile.NamedTemporaryFile(suffix='.html',
+                                       prefix='scrap-',
+                                       dir=temp_dir,
+                                       delete=False)
+
+@defer.inlineCallbacks
+def save_htmls(datos):
+    ''' Save to a temporary file the article,
+
+        If it is a category, process pagination and save all pages
+    '''
+    url, temp_dir, disk_name, _, basename = datos
+
+    url = str(url)
+    html = yield get_html(url, basename)
+    if html is None:
         defer.returnValue(False)
+
+    temp_file = get_temp_file(temp_dir)
+
+    if u"Categoría" not in basename:
+        # normal case, not Categories or any paginated stuff
+        with temp_file as fh:
+            fh.write(html)
+
+        defer.returnValue([(temp_file, disk_name)])
+
+    temporales = []
+    # cat!
+    n = 1
+
+    while True:
+
+        if n == 1:
+            temporales.append((temp_file, disk_name))
+        else:
+            temporales.append((temp_file, disk_name + '_%d' % n))
+
+        # encontrar el link tomando url
+        prox_url = obtener_link_200_siguientes(html)
+
+        html = reemplazar_links_paginado(html, n)
+
+        if not prox_url:
+            with temp_file as fh:
+                fh.write(html)
+            defer.returnValue(temporales)
+
+        with temp_file as fh:
+            fh.write(html)
+
+        html = yield get_html(prox_url.replace('&amp;','&'), basename)
+        if html is None:
+            defer.returnValue(False)
+
+        temp_file = get_temp_file(temp_dir)
+        n += 1
+
+@defer.inlineCallbacks
+def fetch(datos):
+
+    url, temp_dir, disk_name, uralizer, basename = datos
+    page = WikipediaArticleES(url, basename)
+    try:
+        url = yield page.search_valid_version()
+    except PageHaveNoRevisions:
+        logger("Version not found: %s", basename)
+        defer.returnValue(False)
+    except:
+        _logger.exception("ERROR while getting valid version for %r", url)
+        defer.returnValue(False)
+
+    temporales = yield save_htmls(datos)
+
+    for temp_file, disk_name in temporales:
+        try:
+            os.rename(temp_file.name, disk_name.encode("utf-8"))
+        except OSError as e:
+            logger("Try again (Error creating file %r: %r): %s",
+                   disk_name, e, basename)
+            defer.returnValue(False)
 
     # return True when it was OK!
     defer.returnValue(True)
