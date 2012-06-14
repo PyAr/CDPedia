@@ -81,12 +81,10 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
-                temp_file = tempfile.NamedTemporaryFile(suffix=".html",
-                              prefix="scrap-", dir=self.temp_dir, delete=False)
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-                return url, self.temp_dir, disk_name, self, basename
+                return url, self.temp_dir, disk_name, basename
 
     def __iter__(self):
         return self
@@ -339,11 +337,11 @@ def get_temp_file(temp_dir):
 
 @defer.inlineCallbacks
 def save_htmls(datos):
-    ''' Save to a temporary file the article,
+    """Save the article to a temporary file.
 
-        If it is a category, process pagination and save all pages
-    '''
-    url, temp_dir, disk_name, _, basename = datos
+    If it is a category, process pagination and save all pages.
+    """
+    url, temp_dir, disk_name, basename = datos
 
     url = str(url)
     html = yield get_html(url, basename)
@@ -354,9 +352,8 @@ def save_htmls(datos):
 
     if u"Categoría" not in basename:
         # normal case, not Categories or any paginated stuff
-        with temp_file as fh:
-            fh.write(html)
-
+        temp_file.write(html)
+        temp_file.close()
         defer.returnValue([(temp_file, disk_name)])
 
     temporales = []
@@ -374,14 +371,11 @@ def save_htmls(datos):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
+        temp_file.write(html)
+        temp_file.close()
 
         if not prox_url:
-            with temp_file as fh:
-                fh.write(html)
             defer.returnValue(temporales)
-
-        with temp_file as fh:
-            fh.write(html)
 
         html = yield get_html(prox_url.replace('&amp;','&'), basename)
         if html is None:
@@ -392,8 +386,8 @@ def save_htmls(datos):
 
 @defer.inlineCallbacks
 def fetch(datos):
-
-    url, temp_dir, disk_name, uralizer, basename = datos
+    """Fetch a wikipedia page (that can be paginated)."""
+    url, _, _, basename = datos
     page = WikipediaArticleES(url, basename)
     try:
         url = yield page.search_valid_version()
