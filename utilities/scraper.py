@@ -21,6 +21,7 @@
 
 from __future__ import with_statement
 
+import collections
 import datetime
 import functools
 import gzip
@@ -56,6 +57,8 @@ USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
 
 REQUEST_HEADERS = {'Accept-encoding':'gzip'}
 
+DataURLs = collections.namedtuple("DataURLs",
+                                  "url temp_dir disk_name, basename")
 
 class URLAlizer(object):
     def __init__(self, listado_nombres, dest_dir):
@@ -84,7 +87,9 @@ class URLAlizer(object):
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
-                return url, self.temp_dir, disk_name, basename
+                data = DataURLs(url=url, temp_dir=self.temp_dir,
+                                disk_name=disk_name, basename=basename)
+                return data
 
     def __iter__(self):
         return self
@@ -158,8 +163,9 @@ class WikipediaArticle(object):
 
     def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
+        assert len(pages) == 1
         pageid = pages.keys()[0]
-        if pageid == -1:
+        if pageid == '-1':
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisions(self)
 
@@ -336,25 +342,22 @@ def get_temp_file(temp_dir):
                                        delete=False)
 
 @defer.inlineCallbacks
-def save_htmls(datos):
+def save_htmls(data_urls):
     """Save the article to a temporary file.
 
     If it is a category, process pagination and save all pages.
     """
-    url, temp_dir, disk_name, basename = datos
-
-    url = str(url)
-    html = yield get_html(url, basename)
+    html = yield get_html(str(data_urls.url), data_urls.basename)
     if html is None:
         defer.returnValue(False)
 
-    temp_file = get_temp_file(temp_dir)
+    temp_file = get_temp_file(data_urls.temp_dir)
 
-    if u"Categoría" not in basename:
+    if u"Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
         temp_file.write(html)
         temp_file.close()
-        defer.returnValue([(temp_file, disk_name)])
+        defer.returnValue([(temp_file, data_urls.disk_name)])
 
     temporales = []
     # cat!
@@ -363,9 +366,9 @@ def save_htmls(datos):
     while True:
 
         if n == 1:
-            temporales.append((temp_file, disk_name))
+            temporales.append((temp_file, data_urls.disk_name))
         else:
-            temporales.append((temp_file, disk_name + '_%d' % n))
+            temporales.append((temp_file, data_urls.disk_name + '_%d' % n))
 
         # encontrar el link tomando url
         prox_url = obtener_link_200_siguientes(html)
@@ -377,35 +380,39 @@ def save_htmls(datos):
         if not prox_url:
             defer.returnValue(temporales)
 
-        html = yield get_html(prox_url.replace('&amp;','&'), basename)
+        html = yield get_html(prox_url.replace('&amp;','&'),
+                              data_urls.basename)
         if html is None:
             defer.returnValue(False)
 
-        temp_file = get_temp_file(temp_dir)
+        temp_file = get_temp_file(data_urls.temp_dir)
         n += 1
 
 @defer.inlineCallbacks
-def fetch(datos):
+def fetch(data_urls):
     """Fetch a wikipedia page (that can be paginated)."""
-    url, _, _, basename = datos
-    page = WikipediaArticleES(url, basename)
+    page = WikipediaArticleES(data_urls.url, data_urls.basename)
     try:
         url = yield page.search_valid_version()
     except PageHaveNoRevisions:
-        logger("Version not found: %s", basename)
+        logger("Version not found: %s", data_urls.basename)
         defer.returnValue(False)
     except:
-        _logger.exception("ERROR while getting valid version for %r", url)
+        _logger.exception("ERROR while getting valid version for %r",
+                          data_urls.url)
         defer.returnValue(False)
+    data_urls.url = url
 
-    temporales = yield save_htmls(datos)
+    # save the htmls with the (maybe changed) url and all the data
+    temporales = yield save_htmls(data_urls)
 
+    # transform temp data into final files
     for temp_file, disk_name in temporales:
         try:
             os.rename(temp_file.name, disk_name.encode("utf-8"))
         except OSError as e:
             logger("Try again (Error creating file %r: %r): %s",
-                   disk_name, e, basename)
+                   disk_name, e, data_urls.basename)
             defer.returnValue(False)
 
     # return True when it was OK!
@@ -421,8 +428,8 @@ class StatusBoard(object):
         self.tiempo_inicial = time.time()
 
     @defer.inlineCallbacks
-    def process(self, datos):
-        ok = yield fetch(datos)
+    def process(self, data_urls):
+        ok = yield fetch(data_urls)
         self.total += 1
         if ok:
             self.bien += 1
@@ -438,9 +445,9 @@ class StatusBoard(object):
 @defer.inlineCallbacks
 def main(nombres, dest_dir, pool_size=20):
     pool = workerpool.WorkerPool(size=int(pool_size))
-    urls = URLAlizer(nombres, dest_dir)
+    data_urls = URLAlizer(nombres, dest_dir)
     board = StatusBoard()
-    yield pool.start(board.process, urls)
+    yield pool.start(board.process, data_urls)
 
 
 USAGE = """
