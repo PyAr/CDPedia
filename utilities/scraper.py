@@ -398,10 +398,10 @@ def fetch(data_urls):
         logger("Version not found: %s", data_urls.basename)
         defer.returnValue(False)
     except:
-        _logger.exception("ERROR while getting valid version for %r",
-                          data_urls.url)
+        logger.exception("ERROR while getting valid version for %r",
+                         data_urls.url)
         defer.returnValue(False)
-    data_urls.url = url
+    data_urls = data_urls._replace(url=url)
 
     # save the htmls with the (maybe changed) url and all the data
     temporales = yield save_htmls(data_urls)
@@ -448,6 +448,7 @@ def main(nombres, dest_dir, pool_size=20):
     data_urls = URLAlizer(nombres, dest_dir)
     board = StatusBoard()
     yield pool.start(board.process, data_urls)
+    print   # final new line for console aesthetic
 
 
 USAGE = """
