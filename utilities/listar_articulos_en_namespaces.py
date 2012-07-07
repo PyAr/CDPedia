@@ -8,6 +8,7 @@ que luego puede ser utilizado por scraper.py para conseguir los articulos.
 """
 
 import re
+import urllib
 import urllib2
 
 from functools import partial
@@ -24,8 +25,9 @@ req = partial(urllib2.Request, data=None, headers={'User-Agent': UA})
 
 def guardar_listado(soup, archivo):
     t = soup.findAll('table', {'class':'mw-allpages-table-chunk'})[0]
-    links = [l['title'] for l in t.findAll('a')]
-    archivo.write('\n'.join(links).encode('utf-8'))
+    links = [l['href'].replace('/wiki/','') for l in t.findAll('a')]
+    links = [urllib.unquote(l.encode("utf8")) for l in links]
+    archivo.write('\n'.join(links))
     archivo.write('\n')
 
 def siguiente_link(soup):
