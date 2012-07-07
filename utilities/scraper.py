@@ -68,15 +68,13 @@ class URLAlizer(object):
             os.makedirs(self.temp_dir)
         self.fh = open(listado_nombres, 'r')
 
-        # saltea la primera linea
-        prim_linea = self.fh.readline()
-        assert prim_linea.strip() == "page_title"
-
     def next(self):
         while True:
-            line = self.fh.readline()
+            line = self.fh.readline().strip()
             if line == "":
                 raise StopIteration
+            if line == "page_title":
+                continue
             basename = line.decode("utf-8").strip()
             path = os.path.join(self.dest_dir, to3dirs.to_path(basename))
             disk_name = os.path.join(path, to3dirs.to_filename(basename))
