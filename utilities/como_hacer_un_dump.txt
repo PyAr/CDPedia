@@ -9,11 +9,11 @@ $wget http://dumps.wikimedia.org/eswiki/latest/eswiki-latest-all-titles-in-ns0.g
 2) Descomprimirlo
 $gunzip eswiki-latest-all-titles-in-ns0.gz
 
-3) Si se desean incluir los artículos que se encuentran desntro de Namepsecaes
-(por ejmplo los Anexos) se puede obtener una listado similar, con el script
-'listar_articulos_en_namespaces.py'. Para elegir cuáles Namespaces se desean
-incluir se debe editar la lista SPACES dentro del script. Luego ejecutar:
-$python listar_articulos_en_namespaces.py
+3) Si se desean incluir los artículos que se encuentran desntro de Namespaces
+(por ejemplo los Anexos) ejecutar $python listar_articulos_en_namespaces.py
+y se creará un archivo 'articulos_en_namespaces.txt' listo para usar.  Para
+elegir cuáles Namespaces se desean incluir se debe editar la lista SPACES
+dentro del script.
 
 4-Opcional)
  a) Se puede comprobar cuántos artículos tiene cada listado:
