@@ -29,8 +29,7 @@ import urllib2
 import config
 from src.preproceso import preprocesar
 
-WIKIMEDIA = "http://upload.wikimedia.org/"
-WIKIPEDIA = "http://es.wikipedia.org/"
+WIKIPEDIA_URL = "http://es.wikipedia.org"
 
 class ParseaImagenes(object):
     """
@@ -181,6 +180,10 @@ class ParseaImagenes(object):
 
         elif img.startswith("//upload.wikimedia.org/wikipedia/es/"):
             dsk_url = img[36:]
+
+        elif img.startswith("/w/extensions/"):
+            web_url = WIKIPEDIA_URL + img
+            dsk_url = img[3:]
 
         else:
             raise ValueError("Unsupported image type! %r" % img)
