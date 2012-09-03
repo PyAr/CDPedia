@@ -2,13 +2,14 @@
 
 from __future__ import with_statement
 
-import sys
-import os
-from os import path
-import time
-import shutil
-import tarfile
 import optparse
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+from os import path
 
 #Para poder hacer generar.py > log.txt
 if sys.stdout.encoding is None:
@@ -22,9 +23,21 @@ from src.armado import cdpindex
 from src.armado.compressed_index import  NO_ST_MSG
 from src.imagenes import extraer, download, reducir, calcular
 
+
+def make_it_nicer():
+    """Make the process nicer at CPU and IO levels."""
+    # cpu, simple
+    os.nice(19)
+
+    # IO, much more complicated
+    pid = os.getpid()
+    subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
+
+
 def mensaje(texto):
     fh = time.strftime("%Y-%m-%d %H:%M:%S")
     print "%-40s (%s)" % (texto, fh)
+
 
 def copy_dir(src_dir, dst_dir):
     '''Copia un directorio recursivamente.
@@ -189,6 +202,8 @@ def build_tarball(tarball_name):
 
 def main(src_info, evitar_iso, verbose, desconectado,
          procesar_articles, include_windows, tarball):
+    # don't affect the rest of the machine
+    make_it_nicer()
 
     if procesar_articles:
         try:
