@@ -287,8 +287,13 @@ class ArticleManager(BloqueManager):
 
     def get_item(self, name):
         article = super(ArticleManager, self).get_item(name)
-        if article is not None:
-            return article.decode("utf-8")
+
+        # check for unicode before decoding, as we may be here twice in
+        # the case of articles that are redirects to others (so, let's avoid
+        # double decoding!)
+        if article is not None and isinstance(article, str):
+            article = article.decode("utf-8")
+        return article
 
 class ImageManager(BloqueManager):
     archive_dir = os.path.join(config.DIR_ASSETS, 'images')
