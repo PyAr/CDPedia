@@ -18,14 +18,15 @@
 # For further info, check  http://code.google.com/p/cdpedia/
 
 
+import codecs
+import operator
 import os
+import posixpath
 import re
-import urllib
 import tarfile
 import tempfile
-import operator
-import urlparse
-import posixpath
+import urllib
+
 from mimetypes import guess_type
 
 import utils
@@ -116,7 +117,6 @@ class CDPedia(object):
         if data is None:
             raise ArticleNotFound(nombre, orig_link)
 
-        title = utils.get_title_from_data(data)
         return self.render_template('article.html',
             article_name=nombre,
             orig_link=orig_link,
@@ -154,13 +154,12 @@ class CDPedia(object):
             print "WARNING: no pudimos encontrar", repr(asset_file)
             raise NotFound()
 
-        data = open(asset_file, "rb").read()
+        # all unicode
+        data = codecs.open(asset_file, "rb", "utf8").read()
         title = utils.get_title_from_data(data)
 
-        return self.render_template('institucional.html',
-            title=title,
-            asset=data.decode("utf-8")
-        )
+        p = self.render_template('institucional.html', title=title, asset=data)
+        return p
 
     #@ei.espera_indice # TODO
     def on_al_azar(self, request):

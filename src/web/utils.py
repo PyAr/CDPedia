@@ -29,12 +29,12 @@ class TemplateManager(object):
 
 def get_title_from_data(data):
     if data is None:
-        return ""
+        return u""
     for regexp in (re_header, re_title):
         match = regexp.search(data)
         if match is not None:
             return match.group(1)
-    return ""
+    return u""
 
 
 def get_orig_link(path):
