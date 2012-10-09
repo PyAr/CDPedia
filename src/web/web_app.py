@@ -94,6 +94,7 @@ class CDPedia(object):
             Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
         ])
+        self._tutorial_ready = False
 
     def on_main_page(self, request):
         data_destacado = self.destacados_mngr.get_destacado()
@@ -229,7 +230,7 @@ class CDPedia(object):
 
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
-        if not hasattr(self, "_tutorial_ready"):
+        if not self._tutorial_ready:
             if not os.path.exists(tmpdir):
                 tar = tarfile.open(os.path.join(config.DIR_ASSETS,
                                    "tutorial.tar.bz2"), mode="r:bz2")
@@ -241,7 +242,6 @@ class CDPedia(object):
                                     server_mode=config.SERVER_MODE,
                                     asset_url=asset,
                                     asset_name=u"Tutorial de python")
-
 
     def on_watchdog_update(self, request):
         self.watchdog.update()
