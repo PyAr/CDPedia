@@ -21,6 +21,7 @@
 
 from __future__ import with_statement
 
+import StringIO
 import collections
 import datetime
 import functools
@@ -29,7 +30,6 @@ import json
 import logging
 import os
 import re
-import StringIO
 import sys
 import tempfile
 import time
@@ -38,8 +38,11 @@ import urllib
 from twisted.internet import defer, reactor
 from twisted.web import client, error, http
 
-import to3dirs
 import workerpool
+
+# import stuff from project's trunk
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from src.armado import to3dirs
 
 # log all bad stuff
 _logger = logging.getLogger()
