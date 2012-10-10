@@ -1,1 +1,0 @@
-resources/general_info/AUTORES.txt
