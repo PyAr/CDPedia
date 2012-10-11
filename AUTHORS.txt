@@ -1,1 +1,30 @@
-resources/general_info/AUTORES.txt
+Este proyecto es una colaboración de distintas personas, aquí aquellas que
+más participaron:
+
+ - Agustín Henze
+ - Antonio Lenton
+ - Alejandro David Weil
+ - Alejandro J. Cura
+ - Claudio D. Freire
+ - Diego Mascialino
+ - Ezequiel Diaz Marquez
+ - Facundo Batista
+ - Felipe Lerena
+ - Gonzalo Delgado
+ - Gonzalo García
+ - Guillermo Gonzalez
+ - Hernán Olivera
+ - Hugo Ruscitti
+ - Leito Monk
+ - Lucio Torre
+ - Marcos Dione
+ - Martín Gaitán
+ - Maximiliano David Bustos
+ - Nicolás Miyasato
+ - Pablo Ziliani
+ - Piukeyen Tappa
+ - Ricardo Kirkner
+ - Santiago Piccinini
+ - Sebastian Farioli
+ - Zuzel Vera Pacheco
+

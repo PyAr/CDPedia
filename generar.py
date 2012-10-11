@@ -84,6 +84,7 @@ def copiarAssets(src_info, dest):
     # info general
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
+    shutil.copy('AUTHORS.txt', os.path.join(config.DIR_CDBASE, 'AUTORES.txt'))
 
     # institucional
     src_dir = "resources/institucional"
