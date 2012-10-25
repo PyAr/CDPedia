@@ -541,7 +541,7 @@ function redirectToFragment( fragment ) {
  * @todo support all accepted date formats (bug 8226)
  */
 
-var ts_image_path = stylepath + '/skins/css/images/';
+var ts_image_path = stylepath + '/static/skins/css/images/';
 var ts_image_up = 'sort_up.gif';
 var ts_image_down = 'sort_down.gif';
 var ts_image_none = 'sort_none.gif';
