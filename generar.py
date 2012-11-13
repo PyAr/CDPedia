@@ -202,6 +202,25 @@ def build_tarball(tarball_name):
     os.remove(nice_name)
 
 
+def update_mini(image_path):
+    """ update cdpedia image using code + assets in current working copy""" 
+    # chequeo no estricto image_path apunta a una imagen de cdpedia
+    deberia_estar = [image_path, 'cdpedia', 'bloques', '00000000.cdp']
+    if not os.path.exists(os.path.join(*deberia_estar)):
+        print 'Directorio no parece ser imagen de cdpedia'
+        sys.exit(1)
+
+    # adapt some config paths
+    old_top_dir = config.DIR_CDBASE
+    new_top_dir = image_path
+    config.DIR_CDBASE = config.DIR_CDBASE.replace(old_top_dir, new_top_dir)
+    config.DIR_ASSETS = config.DIR_ASSETS.replace(old_top_dir, new_top_dir)
+
+    copiarSources()
+    src_info = ''
+    copiarAssets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))                          
+
+
 def main(src_info, evitar_iso, verbose, desconectado,
          procesar_articles, include_windows, tarball):
     # don't affect the rest of the machine
@@ -278,7 +297,13 @@ def main(src_info, evitar_iso, verbose, desconectado,
 
     if include_windows:
         mensaje("Copiando cosas para Windows")
-        copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
+        # generado por pyinstaller 1.4 ; no funciona actualmente 
+        #copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
+        # generado por pyinstaller 2.0 ; funciona 
+        copy_dir("resources/autorun.win.pyinstaller2/cdroot", config.DIR_CDBASE)
+        # generado por cx-freeze (funciona, pero hay que agregar las dll y
+        # manifiesto de MS C runtime)
+        #copy_dir("resources/autorun.win.cx-freeze/cdroot", config.DIR_CDBASE)
 
     mensaje("Generamos la config para runtime")
     genera_run_config()
@@ -296,8 +321,14 @@ def main(src_info, evitar_iso, verbose, desconectado,
 
 if __name__ == "__main__":
     msg = u"""
+Generar el iso o tarball de cdpedia
   generar.py [--no-iso] <directorio>
     donde directorio es el lugar donde está la info
+
+Actualizar una imagen con los cambios de code + assets en esta working copy
+  generar.py --update-mini <directorio>
+    donde directorio es el lugar donde esta la imagen a actualizar.
+    Las otras opciones son ignoradas en este caso.
 """
 
     parser = optparse.OptionParser()
@@ -319,6 +350,11 @@ if __name__ == "__main__":
                   help="no reprocesa todo lo relacionado con articulos")
     parser.add_option("-g", "--guppy", action="store_true",
                   dest="guppy", help="arranca con guppy/heapy prendido")
+
+    parser.add_option("--update-mini", action="store_true",
+                      dest="update_mini",
+                      help="Actualiza una imagen con el code + assets de esta working copy.")
+
 
     (options, args) = parser.parse_args()
 
@@ -342,5 +378,8 @@ if __name__ == "__main__":
             exit()
         guppy.heapy.RM.on()
 
-    main(args[0], evitar_iso, verbose, desconectado,
-         procesar_articles, include_windows, options.tarball)
+    if options.update_mini:
+        update_mini(direct)
+    else:
+        main(args[0], evitar_iso, verbose, desconectado,
+                 procesar_articles, include_windows, options.tarball)
