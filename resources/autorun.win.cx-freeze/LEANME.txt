@@ -1,0 +1,133 @@
+======
+LEANME
+======
+
+Este directorio contiene todo lo necesario para
+	1. Construir un ejecutable que corra en un Windows sin python
+	2. Hacer que el ejecutable arranque automaticamente al insertar el CD/DVD, si es que autorun está habilitado.
+
+Autorun
+=======
+
+Simplemente se incluye un archivo de texto con el nombre especial 'autorun.inf', que le indica a windows que exe ejecutar y que icono poner al CD.
+
+
+Ejecutable en windows
+=====================
+
+Esta version está basada en cx-freeze 4.2.3, y produce varios archivos que quedan segregados en un directorio.
+
+La construccion del exe es del tipo lanzador, en la cual los py propios de cdpedia pueden modificarse y los binarios no tienen que ser reconstruidos.
+Si aparecieran nuevas dependencias stdlib que sean pure python se puede agregar los modulos en third_party y no hace falta regenerar los binarios.
+Para nuevas dependencias stdlib que usan extensiones C posiblemente sea necesario agregar la dependencia y regenerar los binarios.
+
+Entre los archivos del ejecutable van explicitamente los del C runtime de MS ( msvcm90.dll y amigos ), no sé si por cuestiones de licencia se puede subir al repo el resultado del build.  
+ 
+Un clean build en win xp tarda 20 segundos, un rebuild menos, por ejemplo 7 segundos.
+
+Hay splash screen, el mismo que en cdpedia 7.0
+
+Para generar el exe solo se precisa tener una copia de trabajo de la version de cdpedia deseada, para testear necesitamos una mini-imagen de cdpedia, que de momento tiene que construirse en linux.
+
+El tiempo de arranque de cdpedia.exe es (desde disco rigido) 5 segundos si el navegador default ya está abierto.
+
+ 
+Instrucciones para generar el exe
+=================================
+
+Preparacion
+-----------
+
+    Instalar python 2.7.3 32 bits
+	La forma mas facil es descargar python-2.7.3.msi desde www.python.org y darle doble click, o bien desde una consola 
+	    cd directorio_de_descarga
+		python-2.7.3.msi
+	Al momento de escibir esto el link actual al file es:
+	http://www.python.org/ftp/python/2.7.3/python-2.7.3.msi
+	
+	Instalar pywin32 2.17
+	La pagina de descargas es http://sourceforge.net/projects/pywin32/files/pywin32/Build%20217/
+	Queremos la version para 32 bits y para python 2.7.3, asi que el instalador que queremos es
+		pywin32-217.win32-py2.7.exe
+	Se instala por doble click o bien
+		cd directorio_de_descarga
+		pywin32-217.win32-py2.7.exe
+
+	Instalar cx-freeze 4.2.3
+	Queremos la version binaria para python 2.7 ; esta empaquetado en formato .msi asi que la que sirve es 
+		cx_Freeze-4.3.win32-py2.7.msi
+	El sitio de cx-freeze está en http://cx-freeze.sourceforge.net/
+	y e link de descarga directa en este momento es
+		http://prdownloads.sourceforge.net/cx-freeze/cx_Freeze-4.3.win32-py2.7.msi?download
+		
+	Hacer un clon del repo bzr de cdpedia, trunk o el branch que interese.
+	anotarse cual es el abspath ($working_copy)\src\third_party
+	
+	En el site-packages del python que nos interesa, crear un archivo de texto cdpedia.pth con una linea como contenido: el path que anotamos en el paso anterior
+
+	Aunque no es necesario para generar los binarios, es buena idea tener tener una mini imagen de cdpedia (generada en linux de momento) para poder testear que la solucion realmente funciona.
+	
+	Quizas tengan que ajustar el path de python27 en genexe.bat
+	
+Generar los binarios
+--------------------
+
+	cd ($woking_copy)\resources\autorun.win.cx-freeze\cd_cxfreeze\cdpedia\win32\main
+	genexe.bat
+	
+	Esto guarda los binarios, exceptuando las .dll del MS C runtime, en
+		($working_copy)\resources\autorun.win.cx-freeze\cdroot\cdpedia\win32\main
+	
+Testeo y ajustes
+-----------------
+
+Lo que interesa testear cuando obtenemos un exe es si tenemos todos los modulos necesarios.
+
+Para mover los binarios desde la copia de trabajo hacia la mini imagen copiamos los contenidos de 
+	($working_copy)\resources\autorun.win.cx-freeze\cdroot
+hacia el top dir de la mini imagen
+Para que sea funcional hay que agregar las dlls y manifiesto del MS C runtime
+
+Lanzamos cdpedia.exe desde la imagen del cd, deberiamos ver que el navegador por defecto pasa a primer plano mostrando la pagina de inicio de cdpedia.
+
+Si esto no ocurre hubo algun error grave, posiblemente la falta de algun modulo.
+Miramos el cdpedia.log a ver que nos dice. En xp usualmente está en 'Documents and Settings\<usuario>' , en win7 en 'usuarios\<usuario>' 
+
+Que hacer si falta un modulo ?
+
+	solucion 1: agregamos el modulo en third_party
+
+	solucion 2: agregamos un import explicito en
+($working_copy)\resources\autorun.win.cx-freeze\cd_cxfreeze\cdpedia\win32\main\win32main.py
+	o bien tocamos un poco cxfreeze_conf.py en el mismo directorio, y reconstruimos los binarios
+
+Una vez que conseguimos un exe que puede mostrar la pagina de inicio de wikipedia se puede usar un crawler para que navegue la mini imagen, y luego buscamos 'traceback' en el log, '500' o '404' para ver si algo no funciona correctamente.
+
+Lo que usé como crawler fue HTTrack, un soft GNU que tiene versiones win y linux; la homepage esta en http://www.httrack.com/
+
+Algunos detalles de esta solucion
+---------------------------------
+
+En  autorun.win.cx-freeze\cdroot tenemos un esqueleto parcial del CD
+	autorun.inf dice a OS Windows que hacer cuando se introduce el cd; en nuestro caso corre cdpedia.exe en el mismo dir
+    cdpedia.exe fue generado desde codigo C (posiblemente; es el que estaba en el repo) y lo que hace es:
+		mostrar una splash screen
+		correr cdpedia\win32\main\win32main.exe
+		
+En autorun.win.cx-freeze\cd_cxfreeze tenemos lo necesario para generar el win32main.exe
+
+win32main.exe es la conversion a exe de
+	autorun.win.cx-freeze\cd_cxfreeze\cdpedia\win32\main\win32main.py
+, que tiene la estructura de un tipico lanzador:
+	hace los imports que nos interesan para que cx-freeze detecte que modulos queremos
+	luego corre un fake cdpedia.py ; cuando los binarios se copian a la imagen de cdpedia va a encontrar el cdpedia.py real.
+
+En el mismo directorio que win32main.py vive cxfreeze_conf.py , que dá a cx-freeze la informacion extra que necesita para construir los binarios.
+Construirlo desde cero en base a la documentacion de cx-freeze fué facil, y los diagnosticos de error en el proceso fueron claros; no hubo cosas misteriosas.
+
+En el mismo directorio que win32main.py vive genexe.bat , que usa cx-freeze para generar win32main.exe mas los archivos de soporte necesario (exceptuando las dll del MS C runtime) y los pone en en el subdir adecuado de autorun.win.cx-freeze\cdroot
+ 
+Lo unico molesto de esta solucion es el tema de las .dll de MS 
+
+
+	
