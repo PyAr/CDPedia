@@ -36,8 +36,9 @@ os.chdir(os.path.dirname(cdpedia_path))
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
 
-# Logeamos stdout y stderr si estamos en windows
-if platform.system() == 'Windows':
+# Logeamos stdout y stderr si estamos en windows, salvo que sea un debug build
+# para construir el exe
+if platform.system() == 'Windows' and not os.path.exists('debug'):
     log_filename = os.path.join(os.path.expanduser('~'), 'cdpedia.log')
     try:
         log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
@@ -52,6 +53,10 @@ from src.utiles import WatchDog, find_open_port
 from src.web.web_app import create_app
 import config
 
+# imports extras para pyinstaller
+import SocketServer
+import Queue
+import uuid
 
 def handle_crash(type, value, tb):
     '''Function to handle any exception that is not addressed explicitly.'''
