@@ -130,6 +130,17 @@ class WikiSitio(object):
                 for procesador in self.preprocesadores:
                     (puntaje, otras_pags) = procesador(wikiarchivo)
 
+                    # agregamos el puntaje extra
+                    for extra_pag, extra_ptje in otras_pags:
+                        if extra_pag in resultados:
+                            prev = resultados[extra_pag].get(procesador, 0)
+                            resultados[extra_pag][procesador] = prev + \
+                                                                    extra_ptje
+                        else:
+                            ant = puntaje_extra.setdefault(extra_pag, {})
+                            ant[procesador] = ant.get(procesador, 0) + \
+                                                                    extra_ptje
+
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
                         del resultados[pag]
@@ -142,16 +153,6 @@ class WikiSitio(object):
                     if puntaje != 0:
                         resultados[pag][procesador] = puntaje
 
-                    # agregamos el puntaje extra
-                    for extra_pag, extra_ptje in otras_pags:
-                        if extra_pag in resultados:
-                            prev = resultados[extra_pag].get(procesador, 0)
-                            resultados[extra_pag][procesador] = prev + \
-                                                                    extra_ptje
-                        else:
-                            ant = puntaje_extra.setdefault(extra_pag, {})
-                            ant[procesador] = ant.get(procesador, 0) + \
-                                                                    extra_ptje
                 else:
                     if self.verbose:
                         print "  puntaje:", resultados[pag]
@@ -174,7 +175,6 @@ class WikiSitio(object):
         print "Repartiendo el puntaje extra:", len(puntaje_extra)
         perdidos = []
         for (pag, puntajes) in puntaje_extra.items():
-
             # desreferenciamos el redirect, vaciando el diccionario para
             # evitar loops
             while pag in redirects:
@@ -225,21 +225,11 @@ def calcula_top_htmls():
     fh.next() # título
     data = []
 
-    # get the position of the scores (plus two of arch and dir3)
-    idx_longitud = preprocesadores.TODOS.index(preprocesadores.Longitud) + 2
-    idx_peishranc = preprocesadores.TODOS.index(preprocesadores.Peishranc) + 2
-    idx_destacado = preprocesadores.TODOS.index(preprocesadores.Destacado) + 2
-
     for linea in fh:
         partes = linea.split(config.SEPARADOR_COLUMNAS)
         arch = partes[0]
         dir3 = partes[1]
-        ptj_longitud = int(partes[idx_longitud])
-        ptj_peishranc = int(partes[idx_peishranc])
-        ptj_destacado = int(partes[idx_destacado])
-
-        # get the total score weighting the diferent score sources
-        puntaje = ptj_longitud + ptj_peishranc * 5000 + ptj_destacado * 100000000
+        puntaje = sum(map(int, partes[2:]))
 
         data.append((dir3, arch, puntaje))
 
