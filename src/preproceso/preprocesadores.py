@@ -35,18 +35,55 @@ página que se le ofrece, el procesador debe devolver None en lugar del
 puntaje.
 
 """
-from re import compile, MULTILINE, DOTALL
-from urllib2 import unquote
-import urllib
 import codecs
-import os, re
+import os
+import re
+import urllib
+
+from urllib2 import unquote
 
 from src import utiles
 import config
 
-def mustInclude(filename):
-    must = any(filename.startswith(fn) for fn in config.INCLUDE)
-    return must
+SCORE_DESTACADOS = 100000000  # 1e8
+SCORE_PEISHRANC = 5000
+
+
+class VIPArticle(object):
+    """A standalone decissor who knows which articles *must* be included."""
+
+    def __init__(self):
+        # store those portals URLs pointed by the home page
+        fname = 'src/web/templates/portales.html'
+        link_regex = re.compile(r'<a.*?href="/wiki/(.*?)">',
+                                re.MULTILINE | re.DOTALL)
+        with open(fname) as fh:
+            mainpage_portals_content = fh.read()
+        self.portals = set(unquote(link).decode('utf8') for link in
+                           link_regex.findall(mainpage_portals_content))
+
+        # destacados FTW!
+        self.destacados = [x.strip().decode('utf8')
+                           for x in open(config.DESTACADOS)]
+
+    def __call__(self, article):
+        # must include according to the config
+        if any(article.startswith(fn) for fn in config.INCLUDE):
+            return True
+
+        # it's referenced by the portal
+        if article in self.portals:
+            return True
+
+        # it's included in the custom-made file
+        if article in self.destacados:
+            return True
+
+        # not really important
+        return False
+
+vip_article = VIPArticle()
+
 
 # Procesadores:
 class Procesador(object):
@@ -54,7 +91,7 @@ class Procesador(object):
 
     def __init__(self, wikisitio):
         self.nombre = 'Procesador Genérico'
-        self.log = None # ej.: open("archivo.log", "w")
+        self.log = None  # ej.: open("archivo.log", "w")
 
     def __call__(self, wikiarchivo):
         """Aplica el procesador a una instancia de WikiArchivo.
@@ -78,7 +115,7 @@ class Namespaces(Procesador):
 #        print 'Namespace:', repr(namespace)
         # no da puntaje per se, pero invalida segun namespace
         if namespace is None or config.NAMESPACES.get(namespace) or \
-            mustInclude(wikiarchivo.url):
+                vip_article(wikiarchivo.url):
 #            print '[válido]'
             return (0, [])
         else:
@@ -90,26 +127,34 @@ class OmitirRedirects(Procesador):
     """Procesa y omite de la compilación a los redirects."""
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
-        self.nombre = "Redirects-"
+        self.nombre = "Redirects"
         self.log = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
-        regex = r'<span class="redirectText"><a href="(.*?)"'
-        self.capturar = compile(regex).search
+        regex = r'<span class="redirectText"><a href="/wiki/(.*?)"'
+        self.capturar = re.compile(regex).search
 
     def __call__(self, wikiarchivo):
         captura = self.capturar(wikiarchivo.html)
-
-        # no da puntaje per se, pero invalida segun namespace
-        sep_col = config.SEPARADOR_COLUMNAS
-        if captura:
-            url_redirect = unquote(captura.groups()[0]).decode("utf-8")
-            # le sacamos el /wiki/ del principio
-            url_redirect = url_redirect[6:]
-#            print "Redirect %r -> %r" % (wikiarchivo.url, url_redirect)
-            linea = wikiarchivo.url + sep_col + url_redirect + "\n"
-            self.log.write(linea)
-            return (None, [])
-        else:
+        if not captura:
+            # not a redirect, simple file
             return (0, [])
+
+        # store the redirect in corresponding file
+        url_redirect = unquote(captura.groups()[0]).decode("utf-8")
+#        print "Redirect %r -> %r" % (wikiarchivo.url, url_redirect)
+        sep_col = config.SEPARADOR_COLUMNAS
+        linea = wikiarchivo.url + sep_col + url_redirect + "\n"
+        self.log.write(linea)
+
+        # if redirect was very important, transmit this feature
+        # to destination article
+        if vip_article(wikiarchivo.url):
+            trans = [(url_redirect, SCORE_DESTACADOS)]
+        else:
+            trans = []
+
+
+        # return None for the redirect itself to be discarded
+        return (None, trans)
 
 
 class FixLinksDescartados(Procesador):
@@ -121,7 +166,8 @@ class FixLinksDescartados(Procesador):
     def __init__(self, wikisitio):
         super(FixLinksDescartados, self).__init__(wikisitio)
         self.nombre = "FixLinks"
-        self.links = compile('<a href="(.*?)"(.*?)>(.*?)</a>', MULTILINE|DOTALL)
+        self.links = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
+                                re.MULTILINE | re.DOTALL)
 
     def __call__(self, wikiarchivo):
 
@@ -136,7 +182,7 @@ class FixLinksDescartados(Procesador):
             base = os.path.basename(comopath)
             categ = base.split("~")[0]
 
-            if config.NAMESPACES.get(categ) or mustInclude(base):
+            if config.NAMESPACES.get(categ) or vip_article(base):
                 # está ok, la dejamos intacta
                 return m.group(0)
 
@@ -161,7 +207,8 @@ class QuitaEditarSpan(Procesador):
     def __init__(self, wikisitio):
         super(QuitaEditarSpan, self).__init__(wikisitio)
         self.nombre = "QuitaEditar"
-        self.editar_span = compile('<span class="editsection">.*?</span>', MULTILINE|DOTALL)
+        self.editar_span = re.compile('<span class="editsection">.*?</span>',
+                                      re.MULTILINE | re.DOTALL)
 
     def __call__(self, wikiarchivo):
         try:
@@ -176,12 +223,14 @@ class QuitaEditarSpan(Procesador):
         # no damos puntaje ni nada
         return (0, [])
 
+
 class QuitaLinksEditar(Procesador):
     """Quita los links que llevan a editar un artículo"""
     def __init__(self, wikisitio):
         super(QuitaLinksEditar, self).__init__(wikisitio)
         self.nombre = "QuitaLinksEditar"
-        self.editar_links = compile('<a href="[^\"]*?action=edit.*?>(?P<texto>.+?)</a>')
+        self.editar_links = re.compile('<a href="[^\"]*?action=edit.*?>'
+                                       '(?P<texto>.+?)</a>')
 
     def __call__(self, wikiarchivo):
         try:
@@ -195,6 +244,7 @@ class QuitaLinksEditar(Procesador):
 
         # no damos puntaje ni nada
         return (0, [])
+
 
 class Peishranc(Procesador):
     """Calcula el peishranc.
@@ -212,7 +262,8 @@ class Peishranc(Procesador):
         # regex preparada por perrito666 y tuute, basicamente matchea todos los
         # href-algo, poniendo href como nombre de grupo de eso que matchea,
         # más un "class=" que es opcional (y poniéndole nombre class);
-        self.capturar = compile(r'<a href="/wiki/(?P<href>[^"#]*).*?(?:class="(?P<class>.[^"]*)"|.*?)+>')
+        self.capturar = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
+                                   r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
 
     def __call__(self, wikiarchivo):
         puntajes = {}
@@ -229,7 +280,7 @@ class Peishranc(Procesador):
             try:
                 lnk = unquote(lnk).decode('utf8')
             except UnicodeDecodeError:
-                print "ERROR: problemas al unquotear/decodear el link", repr(lnk)
+                print "ERROR al unquotear/decodear el link", repr(lnk)
                 continue
 
             namespace, _ = utiles.separaNombre(lnk)
@@ -245,6 +296,10 @@ class Peishranc(Procesador):
         # sacamos el "auto-bombo"
         if wikiarchivo.url in puntajes:
             del puntajes[wikiarchivo.url]
+
+        # factor score by constant
+        for lnk, score in puntajes.iteritems():
+            puntajes[lnk] = score * SCORE_PEISHRANC
 
         return (0, puntajes.items())
 
@@ -262,17 +317,20 @@ class Longitud(Procesador):
 
 
 class Destacado(Procesador):
-    """Marca con puntaje si el artículo es destacado."""
+    """Marca con 1 o 0 si el artículo es destacado o importante.
+
+    En preprocesar.py se le va a dar un montón de puntaje a esto.
+    """
     def __init__(self, wikisitio):
         super(Destacado, self).__init__(wikisitio)
         self.nombre = "Destacado"
-        self.destacados = [x.strip().decode('utf8')
-                           for x in open(config.DESTACADOS)]
 
     def __call__(self, wikiarchivo):
-        destac = wikiarchivo.url in self.destacados or \
-                 mustInclude(wikiarchivo.url)
-        return (int(destac), [])
+        if vip_article(wikiarchivo.url):
+            score = SCORE_DESTACADOS
+        else:
+            score = 0
+        return (score, [])
 
 
 class QuitaCategoria(Procesador):
@@ -281,7 +339,7 @@ class QuitaCategoria(Procesador):
         super(QuitaCategoria, self).__init__(wikisitio)
         self.nombre = "QuitaCategoria"
         regex = '<a.*?title="Especial:Categorías".*?>(?P<texto>.+?)</a>'
-        self.categoria_regex = compile(regex)
+        self.categoria_regex = re.compile(regex)
 
     def __call__(self, wikiarchivo):
         try:
@@ -303,7 +361,7 @@ class QuitaLinkRojo(Procesador):
         super(QuitaLinkRojo, self).__init__(wikisitio)
         self.nombre = "QuitaLinkRojo"
         regex = '<a href="[^\"]+?&amp;redlink=1".+?>(?P<texto>.+?)</a>'
-        self.link_rojo_regex = compile(regex)
+        self.link_rojo_regex = re.compile(regex)
 
     def __call__(self, wikiarchivo):
         try:
@@ -320,9 +378,10 @@ class QuitaLinkRojo(Procesador):
 
 
 class NotLastVersion(Procesador):
-    """Quita los mensajes indicandoque no es la ultima version del articulo, 
+    """Quita los mensajes indicandoque no es la ultima version del articulo,
        asi como tambien los links para navegar entre dichas revisiones.."""
-    RE = compile( '<!-- subtitle -->.*<!-- /subtitle -->', re.S )
+    RE = re.compile('<!-- subtitle -->.*<!-- /subtitle -->', re.S)
+
     def __init__(self, wikisitio):
         super(NotLastVersion, self).__init__(wikisitio)
         self.nombre = "NotLastVersion"
@@ -331,9 +390,9 @@ class NotLastVersion(Procesador):
         m = self.RE.search(wikiarchivo.html)
         if m:
             ### reemplazamos el html original
-            old = wikiarchivo.html 
-            wikiarchivo.html = old[:m.start()]+old[m.end():]
-            
+            old = wikiarchivo.html
+            wikiarchivo.html = old[:m.start()] + old[m.end():]
+
         # no damos puntaje ni nada
         return (0, [])
 
