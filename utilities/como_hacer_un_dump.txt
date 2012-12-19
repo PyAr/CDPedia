@@ -54,15 +54,15 @@ También hay que revisar si cambiaron los "Términos de uso":
 
 1. Ir a la página http://wikimediafoundation.org/wiki/T%C3%A9rminos_de_Uso
 
-2. Ver si la última vez que se modificó (ver el footer) es "30 December 2010, at 18:55"
+2. Ver si la última vez que se modificó (ver el footer) es "2 August 2012, at 13:46"
 
 3. Si sí, listo, no hay nada que actualizar.
 
 4. Si no, bajar esa página a mano, guardarla en resources/institucional/Términos_de_uso.htm
 
-5. Aplicarle la misma limpieza que el preprocesador ExtraerContenido.
+5. Aplicarle la misma limpieza que la función 'extract_content' en utilities/scraper.py.
 
-6. Borrar todos los otros lenguajes (entre un <ul> y </ul>).
+6. Borrar todos los otros lenguajes (entre un <ul> y </ul>), si los hubiera
 
 7. Agregar un comentario class  InformationBox como el que ya está que informe que...
 

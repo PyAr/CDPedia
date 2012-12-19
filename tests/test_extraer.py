@@ -119,6 +119,19 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         self._check(url, should_web, should_dsk)
 
+    def test_reemplazar_math_2(self):
+        """Reemplazar math, 2."""
+        url = (
+            '//upload.wikimedia.org/'
+            'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
+        )
+        should_web = (
+            'http://upload.wikimedia.org/'
+            'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
+        )
+        should_dsk = 'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
+        self._check(url, should_web, should_dsk)
+
     def test_reemplazar_extensions(self):
         """Reemplazar the extensions subdir."""
         url = "/w/extensions/ImageMap/desc-20.png"
