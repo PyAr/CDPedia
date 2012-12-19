@@ -24,6 +24,9 @@ cp -pr $ARTICLES/A/p/o $SAMPLES/A/p/
 mkdir -p $SAMPLES/A/c/e
 cp -pr $ARTICLES/A/c/e/*Acerca* $SAMPLES/A/c/e/
 
+mkdir -p $SAMPLES/A/m/é
+cp -pr $ARTICLES/A/m/é/Portal:América* $SAMPLES/A/m/é/
+
 mkdir -p $SAMPLES/A/v/i
 cp -pr $ARTICLES/A/v/i/*Aviso* $SAMPLES/A/v/i/
 
