@@ -221,7 +221,7 @@ def update_mini(image_path):
     copiarAssets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(src_info, evitar_iso, verbose, desconectado,
+def main(src_info, version, evitar_iso, verbose, desconectado,
          procesar_articles, include_windows, tarball):
     # don't affect the rest of the machine
     make_it_nicer()
@@ -251,7 +251,7 @@ def main(src_info, evitar_iso, verbose, desconectado,
         print '      y %d que ya estaban de antes' % cantold
 
         mensaje("Calculando los que quedan y los que no")
-        preprocesar.calcula_top_htmls()
+        preprocesar.calcula_top_htmls(version)
 
         mensaje("Generando el log de imágenes")
         taken, adesc = extraer.run(verbose)
@@ -261,14 +261,14 @@ def main(src_info, evitar_iso, verbose, desconectado,
         mensaje("Evitamos procesar artículos y generar el log de imágenes")
 
     mensaje("Recalculando porcentajes de reducción")
-    calcular.run(verbose)
+    calcular.run(verbose, version)
 
     if not desconectado:
         mensaje("Descargando las imágenes de la red")
         download.traer(verbose)
 
     mensaje("Reduciendo las imágenes descargadas")
-    notfound = reducir.run(verbose)
+    reducir.run(verbose)
 
     mensaje("Emblocando las imágenes reducidas")
     # agrupamos las imagenes en bloques
@@ -317,8 +317,9 @@ def main(src_info, evitar_iso, verbose, desconectado,
 if __name__ == "__main__":
     msg = u"""
 Generar el iso o tarball de cdpedia
-  generar.py [--no-iso] <directorio>
-    donde directorio es el lugar donde está la info
+  generar.py [...options...] <version> <directorio>
+    donde versión es qué vamos a generar (dev, cd, dvd5, etc)
+    y directorio es el lugar donde está la info
 
 Actualizar una imagen con los cambios de code + assets en esta working copy
   generar.py --update-mini <directorio>
@@ -353,11 +354,15 @@ Actualizar una imagen con los cambios de code + assets en esta working copy
 
     (options, args) = parser.parse_args()
 
-    if len(args) != 1:
+    if len(args) != 2:
         parser.print_help()
         exit()
 
-    direct = args[0]
+    version = args[0]
+    direct = args[1]
+    if version not in config.VALID_VERSIONS:
+        print "Not a valid version! try one of", config.VALID_VERSIONS
+        exit()
 
     evitar_iso = bool(options.create_iso)
     include_windows = not bool(options.no_windows)
@@ -376,5 +381,5 @@ Actualizar una imagen con los cambios de code + assets en esta working copy
     if options.update_mini:
         update_mini(direct)
     else:
-        main(args[0], evitar_iso, verbose, desconectado,
-                 procesar_articles, include_windows, options.tarball)
+        main(direct, version, evitar_iso, verbose, desconectado,
+             procesar_articles, include_windows, options.tarball)

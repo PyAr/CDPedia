@@ -107,54 +107,72 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 # CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
 
 # Límites de cantidades de páginas a incluir
-####  Para el DVD:
-#LIMITE_PAGINAS = 1000000
-##  Para el CD:
-#LIMITE_PAGINAS = 93500
-#  Para las XO
-LIMITE_PAGINAS = 5000
-##  Devel
-#LIMITE_PAGINAS = 10
+LIMITE_PAGINAS = {
+    'tar-big': 5000000,   # very big number, we want them all!
+    'dvd9': 5000000,   # very big number, we want them all!
+    'dvd5': 5000000,   # very big number, we want them all!
+    'cd': 78500,
+    'xo': 5000,
+    'beta': 20000,   # sample version to distribute for others to QA
+}
 
 # Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
 # tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
 # (ordenados),  y los porcentajes de cantidad tienen que sumar 100
-#####  Para el DVD-9: (size max: DVD-R DL, 12cm:  8,543,666,176 bytes)
-#ESCALA_IMAGS = [
-#    (10, 100),  # 20           15           10
-#    (25,  75),  # 30           25           20
-#    (65,  50),  # 50           60           70
-#    (00,   0),  # 9190309888   8861982720   8525170688
-#]
-#####  Para el DVD-5: (size: DVD-R SL, 12cm:  4,700,319,808 bytes)
-#ESCALA_IMAGS = [
-#    (10, 100),
-#    (10,  75),
-#    (25,  50),
-#    (55,   0),
-#]
-ESCALA_IMAGS = [  # para las XO
-    ( 0, 100),
-    ( 0,  75),
-    ( 5,  50),
-    (95,   0),
-]
-##  Para el CD: (size max: 12cm, 80min:  737,280,000 bytes)
-#ESCALA_IMAGS = [
-#    ( 2, 100),
-#    ( 4,  75),
-#    ( 4,  50),
-#    (90,   0),
-#]
+ESCALA_IMAGS = {
+    'tar-big': [   # we aim for 8 to 10 GB
+        (10, 100),
+        (25,  75),
+        (65,  50),
+        (00,   0),
+    ],
+    'dvd9': [  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
+        (10, 100),  # 20           15           10
+        (25,  75),  # 30           25           20
+        (65,  50),  # 50           60           70
+        (00,   0),  # 9190309888   8861982720   8525170688
+    ],
+    'dvd5': [  # size: DVD-R SL, 12cm:  4,700,319,808 bytes
+        ( 4, 100),
+        ( 4,  75),
+        (16,  50),
+        (76,   0),
+    ],
+    'xo': [
+        ( 0, 100),
+        ( 0,  75),
+        ( 5,  50),
+        (95,   0),
+    ],
+    'cd': [  # size max: 12cm, 80min:  737,280,000 bytes
+        ( 1, 100),
+        ( 2,  75),
+        ( 3,  50),
+        (94,   0),
+    ],
+    'beta': [
+        ( 2, 100),
+        ( 4,  75),
+        ( 4,  50),
+        (90,   0),
+    ],
+}
 
 # validamos los porcentajes de lo que acabamos de escribir arriba
-_porc_escala = [x[1] for x in ESCALA_IMAGS]
-if max(_porc_escala) != 100 or min(_porc_escala) != 0:
-    raise ValueError(u"Error en los extremos de ESCALA_IMAGS")
-if sorted(_porc_escala, reverse=True) != _porc_escala:
-    raise ValueError(u"Los % de escala no están ordenados")
-if sum(x[0] for x in ESCALA_IMAGS) != 100:
-    raise ValueError(u"Los % de cant de ESCALA_IMAGS no suman 100")
+for _vers, escalas in ESCALA_IMAGS.items():
+    _porc_escala = [x[1] for x in escalas]
+    if max(_porc_escala) != 100 or min(_porc_escala) != 0:
+        raise ValueError(u"Error en los extremos de ESCALA_IMAGS (%s)" % _vers)
+    if sorted(_porc_escala, reverse=True) != _porc_escala:
+        raise ValueError(u"Los % de escala no están ordenados (%s)" % _vers)
+    if sum(x[0] for x in escalas) != 100:
+        raise ValueError(u"Los % de ESCALA_IMAGS no suman 100 (%s)" % _vers)
+_vers_imags = set(ESCALA_IMAGS)
+_vers_pags = set(LIMITE_PAGINAS)
+if _vers_pags != _vers_imags:
+    raise ValueError("Different versions between "
+                     "ESCALA_IMAGS and LIMITE_PAGINAS")
+VALID_VERSIONS = _vers_imags
 
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la

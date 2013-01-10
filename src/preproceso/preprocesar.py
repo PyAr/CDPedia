@@ -218,7 +218,7 @@ class WikiSitio(object):
             print 'Registro guardado en %s' % log
 
 
-def calcula_top_htmls():
+def calcula_top_htmls(version):
     """Calcula los htmls con más puntaje y guarda ambas listas."""
     # leemos el archivo de preprocesado y calculamos puntaje
     fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
@@ -237,8 +237,9 @@ def calcula_top_htmls():
     data.sort(key=operator.itemgetter(2), reverse=True)
 
     # guardamos los que entran
+    page_limit = config.LIMITE_PAGINAS[version]
     with codecs.open(config.PAG_ELEGIDAS, "w", "utf8") as fh:
-        for dir3, arch, puntaje in data[:config.LIMITE_PAGINAS]:
+        for dir3, arch, puntaje in data[:page_limit]:
             info = (dir3, arch, str(puntaje))
             fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
     print u"  puntaje del último artículo que entró:", puntaje
