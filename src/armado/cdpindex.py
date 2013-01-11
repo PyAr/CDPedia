@@ -7,14 +7,14 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
-import os
 import codecs
-import unicodedata
 import config
-import subprocess
+import os
 import re
-import threading
 import shutil
+import subprocess
+import threading
+import unicodedata
 
 #from .easy_index import Index
 from .compressed_index import Index
@@ -172,7 +172,7 @@ def generar_de_html(dirbase, verbose):
         palabras, titulo = filename2palabras(orig)
         redirs.setdefault(dest, []).append((palabras, titulo))
 
-    filenames = preprocesar.get_top_htmls()
+    filenames = preprocesar.pages_selector.top_pages
 
     def gen():
         for dir3, arch, puntaje in filenames:

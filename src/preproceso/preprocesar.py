@@ -218,41 +218,74 @@ class WikiSitio(object):
             print 'Registro guardado en %s' % log
 
 
-def calcula_top_htmls(version):
-    """Calcula los htmls con más puntaje y guarda ambas listas."""
-    # leemos el archivo de preprocesado y calculamos puntaje
-    fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-    fh.next() # título
-    data = []
+class PagesSelector(object):
+    """Select the htmls that will be included in this version."""
 
-    for linea in fh:
-        partes = linea.split(config.SEPARADOR_COLUMNAS)
-        arch = partes[0]
-        dir3 = partes[1]
-        puntaje = sum(map(int, partes[2:]))
+    def __init__(self):
+        self._calculated = False
 
-        data.append((dir3, arch, puntaje))
+        self._top_pages = None
+        self._same_info_through_runs = None
 
-    # ordenamos en función del puntaje
-    data.sort(key=operator.itemgetter(2), reverse=True)
+    @property
+    def top_pages(self):
+        """The list of top pages."""
+        if not self._calculated:
+            raise ValueError("You need to first 'calculate' everything.")
+        return self._top_pages
 
-    # guardamos los que entran
-    page_limit = config.LIMITE_PAGINAS[version]
-    with codecs.open(config.PAG_ELEGIDAS, "w", "utf8") as fh:
-        for dir3, arch, puntaje in data[:page_limit]:
-            info = (dir3, arch, str(puntaje))
-            fh.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
-    print u"  puntaje del último artículo que entró:", puntaje
+    @property
+    def same_info_through_runs(self):
+        """The top HTMLs for this run is the same of the previous one."""
+        if not self._calculated:
+            raise ValueError("You need to first 'calculate' everything.")
+        return self._same_info_through_runs
 
+    def calculate(self, version):
+        """Calculate the HTMLs with more score and store both lists."""
+        self._calculated = True
 
-def get_top_htmls():
-    '''Devuelve los htmls con más puntaje.'''
-    data = []
-    for linea in codecs.open(config.PAG_ELEGIDAS, "r", "utf8"):
-        linea = linea.strip()
-        dir3, arch, puntaje = linea.split(config.SEPARADOR_COLUMNAS)
-        data.append((dir3, arch, int(puntaje)))
-    return data
+        # read the preprocessed file
+        fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
+        fh.next() # título
+        all_pages = []
+        for linea in fh:
+            partes = linea.split(config.SEPARADOR_COLUMNAS)
+            arch = partes[0]
+            dir3 = partes[1]
+            puntaje = sum(map(int, partes[2:]))
+            all_pages.append((dir3, arch, puntaje))
+
+        # order by score, and get top N
+        all_pages.sort(key=operator.itemgetter(2), reverse=True)
+        page_limit = config.LIMITE_PAGINAS[version]
+        self._top_pages = all_pages[:page_limit]
+
+        # get all items after N that still has the same score that last one
+        last_score = self._top_pages[-1][2]
+        for more_info in all_pages[page_limit:]:
+            if more_info[2] == last_score:
+                self._top_pages.append(more_info)
+
+        separator = config.SEPARADOR_COLUMNAS
+        if os.path.exists(config.PAG_ELEGIDAS):
+            # previous run for this info! same content?
+            with codecs.open(config.PAG_ELEGIDAS, "rt", "utf8") as fh:
+                old_stuff = []
+                for linea in fh:
+                    dir3, arch, score = linea.strip().split(separator)
+                    old_stuff.append((dir3, arch, int(score)))
+                if sorted(old_stuff) == sorted(self._top_pages):
+                    self._same_info_through_runs = True
+
+        if not self._same_info_through_runs:
+            # previous info not there, or different: write to disk
+            with codecs.open(config.PAG_ELEGIDAS, "wt", "utf8") as fh:
+                for dir3, arch, score in self._top_pages:
+                    info = (dir3, arch, str(score))
+                    fh.write(separator.join(info) + "\n")
+
+pages_selector = PagesSelector()
 
 
 def run(dir_raiz, verbose=False):
