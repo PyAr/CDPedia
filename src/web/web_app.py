@@ -37,7 +37,7 @@ from src.armado import cdpindex
 from src.armado.cdpindex import normaliza as normalize_keyword
 from src.armado import to3dirs
 from destacados import Destacados
-from searcher import Searcher, Cache
+from searcher import Searcher
 from utils import TemplateManager
 from src import third_party  # Need this to import 3rd_party (werkzeug, jinja2)
 from werkzeug.wrappers import Request, Response
@@ -174,15 +174,16 @@ class CDPedia(object):
             return self.render_template('search.html')
         elif request.method == "POST":
             search_string = request.form.get("keywords", None)
+            search_string = urllib.unquote_plus(search_string)
             if search_string:
                 search_string_norm = normalize_keyword(search_string)
                 words = search_string_norm.split()
-                id_ = self.searcher.start_search(words)
+                self.searcher.start_search(words)
                 return redirect("/search/%s" % "+".join(words))
             return redirect("/")
 
     def on_search_results(self, request, key):
-        search_string_norm = normalize_keyword(key)
+        search_string_norm = urllib.unquote_plus(normalize_keyword(key))
         words = search_string_norm.split()
         start = int(request.args.get("start", 0))
         quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
