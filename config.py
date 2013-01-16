@@ -111,6 +111,7 @@ LIMITE_PAGINAS = {
     'tar-big': 5000000,   # very big number, we want them all!
     'dvd9': 5000000,   # very big number, we want them all!
     'dvd5': 5000000,   # very big number, we want them all!
+    'tar-med': 400000,
     'cd': 78500,
     'xo': 5000,
     'beta': 20000,   # sample version to distribute for others to QA
@@ -125,6 +126,12 @@ ESCALA_IMAGS = {
         (25,  75),
         (65,  50),
         (00,   0),
+    ],
+    'tar-med': [   # we aim for 2 to 3 GB
+        ( 4, 100),
+        ( 8,  75),
+        ( 8,  50),
+        (80,   0),
     ],
     'dvd9': [  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
         (10, 100),  # 20           15           10
