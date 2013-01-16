@@ -49,9 +49,6 @@ class Escalador(object):
 
 def run(verbose, version):
     """Calculate the sizes of the images."""
-    # tomar los preprocesador ordenados de más importante a menos
-    preprocesados = preprocesar.get_top_htmls()
-
     # levantamos la relación artículos -> imágenes
     pag_imagenes = {}
     with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
@@ -67,6 +64,7 @@ def run(verbose, version):
     # si una misma imagen está en un artículo importante y en otro que no, la
     # imagen va a quedar al 100%)
     imagenes = {}
+    preprocesados = preprocesar.pages_selector.top_pages
     for posic_archivo, (dir3, fname, _) in enumerate(preprocesados):
         # sacamos qué imágenes le corresponde a este archivo
         dskurls = pag_imagenes[(dir3, fname)]

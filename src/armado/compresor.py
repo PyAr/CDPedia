@@ -241,7 +241,7 @@ class ArticleManager(BloqueManager):
 
         # pedir todos los articulos, y ordenarlos en un dict por
         # su numero de bloque, segun el hash
-        fileNames = preprocesar.get_top_htmls()
+        fileNames = preprocesar.pages_selector.top_pages
         if verbose:
             print "Procesando", len(fileNames), "articulos"
 

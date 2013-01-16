@@ -128,7 +128,7 @@ def dir_a_cero(path):
 
 def armarIso(dest):
     """Arma el .iso de la CDPedia."""
-    os.system("mkisofs -hide-rr-moved -quiet -V CDPedia -volset "
+    os.system("mkisofs -hide-rr-moved -quiet -f -V CDPedia -volset "
               "CDPedia -o %s -R -J %s" % (dest, config.DIR_CDBASE))
 
 
@@ -251,7 +251,7 @@ def main(src_info, version, evitar_iso, verbose, desconectado,
         print '      y %d que ya estaban de antes' % cantold
 
         mensaje("Calculando los que quedan y los que no")
-        preprocesar.calcula_top_htmls(version)
+        preprocesar.pages_selector.calculate(version)
 
         mensaje("Generando el log de imágenes")
         taken, adesc = extraer.run(verbose)
@@ -275,25 +275,33 @@ def main(src_info, version, evitar_iso, verbose, desconectado,
     result = ImageManager.generar_bloques(verbose)
     print '  total: %d bloques con %d imags' % result
 
-    if procesar_articles:
+    if not procesar_articles:
+        mensaje(u"No generamos el índice y los bloques por pedido del usuario")
+    elif preprocesar.pages_selector.same_info_through_runs:
+        mensaje(u"Mismos artículos que la corrida anterior "
+                u"(no generamos índice y bloques)")
+    else:
         mensaje("Generando el índice")
         result = cdpindex.generar_de_html(articulos, verbose)
         print '  total: %d archivos' % result
-
         mensaje("Generando los bloques de artículos")
         result = ArticleManager.generar_bloques(verbose)
         print '  total: %d bloques con %d archivos y %d redirects' % result
-    else:
-        mensaje("Evitamos generar el índice y los bloques")
 
     mensaje("Copiando las fuentes")
     copiarSources()
 
-    mensaje("Copiando los indices")
-    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "indice")
-    if os.path.exists(dest_src):
-        shutil.rmtree(dest_src)
-    shutil.copytree(config.DIR_INDICE, dest_src)
+    mensaje("Generando links a los bloques y los índices")
+    # blocks
+    dest = path.join(config.DIR_CDBASE, "cdpedia", "bloques")
+    if os.path.exists(dest):
+        os.remove(dest)
+    os.symlink(path.abspath(config.DIR_BLOQUES), dest)
+    # indexes
+    dest = path.join(config.DIR_CDBASE, "cdpedia", "indice")
+    if os.path.exists(dest):
+        os.remove(dest)
+    os.symlink(path.abspath(config.DIR_INDICE), dest)
 
     if include_windows:
         mensaje("Copiando cosas para Windows")

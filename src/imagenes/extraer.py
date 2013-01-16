@@ -46,9 +46,12 @@ class ParseaImagenes(object):
         self.a_descargar = {}
         self.proces_ahora = {}
 
-        # levantamos cuales archivos ya habíamos procesado para las imágenes
+        # get which files we processed last time for images and 'nopo' marks
+        # (only if the articles are the same, otherwise we need to reprocess
+        # everything because of the nopo marks)
+        same_before = preprocesar.pages_selector.same_info_through_runs
         self.proces_antes = {}
-        if not test and os.path.exists(config.LOG_IMAGPROC):
+        if not test and same_before and os.path.exists(config.LOG_IMAGPROC):
             with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
                 for linea in fh:
                     partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
@@ -241,7 +244,8 @@ class ParseaImagenes(object):
 
 
 def run(verbose):
-    preprocesados = preprocesar.get_top_htmls()
+    """Extract the images from htmls, and also do extra work on those pages."""
+    preprocesados = preprocesar.pages_selector.top_pages
     pi = ParseaImagenes()
 
     for dir3, fname, _ in preprocesados:
