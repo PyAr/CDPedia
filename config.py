@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Versión de la CDPedia
-VERSION = '0.7.1'
+VERSION = '0.8.1'
 
 # This should be set to the hostname or address of the server.
 # Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
@@ -12,7 +12,7 @@ HOSTNAME = "localhost"
 PORT = 8000
 
 # User Server mode True when cdpedia will be used in a centralized server
-# configuration. If SERVER_MODE is False it must be used onli in localhost.
+# configuration. If SERVER_MODE is False it must be used only in localhost.
 SERVER_MODE = False
 
 # Nombre de la edicion especial, modifica el INDEX y ASSETS en código
@@ -27,15 +27,12 @@ IDIOMA = "es"
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
 ASSETS = ["static"]
-
 COMPRESSED_ASSETS = ['tutorial.tar.bz2']
-
 ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images",  "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 
 # Primera página que se abrirá en el browser.
-# Para ir a la portada de cdpedia dejar ""
 INDEX = "index.html"
 
 # PATH del archivo que contiene los artículos destacados de donde se
@@ -104,7 +101,6 @@ SEPARADOR_COLUMNAS = '|'
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.
 # W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
 CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
-# CMD_HTML_A_TEXTO = 'lynx -nolist -dump -display_charset=UTF-8 %s'
 
 # Límites de cantidades de páginas a incluir
 LIMITE_PAGINAS = {
@@ -165,6 +161,18 @@ ESCALA_IMAGS = {
     ],
 }
 
+# Type(s) of image(s) that will be generated (the string will be used after
+# the version and before the suffix), and if window stuff must be included.
+IMAG_TYPES = {
+    'tar-big': dict(tarball="tarbig", win=True),
+    'dvd9': dict(iso="dvd9", win=True),
+    'dvd5': dict(iso="dvd5", win=True),
+    'tar-med': dict(tarball="tarmed", win=True),
+    'cd': dict(iso="cd", win=True),
+    'xo': dict(tarball="xo"),
+    'beta': dict(tarball="beta", win=True),
+}
+
 # validamos los porcentajes de lo que acabamos de escribir arriba
 for _vers, escalas in ESCALA_IMAGS.items():
     _porc_escala = [x[1] for x in escalas]
@@ -176,9 +184,13 @@ for _vers, escalas in ESCALA_IMAGS.items():
         raise ValueError(u"Los % de ESCALA_IMAGS no suman 100 (%s)" % _vers)
 _vers_imags = set(ESCALA_IMAGS)
 _vers_pags = set(LIMITE_PAGINAS)
+_vers_types = set(IMAG_TYPES)
 if _vers_pags != _vers_imags:
     raise ValueError("Different versions between "
                      "ESCALA_IMAGS and LIMITE_PAGINAS")
+if _vers_pags != _vers_types:
+    raise ValueError("Different versions between "
+                     "ESCALA_IMAGS and IMAG_TYPES")
 VALID_VERSIONS = _vers_imags
 
 
