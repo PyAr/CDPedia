@@ -38,6 +38,8 @@ def lru_cache(maxsize):
                 k = queue_popleft()
                 _refcount[k] -= 1
                 if not _refcount[k]:
+                    if hasattr(_cache[k], "close"):
+                        _cache[k].close()
                     del _cache[k]
                     del _refcount[k]
 

@@ -29,7 +29,12 @@ import shutil
 import config
 
 from src import utiles
+from lru_cache import lru_cache
 
+# This is the total blocks that are keep open using a LRU cache. This number
+# must be less than the maximum number of files open per process.
+# The most restricted system appears to be windows with 512 files per proocess.
+BLOCKS_CACHE_SIZE = 100
 
 class BloqueManager(object):
     """Clase base para los manejadores de bloques de archivos.
@@ -46,7 +51,6 @@ class BloqueManager(object):
     def __init__(self, verbose=False):
         fname = os.path.join(self.archive_dir, 'numbloques.txt')
         self.num_bloques = int(open(fname).read().strip())
-        self.cache = {}
         self.verbose = verbose
 
     @classmethod
@@ -64,20 +68,19 @@ class BloqueManager(object):
         f.write(str(cant) + '\n')
         f.close()
 
+    @lru_cache(BLOCKS_CACHE_SIZE) # This LRU is shared between inherited managers
     def getBloque(self, nombre):
-        try:
-            comp = self.cache[nombre]
-        except KeyError:
-            comp = self.archive_class(os.path.join(self.archive_dir, nombre),
-                                      self.verbose, self)
-            self.cache[nombre] = comp
+        comp = self.archive_class(os.path.join(self.archive_dir, nombre),
+                                  self.verbose, self)
+        if self.verbose:
+            print "block opened from file:", nombre
         return comp
 
     def get_item(self, fileName):
         bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % self.num_bloques
         bloqName = "%08x%s" % (bloqNum, self.archive_extension)
         if self.verbose:
-            print "bloque:", bloqName
+            print "block:", bloqName
         comp = self.getBloque(bloqName)
         item = comp.get_item(fileName)
         if self.verbose and item is not None:
@@ -105,6 +108,12 @@ class Bloque(object):
             data = self.fh.read(size)
         return data
 
+    def close(self):
+        """Cleanup."""
+        if hasattr(self, "fh"):
+            if self.verbose:
+                print "closing block: ", self.fh.name
+            self.fh.close()
 
 class BloqueImagenes(Bloque):
     """Un bloque de imágenes.
