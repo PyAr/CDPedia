@@ -72,8 +72,8 @@ class CDPedia(object):
         self.jinja_env.globals["watchdog"] = True if watchdog else False
 
         self.template_manager = TemplateManager(template_path)
-        self.art_mngr = compresor.ArticleManager()
-        self.img_mngr = compresor.ImageManager()
+        self.art_mngr = compresor.ArticleManager(verbose=verbose)
+        self.img_mngr = compresor.ImageManager(verbose=verbose)
         self.destacados_mngr = Destacados(self.art_mngr, debug=False)
 
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
