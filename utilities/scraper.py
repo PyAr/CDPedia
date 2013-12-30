@@ -265,8 +265,6 @@ def extract_content(html, url):
     encontrado = capturar(html)
     if not encontrado:
         # unknown html format
-        with open("/tmp/fo.html", 'wb') as fh:
-            fh.write(html)
         raise ValueError("El archivo %s posee un formato desconocido" % url)
     newhtml = "\n".join(encontrado.groups())
 
