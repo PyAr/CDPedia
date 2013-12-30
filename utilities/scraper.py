@@ -253,7 +253,7 @@ class WikipediaArticleES(WikipediaArticle):
     HISTORY_CLASS =  WikipediaArticleHistoryItem
 
 
-regex = '(<h1 id="firstHeading" class="firstHeading">.+</h1>)(.+)\s*<!-- /catlinks -->'
+regex = '(<h1 id="firstHeading" class="firstHeading" lang=".+">.+</h1>)(.+)\s*<div class="printfooter">'
 capturar = re.compile(regex, re.MULTILINE|re.DOTALL).search
 no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
                                                 re.MULTILINE|re.DOTALL)
@@ -265,6 +265,8 @@ def extract_content(html, url):
     encontrado = capturar(html)
     if not encontrado:
         # unknown html format
+        with open("/tmp/fo.html", 'wb') as fh:
+            fh.write(html)
         raise ValueError("El archivo %s posee un formato desconocido" % url)
     newhtml = "\n".join(encontrado.groups())
 
@@ -289,6 +291,9 @@ def get_html(url, basename):
     except Exception as e:
         logger("Try again (Exception while fetching: %r): %s", e, basename)
         defer.returnValue(False)
+
+    if not html:
+        logger("Got an empty file: %r", url)
 
     # ok, downloaded the html, let's check that it complies with some rules
     if "</html>" not in html:
@@ -430,17 +435,23 @@ class StatusBoard(object):
 
     @defer.inlineCallbacks
     def process(self, data_urls):
-        ok = yield fetch(data_urls)
-        self.total += 1
-        if ok:
-            self.bien += 1
-        else:
+        try:
+            ok = yield fetch(data_urls)
+        except Exception, err:
+            self.total += 1
             self.mal += 1
-
-        velocidad = self.total / (time.time() - self.tiempo_inicial)
-        sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
-                         (self.total, self.bien, self.mal, velocidad))
-        sys.stdout.flush()
+            raise
+        else:
+            self.total += 1
+            if ok:
+                self.bien += 1
+            else:
+                self.mal += 1
+        finally:
+            velocidad = self.total / (time.time() - self.tiempo_inicial)
+            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
+                (self.total, self.bien, self.mal, velocidad))
+            sys.stdout.flush()
 
 
 @defer.inlineCallbacks

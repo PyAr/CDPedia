@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""Genera el listado de articulos por Namespace.
+"""Generate the article listing per Namespace.
 
-Navega las paginas que listan los articulos por Namespace para armar un listado
-que luego puede ser utilizado por scraper.py para conseguir los articulos.
+Navigate the pages that list articles per Namespace to build a list that can
+be used later by scraper.py to get the article pages.
 """
 
 import re
@@ -39,8 +39,8 @@ def traer_pagina(link):
     html = urllib2.urlopen(req(link)).read()
     return BeautifulSoup(html)
 
-if __name__ == '__main__':
-    fh = open('articulos_en_namespaces.txt', 'wb')
+def main():
+    fh = open('articles_by_namespaces.txt', 'wb')
     for space in SPACES:
         soup = traer_pagina(WIKI + TODAS + space)
         guardar_listado(soup, fh)
@@ -52,3 +52,5 @@ if __name__ == '__main__':
 
     fh.close()
 
+if __name__ == '__main__':
+    main()
