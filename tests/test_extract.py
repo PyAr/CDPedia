@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2012 CDPedistas (see AUTHORS.txt)
+# Copyright 2012-2014 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -15,17 +15,18 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  http://code.google.com/p/cdpedia/
+# For further info, check  https://launchpad.net/cdpedia/
 
-"""Tests for the 'extraer' module."""
+"""Tests for the 'extract' module."""
 
 import unittest
 
-from src.imagenes.extraer import ParseaImagenes
+from src.imagenes.extract import ImageParser
+from src.preproceso import preprocesar
 
 
 class FakeSearch(object):
-    """Simulates a search giving just the image."""
+    """Simulate a search giving just the image."""
     def __init__(self, url):
         self.url = url
 
@@ -39,7 +40,8 @@ class SearcherTestCase(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        self.pi = ParseaImagenes(test=True)
+        preprocesar.pages_selector._calculated = True
+        self.pi = ImageParser(test=True)
         self.pi.test = False
 
     def _check(self, url, should_web, should_dsk):
