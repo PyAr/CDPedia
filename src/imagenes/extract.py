@@ -47,6 +47,19 @@ IMAGES_TO_REMOVE = re.compile(
     '<img.*?src=".*?/Special:CentralAutoLogin/.*?".*?/>'
 )
 
+# to find the images links
+IMG_REGEX = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
+
+# to find the pages links
+LINKS_REGEX = re.compile('<a (.*?)href="(.*?)"(.*?)>(.*?)</a>',
+                         re.MULTILINE|re.DOTALL)
+
+# to get the link after the wiki part
+SEPLINK = re.compile("/wiki/(.*)")
+
+# to extracth the sizes of an image
+WIDTH_HEIGHT = re.compile('width="(\d+)" height="(\d+)"')
+
 logger = logging.getLogger("extract")
 
 
@@ -58,11 +71,6 @@ class ImageParser(object):
 
     def __init__(self, test=False):
         self.test = test
-        self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
-        self.anchalt_regex = re.compile('width="(\d+)" height="(\d+)"')
-        self.links_regex = re.compile('<a(.*?)href="(.*?)"(.*?)>(.*?)</a>',
-                                      re.MULTILINE|re.DOTALL)
-        self.seplink = re.compile("/wiki/(.*)")
         self.a_descargar = {}
         self.proces_ahora = {}
 
@@ -79,6 +87,8 @@ class ImageParser(object):
                     fname = partes[1]
                     dskurls = partes[2:]
                     self.proces_antes[dir3, fname] = dskurls
+        logger.debug("Records of images processed before: %d",
+                     len(self.proces_antes))
 
         # levantamos la info de lo planeado a descargar
         self.descarg_antes = {}
@@ -87,6 +97,8 @@ class ImageParser(object):
                 for linea in fh:
                     dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
                     self.descarg_antes[dsk] = web
+        logger.debug("Records of already planned to download: %d",
+                     len(self.descarg_antes))
 
         self.imgs_ok = 0
 
@@ -97,6 +109,8 @@ class ImageParser(object):
         if not test:
             with codecs.open(config.PAG_ELEGIDAS, "r", "utf-8") as fh:
                 self.pag_elegidas = set(x.strip().split(sep)[1] for x in fh)
+        logger.debug("Quantity of chosen pages, raw: %d",
+                     len(self.pag_elegidas))
 
         pageleg = self.pag_elegidas
         if not test:
@@ -105,6 +119,8 @@ class ImageParser(object):
                     orig, dest = linea.strip().split(sep)
                     if dest in pageleg:
                         pageleg.add(orig)
+        logger.debug("Quantity of chosen pages, including redirects: %d",
+                     len(self.pag_elegidas))
 
     # la cantidad es cuantas tenemos en a_descargar
     cant = property(lambda s: len(s.a_descargar))
@@ -139,25 +155,16 @@ class ImageParser(object):
         # leemos la info original
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
         with codecs.open(arch, "r", "utf-8") as fh:
-            oldhtml = fh.read()
+            html = fh.read()
 
         # clean some images that we just don't want
-        oldhtml = IMAGES_TO_REMOVE.sub("", oldhtml)
+        html = IMAGES_TO_REMOVE.sub("", html)
 
         # sacamos imágenes y reemplazamos paths
         newimgs = []
         reemplaza = functools.partial(self._reemplaza, newimgs)
-        try:
-            newhtml = self.img_regex.sub(reemplaza, oldhtml)
-        except Exception:
-            print "Path del html", arch
-            raise
-
-        try:
-            newhtml = self.links_regex.sub(self._fixlinks, newhtml)
-        except Exception:
-            print "Path del html", arch
-            raise
+        html = IMG_REGEX.sub(reemplaza, html)
+        html = LINKS_REGEX.sub(self._fixlinks, html)
 
         # lo grabamos en destino
         if not self.test:
@@ -169,7 +176,7 @@ class ImageParser(object):
             # escribimos el archivo
             newpath = os.path.join(destdir, fname)
             with codecs.open(newpath, "w", "utf-8") as fh:
-                fh.write(newhtml)
+                fh.write(html)
 
         # guardamos al archivo como procesado
         # tomamos la dsk_url, sin el path relativo
@@ -186,8 +193,8 @@ class ImageParser(object):
             print "img", img
 
         # reemplazamos ancho y alto por un fragment en la URL de la imagen
-        msize = self.anchalt_regex.search(p3)
-        p3 = self.anchalt_regex.sub("", p3)
+        msize = WIDTH_HEIGHT.search(p3)
+        p3 = WIDTH_HEIGHT.sub("", p3)
         web_url = 'http:' + img
 
         if img.startswith("//upload.wikimedia.org/wikipedia/commons/"):
@@ -247,7 +254,7 @@ class ImageParser(object):
         if link.startswith("http://"):
             return mlink.group()
 
-        msep = self.seplink.match(link)
+        msep = SEPLINK.match(link)
         if not msep:
             # un link no clásico, no nos preocupa
             return mlink.group()
@@ -276,13 +283,18 @@ def run():
     done = 0
     informed = 0
     for dir3, fname, _ in preprocesados:
-        pi.parse(dir3, fname)
+        try:
+            pi.parse(dir3, fname)
+        except:
+            logger.warning("Parsing crashed in dir3=%r fname=%r", dir3, fname)
+            raise
 
         # inform if needed
         done += 1
         perc = int(100 * done / total)
         if perc != informed:
-            logger.debug("Progress: %d%% done", perc)
+            logger.debug("Progress: %d%% done (found so far %d images)",
+                         perc, pi.cant)
             informed = perc
 
     pi.dump()
@@ -300,6 +312,15 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print usage
         sys.exit()
+
+    # setup logging
+    _logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    _logger.addHandler(handler)
+    formatter = logging.Formatter(
+        "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
+    handler.setFormatter(formatter)
+    _logger.setLevel(logging.DEBUG)
 
     preprocesar.pages_selector._calculated = True
     pi = ImageParser()

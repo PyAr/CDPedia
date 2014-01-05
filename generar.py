@@ -374,12 +374,13 @@ Actualizar una imagen con los cambios de code + assets en esta working copy
     procesar_articles = not bool(options.noarticles)
 
     # setup logging
+    _logger = logging.getLogger()
     handler = logging.StreamHandler()
-    logger.addHandler(handler)
+    _logger.addHandler(handler)
     formatter = logging.Formatter(
         "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
-    logger.setLevel(logging.DEBUG)
+    _logger.setLevel(logging.DEBUG)
 
     if options.guppy:
         try:

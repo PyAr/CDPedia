@@ -23,13 +23,14 @@ DUMP_IMAGES = "images"
 
 
 # set up logging
-logger = logging.getLogger('generar')
+logger = logging.getLogger()
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 formatter = logging.Formatter(
     "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
 handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("cdpetron")
 
 
 def get_lists(branch_dir):
