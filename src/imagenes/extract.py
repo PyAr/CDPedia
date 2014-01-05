@@ -1,41 +1,61 @@
 # -*- coding: utf8 -*-
 
-"""
-Busca las imágenes en los htmls que están en el archivo de preprocesados, y
-convierte las URLs de las mismas para siempre apuntar a disco.
+# Copyright 2008-2014 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://launchpad.net/cdpedia/
 
-Deja en un log las URLs que hay que bajar (todas aquellas que no deberían ya
-venir en el dump).
+"""Extract images from the HTMLs.
+
+Search the images in the HTMLs located in the preprocessed file and convert
+those URLs for them to point to disk.
+
+Also log the URLs that needs to be downloaded.
 """
 
 from __future__ import with_statement
 from __future__ import division
 
-usage = """Extractor de URLs de imágenes.
-
-Para probar el funcionamiento:
-
-  extrae.py dir3 archivo.html
-"""
-
-import sys
-import re
-import os
 import codecs
 import functools
+import logging
+import os
+import re
+import sys
 import urllib
 import urllib2
 
 import config
+
 from src.preproceso import preprocesar
 
 WIKIPEDIA_URL = "http://es.wikipedia.org"
 
-class ParseaImagenes(object):
+# we plainly don't want some images
+IMAGES_TO_REMOVE = re.compile(
+    '<img.*?src=".*?/Special:CentralAutoLogin/.*?".*?/>'
+)
+
+logger = logging.getLogger("extract")
+
+
+class ImageParser(object):
+    """Extract from HTMLs, fix, and log, the URLs of the images.
+
+    The logged URLs are unique (there are a *lot* of duplicated URLs).
     """
-    Tenemos que loguear únicas, ya que tenemos muchísimos, muchísimos
-    duplicados: en las pruebas, logueamos 28723 imágenes, que eran 203 únicas!
-    """
+
     def __init__(self, test=False):
         self.test = test
         self.img_regex = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
@@ -106,7 +126,7 @@ class ParseaImagenes(object):
                     linea = separador.join((dir3, fname))
                 fh.write(linea + "\n")
 
-    def parsea(self, dir3, fname):
+    def parse(self, dir3, fname):
         if (dir3, fname) in self.proces_antes:
             prev_dskurls = self.proces_antes[dir3, fname]
             self.proces_ahora[dir3, fname] = prev_dskurls
@@ -121,12 +141,15 @@ class ParseaImagenes(object):
         with codecs.open(arch, "r", "utf-8") as fh:
             oldhtml = fh.read()
 
+        # clean some images that we just don't want
+        oldhtml = IMAGES_TO_REMOVE.sub("", oldhtml)
+
         # sacamos imágenes y reemplazamos paths
         newimgs = []
         reemplaza = functools.partial(self._reemplaza, newimgs)
         try:
             newhtml = self.img_regex.sub(reemplaza, oldhtml)
-        except Exception, e:
+        except Exception:
             print "Path del html", arch
             raise
 
@@ -243,26 +266,42 @@ class ParseaImagenes(object):
         return new
 
 
-def run(verbose):
+def run():
     """Extract the images from htmls, and also do extra work on those pages."""
     preprocesados = preprocesar.pages_selector.top_pages
-    pi = ParseaImagenes()
+    pi = ImageParser()
+    total = len(preprocesados)
+    logger.info("Image parser inited, %d pages to process", total)
 
+    done = 0
+    informed = 0
     for dir3, fname, _ in preprocesados:
-        if verbose:
-            print "Extrayendo imgs de %s/%s" % (dir3.encode("utf8"),
-                                                fname.encode("utf8"))
-        pi.parsea(dir3, fname)
+        pi.parse(dir3, fname)
+
+        # inform if needed
+        done += 1
+        perc = int(100 * done / total)
+        if perc != informed:
+            logger.debug("Progress: %d%% done", perc)
+            informed = perc
 
     pi.dump()
     return pi.imgs_ok, pi.cant
 
 
+usage = """Images URL extractor.
+
+To test:
+
+  extract.py dir3 somefile.html
+"""
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print usage
         sys.exit()
 
-    pi = ParseaImagenes()
-    pi.parsea((sys.argv[1], sys.argv[2]))
-    print "\n".join(str(x) for x in pi.to_log.items())
+    preprocesar.pages_selector._calculated = True
+    pi = ImageParser()
+    pi.parse(sys.argv[1], sys.argv[2])
+    print "\n".join(str(x) for x in pi.a_descargar.items())
