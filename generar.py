@@ -2,12 +2,12 @@
 
 from __future__ import with_statement
 
+import logging
 import optparse
 import os
 import shutil
 import subprocess
 import sys
-import time
 
 from os import path
 
@@ -21,8 +21,10 @@ from src.preproceso import preprocesar
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.armado.compressed_index import NO_ST_MSG
-from src.imagenes import extraer, download, reducir, calcular
+from src.imagenes import extract, download, reducir, calcular
 
+# get a logger (may be already set up, or will set up in __main__)
+logger = logging.getLogger('generar')
 
 def make_it_nicer():
     """Make the process nicer at CPU and IO levels."""
@@ -32,11 +34,6 @@ def make_it_nicer():
     # IO, much more complicated
     pid = os.getpid()
     subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
-
-
-def mensaje(texto):
-    fh = time.strftime("%Y-%m-%d %H:%M:%S")
-    print "%-40s (%s)" % (texto, fh)
 
 
 def copy_dir(src_dir, dst_dir):
@@ -71,9 +68,8 @@ def copiarAssets(src_info, dest):
         src_dir = path.join(config.DIR_SOURCE_ASSETS, d)
         dst_dir = path.join(dest, d)
         if not os.path.exists(src_dir):
-            print "\nERROR: No se encuentra el directorio %r" % src_dir
-            print "Este directorio es obligatorio para el procesamiento general"
-            sys.exit()
+            logger.error("Mandatory directory not found: %r", src_dir)
+            raise EnvironmentError("Directory not found, can't continue")
         copy_dir(src_dir, dst_dir)
 
     # externos (de nosotros, bah)
@@ -165,11 +161,13 @@ def preparaTemporal(procesar_articles):
             src_indices = path.join(config.DIR_CDBASE, "cdpedia", "indice")
             src_bloques = config.DIR_BLOQUES
             if not os.path.exists(src_indices):
-                print "ERROR: quiere evitar articulos pero no hay indices en", src_indices
-                exit()
+                logger.error("Want to avoid article processing but didn't "
+                             "find indexes in %r", src_indices)
+                raise EnvironmentError("Indexes not found, can't continue")
             if not os.path.exists(src_bloques):
-                print "ERROR: quiere evitar articulos pero no hay bloques en", src_bloques
-                exit()
+                logger.error("Want to avoid article processing but didn't "
+                             "find blocks in %r", src_bloques)
+                raise EnvironmentError("Blocks not found, can't continue")
             tmp_indices = path.join(dtemp, "indices_backup")
             tmp_bloques = path.join(dtemp, "bloques_backup")
 
@@ -205,12 +203,12 @@ def build_tarball(tarball_name):
 
 
 def update_mini(image_path):
-    """ update cdpedia image using code + assets in current working copy"""
+    """Update cdpedia image using code + assets in current working copy."""
     # chequeo no estricto image_path apunta a una imagen de cdpedia
     deberia_estar = [image_path, 'cdpedia', 'bloques', '00000000.cdp']
     if not os.path.exists(os.path.join(*deberia_estar)):
-        print 'Directorio no parece ser imagen de cdpedia'
-        sys.exit(1)
+        logger.error("The directory doesn't look like a CDPedia image.")
+        raise EnvironmentError("CDPedia image not found, can't continue")
 
     # adapt some config paths
     old_top_dir = config.DIR_CDBASE
@@ -223,7 +221,8 @@ def update_mini(image_path):
     copiarAssets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(src_info, version, verbose, desconectado, procesar_articles):
+def main(src_info, version,
+         verbose=False, desconectado=False, procesar_articles=True):
     # don't affect the rest of the machine
     make_it_nicer()
 
@@ -234,67 +233,67 @@ def main(src_info, version, verbose, desconectado, procesar_articles):
         try:
             import SuffixTree
         except ImportError:
-            print NO_ST_MSG
+            logger.warning(NO_ST_MSG)
 
-    mensaje("Comenzando!")
+    logger.info("Starting!")
     preparaTemporal(procesar_articles)
 
-    mensaje("Copiando los assets")
+    logger.info("Copying the assets")
     copiarAssets(src_info, config.DIR_ASSETS)
 
     articulos = path.join(src_info, "articles")
     if procesar_articles:
-        mensaje("Preprocesando")
+        logger.info("Preprocessing")
         if not path.exists(articulos):
-            print "\nERROR: No se encuentra el directorio %r" % articulos
-            print "Este directorio es obligatorio para el procesamiento general"
+            logger.error("Couldn't find articles dir: %r", articulos)
+            raise EnvironmentError("Directory not found, can't continue")
             sys.exit()
         cantnew, cantold = preprocesar.run(articulos, verbose)
-        print '  total %d páginas procesadas' % cantnew
-        print '      y %d que ya estaban de antes' % cantold
+        logger.info("Processed pages: %d new, %d from before",
+                    cantnew, cantold)
 
-        mensaje("Calculando los que quedan y los que no")
+        logger.info("Calculating which stay and which don't")
         preprocesar.pages_selector.calculate(version)
 
-        mensaje("Generando el log de imágenes")
-        taken, adesc = extraer.run(verbose)
-        print '  total: %5d imágenes extraídas' % taken
-        print '         %5d a descargar' % adesc
+        logger.info("Generating the images log")
+        taken, adesc = extract.run()
+        logger.info("Extracted %d images, need to download %d", taken, adesc)
     else:
-        mensaje("Evitamos procesar artículos y generar el log de imágenes")
+        logger.info("Avoid processing articles and generating images log")
 
-    mensaje("Recalculando porcentajes de reducción")
+    logger.info("Recalculating the reduction percentages.")
     calcular.run(verbose, version)
 
     if not desconectado:
-        mensaje("Descargando las imágenes de la red")
+        logger.info("Downloading the images from the internet")
         download.traer(verbose)
 
-    mensaje("Reduciendo las imágenes descargadas")
+    logger.info("Reducing the downloaded images")
     reducir.run(verbose)
 
-    mensaje("Emblocando las imágenes reducidas")
+    logger.info("Putting the reduced images into blocks")
     # agrupamos las imagenes en bloques
-    result = ImageManager.generar_bloques(verbose)
-    print '  total: %d bloques con %d imags' % result
+    q_blocks, q_images = ImageManager.generar_bloques(verbose)
+    logger.info("Got %d blocks with %d images", q_blocks, q_images)
 
     if not procesar_articles:
-        mensaje(u"No generamos el índice y los bloques por pedido del usuario")
+        logger.info("Not generating index and blocks (by user request)")
     elif preprocesar.pages_selector.same_info_through_runs:
-        mensaje(u"Mismos artículos que la corrida anterior "
-                u"(no generamos índice y bloques)")
+        logger.info("Same articles than previous run "
+                     "(not generating index and blocks)")
     else:
-        mensaje("Generando el índice")
+        logger.info("Generating the index")
         result = cdpindex.generar_de_html(articulos, verbose)
-        print '  total: %d archivos' % result
-        mensaje("Generando los bloques de artículos")
-        result = ArticleManager.generar_bloques(verbose)
-        print '  total: %d bloques con %d archivos y %d redirects' % result
+        logger.info("Got %d files", result)
+        logger.info("Generating the articles blocks")
+        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(verbose)
+        logger.info("Got %d blocks with %d files and %d redirects",
+                    q_blocks, q_files, q_redirs)
 
-    mensaje("Copiando las fuentes")
+    logger.info("Copying the sources")
     copiarSources()
 
-    mensaje("Generando links a los bloques y los índices")
+    logger.info("Generating the links to blocks and indexes")
     # blocks
     dest = path.join(config.DIR_CDBASE, "cdpedia", "bloques")
     if os.path.exists(dest):
@@ -307,26 +306,26 @@ def main(src_info, version, verbose, desconectado, procesar_articles):
     os.symlink(path.abspath(config.DIR_INDICE), dest)
 
     if imag_type.get("win", False):
-        mensaje("Copiando cosas para Windows")
+        logger.info("Copying Windows stuff")
         # generated by pyinstaller 2.0
         copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
 
-    mensaje("Generamos la config para runtime")
+    logger.info("Generating runtime config")
     genera_run_config()
 
     iso_id = imag_type.get("iso")
     if iso_id is not None:
         dest_name = "cdpedia-%s-%s" % (config.VERSION, iso_id)
-        mensaje("Armamos el ISO: %r" % (dest_name,))
+        logger.info("Building the ISO: %r", dest_name)
         build_iso(dest_name)
 
     tball_id = imag_type.get("tarball")
     if tball_id is not None:
         dest_name = "cdpedia-%s-%s" % (config.VERSION, tball_id)
-        mensaje("Armamos el tarball: %r" % (dest_name,))
+        logger.info("Building the tarball: %r", dest_name)
         build_tarball(dest_name)
 
-    mensaje("Todo terminado!")
+    logger.info("All done!")
 
 
 if __name__ == "__main__":
@@ -358,7 +357,6 @@ Actualizar una imagen con los cambios de code + assets en esta working copy
                       help="Actualiza una imagen con el code + assets de "
                            "esta working copy.")
 
-
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
@@ -374,6 +372,14 @@ Actualizar una imagen con los cambios de code + assets en esta working copy
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
     procesar_articles = not bool(options.noarticles)
+
+    # setup logging
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+    formatter = logging.Formatter(
+        "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
+    handler.setFormatter(formatter)
+    logger.setLevel(logging.DEBUG)
 
     if options.guppy:
         try:
