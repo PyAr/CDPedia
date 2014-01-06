@@ -149,8 +149,8 @@ if __name__ == "__main__":
         noclean = True
 
     if len(sys.argv) != 3:
-        print "Usage: %s [--no-lists] [--no-scrap] <branch_dir> <dump_dir>" % (
-            sys.argv[0],)
+        print ("Usage: %s [--no-lists] [--no-scrap] [--no-clean] "
+               "<branch_dir> <dump_dir>" % (sys.argv[0],))
         exit()
 
     branch_dir = os.path.abspath(sys.argv[1])
