@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Versión de la CDPedia
-VERSION = '0.8.1'
+VERSION = '0.8.2'
 
 # This should be set to the hostname or address of the server.
 # Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
