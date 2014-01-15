@@ -24,15 +24,16 @@ import operator
 import config
 from src.preproceso import preprocesar
 
+SCALES = (100, 75, 50, 0)
 
 class Escalador(object):
     """Indica en que escala dejar la imagen."""
-    def __init__(self, total_items, version):
+    def __init__(self, total_items):
         # preparamos nuestro generador de límites
         vals = []
         base = 0
-        escala_imags = config.ESCALA_IMAGS[version]
-        for (porc_cant, escala) in escala_imags:
+        reduction = config.imageconf['image_reduction']
+        for (porc_cant, escala) in zip(reduction, SCALES):
             cant = total_items * porc_cant / 100
             vals.append((cant + base, escala))
             base += cant
@@ -47,7 +48,7 @@ class Escalador(object):
         return self.escala
 
 
-def run(verbose, version):
+def run(verbose):
     """Calculate the sizes of the images."""
     # levantamos la relación artículos -> imágenes
     pag_imagenes = {}
@@ -85,7 +86,7 @@ def run(verbose, version):
             dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
             dskweb[dsk] = web
 
-    escalador = Escalador(total_imagenes, version)
+    escalador = Escalador(total_imagenes)
     log_reduccion = codecs.open(config.LOG_REDUCCION, "w", "utf8")
     for i, (dskurl, _) in enumerate(imagenes):
         escala = escalador(i)

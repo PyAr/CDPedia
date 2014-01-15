@@ -1,56 +1,88 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
-"""Generate the article listing per Namespace.
+"""Generate the list of articles inside some Namespaces."""
 
-Navigate the pages that list articles per Namespace to build a list that can
-be used later by scraper.py to get the article pages.
-"""
-
-import re
+import json
+import logging
 import urllib
 import urllib2
+import time
 
-from functools import partial
+# these is the list of the namespaces we'll get; to get this you can
+# check the whole list with the following site-info meta-query:
+#     http://es.wikipedia.org/w/api.php?
+#     action=query&meta=siteinfo&siprop=namespaces&format=json
+NAMESPACES = (
+    14,  # Category
+    12,  # Help
+    104, # Anexo
+    100, # Portal
+)
 
-from BeautifulSoup import BeautifulSoup
+API_URL = (
+    'http://%(language)s.wikipedia.org/w/api.php?action=query&list=allpages'
+    '&apcontinue=%(contin)s&aplimit=500&format=json&apnamespace=%(namespace)s'
+)
 
-UA = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
-     'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
-WIKI = 'http://es.wikipedia.org'
-TODAS = '/wiki/Especial:Todas/'
-SPACES = [u'Categoría:'.encode('utf-8'), 'Ayuda:', 'Anexo:', 'Portal:']
+logger = logging.getLogger("list_nspaces")
 
-req = partial(urllib2.Request, data=None, headers={'User-Agent': UA})
 
-def guardar_listado(soup, archivo):
-    t = soup.findAll('table', {'class':'mw-allpages-table-chunk'})[0]
-    links = [l['href'].replace('/wiki/','') for l in t.findAll('a')]
-    links = [urllib.unquote(l.encode("utf8")) for l in links]
-    archivo.write('\n'.join(links))
-    archivo.write('\n')
+def retryable(func):
+    """Decorator to retry functions."""
+    def _f(*args, **kwargs):
+        """Retryable function."""
+        delay = 1
+        for attempt in range(50, -1, -1):  # if reaches 0: no more attempts
+            try:
+                res = func(*args, **kwargs)
+            except Exception as err:
+                if not attempt:
+                    raise
+                logger.debug("Problem (retrying after %ds): %s", delay, err)
+                time.sleep(delay)
+                delay *= 2
+                if delay > 300:
+                    delay = 300
+            else:
+                return res
+    return _f
 
-def siguiente_link(soup):
-    a = soup.find('a', text=re.compile("^Siguiente p\xe1gina \("))
-    if a:
-        return a.findParent('a')['href']
 
-def traer_pagina(link):
-    html = urllib2.urlopen(req(link)).read()
-    return BeautifulSoup(html)
+@retryable
+def hit_api(**kwords):
+    url = API_URL % kwords
+    logger.debug("Hit %r", url)
+    u = urllib2.urlopen(url)
+    data = json.load(u)
+    return data
 
-def main():
-    fh = open('articles_by_namespaces.txt', 'wb')
-    for space in SPACES:
-        soup = traer_pagina(WIKI + TODAS + space)
-        guardar_listado(soup, fh)
-        next_link = siguiente_link(soup)
-        while next_link:
-            soup = traer_pagina(WIKI + next_link)
-            guardar_listado(soup, fh)
-            next_link = siguiente_link(soup)
 
-    fh.close()
+def get_articles(language):
+    """Get all the articles for some namespaces."""
+    for namespace in NAMESPACES:
+        contin = ''
+        logger.debug("Getting namespace %r", namespace)
+        while True:
+            data = hit_api(language=language, namespace=namespace,
+                           contin=contin)
+            try:
+                items = data['query']['allpages']
+            except KeyError:
+                # no pages for the given namespace
+                break
+
+            for item in items:
+                yield item['title']
+
+            # continue, if needed
+            if 'query-continue' in data:
+                contin = data['query-continue']['allpages']['apcontinue']
+                contin = urllib.quote(contin.encode('utf8'))
+            else:
+                break
+
 
 if __name__ == '__main__':
-    main()
+    with open('articles_by_namespaces.txt', 'wb') as fh:
+        for link in get_articles('es'):
+            fh.write(link.encode('utf8') + '\n')

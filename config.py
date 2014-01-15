@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import yaml
+
 # Versión de la CDPedia
 VERSION = '0.8.2'
 
@@ -102,97 +104,18 @@ SEPARADOR_COLUMNAS = '|'
 # W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
 CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
 
-# Límites de cantidades de páginas a incluir
-LIMITE_PAGINAS = {
-    'tar-big': 5000000,   # very big number, we want them all!
-    'dvd9': 5000000,   # very big number, we want them all!
-    'dvd5': 5000000,   # very big number, we want them all!
-    'tar-med': 400000,
-    'cd': 78500,
-    'xo': 5000,
-    'beta': 20000,   # sample version to distribute for others to QA
-}
+# load configuration for languages and validate
+with open("imagtypes.yaml", "rt") as fh:
+    imagtypes = yaml.load(fh)
+for lang, imtypes in imagtypes.items():
+    for imtype, imdata in imtypes.items():
+        if sum(imdata['image_reduction']) != 100:
+            raise ValueError("Image reduction config doesn't add 100%% for "
+                             "lang=%r imagetype=%r" % (lang, imtype))
 
-# Pares cantidad/escala. (n, m) se lee como "el top n% de LIMITE_PAGINAS
-# tendrán las imágenes al m%.  Hay que incluir los extremos 100 y 0 de escala
-# (ordenados),  y los porcentajes de cantidad tienen que sumar 100
-ESCALA_IMAGS = {
-    'tar-big': [   # we aim for 8 to 10 GB
-        (10, 100),
-        (25,  75),
-        (65,  50),
-        (00,   0),
-    ],
-    'tar-med': [   # we aim for 2 to 3 GB
-        ( 4, 100),
-        ( 8,  75),
-        ( 8,  50),
-        (80,   0),
-    ],
-    'dvd9': [  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
-        (10, 100),  # 20           15           10
-        (25,  75),  # 30           25           20
-        (65,  50),  # 50           60           70
-        (00,   0),  # 9190309888   8861982720   8525170688
-    ],
-    'dvd5': [  # size: DVD-R SL, 12cm:  4,700,319,808 bytes
-        ( 4, 100),
-        ( 4,  75),
-        (16,  50),
-        (76,   0),
-    ],
-    'xo': [
-        ( 0, 100),
-        ( 0,  75),
-        ( 5,  50),
-        (95,   0),
-    ],
-    'cd': [  # size max: 12cm, 80min:  737,280,000 bytes
-        ( 1, 100),
-        ( 2,  75),
-        ( 3,  50),
-        (94,   0),
-    ],
-    'beta': [
-        ( 2, 100),
-        ( 4,  75),
-        ( 4,  50),
-        (90,   0),
-    ],
-}
-
-# Type(s) of image(s) that will be generated (the string will be used after
-# the version and before the suffix), and if window stuff must be included.
-IMAG_TYPES = {
-    'tar-big': dict(tarball="tarbig", win=True),
-    'dvd9': dict(iso="dvd9", win=True),
-    'dvd5': dict(iso="dvd5", win=True),
-    'tar-med': dict(tarball="tarmed", win=True),
-    'cd': dict(iso="cd", win=True),
-    'xo': dict(tarball="xo"),
-    'beta': dict(tarball="beta", win=True),
-}
-
-# validamos los porcentajes de lo que acabamos de escribir arriba
-for _vers, escalas in ESCALA_IMAGS.items():
-    _porc_escala = [x[1] for x in escalas]
-    if max(_porc_escala) != 100 or min(_porc_escala) != 0:
-        raise ValueError(u"Error en los extremos de ESCALA_IMAGS (%s)" % _vers)
-    if sorted(_porc_escala, reverse=True) != _porc_escala:
-        raise ValueError(u"Los % de escala no están ordenados (%s)" % _vers)
-    if sum(x[0] for x in escalas) != 100:
-        raise ValueError(u"Los % de ESCALA_IMAGS no suman 100 (%s)" % _vers)
-_vers_imags = set(ESCALA_IMAGS)
-_vers_pags = set(LIMITE_PAGINAS)
-_vers_types = set(IMAG_TYPES)
-if _vers_pags != _vers_imags:
-    raise ValueError("Different versions between "
-                     "ESCALA_IMAGS and LIMITE_PAGINAS")
-if _vers_pags != _vers_types:
-    raise ValueError("Different versions between "
-                     "ESCALA_IMAGS and IMAG_TYPES")
-VALID_VERSIONS = _vers_imags
-
+# this variable will be overwritten at init time according to what
+# is being generated
+imageconf = None
 
 # "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
 # mayoría de las páginas no tienen namespace, esas entran todas)
@@ -230,69 +153,3 @@ INCLUDE = [
     u"Wikipedia:Aviso_de_contenido",
     u"Wikipedia:Derechos_de_autor",
 ]
-
-# Dump de Junio 2008
-#Mostrando los resultados para un total de 1362473 archivos que ocupan 18353.39 MB:
-#
-#  Raiz                                                            Cant      Cant%  Tamaño   Tamaño%
-#  None                                                           629532     46.21%  7009 MB    38.19%
-#  Imagen                                                         248624     18.25%  4907 MB    26.74%
-#  Usuario_Discusión                                              234779     17.23%  3065 MB    16.70%
-#  Usuario                                                         53582      3.93%  955 MB     5.21%
-#  Discusión                                                       80748      5.93%  711 MB     3.88%
-#  Categoría                                                       65065      4.78%  685 MB     3.74%
-#  Wikipedia                                                       10773      0.79%  387 MB     2.11%
-#  Anexo                                                            9913      0.73%  285 MB     1.56%
-#  Plantilla                                                       11738      0.86%   92 MB     0.50%
-#  Wikiproyecto                                                     2311      0.17%   68 MB     0.37%
-#  Portal                                                           5200      0.38%   57 MB     0.31%
-#  Wikipedia_Discusión                                              1229      0.09%   28 MB     0.16%
-#  Wikiproyecto_Discusión                                            629      0.05%   22 MB     0.12%
-#  Plantilla_Discusión                                              1615      0.12%   15 MB     0.08%
-#  Categoría_Discusión                                              1502      0.11%   11 MB     0.06%
-#  Anexo_Discusión                                                  1498      0.11%   10 MB     0.06%
-#  Ayuda                                                             169      0.01%    3 MB     0.02%
-#  Portal_Discusión                                                  273      0.02%    2 MB     0.02%
-
-# Dump de Septiembre 2007
-# Mostrando los resultados para un total de 758669 archivos que ocupan 8757.33 MB:
-#
-#   Raiz                                                   Cant      Cant%  Tamaño      Tam.%
-#   None                                                  459793     60.61%  4730 MB   54.02%
-#   Usuario_Discusión                                     125147     16.50%  1736 MB   19.83%
-#   Usuario                                                35891      4.73%  701 MB     8.01%
-#   Discusión                                              58106      7.66%  487 MB     5.56%
-#   Categoría                                              46642      6.15%  481 MB     5.50%
-#   Wikipedia                                               8013      1.06%  264 MB     3.03%
-#   Anexo                                                   4495      0.59%  128 MB     1.47%
-#   Plantilla                                               9101      1.20%   65 MB     0.75%
-#   Wikiproyecto                                            1517      0.20%   45 MB     0.52%
-#   Portal                                                  3127      0.41%   33 MB     0.39%
-#   Wikipedia_Discusión                                      876      0.12%   17 MB     0.20%
-#   Wikiproyecto_Discusión                                   436      0.06%   13 MB     0.15%
-#   Plantilla_Discusión                                     1353      0.18%   12 MB     0.14%
-#   Categoría_Discusión                                     1008      0.13%    8 MB     0.09%
-#   Anexo_Discusión                                          605      0.08%    4 MB     0.05%
-#   Ayuda                                                    154      0.02%    2 MB     0.03%
-#   Portal_Discusión                                         209      0.03%    2 MB     0.02%
-#
-#
-# Dump de Noviembre 2006
-# Mostrando los resultados para un total de 171007 archivos que ocupan 1559.29 MB:
-#
-#   Raiz                                             Cant Cant%  Tamaño Tamaño%
-#   Imagen                                          24832  15 %  200 MB  13 %
-#   Usuario_Discusión                                9107   5 %  107 MB   7 %
-#   Categoría                                        8946   5 %   75 MB   5 %
-#   Discusión                                       10591   6 %   69 MB   4 %
-#   Wikipedia                                        1775   1 %   67 MB   4 %
-#   Usuario                                          5209   3 %   52 MB   3 %
-#   Plantilla                                        3107   2 %   18 MB   1 %
-#   MediaWiki                                        1542   1 %    7 MB   0 %
-#   Imagen_Discusión                                  252   0 %    4 MB   0 %
-#   Wikipedia_Discusión                               307   0 %    3 MB   0 %
-#   Portal                                            355   0 %    3 MB   0 %
-#   Categoría_Discusión                               300   0 %    2 MB   0 %
-#   Wikiproyecto                                       97   0 %    1 MB   0 %
-#   Plantilla_Discusión                               170   0 %    1 MB   0 %
-#   Wikiproyecto_Discusión                             49   0 %    1 MB   0 %

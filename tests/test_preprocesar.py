@@ -62,7 +62,7 @@ class PagesSelectorTestCase(unittest.TestCase):
         self.addCleanup(setattr, config, 'PAG_ELEGIDAS', prv_chosen)
 
         # fix config for version and page limit
-        config.LIMITE_PAGINAS['version'] = 123
+        config.imageconf = dict(page_limit=123)
 
     def _mktemp(self):
         """Make a temporary file."""
@@ -80,8 +80,8 @@ class PagesSelectorTestCase(unittest.TestCase):
     def test_calculate_top_htmls_simple(self):
         """Calculate top htmls, simple version."""
         ps = PagesSelector()
-        config.LIMITE_PAGINAS['version'] = 2
-        ps.calculate('version')
+        config.imageconf['page_limit'] = 2
+        ps.calculate()
         should_pages = [
             ('dir1', 'arch1', 8),
             ('dir2', 'arch2', 7),
@@ -102,8 +102,8 @@ class PagesSelectorTestCase(unittest.TestCase):
         others, so let's include them all.
         """
         ps = PagesSelector()
-        config.LIMITE_PAGINAS['version'] = 4
-        ps.calculate('version')
+        config.imageconf['page_limit'] = 4
+        ps.calculate()
         should_pages = [
             ('dir1', 'arch1', 8),
             ('dir2', 'arch2', 7),
@@ -124,14 +124,14 @@ class PagesSelectorTestCase(unittest.TestCase):
         """Check 'same info than before', no previous info."""
         os.remove(config.PAG_ELEGIDAS)
         ps = PagesSelector()
-        ps.calculate('version')
+        ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousdifferent(self):
         """Check 'same info than before', previous info there but different."""
         # make one pass just to write the 'choosen pages' file
         ps = PagesSelector()
-        ps.calculate('version')
+        ps.calculate()
 
         # get that file and change it slightly
         with open(config.PAG_ELEGIDAS, 'rt') as fh:
@@ -141,16 +141,16 @@ class PagesSelectorTestCase(unittest.TestCase):
 
         # go again, the info will be the same
         ps = PagesSelector()
-        ps.calculate('version')
+        ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousequal(self):
         """Check 'same info than before', previous info there and equal."""
         # make one pass just to write the 'choosen pages' file
         ps = PagesSelector()
-        ps.calculate('version')
+        ps.calculate()
 
         # go again, the info will be the same
         ps = PagesSelector()
-        ps.calculate('version')
+        ps.calculate()
         self.assertTrue(ps.same_info_through_runs)
