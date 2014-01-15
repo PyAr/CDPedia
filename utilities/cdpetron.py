@@ -5,14 +5,16 @@ import logging
 import os
 import shutil
 import sys
+import urllib2
+import yaml
+import gzip
+import StringIO
 
 # some constants to download the articles list we need to scrap
 URL_LIST = (
-    "http://dumps.wikimedia.org/eswiki/latest/"
-    "eswiki-latest-all-titles-in-ns0.gz"
+    "http://dumps.wikimedia.org/%(language)swiki/latest/"
+    "%(language)swiki-latest-all-titles-in-ns0.gz"
 )
-ART_LIST = "eswiki-latest-all-titles-in-ns0"
-ART_NAMESP = "articles_by_namespaces.txt"
 ART_INCLUDE = "utilities/include.txt"
 ART_ALL = "all_articles.txt"
 
@@ -20,6 +22,9 @@ ART_ALL = "all_articles.txt"
 # holds the articles and images
 DUMP_ARTICLES = "articles"
 DUMP_IMAGES = "images"
+
+# base url
+WIKI_BASE = 'http://%(language)s.wikipedia.org'
 
 
 # set up logging
@@ -33,38 +38,41 @@ logger.setLevel(logging.DEBUG)
 logger = logging.getLogger("cdpetron")
 
 
-def get_lists(branch_dir):
+def get_lists(branch_dir, language, config):
     """Get the list of wikipedia articles."""
-    logger.info("Getting list file")
-    # FIXME: convert these two lines to a standard Python code
-    os.system("wget -c %s" % URL_LIST)
-    os.system("gunzip -f %s.gz" % ART_LIST)
     fh_artall = open(ART_ALL, "wb")
-    with open(ART_LIST) as fh:
-        q = 0
-        for lin in fh:
-            q += 1
-            fh_artall.write(lin)
+
+    url = URL_LIST % dict(language=language)
+    logger.info("Getting list file: %r", url)
+    u = urllib2.urlopen(url)
+    logger.debug("Got headers: %s", u.headers.items())
+    fh = StringIO.StringIO(u.read())
+    gz = gzip.GzipFile(fileobj=fh)
+
+    # walk through lines, easier to count and assure all lines are proper
+    # saved into final file, mainly because of last line separator
+    q = 0
+    for line in gz:
+        fh_artall.write(line + "\n")
+        q += 1
     tot = q
+    gz.close()
     logger.info("Downloaded %d general articles", q)
 
     logger.info("Getting the articles from namespaces")
-    list_articles_by_namespaces.main()
-    with open(ART_NAMESP) as fh:
-        q = 0
-        for lin in fh:
-            q += 1
-            fh_artall.write(lin)
+    q = 0
+    for article in list_articles_by_namespaces.get_articles(language):
+        q += 1
+        fh_artall.write(article.encode('utf8') + "\n")
     tot += q
-    logger.info("Downloaded %d namespace articles", q)
+    logger.info("Got %d namespace articles", q)
 
-    with open(os.path.join(branch_dir, ART_INCLUDE)) as fh:
-        q = 0
-        for lin in fh:
-            q += 1
-            fh_artall.write(lin)
+    q = 0
+    for page in config['include']:
+        q += 1
+        fh_artall.write(page.encode('utf8') + "\n")
     tot += q
-    logger.info("Have %d articles in the include", q)
+    logger.info("Have %d articles to mandatorily include", q)
 
     fh_artall.close()
     logger.info("Total of articles: %d", tot)
@@ -117,14 +125,18 @@ def clean(branch_dir, dump_dir):
     os.symlink(image_dump_dir, os.path.join(temp_dir, "images"))
 
 
-def main(branch_dir, dump_dir, nolists, noscrap, noclean):
+def main(branch_dir, dump_dir, language, config, nolists, noscrap, noclean):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
+    logger.info("Generating for language: %r", language)
+    logger.info("Language config: %r", config)
+    logger.info("Options: nolists=%s noscrap=%s noclean=%s",
+                nolists, noscrap, noclean)
     os.chdir(dump_dir)
 
     if not nolists:
-        get_lists(branch_dir)
+        get_lists(branch_dir, language, config)
 
     if not noscrap:
         scrap(branch_dir, dump_dir)
@@ -148,13 +160,16 @@ if __name__ == "__main__":
         sys.argv.remove("--no-clean")
         noclean = True
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 5:
         print ("Usage: %s [--no-lists] [--no-scrap] [--no-clean] "
-               "<branch_dir> <dump_dir>" % (sys.argv[0],))
+               "<branch_dir> <dump_dir> <language> <configfile>" % sys.argv[0])
         exit()
 
     branch_dir = os.path.abspath(sys.argv[1])
     dump_dir = os.path.abspath(sys.argv[2])
+    language = sys.argv[3]
+    with open(sys.argv[4]) as fh:
+        config = yaml.load(fh)[language]
 
     # branch dir must exist
     if not os.path.exists(branch_dir):
@@ -171,5 +186,5 @@ if __name__ == "__main__":
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
-    main(branch_dir, dump_dir,
+    main(branch_dir, dump_dir, language, config,
          nolists=nolists, noscrap=noscrap, noclean=noclean)

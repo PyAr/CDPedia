@@ -241,7 +241,7 @@ class PagesSelector(object):
             raise ValueError("You need to first 'calculate' everything.")
         return self._same_info_through_runs
 
-    def calculate(self, version):
+    def calculate(self):
         """Calculate the HTMLs with more score and store both lists."""
         self._calculated = True
 
@@ -258,7 +258,7 @@ class PagesSelector(object):
 
         # order by score, and get top N
         all_pages.sort(key=operator.itemgetter(2), reverse=True)
-        page_limit = config.LIMITE_PAGINAS[version]
+        page_limit = config.imageconf['page_limit']
         self._top_pages = all_pages[:page_limit]
 
         # get all items after N that still has the same score that last one
