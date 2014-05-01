@@ -45,6 +45,8 @@ from urllib2 import unquote
 from src import utiles
 import config
 
+import bs4
+
 SCORE_DESTACADOS = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
 
@@ -378,22 +380,22 @@ class QuitaLinkRojo(Procesador):
 
 
 class NotLastVersion(Procesador):
-    """Quita los mensajes indicandoque no es la ultima version del articulo,
-       asi como tambien los links para navegar entre dichas revisiones.."""
-    RE = re.compile('<!-- subtitle -->.*<!-- /subtitle -->', re.S)
+    """Remove text and links to handle "not last version" of the page."""
 
     def __init__(self, wikisitio):
         super(NotLastVersion, self).__init__(wikisitio)
         self.nombre = "NotLastVersion"
 
     def __call__(self, wikiarchivo):
-        m = self.RE.search(wikiarchivo.html)
-        if m:
-            ### reemplazamos el html original
-            old = wikiarchivo.html
-            wikiarchivo.html = old[:m.start()] + old[m.end():]
+        soup = bs4.BeautifulSoup(wikiarchivo.html)
+        tag = soup.find('div', id='contentSub')
 
-        # no damos puntaje ni nada
+        if tag is not None:
+            # remove that content and replace original html
+            tag.clear()
+            wikiarchivo.html = str(soup)
+
+        # no score at all
         return (0, [])
 
 
