@@ -49,11 +49,22 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler("scraper.log")
 _logger.addHandler(handler)
+_logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s  %(message)s")
 handler.setFormatter(formatter)
 logger = functools.partial(_logger.log, logging.INFO)
 
-WIKI = 'http://es.wikipedia.org/'
+WIKI = 'http://%(lang)s.wikipedia.org/'
+
+HISTORY_BASE = (
+    'http://%(lang)s.wikipedia.org/w/api.php?action=query&prop=revisions'
+    '&format=json&rvprop=ids|timestamp|user|userid'
+    '&rvlimit=%(limit)d&titles=%(title)s'
+)
+REVISION_URL = (
+    'http://%(lang)s.wikipedia.org/w/index.php?'
+    'title=%(title)s&oldid=%(revno)s'
+)
 
 USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
              'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
@@ -64,7 +75,8 @@ DataURLs = collections.namedtuple("DataURLs",
                                   "url temp_dir disk_name, basename")
 
 class URLAlizer(object):
-    def __init__(self, listado_nombres, dest_dir):
+    def __init__(self, listado_nombres, dest_dir, language):
+        self.language = language
         self.dest_dir = dest_dir
         self.temp_dir = dest_dir + ".tmp"
         if not os.path.exists(self.temp_dir):
@@ -87,7 +99,8 @@ class URLAlizer(object):
 
                 quoted_url = urllib.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
-                url = u"%sw/index.php?title=%s&redirect=no" % (WIKI, quoted_url)
+                wiki = WIKI % dict(lang=self.language)
+                url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
                 data = DataURLs(url=url, temp_dir=self.temp_dir,
                                 disk_name=disk_name, basename=basename)
                 return data
@@ -121,21 +134,38 @@ class PageHaveNoRevisions(Exception):
     pass
 
 
+class WikipediaArticleHistoryItem(object):
+    def __init__(self, user_registered, page_rev_id, date):
+        self.user_registered = user_registered
+        self.page_rev_id = page_rev_id
+        self.date = date
+
+    @classmethod
+    def FromJSON(cls, jsonitem):
+        user_registered = jsonitem.get('userid', 0) != 0
+        page_rev_id = str(jsonitem['revid'])
+        tstamp = jsonitem['timestamp']
+        date = datetime.datetime.strptime(tstamp, "%Y-%m-%dT%H:%M:%SZ")
+        return cls(user_registered, page_rev_id, date)
+
+    def __str__(self):
+        return '<rev: regist %s id %r %r>' % (self.user_registered,
+                                              self.page_rev_id, self.date)
+
+
 class WikipediaArticle(object):
     """Represent a wikipedia page.
 
     It should know how to retrive the asociated history page and any revision.
     """
-    #these should be setup by a localized subclass
-    HISTORY_BASE = None
-    HISTORY_CLASS = None
-    REVISION_URL = None
+    HISTORY_CLASS =  WikipediaArticleHistoryItem
 
-    def __init__(self, url, basename):
+    def __init__(self, language, url, basename):
+        self.language = language
         self.url = url
         self.basename = basename
-        self.quoted_basename = urllib.quote(basename.encode('utf-8')
-                                            ).replace(' ', '_')
+        self.quoted_basename = urllib.quote(
+            basename.encode('utf-8')).replace(' ', '_')
         self._history = None
         self.history_size = 6
 
@@ -144,7 +174,9 @@ class WikipediaArticle(object):
 
     @property
     def history_url(self):
-        return self.HISTORY_BASE % (self.history_size, self.quoted_basename)
+        url = HISTORY_BASE % dict(lang=self.language, limit=self.history_size,
+                                  title=self.quoted_basename)
+        return url
 
     def get_revision_url(self, revision=None):
         """
@@ -153,7 +185,9 @@ class WikipediaArticle(object):
         """
         if revision is None:
             return self.url
-        return self.REVISION_URL % (self.quoted_basename, revision)
+        url = REVISION_URL % dict(
+            lang=self.language, title=self.quoted_basename, revno=revision)
+        return url
 
     @defer.inlineCallbacks
     def get_history(self, size=6):
@@ -228,31 +262,6 @@ class WikipediaArticle(object):
         return False
 
 
-class WikipediaArticleHistoryItem(object):
-    def __init__(self, user_registered, page_rev_id, date):
-        self.user_registered = user_registered
-        self.page_rev_id = page_rev_id
-        self.date = date
-
-    @classmethod
-    def FromJSON(cls, jsonitem):
-        user_registered = jsonitem.get('userid', 0) != 0
-        page_rev_id = str(jsonitem['revid'])
-        tstamp = jsonitem['timestamp']
-        date = datetime.datetime.strptime(tstamp, "%Y-%m-%dT%H:%M:%SZ")
-        return cls(user_registered, page_rev_id, date)
-
-    def __str__(self):
-        return '<rev: regist %s id %r %r>' % (self.user_registered,
-                                              self.page_rev_id, self.date)
-
-
-class WikipediaArticleES(WikipediaArticle):
-    REVISION_URL = 'http://es.wikipedia.org/w/index.php?title=%s&oldid=%s'
-    HISTORY_BASE = 'http://es.wikipedia.org/w/api.php?action=query&prop=revisions&format=json&rvprop=ids|timestamp|user|userid&rvlimit=%d&titles=%s'
-    HISTORY_CLASS =  WikipediaArticleHistoryItem
-
-
 regex = '(<h1 id="firstHeading" class="firstHeading" lang=".+">.+</h1>)(.+)\s*<div class="printfooter">'
 capturar = re.compile(regex, re.MULTILINE|re.DOTALL).search
 no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
@@ -313,11 +322,13 @@ def get_html(url, basename):
 
     defer.returnValue(html)
 
+
 def obtener_link_200_siguientes(html):
     links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>',html)
     if links == []:
         return
     return '%s%s' % (WIKI[:-1], links[0])
+
 
 def reemplazar_links_paginado(html, n):
     ''' Reemplaza lar urls anteriores y siguientes
@@ -393,9 +404,9 @@ def save_htmls(data_urls):
         n += 1
 
 @defer.inlineCallbacks
-def fetch(data_urls):
+def fetch(data_urls, language):
     """Fetch a wikipedia page (that can be paginated)."""
-    page = WikipediaArticleES(data_urls.url, data_urls.basename)
+    page = WikipediaArticle(language, data_urls.url, data_urls.basename)
     try:
         url = yield page.search_valid_version()
     except PageHaveNoRevisions:
@@ -425,17 +436,18 @@ def fetch(data_urls):
 
 class StatusBoard(object):
 
-    def __init__(self):
+    def __init__(self, language):
         self.total = 0
         self.bien = 0
         self.mal = 0
         self.tiempo_inicial = time.time()
+        self.language = language
 
     @defer.inlineCallbacks
     def process(self, data_urls):
         try:
-            ok = yield fetch(data_urls)
-        except Exception, err:
+            ok = yield fetch(data_urls, self.language)
+        except Exception:
             self.total += 1
             self.mal += 1
             raise
@@ -453,16 +465,16 @@ class StatusBoard(object):
 
 
 @defer.inlineCallbacks
-def main(nombres, dest_dir, pool_size=20):
+def main(nombres, language, dest_dir, pool_size=20):
     pool = workerpool.WorkerPool(size=int(pool_size))
-    data_urls = URLAlizer(nombres, dest_dir)
-    board = StatusBoard()
+    data_urls = URLAlizer(nombres, dest_dir, language)
+    board = StatusBoard(language)
     yield pool.start(board.process, data_urls)
     print   # final new line for console aesthetic
 
 
 USAGE = """
-Usar: scraper.py <NOMBRES_ARTICULOS> <DEST_DIR> [CONCURRENT]"
+Usar: scraper.py <NOMBRES_ARTICULOS> <LANGUAGE> <DEST_DIR> [CONCURRENT]"
   Descarga la wikipedia escrapeándola.
 
   NOMBRES_ARTICULOS es un listado de nombres de artículos. Debe ser descargado
@@ -482,7 +494,7 @@ Usar: scraper.py <NOMBRES_ARTICULOS> <DEST_DIR> [CONCURRENT]"
 """
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print USAGE
         sys.exit(1)
 

@@ -60,5 +60,5 @@ ay:
     tarbig:
         type: tarball
         windows: True
-        page_limit: 500 #0000   # very big number, we want them all!
-        image_reduction: [2, 4, 4, 90]
+        page_limit: 5000000   # very big number, we want them all!
+        image_reduction: [100, 0, 0, 0]

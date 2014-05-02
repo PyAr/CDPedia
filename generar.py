@@ -221,7 +221,7 @@ def update_mini(image_path):
     copiarAssets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(src_info, version,
+def main(lang, src_info, version,
          verbose=False, desconectado=False, procesar_articles=True):
     # don't affect the rest of the machine
     make_it_nicer()
@@ -231,6 +231,19 @@ def main(src_info, version,
             import SuffixTree
         except ImportError:
             logger.warning(NO_ST_MSG)
+
+    # validate lang and versions, and fix config with selected data
+    logger.info("Fixing config for lang=%r version=%r", lang, version)
+    try:
+        _lang_conf = config.imagtypes[lang]
+    except KeyError:
+        print "Not a valid language! try one of", config.imagtypes.keys()
+        exit()
+    try:
+        config.imageconf = _lang_conf[version]
+    except KeyError:
+        print "Not a valid version! try one of", _lang_conf.keys()
+        exit()
 
     logger.info("Starting!")
     preparaTemporal(procesar_articles)
@@ -365,19 +378,6 @@ To update an image with the code and assets changes  in this working copy:
     version = args[1]
     direct = args[2]
 
-    # validate lang and versions, and fix config with selected data
-    try:
-        _lang_conf = config.imagtypes[lang]
-    except KeyError:
-        print "Not a valid language! try one of", config.imagtypes.keys()
-        exit()
-    try:
-        config.imageconf = _lang_conf[version]
-    except KeyError:
-        print "Not a valid version! try one of", _lang_conf.keys()
-        exit()
-
-
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
     procesar_articles = not bool(options.noarticles)
@@ -402,4 +402,4 @@ To update an image with the code and assets changes  in this working copy:
     if options.update_mini:
         update_mini(direct)
     else:
-        main(direct, version, verbose, desconectado, procesar_articles)
+        main(lang, direct, version, verbose, desconectado, procesar_articles)
