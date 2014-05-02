@@ -72,7 +72,8 @@ def get_articles(language):
                 break
 
             for item in items:
-                yield item['title']
+                title = item['title'].replace(" ", "_")
+                yield title
 
             # continue, if needed
             if 'query-continue' in data:

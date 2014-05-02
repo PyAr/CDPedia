@@ -1,5 +1,6 @@
 #!//usr/bin/env python
 
+import argparse
 import itertools
 import logging
 import os
@@ -15,7 +16,6 @@ URL_LIST = (
     "http://dumps.wikimedia.org/%(language)swiki/latest/"
     "%(language)swiki-latest-all-titles-in-ns0.gz"
 )
-ART_INCLUDE = "utilities/include.txt"
 ART_ALL = "all_articles.txt"
 
 # the directory (inside the one specified by the user) that actually
@@ -53,7 +53,7 @@ def get_lists(branch_dir, language, config):
     # saved into final file, mainly because of last line separator
     q = 0
     for line in gz:
-        fh_artall.write(line + "\n")
+        fh_artall.write(line.strip() + "\n")
         q += 1
     tot = q
     gz.close()
@@ -78,14 +78,16 @@ def get_lists(branch_dir, language, config):
     logger.info("Total of articles: %d", tot)
 
 
-def scrap(branch_dir, dump_dir):
+def scrap(branch_dir, language, dump_dir):
     """Get the pages from wikipedia."""
     logger.info("Let's scrap")
     assert os.getcwd() == dump_dir
-    res = os.system("python %s/utilities/scraper.py %s %s" % (
-        branch_dir, ART_ALL, DUMP_ARTICLES))
+    res = os.system("python %s/utilities/scraper.py %s %s %s" % (
+        branch_dir, ART_ALL, language, DUMP_ARTICLES))
     if res != 0:
-        logger.warning("Bad result code from scrapping: %r", res)
+        logger.error("Bad result code from scrapping: %r", res)
+        logger.error("Quitting, no point in continue")
+        exit()
 
     logger.info("Checking scraped size")
     articles_dir = os.path.join(dump_dir, DUMP_ARTICLES)
@@ -125,55 +127,98 @@ def clean(branch_dir, dump_dir):
     os.symlink(image_dump_dir, os.path.join(temp_dir, "images"))
 
 
-def main(branch_dir, dump_dir, language, config, nolists, noscrap, noclean):
+def main(branch_dir, dump_dir, language, lang_config,  imag_config,
+         nolists, noscrap, noclean, imagtype):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
     logger.info("Generating for language: %r", language)
-    logger.info("Language config: %r", config)
+    logger.info("Language config: %r", lang_config)
     logger.info("Options: nolists=%s noscrap=%s noclean=%s",
                 nolists, noscrap, noclean)
     os.chdir(dump_dir)
 
     if not nolists:
-        get_lists(branch_dir, language, config)
+        get_lists(branch_dir, language, lang_config)
 
     if not noscrap:
-        scrap(branch_dir, dump_dir)
-
-    if not noclean:
-        clean(branch_dir, dump_dir)
+        scrap(branch_dir, language, dump_dir)
 
     os.chdir(branch_dir)
-    generar.main(dump_dir, 'cd')
+
+    if imagtype is None:
+        for image_type in imag_config:
+            logger.info("Generating image for type: %r", image_type)
+            clean(branch_dir, dump_dir)
+            generar.main(language, dump_dir, image_type)
+    else:
+        logger.info("Generating image for type %r only", imagtype)
+        if not noclean:
+            clean(branch_dir, dump_dir)
 
 
 if __name__ == "__main__":
-    nolists = noscrap = noclean = False
-    if "--no-lists" in sys.argv:
-        sys.argv.remove("--no-lists")
-        nolists = True
-    if "--no-scrap" in sys.argv:
-        sys.argv.remove("--no-scrap")
-        noscrap = True
-    if "--no-clean" in sys.argv:
-        sys.argv.remove("--no-clean")
-        noclean = True
+    parser = argparse.ArgumentParser(description="Generate CDPedia images")
+    parser.add_argument("--no-lists", action='store_true',
+                        help="Don't list all the articles from server")
+    parser.add_argument("--no-scrap", action='store_true',
+                        help="Don't scrap all the articles from server")
+    parser.add_argument("--no-clean", action='store_true',
+                        help="Don't clean the temp dir, useful to resume the "
+                             "generation of an image; need to be paired with "
+                             "'--image-type' option")
+    parser.add_argument("--imag-type",
+                        help="Don't clean the temp dir, useful to resume the "
+                             "generation of an image; need to be paired with "
+                             "'--image-type' option")
+    parser.add_argument("branch_dir",
+                        help="The project branch to use.")
+    parser.add_argument("dump_dir",
+                        help="A directory to store all articles and images.")
+    parser.add_argument("language",
+                        help="The two-letters language name.")
+    args = parser.parse_args()
 
-    if len(sys.argv) != 5:
-        print ("Usage: %s [--no-lists] [--no-scrap] [--no-clean] "
-               "<branch_dir> <dump_dir> <language> <configfile>" % sys.argv[0])
+    if args.no_clean and not args.imag_type:
+        print ("ERROR: --no-clean option is only usable when --imag-type "
+               "was indicated")
         exit()
 
-    branch_dir = os.path.abspath(sys.argv[1])
-    dump_dir = os.path.abspath(sys.argv[2])
-    language = sys.argv[3]
-    with open(sys.argv[4]) as fh:
-        config = yaml.load(fh)[language]
+    branch_dir = os.path.abspath(args.branch_dir)
+    dump_dir = os.path.abspath(args.dump_dir)
+
+    # get the language config
+    _config_fname = os.path.join(branch_dir, 'languages.yaml')
+    with open(_config_fname) as fh:
+        _config = yaml.load(fh)
+        try:
+            lang_config = _config[args.language]
+        except KeyError:
+            print "ERROR: there's no %r in language config file %r" % (
+                args.language, _config_fname)
+            exit()
+    logger.info("Opened succesfully language config file %r", _config_fname)
+
+    # get the image type config
+    _config_fname = os.path.join(branch_dir, 'imagtypes.yaml')
+    with open(_config_fname) as fh:
+        _config = yaml.load(fh)
+        try:
+            imag_config = _config[args.language]
+        except KeyError:
+            print "ERROR: there's no %r in image type config file %r" % (
+                args.language, _config_fname)
+            exit()
+    logger.info("Opened succesfully image type config file %r", _config_fname)
+    if args.imag_type:
+        if args.imag_type not in imag_config:
+            print "ERROR: there's no %r image in the image type config" % (
+                args.imag_type)
+            exit()
 
     # branch dir must exist
     if not os.path.exists(branch_dir):
-        print "The branch dir doesn't exist!"
+        print "ERROR: The branch dir doesn't exist!"
         exit()
 
     # fix sys path to branch dir and import the rest of stuff from there
@@ -186,5 +231,6 @@ if __name__ == "__main__":
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
-    main(branch_dir, dump_dir, language, config,
-         nolists=nolists, noscrap=noscrap, noclean=noclean)
+    main(branch_dir, dump_dir, args.language, lang_config, imag_config,
+         nolists=args.no_lists, noscrap=args.no_scrap,
+         noclean=args.no_clean, imagtype=args.imag_type)
