@@ -128,7 +128,7 @@ def clean(branch_dir, dump_dir):
 
 
 def main(branch_dir, dump_dir, language, lang_config,  imag_config,
-         nolists, noscrap, noclean, imagtype):
+         nolists, noscrap, noclean, image_type):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
@@ -146,15 +146,16 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
 
     os.chdir(branch_dir)
 
-    if imagtype is None:
+    if image_type is None:
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
             clean(branch_dir, dump_dir)
             generar.main(language, dump_dir, image_type)
     else:
-        logger.info("Generating image for type %r only", imagtype)
+        logger.info("Generating image for type %r only", image_type)
         if not noclean:
             clean(branch_dir, dump_dir)
+        generar.main(language, dump_dir, image_type)
 
 
 if __name__ == "__main__":
@@ -233,4 +234,4 @@ if __name__ == "__main__":
 
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
-         noclean=args.no_clean, imagtype=args.imag_type)
+         noclean=args.no_clean, image_type=args.imag_type)
