@@ -30,7 +30,7 @@ class WikiArchivo(object):
     def get_html(self):
         """Devuelve el contenido del archivo, lo carga si no lo tenía."""
         if self._html is None:
-            with open(self._filename) as fh:
+            with open(self._filename, 'rb') as fh:
                 self._html = fh.read()
 
         return self._html
@@ -50,7 +50,8 @@ class WikiArchivo(object):
             # ya estaba
             pass
 
-        open(destino, 'w').write(self._html)
+        with open(destino, 'wb') as fh:
+            fh.write(self._html)
 
     def __str__(self):
         return "<WikiArchivo: %s>" % self.url.encode("utf8")
@@ -162,6 +163,10 @@ class WikiSitio(object):
 
                 if self.verbose:
                     print
+
+        print "Preprocessors usage stats:"
+        for procesador in self.preprocesadores:
+            print "  %s: %s" % (procesador.nombre, procesador.stats)
 
         # cargamos los redirects para tenerlos en cuenta
         redirects = {}

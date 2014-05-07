@@ -36,6 +36,7 @@ puntaje.
 
 """
 import codecs
+import collections
 import os
 import re
 import urllib
@@ -94,6 +95,7 @@ class Procesador(object):
     def __init__(self, wikisitio):
         self.nombre = 'Procesador Genérico'
         self.log = None  # ej.: open("archivo.log", "w")
+        self.stats = None
 
     def __call__(self, wikiarchivo):
         """Aplica el procesador a una instancia de WikiArchivo.
@@ -110,6 +112,7 @@ class Namespaces(Procesador):
     def __init__(self, wikisitio):
         super(Namespaces, self).__init__(wikisitio)
         self.nombre = "Namespaces"
+        self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
         (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
@@ -119,9 +122,11 @@ class Namespaces(Procesador):
         if namespace is None or config.NAMESPACES.get(namespace) or \
                 vip_article(wikiarchivo.url):
 #            print '[válido]'
+            self.stats['valid'] += 1
             return (0, [])
         else:
 #            print '[inválido]'
+            self.stats['invalid'] += 1
             return (None, [])
 
 
@@ -133,14 +138,17 @@ class OmitirRedirects(Procesador):
         self.log = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         regex = r'<span class="redirectText"><a href="/wiki/(.*?)"'
         self.capturar = re.compile(regex).search
+        self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
         captura = self.capturar(wikiarchivo.html)
         if not captura:
             # not a redirect, simple file
+            self.stats['simplefile'] += 1
             return (0, [])
 
         # store the redirect in corresponding file
+        self.stats['redirect'] += 1
         url_redirect = unquote(captura.groups()[0]).decode("utf-8")
 #        print "Redirect %r -> %r" % (wikiarchivo.url, url_redirect)
         sep_col = config.SEPARADOR_COLUMNAS
@@ -170,6 +178,7 @@ class FixLinksDescartados(Procesador):
         self.nombre = "FixLinks"
         self.links = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
                                 re.MULTILINE | re.DOTALL)
+        self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
 
@@ -198,50 +207,8 @@ class FixLinksDescartados(Procesador):
             raise
 
         # reemplazamos el html original
-        wikiarchivo.html = newhtml
-
-        # no damos puntaje ni nada
-        return (0, [])
-
-
-class QuitaEditarSpan(Procesador):
-    """Quita los [editar] del html."""
-    def __init__(self, wikisitio):
-        super(QuitaEditarSpan, self).__init__(wikisitio)
-        self.nombre = "QuitaEditar"
-        self.editar_span = re.compile('<span class="editsection">.*?</span>',
-                                      re.MULTILINE | re.DOTALL)
-
-    def __call__(self, wikiarchivo):
-        try:
-            newhtml = self.editar_span.sub("", wikiarchivo.html)
-        except Exception:
-            print "Path del html", wikiarchivo.url
-            raise
-
-        # reemplazamos el html original
-        wikiarchivo.html = newhtml
-
-        # no damos puntaje ni nada
-        return (0, [])
-
-
-class QuitaLinksEditar(Procesador):
-    """Quita los links que llevan a editar un artículo"""
-    def __init__(self, wikisitio):
-        super(QuitaLinksEditar, self).__init__(wikisitio)
-        self.nombre = "QuitaLinksEditar"
-        self.editar_links = re.compile('<a href="[^\"]*?action=edit.*?>'
-                                       '(?P<texto>.+?)</a>')
-
-    def __call__(self, wikiarchivo):
-        try:
-            newhtml = self.editar_links.sub("\g<texto>", wikiarchivo.html)
-        except Exception:
-            print "Path del html", wikiarchivo.url
-            raise
-
-        # reemplazamops el html original
+        indicator = 'intact' if newhtml == wikiarchivo.html else 'modified'
+        self.stats[indicator] += 1
         wikiarchivo.html = newhtml
 
         # no damos puntaje ni nada
@@ -266,6 +233,7 @@ class Peishranc(Procesador):
         # más un "class=" que es opcional (y poniéndole nombre class);
         self.capturar = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
                                    r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
+        self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
         puntajes = {}
@@ -335,81 +303,72 @@ class Destacado(Procesador):
         return (score, [])
 
 
-class QuitaCategoria(Procesador):
-    """Quita el link de "Categoria" porque es feo"""
-    def __init__(self, wikisitio):
-        super(QuitaCategoria, self).__init__(wikisitio)
-        self.nombre = "QuitaCategoria"
-        regex = '<a.*?title="Especial:Categorías".*?>(?P<texto>.+?)</a>'
-        self.categoria_regex = re.compile(regex)
+class HTMLCleaner(Procesador):
+    """Remove different HTML parts or sections."""
 
-    def __call__(self, wikiarchivo):
-        try:
-            newhtml = self.categoria_regex.sub("\g<texto>", wikiarchivo.html)
-        except Exception:
-            print "Path del html", wikiarchivo.url
-            raise
-
-        # reemplazamos el html original
-        wikiarchivo.html = newhtml
-
-        # no damos puntaje ni nada
-        return (0, [])
-
-
-class QuitaLinkRojo(Procesador):
-    """Quita los links rojos (nunca creados en wikipedia) del html."""
-    def __init__(self, wikisitio):
-        super(QuitaLinkRojo, self).__init__(wikisitio)
-        self.nombre = "QuitaLinkRojo"
-        regex = '<a href="[^\"]+?&amp;redlink=1".+?>(?P<texto>.+?)</a>'
-        self.link_rojo_regex = re.compile(regex)
-
-    def __call__(self, wikiarchivo):
-        try:
-            newhtml = self.link_rojo_regex.sub("\g<texto>", wikiarchivo.html)
-        except Exception:
-            print "Path del html", wikiarchivo.url
-            raise
-
-        # reemplazamos el html original
-        wikiarchivo.html = newhtml
-
-        # no damos puntaje ni nada
-        return (0, [])
-
-
-class NotLastVersion(Procesador):
-    """Remove text and links to handle "not last version" of the page."""
+    _re_category = re.compile(
+        '<a.*?title="Especial:Categorías".*?>(?P<texto>.+?)</a>')
+    _re_redlink = re.compile(
+        '<a href="[^\"]+?&amp;redlink=1".+?>(?P<texto>.+?)</a>')
+    _re_edit_links = re.compile(
+        '<a href="[^\"]*?action=edit.*?>(?P<texto>.+?)</a>')
 
     def __init__(self, wikisitio):
-        super(NotLastVersion, self).__init__(wikisitio)
-        self.nombre = "NotLastVersion"
+        super(HTMLCleaner, self).__init__(wikisitio)
+        self.nombre = "HTMLCleaner"
+        self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html)
+        html = wikiarchivo.html
+
+        # --- start of soup section (to convert html/soup and back only once)
+        soup = bs4.BeautifulSoup(html)
+
+        # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
-
         if tag is not None:
-            # remove that content and replace original html
             tag.clear()
-            wikiarchivo.html = str(soup)
+            self.stats['notlastversion'] += 1
 
-        # no score at all
+        # remove edit section
+        edit_sections = soup.find_all('span', class_="mw-editsection")
+        self.stats['edit_sections'] += len(edit_sections)
+        for tag in edit_sections:
+            tag.clear()
+
+        html = str(soup)
+        # --- end of soup section
+
+        # remove the "Category", just for aesthetic reasons
+        newhtml = self._re_category.sub("\g<texto>", html)
+        if newhtml != html:
+            self.stats['category'] += 1
+        html = newhtml
+
+        # remove the red links (never created in wikipedia) from html
+        newhtml = self._re_redlink.sub("\g<texto>", html)
+        if newhtml != html:
+            self.stats['redlink'] += 1
+        html = newhtml
+
+        # remove the edit links
+        newhtml = self._re_edit_links.sub("\g<texto>", html)
+        if newhtml != html:
+            self.stats['editlinks'] += 1
+        html = newhtml
+
+        # fix original html and return no score at all
+        wikiarchivo.html = html
         return (0, [])
 
 
 # Clases que serán utilizadas para el preprocesamiento
 # de cada una de las páginas, en orden de ejecución.
 TODOS = [
-    NotLastVersion,
+    HTMLCleaner,
     Namespaces,
     OmitirRedirects,
     FixLinksDescartados,
-    QuitaEditarSpan,
-    QuitaLinksEditar,
-    QuitaCategoria,
-    QuitaLinkRojo,
     Peishranc,
     Destacado,
     Longitud,
