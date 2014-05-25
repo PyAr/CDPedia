@@ -33,7 +33,10 @@ def make_it_nicer():
 
     # IO, much more complicated
     pid = os.getpid()
-    subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
+    try:
+        subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
+    except OSError:
+        logger.warning("ionice no está instalado!!")
 
 
 def copy_dir(src_dir, dst_dir):
@@ -125,9 +128,11 @@ def dir_a_cero(path):
 def build_iso(dest):
     """Build the final .iso."""
     dest = dest + ".iso"
-    os.system("mkisofs -hide-rr-moved -quiet -f -V CDPedia -volset "
-              "CDPedia -o %s -R -J %s" % (dest, config.DIR_CDBASE))
-
+    try:
+        subprocess.call(["mkisofs", "-hide-rr-moved", "-quiet", "-f", "-V", "CDPedia", "volset", "CDPedia", "-o", dest, "-R", "-J", config.DIR_CDBASE])
+    except OSError:
+        logger.critical("No esta instalado mkisofs, NO se puede generar la iso!!!")
+        exit()
 
 def genera_run_config():
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
