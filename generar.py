@@ -35,8 +35,8 @@ def make_it_nicer():
     pid = os.getpid()
     try:
         subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
-    except OSError:
-        logger.warning("ionice no está instalado!!")
+    except OSError as e:
+        logger.warning("ionice is not installed!! %s" % e)
 
 
 def copy_dir(src_dir, dst_dir):
@@ -129,9 +129,10 @@ def build_iso(dest):
     """Build the final .iso."""
     dest = dest + ".iso"
     try:
-        subprocess.call(["mkisofs", "-hide-rr-moved", "-quiet", "-f", "-V", "CDPedia", "volset", "CDPedia", "-o", dest, "-R", "-J", config.DIR_CDBASE])
-    except OSError:
-        logger.critical("No esta instalado mkisofs, NO se puede generar la iso!!!")
+        subprocess.call(["mkisofs", "-hide-rr-moved", "-quiet", "-f", "-V", "CDPedia", "volset", "CDPedia",
+                         "-o", dest, "-R", "-J", config.DIR_CDBASE])
+    except OSError as e:
+        logger.critical("mkisofs is not installed, can't generate the iso!!! %s" % e)
         exit()
 
 def genera_run_config():
