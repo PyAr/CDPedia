@@ -80,6 +80,12 @@ def get_lists(branch_dir, language, config):
 
 def scrap(branch_dir, language, dump_dir):
     """Get the pages from wikipedia."""
+    articles_dir = os.path.join(dump_dir, DUMP_ARTICLES)
+    logger.info("Assure articles dir is empty: %r", articles_dir)
+    if os.path.exists(articles_dir):
+        shutil.rmtree(articles_dir)
+    os.mkdir(articles_dir)
+
     logger.info("Let's scrap")
     assert os.getcwd() == dump_dir
     res = os.system("python %s/utilities/scraper.py %s %s %s" % (
@@ -90,7 +96,6 @@ def scrap(branch_dir, language, dump_dir):
         exit()
 
     logger.info("Checking scraped size")
-    articles_dir = os.path.join(dump_dir, DUMP_ARTICLES)
     total = os.stat(articles_dir).st_size
     for dirpath, dirnames, filenames in os.walk(articles_dir):
         for name in itertools.chain(dirnames, filenames):
@@ -136,26 +141,34 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
     logger.info("Language config: %r", lang_config)
     logger.info("Options: nolists=%s noscrap=%s noclean=%s",
                 nolists, noscrap, noclean)
-    os.chdir(dump_dir)
+
+    # images are common, but articles are separated by lang
+    dump_imags_dir = dump_dir
+    dump_artic_dir = os.path.join(dump_dir, language)
+
+    logger.info("Assure directory for articles is there: %r", dump_artic_dir)
+    if not os.path.exists(dump_artic_dir):
+        os.mkdir(dump_artic_dir)
+    os.chdir(dump_artic_dir)
 
     if not nolists:
         get_lists(branch_dir, language, lang_config)
 
     if not noscrap:
-        scrap(branch_dir, language, dump_dir)
+        scrap(branch_dir, language, dump_artic_dir)
 
     os.chdir(branch_dir)
 
     if image_type is None:
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
-            clean(branch_dir, dump_dir)
-            generar.main(language, dump_dir, image_type)
+            clean(branch_dir, dump_imags_dir)
+            generar.main(language, dump_artic_dir, image_type)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
-            clean(branch_dir, dump_dir)
-        generar.main(language, dump_dir, image_type)
+            clean(branch_dir, dump_imags_dir)
+        generar.main(language, dump_artic_dir, image_type)
 
 
 if __name__ == "__main__":
