@@ -19,6 +19,7 @@
 
 
 import codecs
+import gettext
 import operator
 import os
 import posixpath
@@ -32,6 +33,7 @@ from mimetypes import guess_type
 import utils
 import bmp
 import config
+
 from src.armado import compresor
 from src.armado import cdpindex
 from src.armado.cdpindex import normaliza as normalize_keyword
@@ -65,14 +67,19 @@ class CDPedia(object):
         self.watchdog = watchdog
         self.verbose = verbose
 
+        self.art_mngr = compresor.ArticleManager(verbose=verbose)
+
         # Configure template engine (jinja)
         template_path = os.path.join(os.path.dirname(__file__), 'templates')
         self.jinja_env = Environment(loader=FileSystemLoader(template_path),
-                                 autoescape=False)
+                                     extensions=['jinja2.ext.i18n'],
+                                     autoescape=False)
         self.jinja_env.globals["watchdog"] = True if watchdog else False
+        translations = gettext.translation("core", 'locale',
+                                           [self.art_mngr.language])
+        self.jinja_env.install_gettext_translations(translations)
 
         self.template_manager = TemplateManager(template_path)
-        self.art_mngr = compresor.ArticleManager(verbose=verbose)
         self.img_mngr = compresor.ImageManager(verbose=verbose)
         self.destacados_mngr = Destacados(self.art_mngr, debug=False)
 

@@ -53,12 +53,26 @@ class BloqueManager(object):
         self.num_bloques = int(open(fname).read().strip())
         self.verbose = verbose
 
+        # get the language of the blocks, if any
+        _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
+        if os.path.exists(_lang_fpath):
+            with open(_lang_fpath, 'rt') as fh:
+                self.language = fh.read().strip()
+        else:
+            self.language = None
+
     @classmethod
-    def _prep_archive_dir(self):
+    def _prep_archive_dir(self, lang=None):
         # preparamos el dir destino
         if os.path.exists(self.archive_dir):
             shutil.rmtree(self.archive_dir)
         os.makedirs(self.archive_dir)
+
+        # save the language of the blocks, if any
+        if lang is not None:
+            _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
+            with open(_lang_fpath, 'wt') as fh:
+                fh.write(lang + '\n')
 
     @classmethod
     def guardarNumBloques(self, cant):
@@ -242,8 +256,8 @@ class ArticleManager(BloqueManager):
     items_per_block = config.ARTICLES_PER_BLOCK
 
     @classmethod
-    def generar_bloques(self, verbose):
-        self._prep_archive_dir()
+    def generar_bloques(self, lang, verbose):
+        self._prep_archive_dir(lang)
 
         # lo importamos acá porque no es necesario en producción
         from src.preproceso import preprocesar
@@ -303,6 +317,7 @@ class ArticleManager(BloqueManager):
         if article is not None and isinstance(article, str):
             article = article.decode("utf-8")
         return article
+
 
 class ImageManager(BloqueManager):
     archive_dir = os.path.join(config.DIR_ASSETS, 'images')

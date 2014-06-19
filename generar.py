@@ -300,7 +300,8 @@ def main(lang, src_info, version,
         result = cdpindex.generar_de_html(articulos, verbose)
         logger.info("Got %d files", result)
         logger.info("Generating the articles blocks")
-        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(verbose)
+        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(lang,
+                                                                     verbose)
         logger.info("Got %d blocks with %d files and %d redirects",
                     q_blocks, q_files, q_redirs)
 
