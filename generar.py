@@ -40,10 +40,10 @@ def make_it_nicer():
 
 
 def copy_dir(src_dir, dst_dir):
-    '''Copia un directorio recursivamente.
+    """Copy a directory recursively.
 
-    No se lleva .* (por .svn) ni los .pyc.
-    '''
+    Will copy everything except '.pyc' and '.*'.
+    """
     if not os.path.exists(dst_dir):
         os.mkdir(dst_dir)
     for fname in os.listdir(src_dir):
@@ -58,8 +58,8 @@ def copy_dir(src_dir, dst_dir):
         else:
             shutil.copy(src_path, dst_path)
 
-def copiarAssets(src_info, dest):
-    """Copiar los assets."""
+def copy_assets(src_info, dest):
+    """Copy all the asset files."""
     if not os.path.exists(dest):
         os.makedirs(dest)
 
@@ -75,17 +75,17 @@ def copiarAssets(src_info, dest):
             raise EnvironmentError("Directory not found, can't continue")
         copy_dir(src_dir, dst_dir)
 
-    # externos (de nosotros, bah)
+    # external (from us, bah) resources
     src_dir = "resources/external_assets"
     dst_dir = path.join(dest, "extern")
     copy_dir(src_dir, dst_dir)
 
-    # info general
+    # general info
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
     shutil.copy('AUTHORS.txt', os.path.join(config.DIR_CDBASE, 'AUTORES.txt'))
 
-    # institucional
+    # institutional
     src_dir = "resources/institucional"
     dst_dir = path.join(dest, "institucional")
     copy_dir(src_dir, dst_dir)
@@ -96,8 +96,8 @@ def copiarAssets(src_info, dest):
         shutil.copy(path.join(src_dir, asset), dest)
 
 
-def copiarSources():
-    """Copiar los fuentes."""
+def copy_sources():
+    """Copy the source code files."""
     # el src
     dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src")
     dir_a_cero(dest_src)
@@ -220,9 +220,9 @@ def update_mini(image_path):
     config.DIR_CDBASE = config.DIR_CDBASE.replace(old_top_dir, new_top_dir)
     config.DIR_ASSETS = config.DIR_ASSETS.replace(old_top_dir, new_top_dir)
 
-    copiarSources()
+    copy_sources()
     src_info = ''
-    copiarAssets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
+    copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
 def main(lang, src_info, version,
@@ -252,8 +252,9 @@ def main(lang, src_info, version,
     logger.info("Starting!")
     preparaTemporal(procesar_articles)
 
-    logger.info("Copying the assets")
-    copiarAssets(src_info, config.DIR_ASSETS)
+    logger.info("Copying the assets and locale files")
+    copy_assets(src_info, config.DIR_ASSETS)
+    shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
 
     articulos = path.join(src_info, "articles")
     if procesar_articles:
@@ -300,12 +301,13 @@ def main(lang, src_info, version,
         result = cdpindex.generar_de_html(articulos, verbose)
         logger.info("Got %d files", result)
         logger.info("Generating the articles blocks")
-        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(verbose)
+        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(lang,
+                                                                     verbose)
         logger.info("Got %d blocks with %d files and %d redirects",
                     q_blocks, q_files, q_redirs)
 
     logger.info("Copying the sources")
-    copiarSources()
+    copy_sources()
 
     logger.info("Generating the links to blocks and indexes")
     # blocks
