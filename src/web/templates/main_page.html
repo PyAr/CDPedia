@@ -1,6 +1,6 @@
 {% extends "cdpedia_base.html" %}
 {% block content %}
-<h1 class="firstHeading">¡Bienvenido a la <a href="/institucional/cdpedia.html">CDPedia</a>!</h1>
+<h1 class="firstHeading">{{ gettext('Welcome to the <a href="/institucional/cdpedia.html">CDPedia</a>!') }}</h1>
 
 {% if destacado %}
 <div id="articulo-destacado">
@@ -9,11 +9,11 @@
   <td style="display:block">
   <table style="padding: 2px; width: 100%; vertical-align:top; background:#ffffff">
   <tr><th>
-  <div style="float:right; margin:2px 2px 0px 0px"><img alt="Artículo destacado" src="/static/misc/Wikibar2.png" width="100" height="22" /></div>
+          <div style="float:right; margin:2px 2px 0px 0px"><img alt="{{ gettext('Featured article') }}" src="/static/misc/Wikibar2.png" width="100" height="22" /></div>
   <h2 class="border-radius6" style="margin:0; background:#E6ECFF; font-size:100%; font-weight:bold; border:1px solid #cccccc; text-align:left; color:#000; padding:0.2em 0.4em; -moz-border-radius:6px">
     <span class="mw-headline" id="Art.C3.ADculo_destacado">
-      <img alt="Artículo destacado" src="/static/misc/20px-Cscr-featured.svg.png" width="20" height="19" />
-      Artículo destacado
+        <img alt="{{ gettext('Featured article') }}" src="/static/misc/20px-Cscr-featured.svg.png" width="20" height="19" />
+        {{ gettext('Featured article') }}
     </span>
   </h2>
   </th></tr>
@@ -21,7 +21,7 @@
   <div style="text-align:left;margin:6px">
   <div class="floatright">
     {{destacado.first_paragraphs}}
-    <div style="text-align: right; font-size:100%"><a href="/wiki/{{destacado.link}}" title="{{destacado.title}}"><b>Leer más...</b></a></div>
+    <div style="text-align: right; font-size:100%"><a href="/wiki/{{destacado.link}}" title="{{destacado.title}}"><b>{{ gettext('Read more...') }}</b></a></div>
   </div>
   </td>
   </tr>

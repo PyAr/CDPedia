@@ -1,7 +1,7 @@
 {% extends "cdpedia_base.html" %}
-{% block title %}Artículo no encontrado{% endblock %}
+{% block title %}{{ gettext('Article not found') }}{% endblock %}
 {% block content %}
-El artículo {{article_name}} no pudo ser incluido en el disco <br/><br>
-Podés acceder al mismo en Wikipedia en
-<a class="external" href="{{original_link}}">este enlace</a> externo.
+{{ gettext("The article %s couldn't be included in the disk.") % (article_name,) }}
+<br/><br>
+{{ gettext('You can access it in Wikipedia in <a class="external" href="%s">this external link</a>.') % (original_link,) }}
 {% endblock %}

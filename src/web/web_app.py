@@ -128,7 +128,8 @@ class CDPedia(object):
         return self.render_template('article.html',
             article_name=nombre,
             orig_link=orig_link,
-            article=data
+            article=data,
+            language=self.art_mngr.language,
         )
 
     def on_imagen(self, request, nombre):
