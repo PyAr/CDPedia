@@ -56,30 +56,27 @@
   <div id="footer">
     <ul id="f-info-cdpedia">
       <li id="f-info-original">
-        Si tenés conexión a Internet, podés visitar la <a class="external" href="{{orig_link}}">página original y actualizada</a> de éste artículo.
+        {{ gettext('If you have an Internet connection, you can visit the article\'s <a class="external" href="%s">updated original page</a>.') % (orig_link,)}}
       </li>
       <li>
-        <a href="/institucional/cdpedia.html">CDPedia</a> es un proyecto de
-        <a href="/institucional/pyar.html">Python Argentina</a>,
-        ¡aprendé a programar en Python! Acá tenés el <a href="/tutorial" target="_blank">tutorial</a>.
+      {{ gettext('<a href="/institucional/cdpedia.html">CDPedia</a> is a project of <a href="/institucional/pyar.html">Python Argentina</a>. Learn to program in Python! Here you have the <a href="/tutorial" target="_blank">tutorial</a>.') }}
       </li>
       <li>
-        Los artículos e imágenes son mostrados aquí sin ningún procesamiento más que el estrictamente necesario para la correcta navegación del usuario.
+      {{ gettext('Articles and images are shown here without any processing more than the strictly necessary for the correct user navigation.') }}
       </li>
       <li>
-        Todos los contenidos de los artículos provienen del <a href="http://es.wikipedia.org/">sitio online de Wikipedia</a>.
+      {{ gettext('All the content from the articles come from the <a href="http://%s.wikipedia.org/">Wikipedia online site</a>.') % (language,) }}
       </li>
     </ul>
     <ul id="f-info-wikipedia">
       <li id="f-info-copyright">
-        El texto está disponible bajo la <a href=/institucional/cc-by-sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; podrían ser aplicables cláusulas adicionales. Lee en esta página los <a href="/institucional/Términos_de_Uso.htm">términos de uso</a> para más información.
-        Wikipedia® es una marca registrada de la organización sin ánimo de lucro <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>
+      {{ gettext('The text is released under the <a href=/institucional/cc-by-sa.html>Attribution-ShareAlike Creative Commons License</a>; additional terms may apply. Read in this page the <a href="/institucional/Términos_de_Uso.htm">usage terms</a> for more information. Wikipedia® is a registered trademark of the <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>, a non-profit organization.') }}
       </li>
       <li id="f-about">
-        <a href="/wiki/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">Acerca de Wikipedia</a>
+      <a href="/wiki/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">{{ gettext('About Wikipedia') }}</a>
       </li>
       <li id="f-disclaimer">
-        <a href="/wiki/Wikipedia:Limitación_general_de_responsabilidad" title="Wikipedia:Limitación general de responsabilidad">Aviso legal</a>
+      <a href="/wiki/Wikipedia:Limitación_general_de_responsabilidad" title="Wikipedia:Limitación general de responsabilidad">{{ gettext('Disclaimers') }}</a>
       </li>
     </ul>
     <ul id="f-icons" class="noprint">

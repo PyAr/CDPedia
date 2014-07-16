@@ -24,6 +24,8 @@ Then, for every language, do (in the example, I'm doing it for 'es'):
 
     3. Get your favourite text editor and fill translations
 
+        vim es.po
+
     4. Compile the just filled .po to the correct lang place; again, as an
        example for 'es':
 
