@@ -110,9 +110,21 @@ class CDPedia(object):
             link, title, first_paragraphs = data_destacado
             destacado = {"link": link, "title": title,
                          "first_paragraphs": first_paragraphs}
+
+        # this is a hack while we have statically the portals for 'es'; will
+        # change in a future where all portals are dinamically built with the
+        # rest of the CDPedia
+        if self.art_mngr.language == 'es':
+            _path = os.path.join(config.DIR_ASSETS, 'static', 'portales.html')
+            with codecs.open(_path, "rb", encoding='utf8') as fh:
+                portales = fh.read()
+        else:
+            portales = ""
+
         return self.render_template('main_page.html',
             title="Portada",
             destacado=destacado,
+            portales=portales,
         )
 
     def on_articulo(self, request, nombre):
