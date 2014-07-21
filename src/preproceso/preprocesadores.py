@@ -57,7 +57,7 @@ class VIPArticle(object):
 
     def __init__(self):
         # store those portals URLs pointed by the home page
-        fname = 'src/web/templates/portales.html'
+        fname = 'resources/static/portales.html'
         link_regex = re.compile(r'<a.*?href="/wiki/(.*?)">',
                                 re.MULTILINE | re.DOTALL)
         with open(fname) as fh:
