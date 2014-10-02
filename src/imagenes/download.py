@@ -3,16 +3,22 @@
 from __future__ import with_statement
 
 import codecs
+import collections
+import logging
 import os
 import urllib2
 
 import config
-from src import repartidor
+
+from src import repartidor, utiles
 
 HEADERS = {'User-Agent':
     'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
     'Ubuntu/8.10 (intrepid) Firefox/3.0.5'
 }
+
+logger = logging.getLogger("images.download")
+
 
 def _descargar(url, fullpath):
     # descargamos!
@@ -46,8 +52,8 @@ def descargar(data):
     return str(e)
 
 
-def traer(verbose):
-    errores = {}
+def retrieve():
+    """Download the images from the net."""
     lista_descargar = []
 
     # vemos cuales tuvieron problemas antes
@@ -71,17 +77,21 @@ def traer(verbose):
 
     tot = len(lista_descargar)
     p = repartidor.Pool(descargar, 5)
-    for i, result in enumerate(p.procesa(lista_descargar)):
+    tl = utiles.TimingLogger(30, logger.debug)
+    errores = collections.Counter()
+    c_ok = 0
+    c_err = 0
+    for i, result in enumerate(p.procesa(lista_descargar), 1):
         (url, fullpath), stt = result
         if stt is None:
-            stt = "ok"
+            c_ok += 1
         else:
+            errores[stt] += 1
+            c_err += 1
             with codecs.open(log_errores, "a", "utf8") as fh:
                 fh.write(url + "\n")
 
-        print "   %5d/%d  (%s)  %s" % (i+1, tot, stt, url)
+        tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, c_ok, c_err)
 
-    if errores:
-        print "WARNING! Tuvimos errores:"
-        for code, cant in errores.items():
-            print "       %d %5d" % (code, cant)
+    for code, cant in errores.most_common():
+        logger.warning("Had errors: code=%d quant=%d", code, cant)
