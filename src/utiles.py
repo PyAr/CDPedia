@@ -73,3 +73,17 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
         else:
             s.close()
             return port
+
+
+class TimingLogger(object):
+    """Log only if more than N seconds passed after last log."""
+    def __init__(self, secs_period, log_func):
+        self._threshold = time.time() + secs_period
+        self.log_func = log_func
+        self.period = secs_period
+
+    def log(self, *args, **kwargs):
+        """Call log func with given args only if period exceeded."""
+        if time.time() > self._threshold:
+            self.log_func(*args, **kwargs)
+            self._threshold = time.time() + self.period
