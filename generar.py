@@ -263,7 +263,7 @@ def main(lang, src_info, version,
             logger.error("Couldn't find articles dir: %r", articulos)
             raise EnvironmentError("Directory not found, can't continue")
             sys.exit()
-        cantnew, cantold = preprocesar.run(articulos, verbose)
+        cantnew, cantold = preprocesar.run(articulos)
         logger.info("Processed pages: %d new, %d from before",
                     cantnew, cantold)
 
@@ -281,7 +281,7 @@ def main(lang, src_info, version,
 
     if not desconectado:
         logger.info("Downloading the images from the internet")
-        download.traer(verbose)
+        download.retrieve()
 
     logger.info("Reducing the downloaded images")
     reducir.run(verbose)

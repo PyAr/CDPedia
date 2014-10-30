@@ -14,11 +14,17 @@ from __future__ import with_statement
 
 import os
 import codecs
-from os.path import join, abspath, dirname
 import config
+import logging
 import operator
 
+from os.path import join, abspath, dirname
+
 from src.preproceso import preprocesadores
+from src import utiles
+
+logger = logging.getLogger('preprocesar')
+
 
 class WikiArchivo(object):
     def __init__(self, cwd, ult3dirs, nombre_archivo):
@@ -58,11 +64,10 @@ class WikiArchivo(object):
 
 
 class WikiSitio(object):
-    def __init__(self, dir_raiz, verbose=False):
+    def __init__(self, dir_raiz):
         self.origen = unicode(abspath(dir_raiz))
         self.resultados = {}
         self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
-        self.verbose = verbose
 
         # vemos que habíamos preocesado de antes
         if os.path.exists(config.LOG_PREPROCESADO):
@@ -90,31 +95,34 @@ class WikiSitio(object):
         else:
             self.descartados_file = codecs.open(nomarch, 'w', 'utf8')
 
-
     def procesar(self):
         resultados = self.resultados
         puntaje_extra = {}
         de_antes = 0
 
-        dirant = None
-        print "  Cantidad de letras:", len(os.listdir(self.origen))
-        cant = 0
+        # get the total of directories to parse
+        total_dirs = sum(1 for _ in os.walk(self.origen))
+        logger.info("Quantity of directories to process: %d", total_dirs)
+
+        count = 0
+        tl = utiles.TimingLogger(30, logger.debug)
         for cwd, directorios, archivos in os.walk(self.origen):
             partes_dir = cwd.split(os.path.sep)
             ult3dirs = join(*partes_dir[-3:])
-            if len(ult3dirs) == 5:  # ej: u"M/a/n"
-                primdir = ult3dirs[0]
-                if dirant != primdir:
-                    cant += 1
-                    print "    dir: %s (%d)" % (primdir, cant)
-                    dirant = primdir
-            else:
+            count += 1
+            tl.log("Processing %s (%d/%d)", ult3dirs, count, total_dirs)
+
+            if len(ult3dirs) != 5:  # ej: u"M/a/n"
+                # we're not in a leaf, we shouldn't have any files
                 if archivos:
-                    print "WARNING! Tenemos contenido en directorio no final:", cwd, archivos
+                    logger.warning("We have content in a non-leaf "
+                                   "directory: %s", archivos)
+                continue
 
             for pag in archivos:
                 if " " in pag:
-                    print "WARNING! Tenemos nombres con espacios:", ult3dirs, pag
+                    logger.warning("Have names with spaces! %s %s",
+                                   ult3dirs, pag)
                 # vemos si lo teníamos de antes
                 if pag in resultados:
                     de_antes += 1
@@ -126,8 +134,6 @@ class WikiSitio(object):
                 resultados[pag] = {}
                 resultados[pag]["dir3"] = ult3dirs
 
-                if self.verbose:
-                    print 'Procesando: %s' % pag.encode("utf8")
                 for procesador in self.preprocesadores:
                     (puntaje, otras_pags) = procesador(wikiarchivo)
 
@@ -145,8 +151,6 @@ class WikiSitio(object):
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
                         del resultados[pag]
-                        if self.verbose:
-                            print '  omitido!'
                         self.descartados_file.write("%s\n" % pag)
                         break
 
@@ -155,18 +159,12 @@ class WikiSitio(object):
                         resultados[pag][procesador] = puntaje
 
                 else:
-                    if self.verbose:
-                        print "  puntaje:", resultados[pag]
-
                     # lo guardamos sólo si no fue descartado
                     wikiarchivo.guardar()
 
-                if self.verbose:
-                    print
-
-        print "Preprocessors usage stats:"
         for procesador in self.preprocesadores:
-            print "  %s: %s" % (procesador.nombre, procesador.stats)
+            logger.debug("Preprocessor %12s usage stats: %s",
+                         procesador.nombre, procesador.stats)
 
         # cargamos los redirects para tenerlos en cuenta
         redirects = {}
@@ -177,7 +175,7 @@ class WikiSitio(object):
                 redirects[r_from] = r_to
 
         # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
-        print "Repartiendo el puntaje extra:", len(puntaje_extra)
+        logger.debug("Distributing extra scope: %d", len(puntaje_extra))
         perdidos = []
         for (pag, puntajes) in puntaje_extra.items():
             # desreferenciamos el redirect, vaciando el diccionario para
@@ -192,7 +190,7 @@ class WikiSitio(object):
             else:
                 perdidos.append((pag, puntajes))
         if perdidos:
-            print "WARNING: Tuvimos %d puntajes perdidos!" % len(perdidos)
+            logger.warning("Lost %d scores!", len(perdidos))
             fname = join(config.DIR_TEMP, 'perdidos.txt')
             with codecs.open(fname, 'w', 'utf8') as fh:
                 for pag in perdidos:
@@ -219,8 +217,8 @@ class WikiSitio(object):
             columnas += [valores.get(p, 0) for p in preprocs]
             salida.write(plantilla % tuple(columnas))
 
-        if self.verbose:
-            print 'Registro guardado en %s' % log
+        logger.debug("Record written in %s", log)
+        salida.close()
 
 
 class PagesSelector(object):
@@ -293,9 +291,9 @@ class PagesSelector(object):
 pages_selector = PagesSelector()
 
 
-def run(dir_raiz, verbose=False):
+def run(dir_raiz):
 #    import cProfile
-    wikisitio = WikiSitio(dir_raiz, verbose=verbose)
+    wikisitio = WikiSitio(dir_raiz)
 #    cProfile.runctx("wikisitio.procesar()", globals(), locals(), "/tmp/procesar.stat")
     cantnew, cantold = wikisitio.procesar()
     wikisitio.guardar()
