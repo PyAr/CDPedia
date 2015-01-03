@@ -111,11 +111,9 @@ class CDPedia(object):
             destacado = {"link": link, "title": title,
                          "first_paragraphs": first_paragraphs}
 
-        # this is a hack while we have statically the portals for 'es'; will
-        # change in a future where all portals are dinamically built with the
-        # rest of the CDPedia
-        if self.art_mngr.language == 'es':
-            _path = os.path.join(config.DIR_ASSETS, 'static', 'portales.html')
+        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
+        print "============= PP", _path
+        if os.path.exists(_path):
             with codecs.open(_path, "rb", encoding='utf8') as fh:
                 portales = fh.read()
         else:

@@ -19,9 +19,10 @@ URL_LIST = (
 ART_ALL = "all_articles.txt"
 
 # the directory (inside the one specified by the user) that actually
-# holds the articles and images
+# holds the articles, images and resources
 DUMP_ARTICLES = "articles"
 DUMP_IMAGES = "images"
+DUMP_RESOURCES = 'resources'
 
 # base url
 WIKI_BASE = 'http://%(language)s.wikipedia.org'
@@ -38,7 +39,7 @@ logger.setLevel(logging.DEBUG)
 logger = logging.getLogger("cdpetron")
 
 
-def get_lists(branch_dir, language, config):
+def get_lists(branch_dir, language, config, test):
     """Get the list of wikipedia articles."""
     fh_artall = open(ART_ALL, "wb")
 
@@ -59,9 +60,11 @@ def get_lists(branch_dir, language, config):
     gz.close()
     logger.info("Downloaded %d general articles", q)
 
-    logger.info("Getting the articles from namespaces")
+    if test:
+        test = 50  # limit of articles
+    logger.info("Getting the articles from namespaces (with limit=%s)", test)
     q = 0
-    for article in list_articles_by_namespaces.get_articles(language):
+    for article in list_articles_by_namespaces.get_articles(language, test):
         q += 1
         fh_artall.write(article.encode('utf8') + "\n")
     tot += q
@@ -78,7 +81,7 @@ def get_lists(branch_dir, language, config):
     logger.info("Total of articles: %d", tot)
 
 
-def scrap(branch_dir, language, dump_dir):
+def scrap_pages(branch_dir, language, dump_dir, test):
     """Get the pages from wikipedia."""
     articles_dir = os.path.join(dump_dir, DUMP_ARTICLES)
     logger.info("Assure articles dir is empty: %r", articles_dir)
@@ -86,10 +89,13 @@ def scrap(branch_dir, language, dump_dir):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    logger.info("Let's scrap")
+    logger.info("Let's scrap (with limit=%s)", test)
     assert os.getcwd() == dump_dir
-    res = os.system("python %s/utilities/scraper.py %s %s %s" % (
-        branch_dir, ART_ALL, language, DUMP_ARTICLES))
+    cmd = "python %s/utilities/scraper.py %s %s %s" % (
+        branch_dir, ART_ALL, language, DUMP_ARTICLES)
+    if test:
+        cmd += " 200"  # the limit of scrapped pages in limit mode
+    res = os.system(cmd)
     if res != 0:
         logger.error("Bad result code from scrapping: %r", res)
         logger.error("Quitting, no point in continue")
@@ -107,6 +113,30 @@ def scrap(branch_dir, language, dump_dir):
                 blocks += 1
             total += blocks * 512
     logger.info("Total size of scraped articles: %d MB", total // 1024 ** 2)
+
+
+def scrap_portals(dump_dir, language, lang_config):
+    """Get the portal index and scrap it."""
+    portal_index_url = lang_config.get('portal_index')
+    if portal_index_url is None:
+        logger.info("Not scrapping portals, url not configured.")
+        return
+
+    logger.info("Downloading portal index from %r", portal_index_url)
+    u = urllib2.urlopen(portal_index_url)
+    html = u.read()
+    logger.info("Scrapping portals page of lenght %d", len(html))
+    items = portals.parse(language, html)
+    logger.info("Generating portals html with %d items", len(items))
+    new_html = portals.generate(items)
+
+    # save it
+    direct = os.path.join(dump_dir, DUMP_RESOURCES)
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+    with open(os.path.join(direct, "portals.html"), 'wb') as fh:
+        fh.write(new_html)
+    logger.info("Portal scrapping done")
 
 
 def clean(branch_dir, dump_dir):
@@ -133,29 +163,30 @@ def clean(branch_dir, dump_dir):
 
 
 def main(branch_dir, dump_dir, language, lang_config,  imag_config,
-         nolists, noscrap, noclean, image_type):
+         nolists, noscrap, noclean, image_type, test):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
     logger.info("Generating for language: %r", language)
     logger.info("Language config: %r", lang_config)
-    logger.info("Options: nolists=%s noscrap=%s noclean=%s",
-                nolists, noscrap, noclean)
+    logger.info("Options: nolists=%s noscrap=%s noclean=%s test=%s",
+                nolists, noscrap, noclean, test)
 
     # images are common, but articles are separated by lang
     dump_imags_dir = dump_dir
-    dump_artic_dir = os.path.join(dump_dir, language)
+    dump_lang_dir = os.path.join(dump_dir, language)
 
-    logger.info("Assure directory for articles is there: %r", dump_artic_dir)
-    if not os.path.exists(dump_artic_dir):
-        os.mkdir(dump_artic_dir)
-    os.chdir(dump_artic_dir)
+    logger.info("Assure directory for articles is there: %r", dump_lang_dir)
+    if not os.path.exists(dump_lang_dir):
+        os.mkdir(dump_lang_dir)
+    os.chdir(dump_lang_dir)
 
     if not nolists:
-        get_lists(branch_dir, language, lang_config)
+        get_lists(branch_dir, language, lang_config, test)
 
     if not noscrap:
-        scrap(branch_dir, language, dump_artic_dir)
+        scrap_pages(branch_dir, language, dump_lang_dir, test)
+        scrap_portals(dump_lang_dir, language, lang_config)
 
     os.chdir(branch_dir)
 
@@ -163,12 +194,12 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
             clean(branch_dir, dump_imags_dir)
-            generar.main(language, dump_artic_dir, image_type)
+            generar.main(language, dump_lang_dir, image_type)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
             clean(branch_dir, dump_imags_dir)
-        generar.main(language, dump_artic_dir, image_type)
+        generar.main(language, dump_lang_dir, image_type)
 
 
 if __name__ == "__main__":
@@ -181,6 +212,8 @@ if __name__ == "__main__":
                         help="Don't clean the temp dir, useful to resume the "
                              "generation of an image; need to be paired with "
                              "'--image-type' option")
+    parser.add_argument("--test-mode", action='store_true',
+                        help="Work on a few pages only")
     parser.add_argument("--imag-type",
                         help="Don't clean the temp dir, useful to resume the "
                              "generation of an image; need to be paired with "
@@ -237,9 +270,11 @@ if __name__ == "__main__":
 
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
-    utils_dir = os.path.join(branch_dir, "utilities")
-    sys.path.insert(1, utils_dir)
+    sys.path.insert(1, os.path.join(branch_dir, "utilities"))
+    # FIXME: needed?
+    #sys.path.insert(1, os.path.join(branch_dir, "src"))
     import list_articles_by_namespaces, generar
+    from src.scrapping import portals
 
     # dump dir may not exist, let's just create if it doesn't
     if not os.path.exists(dump_dir):
@@ -247,4 +282,4 @@ if __name__ == "__main__":
 
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
-         noclean=args.no_clean, image_type=args.imag_type)
+         noclean=args.no_clean, image_type=args.imag_type, test=args.test_mode)

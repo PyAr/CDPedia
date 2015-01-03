@@ -95,6 +95,11 @@ def copy_assets(src_info, dest):
     for asset in config.COMPRESSED_ASSETS:
         shutil.copy(path.join(src_dir, asset), dest)
 
+    # dynamic stuff
+    src_dir = path.join(src_info, "resources")
+    dst_dir = path.join(dest, "dynamic")
+    copy_dir(src_dir, dst_dir)
+
 
 def copy_sources():
     """Copy the source code files."""

@@ -14,9 +14,15 @@ es:
         "Wikipedia:Derechos_de_autor",
         "Wikipedia:Portal",
     ]
+    portal_index: http://es.wikipedia.org/wiki/Portal:Portada
 
 ay:
     include: [
         "Wikipidiya:Acerca_de",
         "Wikipidiya:Limitación_general_de_responsabilidad",
     ]
+
+pt:
+    include: [       # FIXME: fill this
+    ]
+    portal_index: http://pt.wikipedia.org/wiki/Portal:%C3%8Dndice

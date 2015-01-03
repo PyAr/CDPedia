@@ -56,20 +56,30 @@ class VIPArticle(object):
     """A standalone decissor who knows which articles *must* be included."""
 
     def __init__(self):
-        # store those portals URLs pointed by the home page
-        fname = 'src/web/templates/portales.html'
-        link_regex = re.compile(r'<a.*?href="/wiki/(.*?)">',
-                                re.MULTILINE | re.DOTALL)
-        with open(fname) as fh:
-            mainpage_portals_content = fh.read()
-        self.portals = set(unquote(link).decode('utf8') for link in
-                           link_regex.findall(mainpage_portals_content))
-
+        self.portals = None
         # destacados FTW!
         self.destacados = [x.strip().decode('utf8')
                            for x in open(config.DESTACADOS)]
 
     def __call__(self, article):
+        # prepare the link from portals here and not in __init__ to do it
+        # really when all the processing started, and not at import time
+        # (because it's a dynamically generated file)
+        if self.portals is None:
+            fname = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
+            print "=========== opening for scores", repr(fname)
+            if os.path.exists(fname):
+                re_link = re.compile(r'<a.*?href="/wiki/(.*?)">',
+                                        re.MULTILINE | re.DOTALL)
+                with open(fname) as fh:
+                    mainpage_portals_content = fh.read()
+                self.portals = set(unquote(link).decode('utf8') for link in
+                                   re_link.findall(mainpage_portals_content))
+                print "============== found", self.portals
+            else:
+                print "============= ERRORRRRRRRRRRRRRRRRRRRR  Not found"
+                self.portals = set()
+
         # must include according to the config
         if any(article.startswith(fn) for fn in config.INCLUDE):
             return True
