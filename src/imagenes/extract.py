@@ -74,6 +74,7 @@ class ImageParser(object):
         self.test = test
         self.a_descargar = {}
         self.proces_ahora = {}
+        self.dynamics = {}
 
         # get which files we processed last time for images and 'nopo' marks
         # (only if the articles are the same, otherwise we need to reprocess
@@ -142,6 +143,32 @@ class ImageParser(object):
                 else:
                     linea = separador.join((dir3, fname))
                 fh.write(linea + "\n")
+            for name, dskurls in self.dynamics.items():
+                dskurls = separador.join(dskurls)
+                linea = separador.join((config.DYNAMIC, name, dskurls))
+                fh.write(linea + "\n")
+
+    def process_dynamics(self, name, filepath):
+        """Parse a specific special file"""
+        if not os.path.exists(filepath):
+            logger.warning("Special file not found: %r", filepath)
+            return
+
+        with codecs.open(filepath, "rt", encoding="utf8") as fh:
+            html = fh.read()
+
+        newimgs = []
+        reemplaza = functools.partial(self._reemplaza, newimgs)
+        html = IMG_REGEX.sub(reemplaza, html)
+
+        with codecs.open(filepath, "wt", "utf-8") as fh:
+            fh.write(html)
+
+        # guardamos las imágenes nuevas
+        for dsk, web in newimgs:
+            self.a_descargar[dsk] = web
+        self.dynamics[name] = [dsk for dsk, web in newimgs]
+
 
     def parse(self, dir3, fname):
         if (dir3, fname) in self.proces_antes:
@@ -179,14 +206,14 @@ class ImageParser(object):
             with codecs.open(newpath, "w", "utf-8") as fh:
                 fh.write(html)
 
+        # guardamos las imágenes nuevas
+        for dsk, web in newimgs:
+            self.a_descargar[dsk] = web
+
         # guardamos al archivo como procesado
         # tomamos la dsk_url, sin el path relativo
         imgs = [x[0] for x in newimgs]
         self.proces_ahora[dir3, fname] = imgs
-
-        # guardamos las imágenes nuevas
-        for dsk, web in newimgs:
-            self.a_descargar[dsk] = web
 
     def _reemplaza(self, newimgs, m):
         p1, img, p3 = m.groups()
@@ -294,6 +321,9 @@ def run():
         done += 1
         tl.log("Parsing found %d images so far (%d of %d pages)",
                pi.cant, done, total)
+
+    logger.info("Extract images from special resources.")
+    pi.process_dynamics('portals', os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html'))
 
     pi.dump()
     return pi.imgs_ok, pi.cant

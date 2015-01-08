@@ -112,7 +112,6 @@ class CDPedia(object):
                          "first_paragraphs": first_paragraphs}
 
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-        print "============= PP", _path
         if os.path.exists(_path):
             with codecs.open(_path, "rb", encoding='utf8') as fh:
                 portales = fh.read()

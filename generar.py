@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+import yaml
 
 from os import path
 
@@ -230,7 +231,7 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, version,
+def main(lang, src_info, version, lang_config,
          verbose=False, desconectado=False, procesar_articles=True):
     # don't affect the rest of the machine
     make_it_nicer()
@@ -253,6 +254,7 @@ def main(lang, src_info, version,
     except KeyError:
         print "Not a valid version! try one of", _lang_conf.keys()
         exit()
+    config.langconf = lang_config
 
     logger.info("Starting!")
     preparaTemporal(procesar_articles)
@@ -282,7 +284,7 @@ def main(lang, src_info, version,
         logger.info("Avoid processing articles and generating images log")
 
     logger.info("Recalculating the reduction percentages.")
-    calcular.run(verbose)
+    calcular.run()
 
     if not desconectado:
         logger.info("Downloading the images from the internet")
@@ -410,7 +412,15 @@ To update an image with the code and assets changes  in this working copy:
             exit()
         guppy.heapy.RM.on()
 
+    with open('languages.yaml') as fh:
+        _config = yaml.load(fh)
+        try:
+            lang_config = _config[lang]
+        except KeyError:
+            print "ERROR: there's no %r in 'languages.yaml'" % (lang,)
+            exit()
+
     if options.update_mini:
         update_mini(direct)
     else:
-        main(lang, direct, version, verbose, desconectado, procesar_articles)
+        main(lang, direct, version, lang_config, verbose, desconectado, procesar_articles)

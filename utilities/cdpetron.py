@@ -27,13 +27,16 @@ DUMP_RESOURCES = 'resources'
 # base url
 WIKI_BASE = 'http://%(language)s.wikipedia.org'
 
+# some limits when running in test mode
+TEST_LIMIT_NAMESPACE = 50
+TEST_LIMIT_SCRAP = 500
 
 # set up logging
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 formatter = logging.Formatter(
-    "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
+    "%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
 handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger = logging.getLogger("cdpetron")
@@ -61,7 +64,7 @@ def get_lists(branch_dir, language, config, test):
     logger.info("Downloaded %d general articles", q)
 
     if test:
-        test = 50  # limit of articles
+        test = TEST_LIMIT_NAMESPACE
     logger.info("Getting the articles from namespaces (with limit=%s)", test)
     q = 0
     for article in list_articles_by_namespaces.get_articles(language, test):
@@ -94,7 +97,7 @@ def scrap_pages(branch_dir, language, dump_dir, test):
     cmd = "python %s/utilities/scraper.py %s %s %s" % (
         branch_dir, ART_ALL, language, DUMP_ARTICLES)
     if test:
-        cmd += " 200"  # the limit of scrapped pages in limit mode
+        cmd += " " + str(TEST_LIMIT_SCRAP)
     res = os.system(cmd)
     if res != 0:
         logger.error("Bad result code from scrapping: %r", res)
@@ -185,8 +188,8 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
         get_lists(branch_dir, language, lang_config, test)
 
     if not noscrap:
-        scrap_pages(branch_dir, language, dump_lang_dir, test)
         scrap_portals(dump_lang_dir, language, lang_config)
+        scrap_pages(branch_dir, language, dump_lang_dir, test)
 
     os.chdir(branch_dir)
 
@@ -199,7 +202,7 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
             clean(branch_dir, dump_imags_dir)
-        generar.main(language, dump_lang_dir, image_type)
+        generar.main(language, dump_lang_dir, image_type, lang_config)
 
 
 if __name__ == "__main__":
@@ -271,8 +274,6 @@ if __name__ == "__main__":
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
-    # FIXME: needed?
-    #sys.path.insert(1, os.path.join(branch_dir, "src"))
     import list_articles_by_namespaces, generar
     from src.scrapping import portals
 

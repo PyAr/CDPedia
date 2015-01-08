@@ -2,6 +2,7 @@
 #
 # These are:
 #  - include: some specific pages that *must* be included
+#  - portal_index: the URL of the main "portals" index
 
 es:
     include: [
