@@ -99,6 +99,9 @@ LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
 
+# Tag de que la info viene de un recurso dinámico de mucha importancia
+DYNAMIC = '__dynamic__'
+
 # Comando externo para convertir en HTML en texto, para extraer las palabras
 # del documento. Lynx es el default, pero requiere que esté instalado en el host.
 # W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
@@ -143,13 +146,3 @@ NAMESPACES = {
     u"Archivo": False,
     u"Especial": False,
 }
-
-INCLUDE = [
-    u"Wikipedia:Acerca_de",
-    u"Wikipedia:Limitación_general_de_responsabilidad",
-    u"Wikipedia:Aviso_de_riesgo",
-    u"Wikipedia:Aviso_médico",
-    u"Wikipedia:Aviso_legal",
-    u"Wikipedia:Aviso_de_contenido",
-    u"Wikipedia:Derechos_de_autor",
-]

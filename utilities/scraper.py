@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright 2010-2012 CDPedistas (see AUTHORS.txt)
+# Copyright 2010-2015 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -75,16 +75,21 @@ DataURLs = collections.namedtuple("DataURLs",
                                   "url temp_dir disk_name, basename")
 
 class URLAlizer(object):
-    def __init__(self, listado_nombres, dest_dir, language):
+    def __init__(self, listado_nombres, dest_dir, language, test_limit):
         self.language = language
         self.dest_dir = dest_dir
         self.temp_dir = dest_dir + ".tmp"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
         self.fh = open(listado_nombres, 'r')
+        self.test_limit = test_limit
 
     def next(self):
         while True:
+            if self.test_limit is not None:
+                self.test_limit -= 1
+                if self.test_limit <= 0:
+                    raise StopIteration
             line = self.fh.readline().strip()
             if line == "":
                 raise StopIteration
@@ -465,9 +470,10 @@ class StatusBoard(object):
 
 
 @defer.inlineCallbacks
-def main(nombres, language, dest_dir, pool_size=20):
+def main(nombres, language, dest_dir, test_limit=None, pool_size=20):
+    test_limit = int(test_limit) if test_limit else None
     pool = workerpool.WorkerPool(size=int(pool_size))
-    data_urls = URLAlizer(nombres, dest_dir, language)
+    data_urls = URLAlizer(nombres, dest_dir, language, test_limit)
     board = StatusBoard(language)
     yield pool.start(board.process, data_urls)
     print   # final new line for console aesthetic

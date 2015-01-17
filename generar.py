@@ -1,5 +1,21 @@
 # -- encoding: utf-8 --
 
+# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://launchpad.net/cdpedia/
+
 from __future__ import with_statement
 
 import logging
@@ -8,6 +24,7 @@ import os
 import shutil
 import subprocess
 import sys
+import yaml
 
 from os import path
 
@@ -94,6 +111,11 @@ def copy_assets(src_info, dest):
     src_dir = "resources"
     for asset in config.COMPRESSED_ASSETS:
         shutil.copy(path.join(src_dir, asset), dest)
+
+    # dynamic stuff
+    src_dir = path.join(src_info, "resources")
+    dst_dir = path.join(dest, "dynamic")
+    copy_dir(src_dir, dst_dir)
 
 
 def copy_sources():
@@ -225,7 +247,7 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, version,
+def main(lang, src_info, version, lang_config,
          verbose=False, desconectado=False, procesar_articles=True):
     # don't affect the rest of the machine
     make_it_nicer()
@@ -248,6 +270,7 @@ def main(lang, src_info, version,
     except KeyError:
         print "Not a valid version! try one of", _lang_conf.keys()
         exit()
+    config.langconf = lang_config
 
     logger.info("Starting!")
     preparaTemporal(procesar_articles)
@@ -277,7 +300,7 @@ def main(lang, src_info, version,
         logger.info("Avoid processing articles and generating images log")
 
     logger.info("Recalculating the reduction percentages.")
-    calcular.run(verbose)
+    calcular.run()
 
     if not desconectado:
         logger.info("Downloading the images from the internet")
@@ -405,7 +428,15 @@ To update an image with the code and assets changes  in this working copy:
             exit()
         guppy.heapy.RM.on()
 
+    with open('languages.yaml') as fh:
+        _config = yaml.load(fh)
+        try:
+            lang_config = _config[lang]
+        except KeyError:
+            print "ERROR: there's no %r in 'languages.yaml'" % (lang,)
+            exit()
+
     if options.update_mini:
         update_mini(direct)
     else:
-        main(lang, direct, version, verbose, desconectado, procesar_articles)
+        main(lang, direct, version, lang_config, verbose, desconectado, procesar_articles)

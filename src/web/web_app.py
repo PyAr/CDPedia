@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2006-2012 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  http://code.google.com/p/cdpedia/
+# For further info, check  https://launchpad.net/cdpedia/
 
 
 import codecs
@@ -111,11 +111,8 @@ class CDPedia(object):
             destacado = {"link": link, "title": title,
                          "first_paragraphs": first_paragraphs}
 
-        # this is a hack while we have statically the portals for 'es'; will
-        # change in a future where all portals are dinamically built with the
-        # rest of the CDPedia
-        if self.art_mngr.language == 'es':
-            _path = os.path.join(config.DIR_ASSETS, 'static', 'portales.html')
+        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
+        if os.path.exists(_path):
             with codecs.open(_path, "rb", encoding='utf8') as fh:
                 portales = fh.read()
         else:

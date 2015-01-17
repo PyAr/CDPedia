@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2006-2012 CDPedistas (see AUTHORS.txt)
+# Copyright 2006-2015 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -48,47 +48,10 @@ import config
 
 import bs4
 
-SCORE_DESTACADOS = 100000000  # 1e8
+SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
 
 
-class VIPArticle(object):
-    """A standalone decissor who knows which articles *must* be included."""
-
-    def __init__(self):
-        # store those portals URLs pointed by the home page
-        fname = 'resources/static/portales.html'
-        link_regex = re.compile(r'<a.*?href="/wiki/(.*?)">',
-                                re.MULTILINE | re.DOTALL)
-        with open(fname) as fh:
-            mainpage_portals_content = fh.read()
-        self.portals = set(unquote(link).decode('utf8') for link in
-                           link_regex.findall(mainpage_portals_content))
-
-        # destacados FTW!
-        self.destacados = [x.strip().decode('utf8')
-                           for x in open(config.DESTACADOS)]
-
-    def __call__(self, article):
-        # must include according to the config
-        if any(article.startswith(fn) for fn in config.INCLUDE):
-            return True
-
-        # it's referenced by the portal
-        if article in self.portals:
-            return True
-
-        # it's included in the custom-made file
-        if article in self.destacados:
-            return True
-
-        # not really important
-        return False
-
-vip_article = VIPArticle()
-
-
-# Procesadores:
 class Procesador(object):
     """Procesador Genérico, no usar directamente."""
 
@@ -106,6 +69,62 @@ class Procesador(object):
         raise NotImplemented
 
 
+class VIPDecissor(object):
+    """Hold those VIP articles that must be included."""
+    def __init__(self):
+        self._vip_articles = None
+
+    def _load(self):
+        """Load all needed special articles.
+
+        This is done not an __init__ time because some of this are dynamically
+        generated files, so doesn't need to happen at import time.
+        """
+        viparts = self._vip_articles = set()
+
+        # some manually curated pages
+        if config.DESTACADOS is not None:
+            with codecs.open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
+                for line in fh:
+                    viparts.add(line.strip())
+
+        # must include according to the config
+        viparts.update(config.langconf['include'])
+
+        # those portals articles from the front-page portal
+        fname = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
+        if os.path.exists(fname):
+            re_link = re.compile(r'<a.*?href="/wiki/(.*?)">', re.MULTILINE | re.DOTALL)
+            with open(fname, 'rb') as fh:
+                mainpage_portals_content = fh.read()
+            for link in re_link.findall(mainpage_portals_content):
+                viparts.add(unquote(link).decode('utf8'))
+
+    def __call__(self, article):
+        if self._vip_articles is None:
+            self._load()
+        return article in self._vip_articles
+
+vip_decissor = VIPDecissor()
+
+
+class VIPArticles(Procesador):
+    """A processor for articles that *must* be included."""
+    def __init__(self, wikisitio):
+        super(VIPArticles, self).__init__(wikisitio)
+        self.nombre = "VIPArticles"
+        self.stats = collections.Counter()
+
+    def __call__(self, wikiarchivo):
+        if vip_decissor(wikiarchivo.url):
+            self.stats['vip'] += 1
+            score = SCORE_VIP
+        else:
+            self.stats['normal'] += 1
+            score = 0
+        return (score, [])
+
+
 class Namespaces(Procesador):
     """Registra el namespace y descarta si el mismo es inválido."""
 
@@ -119,8 +138,7 @@ class Namespaces(Procesador):
 
 #        print 'Namespace:', repr(namespace)
         # no da puntaje per se, pero invalida segun namespace
-        if namespace is None or config.NAMESPACES.get(namespace) or \
-                vip_article(wikiarchivo.url):
+        if namespace is None or config.NAMESPACES.get(namespace):
 #            print '[válido]'
             self.stats['valid'] += 1
             return (0, [])
@@ -157,8 +175,8 @@ class OmitirRedirects(Procesador):
 
         # if redirect was very important, transmit this feature
         # to destination article
-        if vip_article(wikiarchivo.url):
-            trans = [(url_redirect, SCORE_DESTACADOS)]
+        if vip_decissor(wikiarchivo.url):
+            trans = [(url_redirect, SCORE_VIP)]
         else:
             trans = []
 
@@ -286,23 +304,6 @@ class Longitud(Procesador):
         return (largo, [])
 
 
-class Destacado(Procesador):
-    """Marca con 1 o 0 si el artículo es destacado o importante.
-
-    En preprocesar.py se le va a dar un montón de puntaje a esto.
-    """
-    def __init__(self, wikisitio):
-        super(Destacado, self).__init__(wikisitio)
-        self.nombre = "Destacado"
-
-    def __call__(self, wikiarchivo):
-        if vip_article(wikiarchivo.url):
-            score = SCORE_DESTACADOS
-        else:
-            score = 0
-        return (score, [])
-
-
 class HTMLCleaner(Procesador):
     """Remove different HTML parts or sections."""
 
@@ -367,9 +368,9 @@ class HTMLCleaner(Procesador):
 TODOS = [
     HTMLCleaner,
     Namespaces,
+    VIPArticles,
     OmitirRedirects,
     FixLinksDescartados,
     Peishranc,
-    Destacado,
     Longitud,
 ]

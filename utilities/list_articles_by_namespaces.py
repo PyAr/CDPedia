@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 
+# Copyright 2012-2015 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://launchpad.net/cdpedia/
+
 """Generate the list of articles inside some Namespaces."""
 
 import json
@@ -57,8 +73,9 @@ def hit_api(**kwords):
     return data
 
 
-def get_articles(language):
+def get_articles(language, test_limit):
     """Get all the articles for some namespaces."""
+    test_limit = int(test_limit) if test_limit else None
     for namespace in NAMESPACES:
         contin = ''
         logger.debug("Getting namespace %r", namespace)
@@ -74,6 +91,12 @@ def get_articles(language):
             for item in items:
                 title = item['title'].replace(" ", "_")
                 yield title
+
+            # check test limit, if any
+            if test_limit is not None:
+                test_limit -= len(items)
+                if test_limit <= 0:
+                    break
 
             # continue, if needed
             if 'query-continue' in data:

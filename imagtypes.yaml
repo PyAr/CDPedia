@@ -53,7 +53,7 @@ es:
         type: tarball
         windows: True
         page_limit: 20000   # sample version to distribute for others to QA
-        image_reduction: [2, 4, 4, 90]
+        image_reduction: [10, 20, 20, 50]
 
 # Aymar
 ay:
