@@ -18,15 +18,17 @@
 
 from __future__ import with_statement
 
+import datetime
 import logging
 import optparse
 import os
 import shutil
 import subprocess
 import sys
-import yaml
 
 from os import path
+
+import yaml
 
 #Para poder hacer generar.py > log.txt
 if sys.stdout.encoding is None:
@@ -247,7 +249,7 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, version, lang_config,
+def main(lang, src_info, version, lang_config, gendate,
          verbose=False, desconectado=False, procesar_articles=True):
     # don't affect the rest of the machine
     make_it_nicer()
@@ -352,14 +354,13 @@ def main(lang, src_info, version, lang_config,
     logger.info("Generating runtime config")
     genera_run_config()
 
+    base_dest_name = "cdpedia-%s-%s-%s-%s" % (lang, config.VERSION, gendate, version)
     if config.imageconf["type"] == "iso":
-        dest_name = "cdpedia-%s-%s" % (config.VERSION, version)
-        logger.info("Building the ISO: %r", dest_name)
-        build_iso(dest_name)
+        logger.info("Building the ISO: %r", base_dest_name)
+        build_iso(base_dest_name)
     elif config.imageconf["type"] == "tarball":
-        dest_name = "cdpedia-%s-%s" % (config.VERSION, version)
-        logger.info("Building the tarball: %r", dest_name)
-        build_tarball(dest_name)
+        logger.info("Building the tarball: %r", base_dest_name)
+        build_tarball(base_dest_name)
     else:
         raise ValueError("Unrecognized image type")
 
@@ -439,4 +440,5 @@ To update an image with the code and assets changes  in this working copy:
     if options.update_mini:
         update_mini(direct)
     else:
-        main(lang, direct, version, lang_config, verbose, desconectado, procesar_articles)
+        gendate = datetime.date.today().strftime("%Y%m%d")
+        main(lang, direct, version, lang_config, gendate, verbose, desconectado, procesar_articles)

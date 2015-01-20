@@ -16,16 +16,18 @@
 #
 # For further info, check  https://launchpad.net/cdpedia/
 
+import StringIO
 import argparse
+import datetime
+import gzip
 import itertools
 import logging
 import os
 import shutil
 import sys
 import urllib2
+
 import yaml
-import gzip
-import StringIO
 
 # some constants to download the articles list we need to scrap
 URL_LIST = (
@@ -33,6 +35,7 @@ URL_LIST = (
     "%(language)swiki-latest-all-titles-in-ns0.gz"
 )
 ART_ALL = "all_articles.txt"
+DATE_FILENAME = "start_date.txt"
 
 # the directory (inside the one specified by the user) that actually
 # holds the articles, images and resources
@@ -60,6 +63,10 @@ logger = logging.getLogger("cdpetron")
 
 def get_lists(branch_dir, language, config, test):
     """Get the list of wikipedia articles."""
+    gendate = datetime.date.today().strftime("%Y%m%d")
+    with open(DATE_FILENAME, 'wb') as fh:
+        fh.write(gendate + "\n")
+
     fh_artall = open(ART_ALL, "wb")
 
     url = URL_LIST % dict(language=language)
@@ -98,6 +105,7 @@ def get_lists(branch_dir, language, config, test):
 
     fh_artall.close()
     logger.info("Total of articles: %d", tot)
+    return gendate
 
 
 def scrap_pages(branch_dir, language, dump_dir, test):
@@ -201,7 +209,11 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
     os.chdir(dump_lang_dir)
 
     if not nolists:
-        get_lists(branch_dir, language, lang_config, test)
+        gendate = get_lists(branch_dir, language, lang_config, test)
+    else:
+        with open(DATE_FILENAME, 'rt') as fh:
+            gendate = fh.read().strip()
+    logger.info("Date of generation: %s", gendate)
 
     if not noscrap:
         scrap_portals(dump_lang_dir, language, lang_config)
@@ -213,12 +225,12 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
             clean(branch_dir, dump_imags_dir)
-            generar.main(language, dump_lang_dir, image_type)
+            generar.main(language, dump_lang_dir, image_type, lang_config, gendate)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
             clean(branch_dir, dump_imags_dir)
-        generar.main(language, dump_lang_dir, image_type, lang_config)
+        generar.main(language, dump_lang_dir, image_type, lang_config, gendate)
 
 
 if __name__ == "__main__":
@@ -233,7 +245,7 @@ if __name__ == "__main__":
                              "'--image-type' option")
     parser.add_argument("--test-mode", action='store_true',
                         help="Work on a few pages only")
-    parser.add_argument("--imag-type",
+    parser.add_argument("--image-type",
                         help="Don't clean the temp dir, useful to resume the "
                              "generation of an image; need to be paired with "
                              "'--image-type' option")
@@ -245,8 +257,8 @@ if __name__ == "__main__":
                         help="The two-letters language name.")
     args = parser.parse_args()
 
-    if args.no_clean and not args.imag_type:
-        print ("ERROR: --no-clean option is only usable when --imag-type "
+    if args.no_clean and not args.image_type:
+        print ("ERROR: --no-clean option is only usable when --image-type "
                "was indicated")
         exit()
 
@@ -276,10 +288,10 @@ if __name__ == "__main__":
                 args.language, _config_fname)
             exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
-    if args.imag_type:
-        if args.imag_type not in imag_config:
+    if args.image_type:
+        if args.image_type not in imag_config:
             print "ERROR: there's no %r image in the image type config" % (
-                args.imag_type)
+                args.image_type)
             exit()
 
     # branch dir must exist
@@ -299,4 +311,4 @@ if __name__ == "__main__":
 
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
-         noclean=args.no_clean, image_type=args.imag_type, test=args.test_mode)
+         noclean=args.no_clean, image_type=args.image_type, test=args.test_mode)
