@@ -110,7 +110,6 @@ class WikiSitio(object):
             partes_dir = cwd.split(os.path.sep)
             ult3dirs = join(*partes_dir[-3:])
             count += 1
-            tl.log("Processing %s (%d/%d)", ult3dirs, count, total_dirs)
 
             if len(ult3dirs) != 5:  # ej: u"M/a/n"
                 # we're not in a leaf, we shouldn't have any files
@@ -118,6 +117,7 @@ class WikiSitio(object):
                     logger.warning("We have content in a non-leaf "
                                    "directory: %s", archivos)
                 continue
+            tl.log("Processing %s (%d/%d)", ult3dirs, count, total_dirs)
 
             for pag in archivos:
                 if " " in pag:
