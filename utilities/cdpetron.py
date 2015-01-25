@@ -144,6 +144,12 @@ def scrap_pages(branch_dir, language, dump_dir, test):
 
 def scrap_portals(dump_dir, language, lang_config):
     """Get the portal index and scrap it."""
+    # always create the resources directory
+    direct = os.path.join(dump_dir, DUMP_RESOURCES)
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+
+    # get the portal url, get out if don't have it
     portal_index_url = lang_config.get('portal_index')
     if portal_index_url is None:
         logger.info("Not scrapping portals, url not configured.")
@@ -158,9 +164,6 @@ def scrap_portals(dump_dir, language, lang_config):
     new_html = portals.generate(items)
 
     # save it
-    direct = os.path.join(dump_dir, DUMP_RESOURCES)
-    if not os.path.exists(direct):
-        os.mkdir(direct)
     with open(os.path.join(direct, "portals.html"), 'wb') as fh:
         fh.write(new_html)
     logger.info("Portal scrapping done")
