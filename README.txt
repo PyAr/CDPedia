@@ -1,38 +1,35 @@
-Creación de la imagen
----------------------
-
-1. Bajar el último `dump <http://pyar.usla.org.ar/eswiki_dump_20110219.tar.7z>`_
-   y descomprimirlo en algún lado (7z x -so eswiki_dump_20110219.tar.7z |tar x).
-   También revisar los "Términos de uso", a ver si cambiaron (ver en
-   utilities/como_hacer_un_dump.txt)
-
-
-2. Crear un directorio fuente (por ejemplo, "fuentes"), y poner ahí los
-   archivos del dump estático que querramos usar (en un dir 'articles'),
-   más algunos directorios con data estática:
-
-     mkdir fuentes
-     cd fuentes
-     ln -s /discogrande/articulos articles
-     ln -s ../resources/static/misc .
-     ln -s ../resources/static/skins .
-
-3. Ejecutar el "generar.py"
-
-     python generar.py fuentes
-
-
-4. Disfrutar del archivo final "cdpedia.iso"
-
-Para desarrolladores
---------------------
-
-Si lo que se desea es hacer pruebas y mejoras al código de cdpedia, se cuenta
-con un dump para desarrollo.
-Se debe descargar `dump-dev <http://pyar.usla.org.ar/eswiki_dump_20110219-dev.tar.gz>`_
-Y crear los links para ''misc'' y ''skins''
-
-Prueba de los sistemas
+How to create an image
 ----------------------
 
-1. Ejecutar main.py
+All is automated nowadays, but you need to be sure that there is configuration
+for the image type you want to produce.
+
+For example, let's suppose you want to create a "dvd" version of Spanish
+Wikipedia. Then, you need to be sure that there is configuration for 'es' in
+the ``languages.yaml`` file, and for 'dvd' (in the 'es' section) in the
+``imagtypes.yaml`` file.
+
+Then all you have to do is get the project and run the CDPetron::
+
+  utilities/cdpetron.py . /opt/somedir es
+
+The first parameter is the project branch (usually just '.'), the second
+directory is where all the dump from the web will go (be sure you have a
+lot of free space!), and then the language.
+
+In that example it will just produce *all image types*, for the example
+we said before (just the normal DVD version), you can do::
+
+  utilities/cdpetron.py . /opt/somedir es --image-type dvd5
+
+
+Quick image
+-----------
+
+If you're just developing and want to do a quick test, you can run the
+CDPetron with ``--test-mode``, which will not dump *everything* from the
+web, just some pages.
+
+Also, you have several parameters like ``--no-lists``, ``--no-scrap``,
+and ``--no-clean`` which will help you to not do everything again on every
+test cycle. Run the CDPetron with ``--help`` for info about those.
