@@ -211,7 +211,7 @@ class FixLinksDescartados(Procesador):
             base = os.path.basename(comopath)
             categ = base.split("~")[0]
 
-            if config.NAMESPACES.get(categ) or vip_article(base):
+            if config.NAMESPACES.get(categ) or vip_decissor(base):
                 # está ok, la dejamos intacta
                 return m.group(0)
 
