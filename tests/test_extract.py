@@ -142,3 +142,14 @@ class SearcherTestCase(unittest.TestCase):
         )
         should_dsk = "extensions/ImageMap/desc-20.png"
         self._check(url, should_web, should_dsk)
+
+    def test_reemplazar_commons_images(self):
+        """Replace some particular image from commons."""
+        url = "/images/commons/thumb/4/40/35px-P_ps.png"
+        should_web = (
+            "http://upload.wikimedia.org/wikipedia/commons/"
+            "thumb/4/40/P_ps.png/35px-P_ps.png"
+        )
+        should_dsk = "commons/thumb/4/40/35px-P_ps.png"
+        self._check(url, should_web, should_dsk)
+
