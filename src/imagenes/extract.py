@@ -236,12 +236,6 @@ class ImageParser(object):
 
             dsk_url = "/".join(partes)
 
-        elif img.startswith("/images/"):
-            partes = img[8:].split("/")
-            partes.insert(-1, partes[-1].split("-")[-1])
-            dsk_url = img[8:]
-            web_url = "http://upload.wikimedia.org/wikipedia/" + "/".join(partes)
-
         elif img.startswith("//bits.wikimedia.org/"):
             dsk_url = img[46:]
 

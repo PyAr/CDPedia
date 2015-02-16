@@ -145,7 +145,10 @@ class SearcherTestCase(unittest.TestCase):
 
     def test_reemplazar_commons_images(self):
         """Replace some particular image from commons."""
-        url = "/images/commons/thumb/4/40/35px-P_ps.png"
+        url = (
+            "//upload.wikimedia.org/wikipedia/commons/"
+            "thumb/4/40/P_ps.png/35px-P_ps.png"
+        )
         should_web = (
             "http://upload.wikimedia.org/wikipedia/commons/"
             "thumb/4/40/P_ps.png/35px-P_ps.png"
