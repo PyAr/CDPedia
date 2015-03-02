@@ -34,7 +34,7 @@ es:
     tarmed:  # we aim for 2 to 3 GB
         type: tarball
         windows: True
-        page_limit: 400000,
+        page_limit: 400000
         image_reduction: [4, 8, 8, 80]
 
     cd:  # size max: 12cm, 80min:  737,280,000 bytes

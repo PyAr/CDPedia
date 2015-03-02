@@ -94,4 +94,4 @@ def retrieve():
         tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, c_ok, c_err)
 
     for code, cant in errores.most_common():
-        logger.warning("Had errors: code=%s quant=%d", code, cant)
+        logger.warning("Had errors: code=%r quant=%d", code, cant)
