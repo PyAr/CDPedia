@@ -153,7 +153,7 @@ def build_iso(dest):
     """Build the final .iso."""
     dest = dest + ".iso"
     subprocess.call(["mkisofs", "-hide-rr-moved", "-quiet", "-f", "-V",
-                     "CDPedia", "volset", "CDPedia", "-o", dest, "-R",
+                     "CDPedia", "-volset", "CDPedia", "-o", dest, "-R",
                      "-J", config.DIR_CDBASE])
 
 

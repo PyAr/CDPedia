@@ -306,8 +306,12 @@ def run():
     preprocesados = preprocesar.pages_selector.top_pages
     pi = ImageParser()
     total = len(preprocesados)
-    logger.info("Image parser inited, %d pages to process", total)
+    logger.info("Image parser inited")
 
+    logger.info("Extract images from special resources.")
+    pi.process_dynamics('portals', os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html'))
+
+    logger.info("Normal pages: %d pages to process", total)
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
     for dir3, fname, _ in preprocesados:
@@ -321,9 +325,6 @@ def run():
         done += 1
         tl.log("Parsing found %d images so far (%d of %d pages)",
                pi.cant, done, total)
-
-    logger.info("Extract images from special resources.")
-    pi.process_dynamics('portals', os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html'))
 
     pi.dump()
     return pi.imgs_ok, pi.cant

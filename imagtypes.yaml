@@ -29,7 +29,7 @@ es:
         type: iso
         windows: True
         page_limit: 5000000   # very big number, we want them all!
-        image_reduction: [4, 4, 16, 76]
+        image_reduction: [4, 8, 8, 80]
 
     tarmed:  # we aim for 2 to 3 GB
         type: tarball
