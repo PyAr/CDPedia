@@ -31,9 +31,8 @@ Para generar el archivo de indice hacer:
     dirbase: de dónde dependen los archivos
 """
 
-# Buscamos todo hasta el último guión no inclusive, porque los
-# títulos son como "Zaraza - Wikipedia, la enciclopedia libre"
-SACATIT = re.compile(".*?<title>([^<]*)\s+-", re.S)
+# get the title from the first big heading
+SACATIT = re.compile(".*?<h1[^>]*>([^<]*)</h1>.*", re.S)
 
 # separamos por palabras
 PALABRAS = re.compile("\w+", re.UNICODE)
@@ -54,7 +53,7 @@ def _getHTMLTitle(arch):
     if m:
         tit = m.groups()[0]
     else:
-        tit = u"<sin título>"
+        tit = u"<no-title>"
     return tit
 
 def _getPalabrasHTML(arch):
