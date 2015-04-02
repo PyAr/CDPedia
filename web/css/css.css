@@ -1,0 +1,79 @@
+.container-dark, footer{
+ background-color: rgba(198, 223, 248, 1);
+}
+
+.container-dark{
+ width: 100%;
+ display: table;
+ padding-bottom: 1em;
+}
+
+.bs-docs-nav{
+ background-color: rgba(198, 223, 248, 1);
+ text-shadow: none;
+}
+
+.bs-masthead{
+ background-color: #fefefe;
+ color: #444;
+ text-align: center;
+ text-shadow: none;
+ padding: 2em 0;
+}
+
+.bs-masthead h1{
+ color: #333;
+}
+
+.bs-masthead .lead{
+ margin: 0;
+ margin-bottom: 1em;
+}
+
+.navbar-inverse{
+ border: 0;
+}
+
+.bs-masthead-links a {
+ color: #777;
+}
+
+.bs-masthead-links{
+ text-align: center;
+}
+
+.bs-footer{
+ text-align: center;
+ padding: 1em 0;
+}
+
+h2{
+ margin-bottom: 1em;
+}
+
+p{
+ font-size: 1.1em;
+}
+
+#main-container{
+ background: url("../img/logo-1.jpg") right top no-repeat;
+}
+
+@font-face {
+  font-family: 'Signika Negative';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Signika Negative Light'), local('SignikaNegative-Light'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v3/q5TOjIw4CenPw6C-TW06FsC-V7OaTEQVGc9Xldn9X1c.woff) format('woff');
+}
+@font-face {
+  font-family: 'Signika Negative';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Signika Negative'), local('SignikaNegative-Regular'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v3/Z-Q1hzbY8uAo3TpTyPFMXRHNiTsuUke-4A8E9eWZJHI.woff) format('woff');
+}
+@font-face {
+  font-family: 'Signika Negative';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Signika Negative Semibold'), local('SignikaNegative-Semibold'), url(http://themes.googleusercontent.com/static/fonts/signikanegative/v3/q5TOjIw4CenPw6C-TW06FtTDf0ppND965ze6FI_VCjU.woff) format('woff');
+}

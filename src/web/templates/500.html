@@ -1,0 +1,6 @@
+{% extends "cdpedia_base.html" %}
+{% block title %}{{ gettext('Error') }}{% endblock %}
+{% block content %}
+<h1 class="firstHeading">{{ gettext('There was a problem') }}</h1>
+<div style="size: 1.5em; color:#ff0000;">{{message}}</div>
+{% endblock %}

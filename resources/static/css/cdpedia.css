@@ -1,0 +1,92 @@
+#footer {
+	overflow: hidden;
+	padding-right: 0;
+}
+#footer ul {
+	line-height: 1em;
+	overflow: hidden;
+}
+
+ul#navegacionBody {
+	list-style-type: none;
+	list-style-image: none;
+	margin-left: 0.2em;
+}
+ul#f-info-cdpedia {
+	margin-right: 2%;
+	width: 64%;
+	float: left;
+	font-size: 1.1em;
+}
+ul#f-info-wikipedia,
+ul#f-icons {
+	width: 34%;
+	margin-right: 0;
+	float: left;
+}
+ul#f-icons {
+	margin-top: .5em;
+}
+
+ul#f-info-wikipedia li,
+ul#f-icons li {
+	float: left;
+	margin-right: 2em;
+}
+#f-icon-poweredby-pyar img {
+	height: 40px;
+}
+
+a.nopo {
+    border-bottom: 1px dashed red;
+    text-decoration:none; color: red;
+}
+
+a.external {
+    border-bottom: 1px dashed blue;
+    text-decoration:none;
+}
+
+div#searchBody {
+    border: 1px solid #AAA;
+    background: white;
+    width: 10em;
+    padding: .1em;
+}
+
+input#searchInput, input#searchInput:focus {
+    border: 0;
+    width: 130px;
+    outline: 0;
+}
+
+#mw-panel h5 {
+    font-weight: normal;
+}
+
+button#searchButton {
+    border: 0;
+    background: white;
+    padding: .1em;
+}
+
+
+div.paging-results{
+    background-color: #F3F3F3;
+    padding: 5px;
+    width:100%;
+    height:1.7em;
+}
+
+li.search-result{
+    list-style: none;
+    padding-bottom: 1em;
+}
+
+li.search-result-title{
+    font-size: 105%;
+}
+
+li.search-result-text{
+    font-size: 85%;
+}

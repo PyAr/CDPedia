@@ -1,0 +1,12 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <script type="text/javascript"></script>
+</head>
+  <frameset>
+     <frame src="{{asset_url}}" />
+    {% if server_mode %}
+     <frame src="/watchdog/update" style="width:1px;height:1px;display:none;"></frame>
+    {% endif %}
+  </frameset>
+</html>

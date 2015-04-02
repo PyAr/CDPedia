@@ -1,0 +1,29 @@
+# General information for each language for parsing and image generation
+#
+# These are:
+#  - include: some specific pages that *must* be included
+#  - portal_index: the URL of the main "portals" index
+
+es:
+    include: [
+        "Wikipedia:Acerca_de",
+        "Wikipedia:Limitación_general_de_responsabilidad",
+        "Wikipedia:Aviso_de_riesgo",
+        "Wikipedia:Aviso_médico",
+        "Wikipedia:Aviso_legal",
+        "Wikipedia:Aviso_de_contenido",
+        "Wikipedia:Derechos_de_autor",
+        "Wikipedia:Portal",
+    ]
+    portal_index: http://es.wikipedia.org/wiki/Portal:Portada
+
+ay:
+    include: [
+        "Wikipidiya:Acerca_de",
+        "Wikipidiya:Limitación_general_de_responsabilidad",
+    ]
+
+pt:
+    include: [       # FIXME: fill this
+    ]
+    portal_index: http://pt.wikipedia.org/wiki/Portal:%C3%8Dndice

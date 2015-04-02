@@ -1,0 +1,32 @@
+Steps to generate locale files
+------------------------------
+
+First, re-generate the pot file:
+
+    pybabel -v extract -F locale/babel.config -o locale/core.pot src/web/templates/
+
+
+Then, for every language, do (in the example, I'm doing it for 'es'):
+
+    0. First time for the language, go to step 1; else go to step 2
+
+    1.  Just copy the .pot file, make a dir you'll need, and then go to step 3
+
+        cd locale
+        cp core.pot es.po
+        mkdir es/LC_MESSAGES/
+
+    2. Merge new strings with previous file
+
+        cd locale
+        msgmerge es.po core.pot > /tmp/temp_po
+        mv /tmp/temp_po es.po
+
+    3. Get your favourite text editor and fill translations
+
+        vim es.po
+
+    4. Compile the just filled .po to the correct lang place; again, as an
+       example for 'es':
+
+        msgfmt es.po --output-file=es/LC_MESSAGES/core.mo

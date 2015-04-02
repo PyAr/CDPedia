@@ -1,0 +1,601 @@
+/* Common CSS para todas las pieles */
+
+/* Arregla problemas interlineado para <sup> y <sub> */
+sup, sub {
+    line-height: 1em;
+}
+
+/* Ocultar título y categorías en la Portada*/
+body.page-Wikipedia_Portada h1.firstHeading, body.page-Wikipedia_Portada #catlinks { display:none; }
+
+
+/* Códigos sobre referencias */
+ol.references {font-size: 100%}
+.references-small {font-size: 90%}
+.references-2column {font-size: 90%; -moz-column-count: 2; column-count:2}
+
+/* Las referencias ahora no pueden ser texto en negrita o italico */
+sup.reference {
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Colorea de azul al clickear referencias */
+ol.references > li:target,
+sup.reference:target,
+span.citation:target, cite:target {
+    background-color: #DEF;
+}
+
+/* Estilo para citacion */
+span.citation, cite {
+    font-style: normal;
+    word-wrap: break-word;
+}
+
+/* Esto permite arreglar las duplicaciones de urls en plantillas de referencias como Plantilla:Citación. */
+@media screen, handheld, projection {
+    span.citation *.printonly, cite *.printonly {
+        display: none;
+    }
+}
+
+/* Llamadas al pie: Quitar corchetes */
+.corchete-llamada {display: none}
+
+/* [[Plantilla:Listaref]] */
+@media print {
+    .listaref {
+	    -moz-column-count: 1 !important
+	}
+}
+
+/* CSS para infoboxes */
+.infobox {
+    border: 1px solid #aaa;
+    background-color: #f9f9f9;
+    color: #000;
+    margin-bottom: 0.5em;
+    margin-left: 1em;
+    padding: 0.2em;
+    float: right;
+    clear: right;
+}
+
+.infobox td, .infobox th,
+.infobox_v2 td, .infobox_v2 th {
+    vertical-align: top;
+}
+
+.infobox caption {
+    font-size: larger;
+    margin-left: inherit;
+}
+
+/* infoboxes V2 ("nuevas") */
+.infobox_v2 {
+    border: 1px solid #B4BBC8;
+    background-color: #f9f9f9;
+    color: #000;
+    margin: .5em 0 .5em 1em;
+    padding: .4em;
+    clear: right;
+    float: right;
+    font-size: 90%;
+    line-height: 1.5em;
+    width: 22.5em
+}
+
+.infobox_v2 .cabecera {
+    font-size: 140%;
+    font-weight: bolder;
+    height: 45px;
+    line-height: 1.2em;
+    text-align: center;
+    vertical-align: middle
+}
+
+.infobox_v2 .media {
+    font-weight: bolder;
+    height: 35px;
+    text-align: center;
+    vertical-align: middle
+}
+
+/* Gráficos transparentes de cabecera */
+.cabecera.default {}
+.media.audio {background:url(http://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Gnome-speakernotes.png/35px-Gnome-speakernotes.png) no-repeat top left}
+.media.video {background:url(http://upload.wikimedia.org/wikipedia/en/thumb/2/20/Tango-video-x-generic.png/35px-Tango-video-x-generic.png) no-repeat top left}
+
+/* Códigos para tipos especificos de infoboxes */
+.infobox.bordered {
+    border-collapse: collapse;
+}
+.infobox.bordered td,
+.infobox.bordered th {
+    border: 1px solid #B4BBC8;
+}
+.infobox.bordered .borderless td,
+.infobox.bordered .borderless th {
+    border: 0;
+}
+
+.infobox.sisterproject {
+    width: 20em;
+    font-size: 90%;
+}
+
+@media print {
+    .infobox.sisterproject {
+       display: none;
+    }
+}
+
+.infobox.geography,
+.infobox_v2.geography {
+    text-align: left;
+    border-collapse: collapse;
+    line-height: 1.2em;
+    font-size: 90%;
+    border: solid 1px #B4BBC8;
+}
+
+.infobox.geography td,
+.infobox.geography th,
+.infobox_v2.geography td,
+.infobox_v2.geography th {
+    border-top: solid 1px #B4BBC8;
+    padding: .4em .6em;
+}
+
+.infobox.geography .mergedtoprow td,
+.infobox.geography .mergedtoprow th,
+.infobox_v2.geography .mergedtoprow td,
+.infobox_v2.geography .mergedtoprow th {
+    border-top: solid 1px #B4BBC8;
+    padding: .4em .6em .2em .6em;
+}
+
+.infobox.geography .mergedrow td,
+.infobox.geography .mergedrow th,
+.infobox_v2.geography .mergedrow td,
+.infobox_v2.geography .mergedrow td {
+    border: 0;
+    padding: 0 .6em .2em .6em;
+}
+
+.infobox.geography .mergedbottomrow td,
+.infobox.geography .mergedbottomrow th,
+.infobox_v2.geography .mergedbottomrow td,
+.infobox_v2.geography .mergedbottomrow th {
+    border-top: 0;
+    border-bottom: solid 1px #B4BBC8;
+    padding: 0 .6em .4em .6em;
+}
+
+.infobox.geography .maptable td,
+.infobox.geography .maptable th,
+.infobox_v2.geography .maptable td,
+.infobox_v2.geography .maptable th {
+    border: 0;
+    padding: 0;
+}
+
+/* Infobox sin uso conocido, deberia ser borrado al comprobarse que ya no se usa */
+.InfoDerecha {
+   clear: right;
+   float: right;
+   margin: 0 0 1em 1em;
+}
+
+/* CSS relacionado con el uso de coordenadas
+
+To display coordinates using the notation in the source code, write this in your User:Username/monobook.css:
+    .geo-default {display: inline} .geo-nondefault {display: none}
+    .geo-dec {display: inline} .geo-dms {display: inline}
+ To display coordinates using decimal notation, write this in your User:Username/monobook.css:
+    .geo-default {display: inline} .geo-nondefault {display: inline}
+    .geo-dec {display: inline} .geo-dms {display: none}
+ To display coordinates using DMS notation, write this in your User:Username/monobook.css:
+    .geo-default {display: inline} .geo-nondefault {display: inline}
+    .geo-dec {display: none}    .geo-dms {display: inline}
+ To display coordinates in both decimal and DMS notation, write this in your User:Username/monobook.css:
+    .geo-default {display: inline} .geo-nondefault {display: inline}
+    .geo-dec {display: inline}    .geo-dms {display: inline}
+    .geo-multi-punct {display: inline}
+ See [[Plantilla:Coor link]] for how these are used.
+Note that the classes "geo", "longitude", and "latitude" are not just styles but also used by the [[Geo microformat]], so the names should not be changed.
+*/
+
+/* CSS predeterminado, puede modificarse usando las reglas de arriba */
+.geo-default, .geo-dms, .geo-dec  { display: inline; }
+.geo-nondefault, .geo-multi-punct { display: none; }
+.longitude, .latitude { white-space: nowrap; }
+
+/* This is used for the Geo microformat, but no style is needed for now other than .geo-dec. */
+.geo {}
+
+/*******************************************************************/
+/********* Estilos para diferentes funcionalidades menores *********/
+/*******************************************************************/
+
+/* Desambiguaciones */
+#disambig {
+    border-top: 3px double #ccc;
+    border-bottom: 3px double #ccc;
+}
+
+/* Plantilla de cita */
+.citado {
+    font-size: 90%;
+    background-color: #F9F9F9;
+    padding: 5px 10px;
+}
+
+/* Estilos para sitenotice y similares */
+.notice {
+    text-align: justify;
+    margin: 1em;
+    padding: 0.2em;
+}
+
+/* Support for Template:IPA, Template:Unicode and Template:Polytonic.
+ * The second declarations reset the styles for all browsers except
+ * IE6, which chokes on the empty comment tags. */
+.IPA {
+    font-family: "Charis SIL", "Doulos SIL", Gentium, GentiumAlt,
+                  "DejaVu Sans", Code2000, "TITUS Cyberbit Basic",
+                  "Arial Unicode MS", "Lucida Sans Unicode",
+                  "Chrysanthi Unicode";
+    font-family /**/: inherit;
+}
+.Unicode {
+    font-family: Code2000, Code2001, "Free Serif", "TITUS Cyberbit Basic",
+                  "Doulos SIL", "Chrysanthi Unicode", "Bitstream Cyberbit",
+                  "Bitstream CyberBase", Thryomanes, Gentium, GentiumAlt,
+                  "Lucida Grande", "Free Sans", "Arial Unicode MS",
+                  "Microsoft Sans Serif", "Lucida Sans Unicode";
+    font-family /**/: inherit;
+}
+.polytonic {
+    font-family: "Athena Unicode", Gentium, "Palatino Linotype",
+                  "Arial Unicode MS", "Lucida Sans Unicode",
+                  "Lucida Grande", Code2000;
+    font-family /**/: inherit;
+}
+
+/* Ayudita para [[Especial:Allpages]] y categorías: los redirects aparecen en cursiva */
+.allpagesredirect, .redirect-in-category {font-style: italic}
+
+/* Cambiar el icono de los archivos PDF */
+#bodyContent a[href$=".pdf"].external,
+#bodyContent a[href*=".pdf?"].external,
+#bodyContent a[href*=".pdf#"].external,
+#bodyContent a[href$=".PDF"].external,
+#bodyContent a[href*=".PDF?"].external,
+#bodyContent a[href*=".PDF#"].external {
+    background: url(http://upload.wikimedia.org/wikipedia/commons/2/23/Icons-mini-file_acrobat.gif) center right no-repeat;
+    padding-right: 16px;
+}
+
+/* Change the external link icon to an Adobe icon anywhere the PDFlink class */
+span.PDFlink a {
+    background: url("http://upload.wikimedia.org/wikipedia/commons/2/23/Icons-mini-file_acrobat.gif") center right no-repeat;
+    padding-right: 17px;
+}
+
+/* Ocultar texto para los no bibliotecarios */
+.para_biblios {display: none}
+
+.rotate_0 {display: block}
+.rotate_1, .rotate_2, .rotate_3, .rotate_4, .rotate_5, .rotate_6, .rotate_7, .rotate_8, .rotate_9 {display: none}
+
+.mw-specialpages-table, /* [[Especial:SpecialPages]]: alinear a la izquierda, en vez de estar justificado */
+body.ns-14 div#mw-pages /* Categorías con alineación a la izquierda, no justificada */
+{text-align:left}
+
+
+/* otros */
+body.page-Especial_Registro fieldset p small {font-size:100%}
+
+/* [[Plantilla:No firmado]], más pequeño */
+span.nofirmado {font-size:smaller}
+
+/*InterProject */
+.interProject {
+    display:none;
+    clear: both;
+    border-top: 2px dotted #aaa;
+    margin-top: 2em;
+}
+
+/* CSS para plegables, documentación en [[:en:Wikipedia:NavFrame]] */
+div.NavFrame {
+    margin: 0;
+    padding: 4px;
+    border: 1px solid #aaa;
+    text-align: center;
+    border-collapse: collapse;
+    font-size: 95%;
+}
+div.NavFrame + div.NavFrame {
+    border-top-style: none;
+    border-top-style: hidden;
+}
+div.NavPic {
+    background-color: #fff;
+    margin: 0;
+    padding: 2px;
+    float: left;
+}
+div.NavFrame div.NavHead {
+    height: 1.6em;
+    font-weight: bold;
+    background-color: #ccf;
+    position: relative;
+}
+div.NavFrame p,
+div.NavFrame div.NavContent,
+div.NavFrame div.NavContent p {
+    font-size: 100%;
+}
+div.NavEnd {
+    margin: 0;
+    padding: 0;
+    line-height: 1px;
+    clear: both;
+}
+a.NavToggle {
+    position: absolute;
+    top: 0;
+    right: 3px;
+    font-weight: normal;
+    font-size: 90%;
+}
+
+/* TABLAS */
+
+/* La clase wikitable ya existe en shared.css; y prettytable esta obsoleta,
+    cuando se reemplaze todas las llamadas a prettytable eliminar estas reglas */
+table.wikitable, table.prettytable {
+    margin: 1em 1em 1em 1em;
+    padding: 0.5em;
+    font-size: 95%;
+    background-color: #f9f9f9;
+    border: 1px #aaa solid;
+    border-collapse: collapse;
+}
+table.wikitable th, table.wikitable td,
+table.prettytable th, table.prettytable td {
+    border: 1px #aaa solid;
+    padding: 0.2em;
+}
+table.wikitable th,
+table.prettytable th {
+    background-color: #f2f2f2;
+    text-align: center;
+}
+table.wikitable caption,
+table.prettytable caption {
+    margin-left: inherit;
+    margin-right: inherit;
+}
+
+/*** Cajas de aviso en discusión nuevas (ambox) que son blancas y con
+ * una cinta de color a la izquierda  */
+table.ambox {
+    margin: 0 10%; /* Will not overlap with other elements */
+    border-collapse: collapse;
+    background-color: #fbfbfb;
+    border: 1px solid #aaa;
+    border-left: 10px solid #1e90ff; /* Default "notice" blue */
+}
+table.ambox th.ambox-text, table.ambox td.ambox-text { /* The message body cell(s) */
+    padding: 0.25em 0.5em; /* 0.5em left/right */
+    width: 100%; /* Make all templates the same width regardless of text size */
+}
+table.ambox td.ambox-image { /* The left image cell */
+    padding: 2px 0px 2px 0.5em; /* 0.5em left, 0px right */
+    text-align: center;
+}
+table.ambox td.ambox-imageright { /* The right image cell */
+    padding: 2px 4px 2px 0px;  /* 0px left, 4px right */
+    text-align: center;
+}
+table.ambox-notice {border-left: 10px solid #1e90ff} /* Blue */
+table.ambox-delete, table.ambox-serious {border-left: 10px solid #b22222} /* Red */
+table.ambox-content {border-left: 10px solid #f28500} /* Orange */
+table.ambox-style {border-left: 10px solid #f4c430} /* Yellow */
+table.ambox-merge {border-left: 10px solid #9932cc} /* Purple */
+table.ambox-growth {border-left: 10px solid #228b22} /* Green */
+table.ambox-protection {border-left: 10px solid #bba} /* Gray */
+table.ambox.ambox-mini { /* Small floating box variant */
+    float: right;
+    clear: right;
+    margin: 0 0 0 1em;
+    width: 25%;
+}
+@media print { /* Do not print article message box */
+    .ambox {display: none}
+}
+
+
+/* Footer and header message box styles */
+table.fmbox {
+    clear: both;
+    margin: 0.2em 0;
+    width: 100%;
+    border: 1px solid #aaa;
+    background: #f9f9f9;     /* Default "system" gray */
+}
+table.fmbox-system {
+    background: #f9f9f9;
+}
+table.fmbox-warning {
+    border: 1px solid #bb7070;  /* Dark pink */
+    background: #ffdbdb;        /* Pink */
+}
+table.fmbox-editnotice {
+    background: transparent;
+}
+div.fmbox-system {
+    clear: both;
+    margin: 0.2em 0;
+    border: 1px solid #aaa;
+    background: #f9f9f9;
+    padding: 0.25em 0.9em;
+}
+
+
+/* Ciertas cajas para discusión que NO son ambox (no tienen cinta de color)
+    por ejemplo, la caja grande de artículo destacado */
+ .messagebox {
+    border: 1px solid #aaa;
+    background-color: #f9f9f9;
+    width: 80%;
+    margin: 0 auto 1em auto;
+    padding: .2em;
+}
+.messagebox.merge {
+    border: 1px solid #c0b8cc;
+    background-color: #f0e5ff;
+    text-align: center;
+}
+.messagebox.cleanup {
+    border: 1px solid #9f9fff;
+    background-color: #efefff;
+    text-align: center;
+}
+.messagebox.standard-talk {
+    border: 1px solid #c0c090;
+    background-color: #f8eaba;
+    margin: 4px auto;
+}
+
+/** Estilos para tablas.
+    la idea es, si se quiere que la primera columna de la tabla esté alineada
+    a la derecha, la segunda centrada  y la tercera a la izquierda, usar
+    {| class="col1der col2cen col3izq"
+    en vez de repetir "style='text-align:right'", etc, en '''cada''' celda
+**/
+table.col1der TD:first-child {text-align:right}
+table.col1izq TD:first-child {text-align:left}
+table.col1cen TD:first-child {text-align:center}
+
+table.col2der TD:first-child + TD {text-align:right}
+table.col2izq TD:first-child + TD {text-align:left}
+table.col2cen TD:first-child + TD {text-align:center}
+
+table.col3der TD:first-child + TD + TD {text-align:right}
+table.col3izq TD:first-child + TD + TD {text-align:left}
+table.col3cen TD:first-child + TD + TD {text-align:center}
+
+table.col4der TD:first-child + TD + TD + TD {text-align:right}
+table.col4izq TD:first-child + TD + TD + TD {text-align:left}
+table.col4cen TD:first-child + TD + TD + TD {text-align:center}
+
+table.col5der TD:first-child + TD + TD + TD + TD {text-align:right}
+table.col5izq TD:first-child + TD + TD + TD + TD {text-align:left}
+table.col5cen TD:first-child + TD + TD + TD + TD {text-align:center}
+
+/* Put a checker background at the image description page only visible if the image has transparent background */
+#file img {background: url(http://upload.wikimedia.org/wikipedia/commons/5/5d/Checker-16x16.png) repeat}
+
+/* Disponibilidad para tareas de mantenimiento/Tablas por día/semana */
+
+table.user-availability {
+    text-align:center;
+    border:1px solid #333366;
+}
+table.user-availability th {
+    font-size:110%
+}
+table.user-availability .toprow td+td {
+    width:30px;
+    height:10px;
+    background-color:#eee;
+    border:1px solid #aaa
+}
+table.user-availability .off {
+    font-size:80%;
+    border:1px solid #aaa;
+    background-color:#fff;
+}
+table.user-availability .onn {
+    font-size:80%;
+    border:1px solid #aaa;
+    background-color:#cfc;
+}
+table.user-availability .wrk {
+    font-size:80%;
+    border:1px solid #aaa;
+    background-color:#ccf;
+}
+table.user-availability .cll {
+    font-size:80%;
+    border:1px solid #aaa;
+    background-color:#ffd;
+}
+table.user-availability .key {
+    font-size:90%;
+    border-top:1px dashed #000;
+    text-align:right
+}
+table.user-availability .key span {
+    padding:2px
+}
+
+
+/* Clases obsoletas, reemplazar por "plainlinks nourlexpansion"
+    Quita padding para enlaces externos mostrados sin icono
+    [[Plantilla:Ref]] ya no se usa asi que no tiene muchos usos */
+#bodyContent .plainlinks a,
+.plainlinksneverexpand {
+    background: none !important;
+    padding: 0 !important;
+}
+
+.plainlinksneverexpand .urlexpansion {
+    display : none !important;
+}
+
+.plainlinksneverexpand a {
+    background: none !important;
+    padding: 0 !important
+}
+
+/* With MediaWiki 1.5, the mechanism has changed: instead of a SPAN of class "urlexpansion"
+  following the anchor A, the anchor itself now has class "external autonumber" and the
+  expansion is inserted when printing (see the common printing style sheet at
+  http://en.wikipedia.org/skins-1.5/common/commonPrint.css) using the ":after" pseudo-
+  element of CSS. We have to switch this off for links due to Template:Ref!
+*/
+
+.plainlinksneverexpand a.external.text:after {
+    display: none !important;
+}
+.plainlinksneverexpand a.external.autonumber:after {
+    display: none !important;
+}
+
+.border-radius4 {
+    border-radius: 4px; /* CSS 3 */
+    -moz-border-radius: 4px; /* Firefox */
+    -webkit-border-radius: 4px; /* Safari 3.0+ */
+}
+
+.border-radius6 {
+    border-radius: 6px; /* CSS 3 */
+    -moz-border-radius: 6px; /* Firefox */
+    -webkit-border-radius: 6px; /* Safari 3.0+ */
+}
+
+
+.abbr {/* al estilo de la etiquieta <abbr> */
+     cursor: help;
+     border-bottom: 1px dotted #000;
+}
+
+div.editOptions {
+  text-align: left;
+}

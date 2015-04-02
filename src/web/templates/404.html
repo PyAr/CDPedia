@@ -1,0 +1,7 @@
+{% extends "cdpedia_base.html" %}
+{% block title %}{{ gettext('Article not found') }}{% endblock %}
+{% block content %}
+{{ gettext("The article %s couldn't be included in the disk.") % (article_name,) }}
+<br/><br>
+{{ gettext('You can access it in Wikipedia in <a class="external" href="%s">this external link</a>.') % (original_link,) }}
+{% endblock %}

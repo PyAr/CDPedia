@@ -1,0 +1,64 @@
+# Languages and types of images for each
+# Config for each type:
+#   - type: which kind of image will be generated (tarball, iso)
+#   - windows: if all Windows stuff will be put inside the image
+#   - page_limit: quantity of pages to include in the image
+#   - imaged_reduction: percentages to indicate how many images
+#       will be reduced and how; for example, [10, 15, 25, 50] means:
+#           10% of images will be included full size
+#           15% of images will be reduced to 75% of the original size
+#           25% of images will be reduced to 50% of the original size
+#           50% of images will not be included at all
+#       of course, the 4 percentages must add 100%
+
+# Spanish
+es:
+    tarbig:  # we aim for 8 to 10 GB
+        type: tarball
+        windows: True
+        page_limit: 5000000   # very big number, we want them all!
+        image_reduction: [10, 25, 65, 0]
+
+    dvd9:  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
+        type: iso
+        windows: True
+        page_limit: 5000000   # very big number, we want them all!
+        image_reduction: [10, 25, 65, 0]
+
+    dvd5:  # size: DVD-R SL, 12cm:  4,700,319,808 bytes
+        type: iso
+        windows: True
+        page_limit: 5000000   # very big number, we want them all!
+        image_reduction: [4, 8, 8, 80]
+
+    tarmed:  # we aim for 2 to 3 GB
+        type: tarball
+        windows: True
+        page_limit: 400000
+        image_reduction: [4, 8, 8, 80]
+
+    cd:  # size max: 12cm, 80min:  737,280,000 bytes
+        type: iso
+        windows: True
+        page_limit: 78500
+        image_reduction: [1, 2, 3, 94]
+
+    xo:
+        type: tarball
+        windows: False
+        page_limit: 5000
+        image_reduction: [0, 0, 5, 95]
+
+    beta:
+        type: tarball
+        windows: True
+        page_limit: 20000   # sample version to distribute for others to QA
+        image_reduction: [10, 20, 20, 50]
+
+# Aymar
+ay:
+    tarbig:
+        type: tarball
+        windows: True
+        page_limit: 5000000   # very big number, we want them all!
+        image_reduction: [100, 0, 0, 0]

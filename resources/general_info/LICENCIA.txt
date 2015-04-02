@@ -1,0 +1,48 @@
+Información de licencias
+------------------------
+
+Este disco contiene principalmente código Python para mostrar/manejar/procesar
+la información, y la información propiamente dicha.
+
+
+El código es parte del proyecto CDPedia...
+
+    http://cdpedia.python.org.ar/
+
+... (c) 2006-2011 Python Argentina (mirá el archivo AUTORES.txt) para una lista de
+los principales, y es licenciado bajo la licencia Licencia Pública General de
+GNU versión 3 (Gnu GPL 3).  El detalle de esta licencia la podés encontrar en
+el archivo gpl-3.0.txt en este mismo disco, o en:
+
+    http://www.gnu.org/licenses/
+
+Estos programas son software libre: los podés redistribuir y/o modificar
+bajo los términos de la licencia antedicha, ya sea en su versión 3 o en
+una versión posterior (según elijas).  Estos programas se distribuyen
+con la esperanza de que sean útiles, pero SIN NINGUNA GARANTIA; sin
+siquiera una garantía implícita de ningún tipo.  Leé la licencia para
+más detalles.
+
+
+Con respecto al contenido propiamente dicho, todos los artículos e imágenes
+mostrados aquí no tienen ningún procesamiento más que el estrictamente
+necesario para la correcta navegación del usuario. Todos los contenidos
+provienen de un paquete estático de HTMLs de Wikipedia:
+
+    http://static.wikipedia.org/
+
+Por lo tanto, se aplica la licencia puesta por Wikipedia: cc-by-sa.  Esta
+licencia especifica que podés copiar, distribuir y comunicar públicamente
+la obra, y hacer obras derivadas, bajo las condiciones de reconocimiento
+(debes reconocer los créditos de la obra de la manera especificada por
+el autor o el licenciador, pero no de una manera que sugiera que tiene
+su apoyo o apoyan el uso que hace de su obra), y de compartir bajo la
+misma licencia  (si transforma o modifica esta obra para crear una obra
+derivada, sólo puede distribuir la obra resultante bajo la misma
+licencia, una de similar o una de compatible).
+
+El detalle de la licencia lo podés encontrar en el archivo cc-by-sa-3.0.txt
+en este mismo disco, o en:
+
+    http://creativecommons.org/licenses/by-sa/3.0/deed.es
+

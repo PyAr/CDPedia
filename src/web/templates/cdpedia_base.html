@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/skins/css/main.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/static/skins/css/shared.css" type="text/css" media="screen" />
+
+    <link rel="stylesheet" href="/static/skins/css/commonPrint.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="/static/skins/css/combined.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/Common.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/static/skins/css/Print.css" type="text/css" media="print" />
+    <link rel="stylesheet" href="/static/skins/css/Handheld.css" type="text/css" media="handheld" />
+    <link rel="stylesheet" href="/static/skins/css/Vector.css" type="text/css" media="all" />
+
+    <link rel="stylesheet" href="/static/css/cdpedia.css" type="text/css" media="all" />
+
+    <!--[if lt IE 5.5000]><style type="text/css">@import "/static/skins/monobook/IE50Fixes.css";</style><![endif]-->
+    <!--[if IE 5.5000]><style type="text/css">@import "/static/skins/monobook/IE55Fixes.css";</style><![endif]-->
+    <!--[if IE 6]><style type="text/css">@import "/static/skins/monobook/IE60Fixes.css";</style><![endif]-->
+    <!--[if IE]><script type="text/javascript" src="/static/skins/common/IEFixes.js"></script>
+    <meta http-equiv="imagetoolbar" content="no" /><![endif]-->
+
+    <script type="text/javascript" src="/static/skins/js/header.js"></script>
+    <script type="text/javascript" src="/static/skins/js/wikibits.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.base64.js"></script>
+    <script type="text/javascript" src="/static/js/search.js"></script>
+    <!--<script type="text/javascript" src="/static/skins/js/ajax.js"></script>-->
+    <!--<script type="text/javascript" src="/static/skins/js/mwsuggest.js"></script>-->
+    <!--<script type="text/javascript" src="/static/skins/js/Vector.js"></script>
+    <script type="text/javascript" src="/static/skins/js/plugins.js"></script>-->
+    <script type="text/javascript" src="/static/skins/js/md5.js"></script>
+    <script type="text/javascript" src="/static/skins/js/utf8.js"></script>
+    <script type="text/javascript" src="/static/skins/js/lookup.js"></script>
+{% endblock %}
+{% block body %}
+  {% if watchdog %}
+  <!-- Watchdog iframe -->
+  <iframe src="/watchdog/update" style="width:1px;height:1px;display:none;"></iframe>
+  <!-- /WatchDog iframe -->
+  {% endif %}
+  <div id="content">
+    <a id="top"></a>
+    <div id="mw-js-message" style="display:none;"></div>
+    <!-- sitenotice -->
+    <div id="siteNotice"><!-- centralNotice loads here --></div>
+    <!-- /sitenotice -->
+    {% block content %}
+    {% endblock %}
+    </div>
+    <!-- /bodyContent -->
+  </div>
+  <!-- /content -->
+  {% include "sidebar.html" %}
+  <!-- footer -->
+  <div id="footer">
+    <ul id="f-info-cdpedia">
+      <li id="f-info-original">
+        {{ gettext('If you have an Internet connection, you can visit the article\'s <a class="external" href="%s">updated original page</a>.') % (orig_link,)}}
+      </li>
+      <li>
+      {{ gettext('<a href="/institucional/cdpedia.html">CDPedia</a> is a project of <a href="/institucional/pyar.html">Python Argentina</a>. Learn to program in Python! Here you have the <a href="/tutorial" target="_blank">tutorial</a>.') }}
+      </li>
+      <li>
+      {{ gettext('Articles and images are shown here without any processing more than the strictly necessary for the correct user navigation.') }}
+      </li>
+      <li>
+      {{ gettext('All the content from the articles come from the <a href="http://%s.wikipedia.org/">Wikipedia online site</a>.') % (language,) }}
+      </li>
+    </ul>
+    <ul id="f-info-wikipedia">
+      <li id="f-info-copyright">
+      {{ gettext('The text is released under the <a href=/institucional/cc-by-sa.html>Attribution-ShareAlike Creative Commons License</a>; additional terms may apply. Read in this page the <a href="/institucional/Términos_de_Uso.htm">usage terms</a> for more information. Wikipedia® is a registered trademark of the <a href="/institucional/wikimedia.html">Wikimedia Foundation, Inc.</a>, a non-profit organization.') }}
+      </li>
+      <li id="f-about">
+      <a href="/wiki/Wikipedia:Acerca_de" title="Wikipedia:Acerca de">{{ gettext('About Wikipedia') }}</a>
+      </li>
+      <li id="f-disclaimer">
+      <a href="/wiki/Wikipedia:Limitación_general_de_responsabilidad" title="Wikipedia:Limitación general de responsabilidad">{{ gettext('Disclaimers') }}</a>
+      </li>
+    </ul>
+    <ul id="f-icons" class="noprint">
+      <li id="f-icon-copyright">
+        <a href="/institucional/wikimedia.html">
+          <img src="/static/misc/wikimedia-button.png" alt="Wikimedia Foundation" />
+        </a>
+      </li>
+      <li id="f-icon-poweredby-pyar">
+        <a href="/institucional/pyar.html">
+          <img src="/static/img/pyar-logo-chico.png" alt="Powered by PyAr" />
+        </a>
+      </li>
+    </ul>
+  </div><!-- #footer -->
+  <!-- fixalpha -->
+  <script type="text/javascript"> if ( window.isMSIE55 ) fixalpha(); </script>
+  <!-- /fixalpha -->
+{% endblock %}
