@@ -1,3 +1,11 @@
+CDPedia
+=======
+
+CDPedia is a project to make the Wikipedia accesable offline.
+
+Check also the `official page for normal humans <http://cdpedia.python.org.ar/>`_.
+
+
 How to create an image
 ----------------------
 
