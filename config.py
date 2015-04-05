@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 import yaml
 
 # Versión de la CDPedia
@@ -109,7 +111,8 @@ DYNAMIC = '__dynamic__'
 CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
 
 # load configuration for languages and validate
-with open("imagtypes.yaml", "rt") as fh:
+_path = os.path.join(os.path.dirname(__file__), "imagtypes.yaml")
+with open(_path, "rt") as fh:
     imagtypes = yaml.load(fh)
 for lang, imtypes in imagtypes.items():
     for imtype, imdata in imtypes.items():

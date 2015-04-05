@@ -1,13 +1,32 @@
 # -*- coding: utf-8 -*-
 
+import codecs
+import os
+
+import config
+
 NULL = u"_"
 BARRA = u"SLASH"
 
-NAMESPACES = [u'Portal_Discusión', u'Wikiproyecto', u'Categoría_Discusión',
-              u'Imagen',  u'Usuario', u'Plantilla_Discusión', u'Categoría',
-              u'Wikipedia_Discusión', u'Wikipedia',  u'Anexo', u'Portal',
-              u'Usuario_Discusión', u'Anexo_Discusión',  u'Plantilla', u'Ayuda',
-              u'Discusión', u'Wikiproyecto_Discusión']
+
+class Namespaces(object):
+    """A dynamic loading list of namespaces."""
+    def __init__(self, path=None):
+        self._namespaces = None
+        if path is None:
+            self.filepath = os.path.join(config.DIR_ASSETS, 'dynamic', "namespace_prefixes.txt")
+        else:
+            self.filepath = path
+
+    def __contains__(self, tocheck):
+        if self._namespaces is None:
+            with codecs.open(self.filepath, 'rt', encoding='utf8') as fh:
+                self._namespaces = set(x.strip() for x in fh)
+
+        return tocheck in self._namespaces
+
+namespaces = Namespaces()
+
 
 def _escape_dir(s):
     return s.replace(u"/", NULL).replace(u".", NULL)
@@ -30,7 +49,7 @@ def to_path(pagina):
 
     if ':' in pagina:
         namespace, posible_pagina = pagina.split(':', 1)
-        if namespace in NAMESPACES:
+        if namespace in namespaces:
             pagina = posible_pagina
 
     pagina = _escape_dir(pagina)

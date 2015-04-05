@@ -470,7 +470,10 @@ class StatusBoard(object):
 
 
 @defer.inlineCallbacks
-def main(nombres, language, dest_dir, test_limit=None, pool_size=20):
+def main(nombres, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
+    # fix namespaces in to3dirs module so we can use it in this stage
+    to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
+
     test_limit = int(test_limit) if test_limit else None
     pool = workerpool.WorkerPool(size=int(pool_size))
     data_urls = URLAlizer(nombres, dest_dir, language, test_limit)

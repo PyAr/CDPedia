@@ -100,7 +100,7 @@ class ContentExtractor(_Processor):
         # extract the first parragraph
         node = soup.find('p')
         if node is None:
-            text = ''
+            safe_text = ''
             self.stats['text not found'] += 1
         else:
             text = node.text.strip()

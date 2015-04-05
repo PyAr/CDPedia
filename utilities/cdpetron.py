@@ -36,6 +36,7 @@ URL_LIST = (
 )
 ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
+NAMESPACES = "namespace_prefixes.txt"
 
 # the directory (inside the one specified by the user) that actually
 # holds the articles, images and resources
@@ -90,11 +91,22 @@ def get_lists(branch_dir, language, config, test):
         test = TEST_LIMIT_NAMESPACE
     logger.info("Getting the articles from namespaces (with limit=%s)", test)
     q = 0
+    prefixes = set()
     for article in list_articles_by_namespaces.get_articles(language, test):
         q += 1
         fh_artall.write(article.encode('utf8') + "\n")
+        prefixes.add(article.split(":", 1)[0])
     tot += q
     logger.info("Got %d namespace articles", q)
+
+    # save the namespace prefixes
+    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+    _path  = os.path.join(direct, NAMESPACES)
+    with open(_path, 'wb') as fh:
+        for prefix in sorted(prefixes):
+            fh.write(prefix.encode("utf8") + "\n")
 
     q = 0
     for page in config['include']:
@@ -108,18 +120,19 @@ def get_lists(branch_dir, language, config, test):
     return gendate
 
 
-def scrap_pages(branch_dir, language, dump_dir, test):
+def scrap_pages(branch_dir, language, dump_lang_dir, test):
     """Get the pages from wikipedia."""
-    articles_dir = os.path.join(dump_dir, DUMP_ARTICLES)
+    articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
     logger.info("Assure articles dir is empty: %r", articles_dir)
     if os.path.exists(articles_dir):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
     logger.info("Let's scrap (with limit=%s)", test)
-    assert os.getcwd() == dump_dir
-    cmd = "python %s/utilities/scraper.py %s %s %s" % (
-        branch_dir, ART_ALL, language, DUMP_ARTICLES)
+    assert os.getcwd() == dump_lang_dir
+    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
+    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
+        branch_dir, ART_ALL, language, DUMP_ARTICLES, namespaces_path)
     if test:
         cmd += " " + str(TEST_LIMIT_SCRAP)
     res = os.system(cmd)
@@ -142,10 +155,10 @@ def scrap_pages(branch_dir, language, dump_dir, test):
     logger.info("Total size of scraped articles: %d MB", total // 1024 ** 2)
 
 
-def scrap_portals(dump_dir, language, lang_config):
+def scrap_portals(dump_lang_dir, language, lang_config):
     """Get the portal index and scrap it."""
     # always create the resources directory
-    direct = os.path.join(dump_dir, DUMP_RESOURCES)
+    direct = os.path.join(dump_lang_dir, DUMP_RESOURCES)
     if not os.path.exists(direct):
         os.mkdir(direct)
 
