@@ -7,6 +7,7 @@ Se usa desde server.py para consulta, se utiliza directamente
 para crear el índice.
 """
 
+import base64
 import codecs
 import config
 import os
@@ -31,30 +32,14 @@ Para generar el archivo de indice hacer:
     dirbase: de dónde dependen los archivos
 """
 
-# get the title from the first big heading
-SACATIT = re.compile(".*?<h1[^>]*>([^<]*)</h1>.*", re.S)
-
 # separamos por palabras
 PALABRAS = re.compile("\w+", re.UNICODE)
-
-# cantidad de palabras a incluir en el resumen de cada artículo
-CANT_CARS_RESUMEN = 230
 
 def normaliza(txt):
     """Recibe una frase y devuelve sus palabras ya normalizadas."""
     txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
     return txt
 
-def _getHTMLTitle(arch):
-    # Todavia no soportamos redirect, asi que todos los archivos son
-    # válidos y debería tener TITLE en ellos
-    html = codecs.open(arch, "r", "utf8").read()
-    m = SACATIT.match(html)
-    if m:
-        tit = m.groups()[0]
-    else:
-        tit = u"<no-title>"
-    return tit
 
 def _getPalabrasHTML(arch):
     # FIXME: esta función es para cuando hagamos fulltext
@@ -64,36 +49,6 @@ def _getPalabrasHTML(arch):
     txt = p.stdout.read()
     txt = txt.decode("utf8")
     return txt
-
-def _get_primeras_palabras(arch):
-    html = codecs.open(arch, "r", "utf8").read()
-
-    # nos paramos luego del primer párrafo
-    delimiter = "<p>"
-    try:
-        pos = html.index(delimiter) + len(delimiter)
-    except ValueError:
-        pos = 0
-    html = html[pos:]
-
-    # hasta que termine el párrafo
-    delimiter = "</p>"
-    try:
-        pos = html.index(delimiter)
-    except ValueError:
-        pos = 0
-    html = html[:pos]
-
-    # borramos todo lo que son tags
-    html = re.sub("<.*?>", "", html)
-
-    # borramos todo los tabs y enters
-    html = re.sub("[\\t\\n]", "", html)
-
-    # mostramos las indicadas, si hay
-    if html:
-        html = html[:CANT_CARS_RESUMEN] + "..."
-    return html
 
 
 class IndexInterface(threading.Thread):
@@ -173,18 +128,18 @@ def generar_de_html(dirbase, verbose):
 
     filenames = preprocesar.pages_selector.top_pages
 
+    titles_texts = {}
+    with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
+        for line in fh:
+            arch, titulo, encoded_primtexto = line.strip().split(config.SEPARADOR_COLUMNAS)
+            primtexto = base64.b64decode(encoded_primtexto).decode("utf8")
+            titles_texts[arch] = (titulo, primtexto)
+
     def gen():
         for dir3, arch, puntaje in filenames:
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
-            nomreal = os.path.join(dirbase, nomhtml)
-            if os.access(nomreal, os.F_OK):
-                titulo = _getHTMLTitle(nomreal)
-                primtexto = _get_primeras_palabras(nomreal)
-            else:
-                print "WARNING: Archivo no encontrado:", nomreal
-                continue
-
+            titulo, primtexto = titles_texts[arch]
             if verbose:
                 print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
 

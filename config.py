@@ -95,6 +95,7 @@ LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
 LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
 LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
+LOG_TITLES = DIR_TEMP + "/titles.txt"
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'

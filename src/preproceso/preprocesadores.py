@@ -33,8 +33,9 @@ de la página que procesa, y una lista de tuplas (otra_página, puntaje) en
 caso de asignar puntajes a otras páginas.  En caso de querer omitir la
 página que se le ofrece, el procesador debe devolver None en lugar del
 puntaje.
-
 """
+
+import base64
 import codecs
 import collections
 import os
@@ -52,12 +53,11 @@ SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
 
 
-class Procesador(object):
-    """Procesador Genérico, no usar directamente."""
+class _Processor(object):
+    """Generic processor, don't use directly, thoght to be subclassed."""
 
     def __init__(self, wikisitio):
-        self.nombre = 'Procesador Genérico'
-        self.log = None  # ej.: open("archivo.log", "w")
+        self.nombre = 'Generic processor'
         self.stats = None
 
     def __call__(self, wikiarchivo):
@@ -67,6 +67,58 @@ class Procesador(object):
           return (123456, [])
         """
         raise NotImplemented
+
+    def close(self):
+        """Close operations, save stuff if needed.
+
+        Overwrite only if necessary.
+        """
+
+
+class ContentExtractor(_Processor):
+    """Extract content from the HTML to be used later."""
+
+    # max length of the text extracted from the article
+    _max_length = 230
+
+    def __init__(self, wikisitio):
+        super(ContentExtractor, self).__init__(wikisitio)
+        self.nombre = "ContentExtractor"
+        self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
+        self.stats = collections.Counter()
+
+    def __call__(self, wikiarchivo):
+        soup = bs4.BeautifulSoup(wikiarchivo.html)
+
+        # extract the title
+        node = soup.find('h1')
+        if node is None:
+            title = u"<no-title>"
+            self.stats['title not found'] += 1
+        else:
+            title = node.text
+            self.stats['title found'] += 1
+
+        # extract the first parragraph
+        node = soup.find('p')
+        if node is None:
+            text = ''
+            self.stats['text not found'] += 1
+        else:
+            text = node.text.strip()
+            if len(text) > self._max_length:
+                text = text[:self._max_length] + "..."
+            safe_text = base64.b64encode(text.encode("utf8"))
+            self.stats['text found'] += 1
+
+        # dump to disk
+        linea = config.SEPARADOR_COLUMNAS.join((wikiarchivo.url, title, safe_text))
+        self.output.write(linea + '\n')
+        return (0, [])
+
+    def close(self):
+        """Close output."""
+        self.output.close()
 
 
 class VIPDecissor(object):
@@ -108,7 +160,7 @@ class VIPDecissor(object):
 vip_decissor = VIPDecissor()
 
 
-class VIPArticles(Procesador):
+class VIPArticles(_Processor):
     """A processor for articles that *must* be included."""
     def __init__(self, wikisitio):
         super(VIPArticles, self).__init__(wikisitio)
@@ -125,7 +177,7 @@ class VIPArticles(Procesador):
         return (score, [])
 
 
-class Namespaces(Procesador):
+class Namespaces(_Processor):
     """Registra el namespace y descarta si el mismo es inválido."""
 
     def __init__(self, wikisitio):
@@ -148,30 +200,28 @@ class Namespaces(Procesador):
             return (None, [])
 
 
-class OmitirRedirects(Procesador):
+class OmitirRedirects(_Processor):
     """Procesa y omite de la compilación a los redirects."""
     def __init__(self, wikisitio):
         super(OmitirRedirects, self).__init__(wikisitio)
         self.nombre = "Redirects"
-        self.log = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
-        regex = r'<span class="redirectText"><a href="/wiki/(.*?)"'
-        self.capturar = re.compile(regex).search
+        self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        captura = self.capturar(wikiarchivo.html)
-        if not captura:
+        soup = bs4.BeautifulSoup(wikiarchivo.html)
+        node = soup.find('ul', 'redirectText')
+        if not node:
             # not a redirect, simple file
             self.stats['simplefile'] += 1
             return (0, [])
 
         # store the redirect in corresponding file
         self.stats['redirect'] += 1
-        url_redirect = unquote(captura.groups()[0]).decode("utf-8")
-#        print "Redirect %r -> %r" % (wikiarchivo.url, url_redirect)
+        url_redirect = node.text
         sep_col = config.SEPARADOR_COLUMNAS
         linea = wikiarchivo.url + sep_col + url_redirect + "\n"
-        self.log.write(linea)
+        self.output.write(linea)
 
         # if redirect was very important, transmit this feature
         # to destination article
@@ -180,12 +230,15 @@ class OmitirRedirects(Procesador):
         else:
             trans = []
 
-
         # return None for the redirect itself to be discarded
         return (None, trans)
 
+    def close(self):
+        """Close output."""
+        self.output.close()
 
-class FixLinksDescartados(Procesador):
+
+class FixLinksDescartados(_Processor):
     """Corrige los links de lo que descartamos.
 
     Re-apunta a una página bogus los links que apuntan a un namespace
@@ -233,7 +286,7 @@ class FixLinksDescartados(Procesador):
         return (0, [])
 
 
-class Peishranc(Procesador):
+class Peishranc(_Processor):
     """Calcula el peishranc.
 
     Registra las veces que una página es referida por las demás páginas.
@@ -292,7 +345,7 @@ class Peishranc(Procesador):
         return (0, puntajes.items())
 
 
-class Longitud(Procesador):
+class Longitud(_Processor):
     """Score the page based on its length (html)."""
 
     def __init__(self, wikisitio):
@@ -304,7 +357,7 @@ class Longitud(Procesador):
         return (largo, [])
 
 
-class HTMLCleaner(Procesador):
+class HTMLCleaner(_Processor):
     """Remove different HTML parts or sections."""
 
     _re_category = re.compile(
@@ -332,9 +385,15 @@ class HTMLCleaner(Procesador):
             self.stats['notlastversion'] += 1
 
         # remove edit section
-        edit_sections = soup.find_all('span', class_="mw-editsection")
-        self.stats['edit_sections'] += len(edit_sections)
-        for tag in edit_sections:
+        sections = soup.find_all('span', class_="mw-editsection")
+        self.stats['edit_sections'] += len(sections)
+        for tag in sections:
+            tag.clear()
+
+        # remove ambox (reference needed) section
+        sections = soup.find_all('table', class_="ambox")
+        self.stats['ambox'] += len(sections)
+        for tag in sections:
             tag.clear()
 
         html = str(soup)
@@ -373,4 +432,5 @@ TODOS = [
     FixLinksDescartados,
     Peishranc,
     Longitud,
+    ContentExtractor,
 ]

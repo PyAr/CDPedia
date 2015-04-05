@@ -141,12 +141,10 @@ class WikiSitio(object):
                     for extra_pag, extra_ptje in otras_pags:
                         if extra_pag in resultados:
                             prev = resultados[extra_pag].get(procesador, 0)
-                            resultados[extra_pag][procesador] = prev + \
-                                                                    extra_ptje
+                            resultados[extra_pag][procesador] = prev + extra_ptje
                         else:
                             ant = puntaje_extra.setdefault(extra_pag, {})
-                            ant[procesador] = ant.get(procesador, 0) + \
-                                                                    extra_ptje
+                            ant[procesador] = ant.get(procesador, 0) + extra_ptje
 
                     # None significa que el procesador lo marcó para omitir
                     if puntaje is None:
@@ -163,8 +161,8 @@ class WikiSitio(object):
                     wikiarchivo.guardar()
 
         for procesador in self.preprocesadores:
-            logger.debug("Preprocessor %12s usage stats: %s",
-                         procesador.nombre, procesador.stats)
+            procesador.close()
+            logger.debug("Preprocessor %17s usage stats: %s", procesador.nombre, procesador.stats)
 
         # cargamos los redirects para tenerlos en cuenta
         redirects = {}
