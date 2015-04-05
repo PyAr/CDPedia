@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
-
 NULL = u"_"
 BARRA = u"SLASH"
 
@@ -31,7 +29,7 @@ def to_path(pagina):
         raise ValueError
 
     if ':' in pagina:
-        namespace, posible_pagina = pagina.split(':',1)
+        namespace, posible_pagina = pagina.split(':', 1)
         if namespace in NAMESPACES:
             pagina = posible_pagina
 
@@ -44,14 +42,8 @@ def to_path(pagina):
     else:
         dirs = list(pagina[:3])
 
-    #FIXME: Si se quiere generar en Windows se debe cambiar '/' por '\'
-    #       No se puede usar os.path.join porque al usarse cdpedia solo pueede
-    #       ejecutarse en la plataforma que fue generado el iso
     return '/'.join(dirs)
 
-def to_complete_path(pagina):
-    #FIXME: Si se quiere generar en Windows se debe cambiar '/' por '\'
-    return '/'.join((to_path(pagina), to_filename(pagina)))
 
 def from_path(path):
     """ Quita los 3 dirs del path """

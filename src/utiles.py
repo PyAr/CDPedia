@@ -1,28 +1,12 @@
 # -*- coding: utf8 -*-
 
-'''Algunas pequeñas funciones útiles.'''
+"""Some small utilities."""
 
-import re
 import time
 import socket
 import threading
 
 from hashlib import md5
-
-import config
-
-if hasattr(config, 'NAMESPACES'):
-    # coincide si se empieza con uno de los namespaces más ~
-    RE_NAMESPACES = re.compile(r'(%s):(.*)' % '|'.join(config.NAMESPACES))
-
-def separaNombre(nombre):
-    '''Devuelve (namespace, resto) de un nombre de archivo del wiki.'''
-    m = RE_NAMESPACES.match(nombre)
-    if not m:
-        result = (None, nombre)
-    else:
-        result = m.groups()
-    return result
 
 
 class WatchDog(threading.Thread):

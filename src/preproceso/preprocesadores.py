@@ -40,11 +40,9 @@ import codecs
 import collections
 import os
 import re
-import urllib
 
 from urllib2 import unquote
 
-from src import utiles
 import config
 
 import bs4
@@ -177,29 +175,6 @@ class VIPArticles(_Processor):
         return (score, [])
 
 
-class Namespaces(_Processor):
-    """Registra el namespace y descarta si el mismo es inválido."""
-
-    def __init__(self, wikisitio):
-        super(Namespaces, self).__init__(wikisitio)
-        self.nombre = "Namespaces"
-        self.stats = collections.Counter()
-
-    def __call__(self, wikiarchivo):
-        (namespace, restonom) = utiles.separaNombre(wikiarchivo.url)
-
-#        print 'Namespace:', repr(namespace)
-        # no da puntaje per se, pero invalida segun namespace
-        if namespace is None or config.NAMESPACES.get(namespace):
-#            print '[válido]'
-            self.stats['valid'] += 1
-            return (0, [])
-        else:
-#            print '[inválido]'
-            self.stats['invalid'] += 1
-            return (None, [])
-
-
 class OmitirRedirects(_Processor):
     """Procesa y omite de la compilación a los redirects."""
     def __init__(self, wikisitio):
@@ -238,54 +213,6 @@ class OmitirRedirects(_Processor):
         self.output.close()
 
 
-class FixLinksDescartados(_Processor):
-    """Corrige los links de lo que descartamos.
-
-    Re-apunta a una página bogus los links que apuntan a un namespace
-    que no incluímos.
-    """
-    def __init__(self, wikisitio):
-        super(FixLinksDescartados, self).__init__(wikisitio)
-        self.nombre = "FixLinks"
-        self.links = re.compile('<a href="(.*?)"(.*?)>(.*?)</a>',
-                                re.MULTILINE | re.DOTALL)
-        self.stats = collections.Counter()
-
-    def __call__(self, wikiarchivo):
-
-        def _reemplaza(m):
-            link, relleno, texto = m.groups()
-
-            # si no tiene el ~, no hay nada que ver
-            if "%7E" not in link:
-                return m.group(0)
-
-            comopath = urllib.url2pathname(link.decode("utf8"))
-            base = os.path.basename(comopath)
-            categ = base.split("~")[0]
-
-            if config.NAMESPACES.get(categ) or vip_decissor(base):
-                # está ok, la dejamos intacta
-                return m.group(0)
-
-            # sacamos entonces el link
-            return texto
-
-        try:
-            newhtml = self.links.sub(_reemplaza, wikiarchivo.html)
-        except Exception:
-            print "Path del html", wikiarchivo.url
-            raise
-
-        # reemplazamos el html original
-        indicator = 'intact' if newhtml == wikiarchivo.html else 'modified'
-        self.stats[indicator] += 1
-        wikiarchivo.html = newhtml
-
-        # no damos puntaje ni nada
-        return (0, [])
-
-
 class Peishranc(_Processor):
     """Calcula el peishranc.
 
@@ -322,10 +249,6 @@ class Peishranc(_Processor):
                 lnk = unquote(lnk).decode('utf8')
             except UnicodeDecodeError:
                 print "ERROR al unquotear/decodear el link", repr(lnk)
-                continue
-
-            namespace, _ = utiles.separaNombre(lnk)
-            if namespace is not None and not config.NAMESPACES.get(namespace):
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
@@ -426,10 +349,8 @@ class HTMLCleaner(_Processor):
 # de cada una de las páginas, en orden de ejecución.
 TODOS = [
     HTMLCleaner,
-    Namespaces,
     VIPArticles,
     OmitirRedirects,
-    FixLinksDescartados,
     Peishranc,
     Longitud,
     ContentExtractor,

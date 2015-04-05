@@ -120,30 +120,3 @@ for lang, imtypes in imagtypes.items():
 # this variable will be overwritten at init time according to what
 # is being generated
 imageconf = None
-
-# "Namespaces" que tenemos, y un flag que indica si son  válidos o no (la
-# mayoría de las páginas no tienen namespace, esas entran todas)
-# Lo que está ahora es sumamente arbitrario, no tengo idea de qué es lo mejor
-# Referencia rápida: http://es.wikipedia.org/wiki/Especial:Prefixindex
-
-NAMESPACES = {
-    u"Anexo": True,
-    u"Anexo_Discusión": False,
-    u"Ayuda": True,
-    u"Categoría": True,
-    u"Categoría_Discusión": False,
-    u"Discusión": False,
-    u"Imagen": False,
-    u"Plantilla": False,
-    u"Plantilla_Discusión": False,
-    u"Portal": True,
-    u"Portal_Discusión": False,
-    u"Usuario": False,
-    u"Usuario_Discusión": False,
-    u"Wikipedia": False,
-    u"Wikipedia_Discusión": False,
-    u"Wikiproyecto": False,
-    u"Wikiproyecto_Discusión": False,
-    u"Archivo": False,
-    u"Especial": False,
-}

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
 import unittest
 
-from src.armado.to3dirs import NULL, BARRA, to_path, from_path, to_filename, \
-                                to_pagina, to_complete_path
+from src.armado.to3dirs import NULL, BARRA, to_path, from_path, to_filename, to_pagina
+
+def _to_complete_path(pagina):
+    return '/'.join((to_path(pagina), to_filename(pagina)))
+
 
 class To3DirsTestCase(unittest.TestCase):
 
@@ -44,10 +46,10 @@ class To3DirsTestCase(unittest.TestCase):
             self.assertEqual(to_pagina(to_filename(s)), s)
 
     def test_from_path(self):
-        self.assertEqual(from_path(to_complete_path(u"unnombre")) , u"unnombre")
-        self.assertEqual(from_path(to_complete_path(u"/s")) , u"/s")
-        self.assertEqual(from_path(to_complete_path(u"s/s/s/")) , u"s/s/s/")
-        self.assertEqual(from_path(to_complete_path(u"s/s/s/SLASH")) , u"s/s/s//")
+        self.assertEqual(from_path(_to_complete_path(u"unnombre")) , u"unnombre")
+        self.assertEqual(from_path(_to_complete_path(u"/s")) , u"/s")
+        self.assertEqual(from_path(_to_complete_path(u"s/s/s/")) , u"s/s/s/")
+        self.assertEqual(from_path(_to_complete_path(u"s/s/s/SLASH")) , u"s/s/s//")
 
 if __name__ == '__main__':
     unittest.main()
