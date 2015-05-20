@@ -94,7 +94,7 @@ class ContentExtractor(_Processor):
             title = u"<no-title>"
             self.stats['title not found'] += 1
         else:
-            title = node.text
+            title = node.text.strip()
             self.stats['title found'] += 1
 
         # extract the first parragraph
