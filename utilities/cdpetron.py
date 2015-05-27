@@ -212,6 +212,8 @@ def clean(branch_dir, dump_dir, keep_processed):
     for item in os.listdir(temp_dir):
         if keep_processed and item in KEEP_PROCESSED:
             continue
+        if item == 'images':
+            continue
         path = os.path.join(temp_dir, item)
         if os.path.isdir(path):
             shutil.rmtree(path)
