@@ -51,6 +51,9 @@ WIKI_BASE = 'http://%(language)s.wikipedia.org'
 TEST_LIMIT_NAMESPACE = 50
 TEST_LIMIT_SCRAP = 500
 
+# files/dirs to not remove if we want to keep the processed info during cleaning
+KEEP_PROCESSED = ['preprocesado.txt', 'preprocesado']
+
 # set up logging
 logger = logging.getLogger()
 handler = logging.StreamHandler()
@@ -103,7 +106,7 @@ def get_lists(branch_dir, language, config, test):
     direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
     if not os.path.exists(direct):
         os.mkdir(direct)
-    _path  = os.path.join(direct, NAMESPACES)
+    _path = os.path.join(direct, NAMESPACES)
     with open(_path, 'wb') as fh:
         for prefix in sorted(prefixes):
             fh.write(prefix.encode("utf8") + "\n")
@@ -182,7 +185,7 @@ def scrap_portals(dump_lang_dir, language, lang_config):
     logger.info("Portal scrapping done")
 
 
-def clean(branch_dir, dump_dir):
+def clean(branch_dir, dump_dir, keep_processed):
     """Clean and setup the temp directory."""
     # we need a directory for the images in the dump dir (but keep it
     # if already there, we want to cache images!)
@@ -196,16 +199,27 @@ def clean(branch_dir, dump_dir):
     # 'images' are hardcoded here, as this is what expects
     # the generation part)
     temp_dir = os.path.join(branch_dir, "temp")
-    if os.path.exists(temp_dir):
-        logger.info("Recursive deletion of old temp dir: %r", temp_dir)
-        shutil.rmtree(temp_dir)
+    if not os.path.exists(temp_dir):
+        # start it fresh
+        logger.info("Temp dir setup fresh: %r", temp_dir)
+        os.mkdir(temp_dir)
+        os.symlink(image_dump_dir, os.path.join(temp_dir, "images"))
+        return
 
-    logger.info("Temp dir setup: %r", temp_dir)
-    os.mkdir(temp_dir)
-    os.symlink(image_dump_dir, os.path.join(temp_dir, "images"))
+    # remove (maybe) all stuff inside
+    logger.info("Recursive deletion of old temp dir: %r (keep_processed=%s)",
+                temp_dir, keep_processed)
+    for item in os.listdir(temp_dir):
+        if keep_processed and item in KEEP_PROCESSED:
+            continue
+        path = os.path.join(temp_dir, item)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
 
 
-def main(branch_dir, dump_dir, language, lang_config,  imag_config,
+def main(branch_dir, dump_dir, language, lang_config, imag_config,
          nolists, noscrap, noclean, image_type, test):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
@@ -240,12 +254,13 @@ def main(branch_dir, dump_dir, language, lang_config,  imag_config,
     if image_type is None:
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
-            clean(branch_dir, dump_imags_dir)
+            clean(branch_dir, dump_imags_dir, keep_processed=True)
             generar.main(language, dump_lang_dir, image_type, lang_config, gendate)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
-            clean(branch_dir, dump_imags_dir)
+            keep_processed = noscrap  # no new articles, can keep the processed file
+            clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
         generar.main(language, dump_lang_dir, image_type, lang_config, gendate)
 
 
@@ -318,7 +333,8 @@ if __name__ == "__main__":
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
-    import list_articles_by_namespaces, generar
+    import list_articles_by_namespaces
+    import generar
     from src.scrapping import portals
 
     # dump dir may not exist, let's just create if it doesn't

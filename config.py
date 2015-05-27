@@ -32,7 +32,7 @@ IDIOMA = "es"
 # páginas en sí
 ASSETS = ["static"]
 COMPRESSED_ASSETS = ['tutorial.tar.bz2']
-ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images",  "extern"]
+ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images", "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 

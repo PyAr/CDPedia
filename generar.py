@@ -45,6 +45,7 @@ from src.imagenes import extract, download, reducir, calcular
 # get a logger (may be already set up, or will set up in __main__)
 logger = logging.getLogger('generar')
 
+
 def make_it_nicer():
     """Make the process nicer at CPU and IO levels."""
     # cpu, simple
@@ -76,6 +77,7 @@ def copy_dir(src_dir, dst_dir):
             copy_dir(src_path, dst_path)
         else:
             shutil.copy(src_path, dst_path)
+
 
 def copy_assets(src_info, dest):
     """Copy all the asset files."""
@@ -202,13 +204,13 @@ def preparaTemporal(procesar_articles):
             # movemos a backup, borramos todo, y restablecemos
             os.rename(src_indices, tmp_indices)
             os.rename(src_bloques, tmp_bloques)
-            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+            shutil.rmtree(path.join(dtemp, "cdroot"), ignore_errors=True)
             os.makedirs(path.join(config.DIR_CDBASE, "cdpedia"))
             os.rename(tmp_indices, src_indices)
             os.rename(tmp_bloques, src_bloques)
 
         else:
-            shutil.rmtree(path.join(dtemp,"cdroot"), ignore_errors=True)
+            shutil.rmtree(path.join(dtemp, "cdroot"), ignore_errors=True)
     else:
         os.makedirs(dtemp)
 
@@ -256,7 +258,7 @@ def main(lang, src_info, version, lang_config, gendate,
 
     if procesar_articles:
         try:
-            import SuffixTree
+            import SuffixTree  # NOQA
         except ImportError:
             logger.warning(NO_ST_MSG)
 
@@ -320,7 +322,7 @@ def main(lang, src_info, version, lang_config, gendate,
         logger.info("Not generating index and blocks (by user request)")
     elif preprocesar.pages_selector.same_info_through_runs:
         logger.info("Same articles than previous run "
-                     "(not generating index and blocks)")
+                    "(not generating index and blocks)")
     else:
         logger.info("Generating the index")
         result = cdpindex.generar_de_html(articulos, verbose)
@@ -385,18 +387,16 @@ To update an image with the code and assets changes  in this working copy:
     parser = optparse.OptionParser()
     parser.set_usage(msg)
     parser.add_option("-v", "--verbose", action="store_true",
-                  dest="verbose", help="muestra info de lo que va haciendo")
+                      dest="verbose", help="muestra info de lo que va haciendo")
     parser.add_option("-d", "--desconectado", action="store_true",
-                  dest="desconectado", help="trabaja desconectado de la red")
+                      dest="desconectado", help="trabaja desconectado de la red")
     parser.add_option("-a", "--no-articles", action="store_true",
-                  dest="noarticles",
-                  help="no reprocesa todo lo relacionado con articulos")
+                      dest="noarticles", help="no reprocesa todo lo relacionado con articulos")
     parser.add_option("-g", "--guppy", action="store_true",
-                  dest="guppy", help="arranca con guppy/heapy prendido")
+                      dest="guppy", help="arranca con guppy/heapy prendido")
 
     parser.add_option("--update-mini", action="store_true", dest="update_mini",
-                      help="Actualiza una imagen con el code + assets de "
-                           "esta working copy.")
+                      help="Actualiza una imagen con el code + assets de esta working copy.")
 
     (options, args) = parser.parse_args()
 
