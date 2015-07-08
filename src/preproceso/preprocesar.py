@@ -69,10 +69,10 @@ class WikiSitio(object):
         self.resultados = {}
         self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
 
-        # vemos que habíamos preocesado de antes
+        # let's see what was processed from before
         if os.path.exists(config.LOG_PREPROCESADO):
             fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-            fh.next() # título
+            fh.next()  # title
             procs = [p for p in self.preprocesadores]
             for linea in fh:
                 partes = linea.split(config.SEPARADOR_COLUMNAS)
@@ -194,7 +194,7 @@ class WikiSitio(object):
                 for pag in perdidos:
                     fh.write(u"%s\n" % (pag,))
 
-        return len(resultados)-de_antes, de_antes
+        return len(resultados) - de_antes, de_antes
 
     def guardar(self):
         log = abspath(config.LOG_PREPROCESADO)
@@ -248,7 +248,7 @@ class PagesSelector(object):
 
         # read the preprocessed file
         fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-        fh.next() # título
+        fh.next()  # title
         all_pages = []
         for linea in fh:
             partes = linea.split(config.SEPARADOR_COLUMNAS)
