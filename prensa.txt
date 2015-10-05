@@ -1,11 +1,13 @@
-Python Argentina (PyAr) se enorgullece de anunciar la versión 0.8.2 de la CDPedia.
+Python Argentina (PyAr) se enorgullece de anunciar la versión 0.8.3 de la CDPedia.
 
     http://cdpedia.python.org.ar/
 
 Esta versión trae las siguientes novedades:
 
- - Actualizamos el contenido a Marzo 2014.
- - Uso más eficiente de los recursos del sistema
+ - Actualizamos el contenido a Abril 2015.
+ - Mejores títulos luego de cambios en Wikipedia
+ - El contenido de la página de inicio está renovado
+ - Trabajos de internacionalización para futuras versiones
  - Varias mejoras a la hora de la generación de discos y tarballs, así como también en la calidad del código.
 
 Si tenés discos disponibles, hacé algunas copias de CDPedia para regalar a tus familiares y amigos, a la biblioteca de tu barrio, o a la escuela de tus hijos. ¡Difundí CDPedia!
