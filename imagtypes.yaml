@@ -29,7 +29,7 @@ es:
         type: iso
         windows: True
         page_limit: 5000000   # very big number, we want them all!
-        image_reduction: [4, 8, 8, 80]
+        image_reduction: [2, 2, 4, 92]
 
     tarmed:  # we aim for 2 to 3 GB
         type: tarball
@@ -40,8 +40,8 @@ es:
     cd:  # size max: 12cm, 80min:  737,280,000 bytes
         type: iso
         windows: True
-        page_limit: 78500
-        image_reduction: [1, 2, 3, 94]
+        page_limit: 54000
+        image_reduction: [1, 2, 2, 95]
 
     xo:
         type: tarball
