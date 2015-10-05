@@ -28,6 +28,7 @@ class ESParsingTests(unittest.TestCase):
             ("Antropología", "/wiki/Portal:Antropolog%C3%ADa"),
             ("Derecho", "/wiki/Portal:Derecho"),
             ("Economía", "/wiki/Portal:Econom%C3%ADa"),
+            ("Contabilidad", "/wiki/Portal:Contabilidad"),
             ("Educación", "/wiki/Portal:Educaci%C3%B3n"),
             ("Filosofía", "/wiki/Portal:Filosof%C3%ADa"),
             ("Psicología", "/wiki/Portal:Psicolog%C3%ADa"),
@@ -79,6 +80,7 @@ class ESParsingTests(unittest.TestCase):
             ("Física", "/wiki/Portal:F%C3%ADsica"),
             ("Química", "/wiki/Portal:Qu%C3%ADmica"),
             ("Sistema Solar", "/wiki/Portal:Sistema_Solar"),
+            ("Cosmología", "/wiki/Portal:Cosmolog%C3%ADa"),
         ])
 
     def test_double_title_no_complex(self):
@@ -126,7 +128,7 @@ class ESParsingTests(unittest.TestCase):
 
     def test_sub_section(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(7)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/8/8e/P_countries.png/35px-P_countries.png")
+        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/8/8e/P_countries-vector.svg/35px-P_countries-vector.svg.png")
 
         self.assertEqual(titles, [
             ("Geografía", "/wiki/Portal:Geograf%C3%ADa"),
@@ -144,11 +146,11 @@ class ESParsingTests(unittest.TestCase):
         self.assertEqual(titles, [("América", "/wiki/Portal:Am%C3%A9rica")])
         self.assertEqual(items, [
             ("Argentina", "/wiki/Portal:Argentina"),
+            ("Canadá", "/wiki/Portal:Canad%C3%A1"),
             ("Chile", "/wiki/Portal:Chile"),
             ("Colombia", "/wiki/Portal:Colombia"),
-            ("México", "/wiki/Portal:M%C3%A9xico"),
-            ("Canadá", "/wiki/Portal:Canad%C3%A1"),
             ("Estados Unidos", "/wiki/Portal:Estados_Unidos_de_Am%C3%A9rica"),
+            ("México", "/wiki/Portal:M%C3%A9xico"),
         ])
         titles, items = sub_complexes[2]
         self.assertEqual(titles, [("Asia", "/wiki/Portal:Asia")])
