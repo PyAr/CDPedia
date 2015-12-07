@@ -1,0 +1,55 @@
+Bootstrap of an environment to login as cdpedia
+-----------------------------------------------
+
+(create the machine)
+(log in as root)
+adduser cdpedia
+(copy own keys into /home/cdpedia/.ssh/authorized_keys)
+
+
+As root, install and configure services
+---------------------------------------
+
+apt-get install git nginx deluged deluge-console vim gcc python-dev python-yaml python-bs4 imagemagick
+vi /etc/nginx/sites-available
+    root /home/cdpedia/www;
+    index index.html;
+    location /images {
+        charset utf-8;
+        autoindex on;
+    }
+service nginx restart
+wget www.taniquetil.com.ar/facundo/SuffixTree-0.7.1-8bit.tar.bz2
+tar -xf SuffixTree-0.7.1-8bit.tar.bz2
+cd SuffixTree-0.7.1/
+python setup.py install
+
+
+As "cdpedia" user, setup working environment
+--------------------------------------------
+
+cd /home/cdpedia
+git clone https://github.com/PyAr/CDPedia.git
+ln -s CDPedia/web www
+mkdir torrent
+for file in `ls www/images/*/current/*.torrent`; do echo $file; deluge-console add --path=torrent/ $file; done
+vi cmd.sh
+    #cd CDPedia; utilities/cdpetron.py --image-type beta . /dump/ es 2>&1 | tee exec.log && mail yourmail@etc.com -s "CDPedia run" < exec.log
+    #cd CDPedia; utilities/cdpetron.py --no-lists --no-scrap --image-type beta . /dump/ es 2>&1 | tee exec.log && mail yourmail@etc.com -s "CDPedia run" < exec.log
+ln -s CDPedia/utilities/distrib_image.py .
+
+
+Create images
+-------------
+
+Get into the project dir:
+    cd CDPedia
+
+To test everything is ok, just run it in test mode:
+    utilities/cdpetron.py --test-mode --image-type beta . ~/dump/ es
+
+A normal run:
+    utilities/cdpetron.py --image-type beta . ~/dump/ es
+
+Long lived sessions would be appropiate inside a "screen" and with something like...
+    utilities/cdpetron.py --image-type beta . ~/dump/ es 2>&1 | tee exec.log && mail yourmail@etc.com -s "CDPedia run" < exec.log
