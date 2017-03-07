@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -61,7 +61,7 @@ SEPLINK = re.compile("/wiki/(.*)")
 # to extracth the sizes of an image
 WIDTH_HEIGHT = re.compile('width="(\d+)" height="(\d+)"')
 
-logger = logging.getLogger("images.extract")
+logger = logging.getLogger(__name__)
 
 
 class ImageParser(object):
@@ -248,6 +248,10 @@ class ImageParser(object):
         elif img.startswith("/w/extensions/"):
             web_url = WIKIPEDIA_URL + img
             dsk_url = img[3:]
+
+        elif img.startswith("https://wikimedia.org/api/rest_v1/media/"):
+            web_url = img
+            dsk_url = img[40:]
 
         else:
             raise ValueError("Unsupported image type! %r" % img)

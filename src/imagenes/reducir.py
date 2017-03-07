@@ -2,11 +2,14 @@
 
 from __future__ import with_statement
 
+import codecs
+import config
+import logging
 import os
 import shutil
-import config
 import subprocess
-import codecs
+
+logger = logging.getLogger(__name__)
 
 
 def run(verbose):
@@ -36,8 +39,7 @@ def run(verbose):
             frompath = os.path.join(src, dskurl)
             topath = os.path.join(dst, dskurl)
             if not os.path.exists(frompath):
-                if verbose:
-                    print "WARNING: no tenemos la img", repr(frompath)
+                logger.warning("Don't have the img %r", frompath)
                 notfound += 1
                 continue
 
@@ -71,8 +73,7 @@ def run(verbose):
                 if not errorcode:
                     done_ahora[dskurl] = escl
                 else:
-                    print "WARNING: obtuvimos %d al procesar %s" % (errorcode,
-                                                                    frompath)
+                    logger.warning("Got %d when processing %s", errorcode, frompath)
 
     # guardamos lo que procesamos ahora
     with codecs.open(config.LOG_REDUCDONE, "w", "utf-8") as fh:
@@ -84,8 +85,8 @@ def run(verbose):
         fullpath = os.path.join(dst, dskurl)
         try:
             os.remove(fullpath)
-        except OSError:
-            print "ERROR: error al borrar %r" % fullpath
+        except OSError as exc:
+            logger.error("When erasing %r (got OSError %s)", fullpath, exc)
 
     # si es verbose ya avisamos una por una
     if not verbose and notfound:

@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2012-2014 CDPedistas (see AUTHORS.txt)
+# Copyright 2012-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -54,8 +53,7 @@ class SearcherTestCase(unittest.TestCase):
         self.assertEqual(web, should_web)
         self.assertEqual(dsk, should_dsk)
 
-    def test_reemplazar_wikipedia_commons_5parts(self):
-        """Reemplazar wikipedia commons with 5 parts."""
+    def test_replace_wikipedia_commons_5parts(self):
         url = (
             "//upload.wikimedia.org/wikipedia/commons/thumb/a/aa/"
             "Coat_of_arms_of_the_Netherlands_-_02.svg/"
@@ -72,8 +70,7 @@ class SearcherTestCase(unittest.TestCase):
         )
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_wikipedia_commons_1parts(self):
-        """Reemplazar wikipedia commons with 1 parts."""
+    def test_replace_wikipedia_commons_1parts(self):
         url = (
             "//upload.wikimedia.org/wikipedia/commons/8/88/"
             "Marshall_Islands_coa.jpg"
@@ -85,8 +82,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "commons/8/88/Marshall_Islands_coa.jpg"
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_bits(self):
-        """Reemplazar bits."""
+    def test_replace_bits(self):
         url = "//bits.wikimedia.org/skins-1.18/common/images/magnify-clip.png"
         should_web = (
             "http://bits.wikimedia.org/"
@@ -95,8 +91,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "magnify-clip.png"
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_timeline(self):
-        """Reemplazar timeline."""
+    def test_replace_timeline(self):
         url = (
             "//upload.wikimedia.org/wikipedia/es/"
             "timeline/cc707d3b957628b5e432d7242096abc5.png"
@@ -108,8 +103,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "timeline/cc707d3b957628b5e432d7242096abc5.png"
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_math(self):
-        """Reemplazar math."""
+    def test_replace_math(self):
         url = (
             "//upload.wikimedia.org/wikipedia/es/"
             "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
@@ -121,8 +115,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_math_2(self):
-        """Reemplazar math, 2."""
+    def test_replace_math_2(self):
         url = (
             '//upload.wikimedia.org/'
             'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
@@ -134,8 +127,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = 'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_extensions(self):
-        """Reemplazar the extensions subdir."""
+    def test_replace_extensions(self):
         url = "/w/extensions/ImageMap/desc-20.png"
         should_web = (
             "http://es.wikipedia.org/w/extensions/ImageMap/desc-20.png"
@@ -143,8 +135,7 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "extensions/ImageMap/desc-20.png"
         self._check(url, should_web, should_dsk)
 
-    def test_reemplazar_commons_images(self):
-        """Replace some particular image from commons."""
+    def test_replace_commons_images(self):
         url = (
             "//upload.wikimedia.org/wikipedia/commons/"
             "thumb/4/40/P_ps.png/35px-P_ps.png"
@@ -156,3 +147,11 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "commons/thumb/4/40/35px-P_ps.png"
         self._check(url, should_web, should_dsk)
 
+    def test_replace_wikimedia_api(self):
+        url = (
+            "https://wikimedia.org/api/rest_v1/media/"
+            "math/render/svg/8f85ec5f1c5816016c0d1e8986a965baa4193abc"
+        )
+        should_web = url
+        should_dsk = "math/render/svg/8f85ec5f1c5816016c0d1e8986a965baa4193abc"
+        self._check(url, should_web, should_dsk)
