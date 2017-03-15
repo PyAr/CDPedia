@@ -39,7 +39,6 @@ import config
 from src.preproceso import preprocesar
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
-from src.armado.compressed_index import NO_ST_MSG
 from src.imagenes import extract, download, reducir, calcular
 
 # get a logger (may be already set up, or will set up in __main__)
@@ -260,7 +259,11 @@ def main(lang, src_info, version, lang_config, gendate,
         try:
             import SuffixTree  # NOQA
         except ImportError:
-            logger.warning(NO_ST_MSG)
+            logger.warning(
+                "Import error on SuffixTree; compressed index generation will be REALLY slow. "
+                "Please install it (download, python2 setup.py build, python2 setup.py install) "
+                "from here:  http://taniquetil.com.ar/facundo/SuffixTree-0.7.1-8bit.tar.bz2"
+            )
 
     # validate lang and versions, and fix config with selected data
     logger.info("Fixing config for lang=%r version=%r", lang, version)

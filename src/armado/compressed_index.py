@@ -125,6 +125,7 @@ class FrozenStringList:
         rv.heap = data[1]
         return rv
 
+
 class TermSimilitudeMatrixBase:
     def __init__(self, terms = [], progress_callback = lambda : None):
         self.terms = terms = FrozenStringList(sorted(terms))
@@ -259,15 +260,6 @@ class TermSimilitudeMatrixBase:
             if t in terms[i]:
                 yield i
 
-NO_ST_MSG = u"""
-WARNING: SuffixTree no está instalado!!
-
-La generación de la matriz de similitud de términos puede ser LENTA.
-
-Lo mejor es instalarlo de aquí (lo bajás, setup.py build, install):
-
-  http://www.deeplayer.com/claudio/misc/SuffixTree-0.7.1-8bit.tar.bz2
-"""
 
 try:
     import SuffixTree
