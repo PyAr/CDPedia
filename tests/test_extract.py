@@ -148,10 +148,25 @@ class SearcherTestCase(unittest.TestCase):
         self._check(url, should_web, should_dsk)
 
     def test_replace_wikimedia_api(self):
-        url = (
-            "https://wikimedia.org/api/rest_v1/media/"
-            "math/render/svg/8f85ec5f1c5816016c0d1e8986a965baa4193abc"
-        )
+        url = "https://wikimedia.org/api/rest_v1/media/math/render/svg/8f85ec5f1c58.svg"
         should_web = url
-        should_dsk = "math/render/svg/8f85ec5f1c5816016c0d1e8986a965baa4193abc"
+        should_dsk = "math/render/svg/8f85ec5f1c58.svg"
+        self._check(url, should_web, should_dsk)
+
+    def test_extension_fix__path_svg_no_ext(self):
+        url = "https://wikimedia.org/api/rest_v1/media/math/render/svg/8f85ec5f1c58"
+        should_web = url
+        should_dsk = "math/render/svg/8f85ec5f1c58.svg"
+        self._check(url, should_web, should_dsk)
+
+    def test_extension_fix__path_svg_ext_ok(self):
+        url = "https://wikimedia.org/api/rest_v1/media/math/render/svg/8f85ec5f1c58.svg"
+        should_web = url
+        should_dsk = "math/render/svg/8f85ec5f1c58.svg"
+        self._check(url, should_web, should_dsk)
+
+    def test_extension_fix__path_svg_ext_upper(self):
+        url = "https://wikimedia.org/api/rest_v1/media/math/render/svg/8f85ec5f1c58.SVG"
+        should_web = url
+        should_dsk = "math/render/svg/8f85ec5f1c58.SVG"
         self._check(url, should_web, should_dsk)

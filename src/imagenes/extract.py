@@ -24,8 +24,7 @@ those URLs for them to point to disk.
 Also log the URLs that needs to be downloaded.
 """
 
-from __future__ import with_statement
-from __future__ import division
+from __future__ import with_statement, division, print_function
 
 import codecs
 import functools
@@ -52,8 +51,7 @@ IMAGES_TO_REMOVE = re.compile(
 IMG_REGEX = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
 
 # to find the pages links
-LINKS_REGEX = re.compile('<a (.*?)href="(.*?)"(.*?)>(.*?)</a>',
-                         re.MULTILINE|re.DOTALL)
+LINKS_REGEX = re.compile('<a (.*?)href="(.*?)"(.*?)>(.*?)</a>', re.MULTILINE | re.DOTALL)
 
 # to get the link after the wiki part
 SEPLINK = re.compile("/wiki/(.*)")
@@ -169,7 +167,6 @@ class ImageParser(object):
             self.a_descargar[dsk] = web
         self.dynamics[name] = [dsk for dsk, web in newimgs]
 
-
     def parse(self, dir3, fname):
         if (dir3, fname) in self.proces_antes:
             prev_dskurls = self.proces_antes[dir3, fname]
@@ -218,7 +215,7 @@ class ImageParser(object):
     def _reemplaza(self, newimgs, m):
         p1, img, p3 = m.groups()
         if self.test:
-            print "img", img
+            print("img", img)
 
         # reemplazamos ancho y alto por un fragment en la URL de la imagen
         msize = WIDTH_HEIGHT.search(p3)
@@ -257,8 +254,12 @@ class ImageParser(object):
             raise ValueError("Unsupported image type! %r" % img)
 
         if self.test:
-            print "  web url:", web_url
-            print "  dsk url:", dsk_url
+            print("  web url:", web_url)
+            print("  dsk url:", dsk_url)
+
+        # enhance disk paths so they represent the image
+        if '/render/svg/' in dsk_url and not dsk_url.lower().endswith('.svg'):
+            dsk_url += '.svg'
 
         # si la imagen a reemplazar no la teníamos de antes, y tampoco
         # es builtin...
@@ -267,13 +268,13 @@ class ImageParser(object):
             self.imgs_ok += 1
 
         if '?' in dsk_url:
-            print u"WARNING: Encontramos una URL que ya venía con GET args :("
+            print(u"WARNING: Encontramos una URL que ya venía con GET args :(")
         # devolvemos lo cambiado para el html
         querystr = ''
         if msize is not None:
             querystr = '?s=%s-%s' % msize.groups()
-        htm_url = '<img%ssrc="/images/%s%s"%s/>' % (p1,
-            urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
+        htm_url = '<img%ssrc="/images/%s%s"%s/>' % (
+            p1, urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
         return htm_url
 
     def _fixlinks(self, mlink):
@@ -343,7 +344,7 @@ To test:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print usage
+        print(usage)
         sys.exit()
 
     # setup logging
@@ -358,4 +359,4 @@ if __name__ == "__main__":
     preprocesar.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
-    print "\n".join(str(x) for x in pi.a_descargar.items())
+    print("\n".join(str(x) for x in pi.a_descargar.items()))
