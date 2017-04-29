@@ -1,8 +1,12 @@
 """The scrapper for the portals."""
 
+from __future__ import print_function
+
 import bs4
 
-PARSED_TITLE_STYLE = "text-align: left; font-family: sans-serif; font-size:130%; border-bottom: solid 2px #7D80B3; margin-bottom:5px;"
+PARSED_TITLE_STYLE = (
+    "text-align: left; font-family: sans-serif; font-size:130%; "
+    "border-bottom: solid 2px #7D80B3; margin-bottom:5px;")
 
 G_MAIN_STRUCT = b"""
 <div style="{style}">
@@ -17,7 +21,8 @@ G_MAIN_STRUCT = b"""
 """
 
 G_MAIN_STYLE_FIRST = b"padding-bottom: 0.5em; padding-top: 0.5em;"
-G_MAIN_STYLE_REST = b"border-top: 1px dotted rgb(192, 136, 254); padding-bottom: 0.5em; padding-top: 0.5em;"
+G_MAIN_STYLE_REST = (
+    b"border-top: 1px dotted rgb(192, 136, 254); padding-bottom: 0.5em; padding-top: 0.5em;")
 
 G_TITLE = b"""\
     <div class="floatright">
@@ -37,7 +42,7 @@ G_ITEM_BULL = b'        <li>{item}</li>'
 
 def _build_titles(titles):
     """Build the titles string."""
-    titles_str =[]
+    titles_str = []
     for text, url in titles:
         if url is None:
             titles_str.append(G_TIT_FMT_NOLINK.format(text=text.encode('utf8')))
@@ -82,7 +87,7 @@ def generate(items):
 
 def _es_parser(html):
     """The parser for Spanish portals."""
-    soup = bs4.BeautifulSoup(html)
+    soup = bs4.BeautifulSoup(html, 'lxml')
     result = []
 
     def _get_chunks():
@@ -152,9 +157,15 @@ def _es_parser(html):
             sub_simples = []
             sub_complexes = []
             for item in items_node:
-                parts = item.find_all()
+                # get parts ignoring br's
+                parts = [part for part in item.find_all() if part.name != 'br']
+                if not parts:
+                    continue
+
                 if parts[0].name == 'b':
+                    # first item in bold, means a grouped sector of links
                     if parts[0].find('a'):
+                        # the title of the sector is also a link
                         q_titles = len(parts[0].find_all())
                         sub_tit = []
                         for n in parts[1:1 + q_titles]:
@@ -163,11 +174,13 @@ def _es_parser(html):
                             else:
                                 sub_tit.append((n.text, n['href']))
                     else:
-                        sub_tit = [(parts[0].text, None)]
+                        # the title of the sector is not a link
+                        sub_tit = [(parts[0].text.strip(":"), None)]
                         q_titles = 0
                     sub_itm = [(n.text, n['href']) for n in parts[q_titles + 1:]]
                     sub_complexes.append((sub_tit, sub_itm))
                 else:
+                    # simple links
                     sub_simples = [(n.text, n['href']) for n in parts]
 
         result.append((icon, titles, sub_simples, sub_complexes))
@@ -188,7 +201,7 @@ def chunkizer(items, cutter):
 
 def _pt_parser(html):
     """The parser for Portuguese portals."""
-    soup = bs4.BeautifulSoup(html)
+    soup = bs4.BeautifulSoup(html, 'lxml')
     result = []
 
     def _get_chunks():
@@ -219,7 +232,8 @@ def _pt_parser(html):
         # image and titles
         node = chunk[0]
         icon = node.find('img')['src']
-        titles = [(_a.text, _a['href']) for _a in node.find_all('a') if _a.get('class') != ['image']]
+        titles = [(_a.text, _a['href'])
+                  for _a in node.find_all('a') if _a.get('class') != ['image']]
 
         # the items, first the simple ones from the first sub chunk
         sub_chunks = chunkizer(chunk[1:], lambda n: n.name != 'li')
@@ -256,6 +270,7 @@ _parsers = {
     'pt': _pt_parser,
 }
 
+
 def parse(language, html):
     """Generic entry point for all parsers."""
     p = _parsers[language]
@@ -267,7 +282,7 @@ if __name__ == '__main__':
     import urllib2
     import sys
     if len(sys.argv) != 3:
-        print "To test: portals.py lang url_or_filepath"
+        print("To test: portals.py lang url_or_filepath")
         exit()
     lang = sys.argv[1]
     src = sys.argv[2]
@@ -279,4 +294,4 @@ if __name__ == '__main__':
             html_src = fh.read()
 
     items = parse(lang, html_src)
-    print generate(items)
+    print(generate(items))

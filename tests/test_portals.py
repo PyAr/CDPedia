@@ -19,7 +19,9 @@ class ESParsingTests(unittest.TestCase):
 
     def test_simple(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(0)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/5/5e/P_social_sciences.png/35px-P_social_sciences.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "5/5e/P_social_sciences.png/35px-P_social_sciences.png"))
 
         self.assertEqual(titles, [
             ("Ciencias humanas y sociales", "/wiki/Portal:Ciencias_humanas_y_sociales"),
@@ -41,13 +43,18 @@ class ESParsingTests(unittest.TestCase):
             ("Ciencia política", "/wiki/Portal:Ciencia_pol%C3%ADtica"),
         ])
         self.assertEqual(items, [
+            ("Euskal Herria", "/wiki/Portal:Euskal_Herria"),
             ("Marxismo", "/wiki/Portal:Marxismo"),
             ("Nacionalismo", "/wiki/Portal:Nacionalismo"),
             ("Nacionalismo catalán", "/wiki/Portal:Nacionalismo_catal%C3%A1n"),
             ("Nacionalismo gallego", "/wiki/Portal:Nacionalismo_gallego"),
             ("Nacionalismo vasco", "/wiki/Portal:Nacionalismo_vasco"),
             ("Militar", "/wiki/Portal:Militar"),
+            ("Naciones Unidas", "/wiki/Portal:Naciones_Unidas"),
+            ("OTAN", "/wiki/Portal:OTAN"),
+            ("Socialdemocracia", "/wiki/Portal:Socialdemocracia"),
             ("Socialismo", "/wiki/Portal:Socialismo"),
+            ("Terrorismo", "/wiki/Portal:Terrorismo"),
             ("Unión Europea", "/wiki/Portal:Uni%C3%B3n_Europea"),
         ])
         titles, items = c2
@@ -56,19 +63,21 @@ class ESParsingTests(unittest.TestCase):
         ])
         self.assertEqual(items, [
             ("Lenguas", "/wiki/Portal:Lenguas"),
+            ("Lengua asturiana", "/wiki/Portal:Lengua_asturiana"),
             ("Lengua catalana", "/wiki/Portal:Lengua_catalana"),
             ("Lengua española", "/wiki/Portal:Lengua_espa%C3%B1ola"),
             ("Esperanto", "/wiki/Portal:Esperanto"),
             ("Lengua aragonesa", "/wiki/Portal:Lengua_aragonesa"),
             ("Lenguas portuguesa y gallega", "/wiki/Portal:Lenguas_portuguesa_y_gallega"),
-            ("Lenguas indígenas de América", "/wiki/Portal:Lenguas_ind%C3%ADgenas_de_Am%C3%A9rica"),
+            ("Lenguas indígenas de América",
+                "/wiki/Portal:Lenguas_ind%C3%ADgenas_de_Am%C3%A9rica"),
             ("Lengua Ido", "/wiki/Portal:Ido"),
         ])
 
     def test_no_linked_complex_title(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(1)
         self.assertEqual(titles, [
-            ("Ciencias naturales y exactas", "/wiki/Portal:Ciencias_naturales_y_formales"),
+            ("Ciencias naturales y formales", "/wiki/Portal:Ciencias_naturales_y_formales"),
         ])
         self.assertEqual(sub_simples, [])
         titles, items = sub_complexes[1]  # the one with a title with no link
@@ -77,15 +86,18 @@ class ESParsingTests(unittest.TestCase):
         ])
         self.assertEqual(items, [
             ("Astronomía", "/wiki/Portal:Astronom%C3%ADa"),
+            ("Ciclones tropicales", "/wiki/Portal:Ciclones_tropicales"),
+            ("Cosmología", "/wiki/Portal:Cosmolog%C3%ADa"),
             ("Física", "/wiki/Portal:F%C3%ADsica"),
             ("Química", "/wiki/Portal:Qu%C3%ADmica"),
             ("Sistema Solar", "/wiki/Portal:Sistema_Solar"),
-            ("Cosmología", "/wiki/Portal:Cosmolog%C3%ADa"),
         ])
 
     def test_double_title_no_complex(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(5)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/d/d9/P_religion.png/35px-P_religion.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "d/d9/P_religion.png/35px-P_religion.png"))
 
         self.assertEqual(titles, [
             ("Religión", "/wiki/Portal:Religi%C3%B3n"),
@@ -95,6 +107,8 @@ class ESParsingTests(unittest.TestCase):
             ("Ateísmo", "/wiki/Portal:Ate%C3%ADsmo"),
             ("Budismo", "/wiki/Portal:Budismo"),
             ("Cristianismo", "/wiki/Portal:Cristianismo"),
+            ("Cristianismo evangélico", "/wiki/Portal:Cristianismo_evang%C3%A9lico"),
+            ("Hinduismo", "/wiki/Portal:Hinduismo"),
             ("Iglesia católica", "/wiki/Portal:Iglesia_cat%C3%B3lica"),
             ("Islam", "/wiki/Portal:Islam"),
             ("Esoterismo", "/wiki/Portal:Esoterismo"),
@@ -109,31 +123,43 @@ class ESParsingTests(unittest.TestCase):
 
     def test_double_complex_title__no_link_title(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(3)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/b/b4/P_art.png/35px-P_art.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "b/b4/P_art.png/35px-P_art.png"))
 
         self.assertEqual(titles, [
             ("Cultura y sociedad", None),
         ])
-        titles, items = sub_complexes[1]
+        titles, items = sub_complexes[2]
         self.assertEqual(titles, [
             ("Cine", "/wiki/Portal:Cine"),
             ("Televisión", "/wiki/Portal:Televisi%C3%B3n"),
+            ("Historieta", "/wiki/Portal:Historieta"),
         ])
         self.assertEqual(items, [
+            ("Anime y Manga", "/wiki/Portal:Anime_y_Manga"),
+            ("DC Comics", "/wiki/Portal:DC_Comics"),
             ("Disney", "/wiki/Portal:Disney"),
+            ("Doctor Who", "/wiki/Portal:Doctor_Who"),
+            ("Futurama", "/wiki/Portal:Futurama"),
             ("James Bond", "/wiki/Portal:James_Bond"),
             ("Los Simpson", "/wiki/Portal:Los_Simpson"),
-            ("Doctor Who", "/wiki/Portal:Doctor_Who"),
+            ("Marvel Comics", "/wiki/Portal:Marvel_Comics"),
+            ("Sonic the Hedgehog", "/wiki/Portal:Sonic_the_Hedgehog"),
+            ("Telenovelas", "/wiki/Portal:Telenovelas"),
         ])
 
     def test_sub_section(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(7)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/8/8e/P_countries-vector.svg/35px-P_countries-vector.svg.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "8/8e/P_countries-vector.svg/35px-P_countries-vector.svg.png"))
 
         self.assertEqual(titles, [
             ("Geografía", "/wiki/Portal:Geograf%C3%ADa"),
         ])
         self.assertEqual(sub_simples, [
+            ("Antártida", "/wiki/Portal:Ant%C3%A1rtida"),
             ("Ártico", "/wiki/Portal:%C3%81rtico"),
             ("Medio Rural", "/wiki/Portal:Rural"),
             ("Países", "/wiki/Portal:Pa%C3%ADses"),
@@ -149,22 +175,30 @@ class ESParsingTests(unittest.TestCase):
             ("Canadá", "/wiki/Portal:Canad%C3%A1"),
             ("Chile", "/wiki/Portal:Chile"),
             ("Colombia", "/wiki/Portal:Colombia"),
+            ("Ecuador", "/wiki/Portal:Ecuador"),
             ("Estados Unidos", "/wiki/Portal:Estados_Unidos_de_Am%C3%A9rica"),
             ("México", "/wiki/Portal:M%C3%A9xico"),
+            ("Perú", "/wiki/Portal:Per%C3%BA"),
         ])
         titles, items = sub_complexes[2]
         self.assertEqual(titles, [("Asia", "/wiki/Portal:Asia")])
-        self.assertEqual(items, [])
+        self.assertEqual(items, [
+            ("China", "/wiki/Portal:China"),
+            ("Israel", "/wiki/Portal:Israel"),
+        ])
         titles, items = sub_complexes[3]
         self.assertEqual(titles, [("Europa", "/wiki/Portal:Europa")])
         self.assertEqual(items, [
             ("Unión Europea", "/wiki/Portal:Uni%C3%B3n_Europea"),
             ("España", "/wiki/Portal:Espa%C3%B1a"),
             ("Reino Unido", "/wiki/Portal:Reino_Unido"),
+            ("Rusia", "/wiki/Portal:Rusia"),
         ])
         titles, items = sub_complexes[4]
         self.assertEqual(titles, [("Oceanía", "/wiki/Portal:Ocean%C3%ADa")])
-        self.assertEqual(items, [])
+        self.assertEqual(items, [
+            ("Australia", "/wiki/Portal:Australia"),
+        ])
 
 
 class PTParsingTests(unittest.TestCase):
@@ -180,7 +214,9 @@ class PTParsingTests(unittest.TestCase):
 
     def test_multiple_levels(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(0)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Nuvola_apps_kcoloredit.png/40px-Nuvola_apps_kcoloredit.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "c/ca/Nuvola_apps_kcoloredit.png/40px-Nuvola_apps_kcoloredit.png"))
 
         self.assertEqual(titles, [
             ("Arte", "/wiki/Portal:Arte"),
@@ -270,7 +306,9 @@ class PTParsingTests(unittest.TestCase):
 
     def test_simple(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(7)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Nuvola_apps_display.png/40px-Nuvola_apps_display.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "9/9a/Nuvola_apps_display.png/40px-Nuvola_apps_display.png"))
 
         self.assertEqual(titles, [
             ("Tecnologia", "/wiki/Portal:Tecnologia"),
@@ -297,7 +335,9 @@ class PTParsingTests(unittest.TestCase):
 
     def test_non_empty(self):
         icon, titles, sub_simples, sub_complexes = self._get_data(1)
-        self.assertEqual(icon, "//upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Nuvola_apps_kalzium.png/40px-Nuvola_apps_kalzium.png")
+        self.assertEqual(icon, (
+            "//upload.wikimedia.org/wikipedia/commons/thumb/"
+            "f/f5/Nuvola_apps_kalzium.png/40px-Nuvola_apps_kalzium.png"))
 
         self.assertEqual(titles, [
             ("Ciências", "/wiki/Portal:Ci%C3%AAncia"),
