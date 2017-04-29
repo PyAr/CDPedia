@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2006-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2006-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -35,6 +35,8 @@ página que se le ofrece, el procesador debe devolver None en lugar del
 puntaje.
 """
 
+from __future__ import print_function
+
 import base64
 import codecs
 import collections
@@ -54,7 +56,7 @@ SCORE_PEISHRANC = 5000
 class _Processor(object):
     """Generic processor, don't use directly, thoght to be subclassed."""
 
-    def __init__(self, wikisitio):
+    def __init__(self):
         self.nombre = 'Generic processor'
         self.stats = None
 
@@ -79,8 +81,8 @@ class ContentExtractor(_Processor):
     # max length of the text extracted from the article
     _max_length = 230
 
-    def __init__(self, wikisitio):
-        super(ContentExtractor, self).__init__(wikisitio)
+    def __init__(self):
+        super(ContentExtractor, self).__init__()
         self.nombre = "ContentExtractor"
         self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
         self.stats = collections.Counter()
@@ -160,8 +162,8 @@ vip_decissor = VIPDecissor()
 
 class VIPArticles(_Processor):
     """A processor for articles that *must* be included."""
-    def __init__(self, wikisitio):
-        super(VIPArticles, self).__init__(wikisitio)
+    def __init__(self):
+        super(VIPArticles, self).__init__()
         self.nombre = "VIPArticles"
         self.stats = collections.Counter()
 
@@ -177,8 +179,8 @@ class VIPArticles(_Processor):
 
 class OmitirRedirects(_Processor):
     """Procesa y omite de la compilación a los redirects."""
-    def __init__(self, wikisitio):
-        super(OmitirRedirects, self).__init__(wikisitio)
+    def __init__(self):
+        super(OmitirRedirects, self).__init__()
         self.nombre = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
@@ -222,8 +224,8 @@ class Peishranc(_Processor):
     NOTA: Si se cambia algo de esta clase, por favor correr los casos de prueba
     en el directorio tests.
     """
-    def __init__(self, wikisitio):
-        super(Peishranc, self).__init__(wikisitio)
+    def __init__(self):
+        super(Peishranc, self).__init__()
         self.nombre = "Peishranc"
 
         # regex preparada por perrito666 y tuute, basicamente matchea todos los
@@ -248,7 +250,7 @@ class Peishranc(_Processor):
             try:
                 lnk = unquote(lnk).decode('utf8')
             except UnicodeDecodeError:
-                print "ERROR al unquotear/decodear el link", repr(lnk)
+                print("ERROR al unquotear/decodear el link", repr(lnk))
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
@@ -271,8 +273,8 @@ class Peishranc(_Processor):
 class Longitud(_Processor):
     """Score the page based on its length (html)."""
 
-    def __init__(self, wikisitio):
-        super(Longitud, self).__init__(wikisitio)
+    def __init__(self):
+        super(Longitud, self).__init__()
         self.nombre = "Longitud"
 
     def __call__(self, wikiarchivo):
@@ -290,8 +292,8 @@ class HTMLCleaner(_Processor):
     _re_edit_links = re.compile(
         '<a href="[^\"]*?action=edit.*?>(?P<texto>.+?)</a>')
 
-    def __init__(self, wikisitio):
-        super(HTMLCleaner, self).__init__(wikisitio)
+    def __init__(self):
+        super(HTMLCleaner, self).__init__()
         self.nombre = "HTMLCleaner"
         self.stats = collections.Counter()
 
@@ -299,7 +301,7 @@ class HTMLCleaner(_Processor):
         html = wikiarchivo.html
 
         # --- start of soup section (to convert html/soup and back only once)
-        soup = bs4.BeautifulSoup(html)
+        soup = bs4.BeautifulSoup(html, 'lxml')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
@@ -316,6 +318,12 @@ class HTMLCleaner(_Processor):
         # remove ambox (reference needed) section
         sections = soup.find_all('table', class_="ambox")
         self.stats['ambox'] += len(sections)
+        for tag in sections:
+            tag.clear()
+
+        # remove inline math
+        sections = soup.find_all('span', class_="mwe-math-mathml-inline")
+        self.stats['inline_math'] += len(sections)
         for tag in sections:
             tag.clear()
 

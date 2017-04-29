@@ -67,7 +67,7 @@ class WikiSitio(object):
     def __init__(self, dir_raiz):
         self.origen = unicode(abspath(dir_raiz))
         self.resultados = {}
-        self.preprocesadores = [proc(self) for proc in preprocesadores.TODOS]
+        self.preprocesadores = [proc() for proc in preprocesadores.TODOS]
 
         # let's see what was processed from before
         if os.path.exists(config.LOG_PREPROCESADO):
