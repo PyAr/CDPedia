@@ -88,7 +88,7 @@ class ContentExtractor(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html)
+        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
 
         # extract the title
         node = soup.find('h1')
@@ -186,7 +186,7 @@ class OmitirRedirects(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html)
+        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
         node = soup.find('ul', 'redirectText')
         if not node:
             # not a redirect, simple file
@@ -285,12 +285,13 @@ class Longitud(_Processor):
 class HTMLCleaner(_Processor):
     """Remove different HTML parts or sections."""
 
-    _re_category = re.compile(
-        '<a.*?title="Especial:Categorías".*?>(?P<texto>.+?)</a>')
-    _re_redlink = re.compile(
-        '<a href="[^\"]+?&amp;redlink=1".+?>(?P<texto>.+?)</a>')
-    _re_edit_links = re.compile(
-        '<a href="[^\"]*?action=edit.*?>(?P<texto>.+?)</a>')
+    # if the first column found in a link, replace it by its text (keeping stats
+    # using the second column)
+    unwrap_links = [
+        ('redlink', 'redlink'),
+        ('action=edit', 'editlinks'),
+        ('Especial:Categor', 'category'),
+    ]
 
     def __init__(self):
         super(HTMLCleaner, self).__init__()
@@ -298,10 +299,7 @@ class HTMLCleaner(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        html = wikiarchivo.html
-
-        # --- start of soup section (to convert html/soup and back only once)
-        soup = bs4.BeautifulSoup(html, 'lxml')
+        soup = bs4.BeautifulSoup(wikiarchivo.html, 'lxml', from_encoding='utf8')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
@@ -327,29 +325,18 @@ class HTMLCleaner(_Processor):
         for tag in sections:
             tag.clear()
 
-        html = str(soup)
-        # --- end of soup section
-
-        # remove the "Category", just for aesthetic reasons
-        newhtml = self._re_category.sub("\g<texto>", html)
-        if newhtml != html:
-            self.stats['category'] += 1
-        html = newhtml
-
-        # remove the red links (never created in wikipedia) from html
-        newhtml = self._re_redlink.sub("\g<texto>", html)
-        if newhtml != html:
-            self.stats['redlink'] += 1
-        html = newhtml
-
-        # remove the edit links
-        newhtml = self._re_edit_links.sub("\g<texto>", html)
-        if newhtml != html:
-            self.stats['editlinks'] += 1
-        html = newhtml
+        # remove some links (but keeping their text)
+        for a_tag in soup.find_all('a'):
+            href = a_tag['href']
+            for searchable, stat_key in self.unwrap_links:
+                if searchable in href:
+                    # special link, keep stat and replace it by the text
+                    self.stats[stat_key] += 1
+                    a_tag.unwrap()
+                    break
 
         # fix original html and return no score at all
-        wikiarchivo.html = html
+        wikiarchivo.html = str(soup)
         return (0, [])
 
 

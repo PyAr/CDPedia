@@ -1,6 +1,6 @@
 # -- encoding: utf-8 --
 
-# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,7 +16,7 @@
 #
 # For further info, check  https://launchpad.net/cdpedia/
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import datetime
 import logging
@@ -270,12 +270,12 @@ def main(lang, src_info, version, lang_config, gendate,
     try:
         _lang_conf = config.imagtypes[lang]
     except KeyError:
-        print "Not a valid language! try one of", config.imagtypes.keys()
+        print("ERROR: %r is not a valid language! try one of %s" % (lang, config.imagtypes.keys()))
         exit()
     try:
         config.imageconf = _lang_conf[version]
     except KeyError:
-        print "Not a valid version! try one of", _lang_conf.keys()
+        print("ERROR: %r is not a valid version! try one of %s" % (version, _lang_conf.keys()))
         exit()
     config.langconf = lang_config
 
@@ -293,9 +293,7 @@ def main(lang, src_info, version, lang_config, gendate,
             logger.error("Couldn't find articles dir: %r", articulos)
             raise EnvironmentError("Directory not found, can't continue")
             sys.exit()
-        cantnew, cantold = preprocesar.run(articulos)
-        logger.info("Processed pages: %d new, %d from before",
-                    cantnew, cantold)
+        preprocesar.run(articulos)
 
         logger.info("Calculating which stay and which don't")
         preprocesar.pages_selector.calculate()
@@ -428,7 +426,7 @@ To update an image with the code and assets changes  in this working copy:
         try:
             import guppy.heapy.RM
         except ImportError:
-            print "ERROR: Tried to start heapy but guppy is not installed!"
+            print("ERROR: Tried to start heapy but guppy is not installed!")
             exit()
         guppy.heapy.RM.on()
 
@@ -437,7 +435,7 @@ To update an image with the code and assets changes  in this working copy:
         try:
             lang_config = _config[lang]
         except KeyError:
-            print "ERROR: there's no %r in 'languages.yaml'" % (lang,)
+            print("ERROR: there's no %r in 'languages.yaml'" % (lang,))
             exit()
 
     if options.update_mini:

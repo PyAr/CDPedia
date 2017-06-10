@@ -29,16 +29,19 @@ namespaces = Namespaces()
 
 
 def _escape_dir(s):
-    return s.replace(u"/", NULL).replace(u".", NULL)
+    return s.replace(u"/", BARRA).replace(u".", NULL)
+
 
 def _escape_filename(s):
     return s.replace(u"/", BARRA)
+
 
 def to_pagina(filename):
     """
     s == to_pagina(_escape_filename(s))
     """
     return filename.replace(BARRA, u"/")
+
 
 def to_path(pagina):
     """

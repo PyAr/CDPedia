@@ -5,7 +5,7 @@ import os
 import yaml
 
 # Versión de la CDPedia
-VERSION = '0.8.3'
+VERSION = '0.8.4'
 
 # This should be set to the hostname or address of the server.
 # Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
@@ -21,7 +21,7 @@ SERVER_MODE = False
 
 # Nombre de la edicion especial, modifica el INDEX y ASSETS en código
 EDICION_ESPECIAL = None
-#EDICION_ESPECIAL = "educar"
+# EDICION_ESPECIAL = "educar"
 
 # Ubicación de los archivos estáticos online
 # Debe tener la barra al final

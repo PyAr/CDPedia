@@ -1,6 +1,6 @@
 #!//usr/bin/env python
 
-# Copyright 2014-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -15,6 +15,8 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://launchpad.net/cdpedia/
+
+from __future__ import print_function
 
 import StringIO
 import argparse
@@ -49,7 +51,7 @@ WIKI_BASE = 'http://%(language)s.wikipedia.org'
 
 # some limits when running in test mode
 TEST_LIMIT_NAMESPACE = 50
-TEST_LIMIT_SCRAP = 500
+TEST_LIMIT_SCRAP = 1000
 
 # files/dirs to not remove if we want to keep the processed info during cleaning
 KEEP_PROCESSED = ['preprocesado.txt', 'preprocesado', 'titles.txt']
@@ -253,7 +255,12 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
 
     os.chdir(branch_dir)
 
+    if test:
+        image_type = 'beta'
     if image_type is None:
+        if not noscrap:
+            # new articles! do a full clean before, including the "processed" files
+            clean(branch_dir, dump_imags_dir, keep_processed=False)
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
             clean(branch_dir, dump_imags_dir, keep_processed=True)
@@ -261,7 +268,8 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
-            keep_processed = noscrap  # no new articles, can keep the processed file
+            # keep previous processed if not new scrapped articles and not testing
+            keep_processed = noscrap and not test
             clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
         generar.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
 
@@ -291,8 +299,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.no_clean and not args.image_type:
-        print ("ERROR: --no-clean option is only usable when --image-type "
-               "was indicated")
+        print("ERROR: --no-clean option is only usable when --image-type was indicated")
         exit()
 
     branch_dir = os.path.abspath(args.branch_dir)
@@ -305,8 +312,8 @@ if __name__ == "__main__":
         try:
             lang_config = _config[args.language]
         except KeyError:
-            print "ERROR: there's no %r in language config file %r" % (
-                args.language, _config_fname)
+            print("ERROR: there's no %r in language config file %r" % (
+                  args.language, _config_fname))
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
 
@@ -317,19 +324,19 @@ if __name__ == "__main__":
         try:
             imag_config = _config[args.language]
         except KeyError:
-            print "ERROR: there's no %r in image type config file %r" % (
-                args.language, _config_fname)
+            print("ERROR: there's no %r in image type config file %r" % (
+                  args.language, _config_fname))
             exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
         if args.image_type not in imag_config:
-            print "ERROR: there's no %r image in the image type config" % (
-                args.image_type)
+            print("ERROR: there's no %r image in the image type config" % (
+                  args.image_type))
             exit()
 
     # branch dir must exist
     if not os.path.exists(branch_dir):
-        print "ERROR: The branch dir doesn't exist!"
+        print("ERROR: The branch dir doesn't exist!")
         exit()
 
     # fix sys path to branch dir and import the rest of stuff from there

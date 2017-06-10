@@ -10,25 +10,32 @@ será (o no) incluída en la compilación.
 
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, unicode_literals, print_function
 
 import os
 import codecs
 import config
 import logging
 import operator
+import sys
+import time
 
+from collections import Counter
 from os.path import join, abspath, dirname
 
+from src.armado import to3dirs
 from src.preproceso import preprocesadores
 from src import utiles
 
 logger = logging.getLogger('preprocesar')
 
+LOG_SCORES_ACCUM = os.path.join(config.DIR_TEMP, 'page_scores_accum.txt')
+LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
+
 
 class WikiArchivo(object):
-    def __init__(self, cwd, ult3dirs, nombre_archivo):
-        self.ruta_relativa = join(ult3dirs, nombre_archivo)
+    def __init__(self, cwd, last3dirs, nombre_archivo):
+        self.ruta_relativa = join(last3dirs, nombre_archivo)
         self.url = nombre_archivo
         self._filename = join(cwd, nombre_archivo)
         self._html = None
@@ -64,159 +71,148 @@ class WikiArchivo(object):
 
 
 class WikiSitio(object):
-    def __init__(self, dir_raiz):
-        self.origen = unicode(abspath(dir_raiz))
-        self.resultados = {}
+
+    def __init__(self, root_dir):
+        self.origen = unicode(abspath(root_dir))
         self.preprocesadores = [proc() for proc in preprocesadores.TODOS]
+        self.prof_quant = Counter()
+        self.prof_times = Counter()
 
-        # let's see what was processed from before
+    def process(self):
+        """Process all pages under a root directory."""
+
+        # let's see what was processed from before, and open the log file to keep adding
         if os.path.exists(config.LOG_PREPROCESADO):
-            fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-            fh.next()  # title
-            procs = [p for p in self.preprocesadores]
-            for linea in fh:
-                partes = linea.split(config.SEPARADOR_COLUMNAS)
-                arch = partes[0]
-                dir3 = partes[1]
-                d = {}
-                self.resultados[arch] = d
-                d["dir3"] = dir3
-                for proc, ptje in zip(procs, map(int, partes[2:])):
-                    d[proc] = ptje
-
-        # vemos que habíamos descartado antes, y dejamos el archivo listo
-        # para seguir escribiendo
-        self.descartados_antes = set()
-        nomarch = join(config.DIR_TEMP, "descartados.txt")
-        if os.path.exists(nomarch):
-            self.descartados_file = codecs.open(nomarch, 'r+', 'utf8')
-            for linea in self.descartados_file:
-                self.descartados_antes.add(linea.strip())
+            with codecs.open(config.LOG_PREPROCESADO, "rt", "utf8") as fh:
+                processed_before_set = set(x.strip() for x in fh)
         else:
-            self.descartados_file = codecs.open(nomarch, 'w', 'utf8')
-
-    def procesar(self):
-        resultados = self.resultados
-        puntaje_extra = {}
-        de_antes = 0
+            processed_before_set = set()
+        processed_before_log = codecs.open(config.LOG_PREPROCESADO, "at", "utf8")
 
         # get the total of directories to parse
-        total_dirs = sum(1 for _ in os.walk(self.origen))
-        logger.info("Quantity of directories to process: %d", total_dirs)
+        total_pages = sum(len(filenames) for _, _, filenames in os.walk(self.origen))
+        logger.info("Quantity of pages to process: %d", total_pages)
 
-        count = 0
+        # open the scores file to keep adding
+        scores_log = codecs.open(LOG_SCORES_ACCUM, "at", "utf8")
+
+        count_processed = count_new_ok = count_new_discarded = count_old_before = 0
         tl = utiles.TimingLogger(30, logger.debug)
-        for cwd, directorios, archivos in os.walk(self.origen):
-            partes_dir = cwd.split(os.path.sep)
-            ult3dirs = join(*partes_dir[-3:])
-            count += 1
+        for cwd, _, filenames in os.walk(self.origen):
+            parts_dir = cwd.split(os.path.sep)
+            last3dirs = join(*parts_dir[-3:])
 
-            if len(ult3dirs) != 5:  # ej: u"M/a/n"
+            if len(last3dirs) != 5:  # ej: u"M/a/n"
                 # we're not in a leaf, we shouldn't have any files
-                if archivos:
-                    logger.warning("We have content in a non-leaf "
-                                   "directory: %s", archivos)
+                if filenames:
+                    logger.warning("We have content in a non-leaf directory: %s %s",
+                                   last3dirs, filenames)
                 continue
-            tl.log("Processing %s (%d/%d)", ult3dirs, count, total_dirs)
 
-            for pag in archivos:
-                if " " in pag:
-                    logger.warning("Have names with spaces! %s %s",
-                                   ult3dirs, pag)
-                # vemos si lo teníamos de antes
-                if pag in resultados:
-                    de_antes += 1
+            for page in filenames:
+                count_processed += 1
+                tl.log("Processing %s (%d/%d)", last3dirs, count_processed, total_pages)
+
+                if " " in page:
+                    logger.warning("Have names with spaces! %s %s", last3dirs, page)
+
+                # check if the page was processed or discarded before
+                if page in processed_before_set:
+                    count_old_before += 1
                     continue
-                if pag in self.descartados_antes:
-                    continue
 
-                wikiarchivo = WikiArchivo(cwd, ult3dirs, pag)
-                resultados[pag] = {}
-                resultados[pag]["dir3"] = ult3dirs
+                wikipage = WikiArchivo(cwd, last3dirs, page)
 
+                this_total_score = 0
+                other_pages_scores = []
                 for procesador in self.preprocesadores:
-                    (puntaje, otras_pags) = procesador(wikiarchivo)
+                    tini = time.time()
+                    (this_score, other_scores) = procesador(wikipage)
+                    self.prof_times[procesador] += time.time() - tini
+                    self.prof_quant[procesador] += 1
 
-                    # agregamos el puntaje extra
-                    for extra_pag, extra_ptje in otras_pags:
-                        if extra_pag in resultados:
-                            prev = resultados[extra_pag].get(procesador, 0)
-                            resultados[extra_pag][procesador] = prev + extra_ptje
-                        else:
-                            ant = puntaje_extra.setdefault(extra_pag, {})
-                            ant[procesador] = ant.get(procesador, 0) + extra_ptje
+                    # keep the score for other pages (check before to avoid a bogus function call)
+                    if other_scores:
+                        other_pages_scores.extend(other_scores)
 
-                    # None significa que el procesador lo marcó para omitir
-                    if puntaje is None:
-                        del resultados[pag]
-                        self.descartados_file.write("%s\n" % pag)
+                    if this_score is None:
+                        # the processor indicated to discard this page
+                        count_new_discarded += 1
                         break
 
-                    # ponemos el puntaje
-                    if puntaje != 0:
-                        resultados[pag][procesador] = puntaje
+                    # keep the score for this page
+                    this_total_score += this_score
 
                 else:
-                    # lo guardamos sólo si no fue descartado
-                    wikiarchivo.guardar()
+                    # all processors done, page not discarded
+                    count_new_ok += 1
+                    wikipage.guardar()
 
+                    # save the real page score
+                    scores_log.write("{}|R|{:d}\n".format(page, this_total_score))
+
+                    # save the extra pages score (that may exist or not in the dump)
+                    for extra_page, extra_score in other_pages_scores:
+                        scores_log.write("{}|E|{:d}\n".format(extra_page, extra_score))
+
+                # with score or discarded, log it as processed
+                processed_before_log.write(page + "\n")
+
+        # all processing done for all the pages
+        logger.info("Processed pages: %d new ok, %d discarded, %d already processed before",
+                    count_new_ok, count_new_discarded, count_old_before)
+        scores_log.close()
+        processed_before_log.close()
         for procesador in self.preprocesadores:
             procesador.close()
             logger.debug("Preprocessor %17s usage stats: %s", procesador.nombre, procesador.stats)
 
-        # cargamos los redirects para tenerlos en cuenta
+    def commit(self):
+        """Commit all the processing done, adjusting some logs."""
+        colsep = config.SEPARADOR_COLUMNAS
+
+        # load the score files and compress it
+        all_scores = Counter()
+        real_pages = set()
+        with codecs.open(LOG_SCORES_ACCUM, "rt", "utf8") as fh:
+            for line in fh:
+                page, status, score = line.strip().split(colsep)
+                all_scores[page] += int(score)
+                if status == 'R':
+                    real_pages.add(page)
+
+        # load the redirects
         redirects = {}
-        sepcol = config.SEPARADOR_COLUMNAS
         with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
             for linea in fh:
-                r_from, r_to = linea.strip().split(sepcol)
+                r_from, r_to = linea.strip().split(colsep)
                 redirects[r_from] = r_to
 
-        # agregamos el puntaje extra sólo si ya teníamos las páginas con nos
-        logger.debug("Distributing extra scope: %d", len(puntaje_extra))
-        perdidos = []
-        for (pag, puntajes) in puntaje_extra.items():
-            # desreferenciamos el redirect, vaciando el diccionario para
-            # evitar loops
-            while pag in redirects:
-                pag = redirects.pop(pag)
+        # transfer score
+        transferred_scores = Counter()
+        for page, score in all_scores.items():
+            if page not in redirects:
+                transferred_scores[page] += score
+                continue
 
-            # asignamos los puntajes para las páginas que están
-            if pag in resultados:
-                for (proc, ptje) in puntajes.items():
-                    resultados[pag][proc] = resultados[pag].get(proc, 0) + ptje
-            else:
-                perdidos.append((pag, puntajes))
-        if perdidos:
-            logger.warning("Lost %d scores!", len(perdidos))
-            fname = join(config.DIR_TEMP, 'perdidos.txt')
-            with codecs.open(fname, 'w', 'utf8') as fh:
-                for pag in perdidos:
-                    fh.write(u"%s\n" % (pag,))
+            # dereference the redirect, avoiding a possible loop; note that intermediate
+            # pages have not score (see processor)
+            loop_guard = []
+            while page in redirects:
+                page = redirects[page]
+                if page in loop_guard:
+                    logger.warning("Redirect loop found: %s", loop_guard, page)
+                    break
+                loop_guard.append(page)
 
-        return len(resultados) - de_antes, de_antes
+            # add the original score to the dereferenced page
+            transferred_scores[page] += score
 
-    def guardar(self):
-        log = abspath(config.LOG_PREPROCESADO)
-        preprocs = self.preprocesadores
-        sep_cols = unicode(config.SEPARADOR_COLUMNAS)
-        plantilla = sep_cols.join([u'%s'] * (len(preprocs) + 2)) + "\n"
-
-        # inicializamos el log
-        salida = codecs.open(log, "w", "utf-8")
-        columnas = [u'Página', u"Dir3"] + [p.nombre for p in preprocs]
-        salida.write(plantilla % tuple(columnas))
-
-        # Contenido:
-        for pagina, valores in self.resultados.iteritems():
-            #los rankings deben ser convertidos en str para evitar
-            # literales como 123456L
-            columnas = [pagina, valores["dir3"]]
-            columnas += [valores.get(p, 0) for p in preprocs]
-            salida.write(plantilla % tuple(columnas))
-
-        logger.debug("Record written in %s", log)
-        salida.close()
+        # store the scores again, but only for the real pages (there is no point in storing
+        # scores for pages that were not included in the dump)
+        with codecs.open(LOG_SCORES_FINAL, "wt", "utf8") as fh:
+            for page in real_pages:
+                fh.write("{}|{:d}\n".format(page, transferred_scores[page]))
 
 
 class PagesSelector(object):
@@ -224,8 +220,9 @@ class PagesSelector(object):
 
     def __init__(self):
         self._calculated = False
-
         self._top_pages = None
+
+        # used from outside to decided regenerate index, blocks, etc
         self._same_info_through_runs = None
 
     @property
@@ -247,15 +244,13 @@ class PagesSelector(object):
         self._calculated = True
 
         # read the preprocessed file
-        fh = codecs.open(config.LOG_PREPROCESADO, "r", "utf8")
-        fh.next()  # title
         all_pages = []
-        for linea in fh:
-            partes = linea.split(config.SEPARADOR_COLUMNAS)
-            arch = partes[0]
-            dir3 = partes[1]
-            puntaje = sum(map(int, partes[2:]))
-            all_pages.append((dir3, arch, puntaje))
+        colsep = config.SEPARADOR_COLUMNAS
+        with codecs.open(LOG_SCORES_FINAL, 'rt', encoding='utf8') as fh:
+            for line in fh:
+                page, score = line.strip().split(colsep)
+                dir3 = to3dirs.to_path(page)
+                all_pages.append((dir3, page, int(score)))
 
         # order by score, and get top N
         all_pages.sort(key=operator.itemgetter(2), reverse=True)
@@ -289,13 +284,46 @@ class PagesSelector(object):
 pages_selector = PagesSelector()
 
 
-def run(dir_raiz):
-#    import cProfile
-    wikisitio = WikiSitio(dir_raiz)
-#    cProfile.runctx("wikisitio.procesar()", globals(), locals(), "/tmp/procesar.stat")
-    cantnew, cantold = wikisitio.procesar()
-    wikisitio.guardar()
-    return cantnew, cantold
+def run(root_dir):
+    wikisitio = WikiSitio(root_dir)
+    wikisitio.process()
+    wikisitio.commit()
+
+
+def profiled_run(root_dir):
+    # import cProfile
+
+    tini = time.time()
+    wikisitio = WikiSitio(root_dir)
+
+    # uncomment the following if you want to profile just ONE preprocessor (fix which one)
+    wikisitio.preprocesadores = [preprocesadores.HTMLCleaner()]
+
+    # select here to run the profiled process or not
+    # cProfile.runctx("wikisitio.process()", globals(), locals(), "/tmp/procesar.stat")
+    wikisitio.process()
+
+    wikisitio.commit()
+    tend = time.time()
+    print("Whole process", tend - tini)
+    print("In processors", sum(wikisitio.prof_times.values()))
+    for proc in wikisitio.prof_times:
+        quant = wikisitio.prof_quant[proc]
+        total = wikisitio.prof_times[proc]
+        print("         proc ", proc, quant, total, total / quant)
+    print("Full stats (if profile run) saved in /tmp/procesar.stat")
+
 
 if __name__ == "__main__":
-    run()
+    if len(sys.argv) != 2:
+        print("Usage: preprocesar.py root_dir")
+        exit()
+    if os.path.exists(config.LOG_PREPROCESADO):
+        print("ERROR: The PREPROCESADO file is there, it will make some articles to be skipped:",
+              config.LOG_PREPROCESADO)
+        exit()
+
+    # fix config for a needed variable
+    config.langconf = dict(include=[])
+
+    profiled_run(sys.argv[1])
