@@ -13,9 +13,14 @@ TORRENT_DIR = 'torrent'
 
 TRACKERS = [
     'udp://tracker.openbittorrent.com:80',
-    'udp://tracker.publicbt.com:80',
-    'udp://tracker.ccc.de:80',
-    'udp://tracker.istole.it:80',
+    # 'udp://tracker.publicbt.com:80',
+    # 'udp://tracker.ccc.de:80',
+    # 'udp://tracker.istole.it:80',
+    'udp://tracker.opentrackr.org:1337',
+    'udp://tracker.coppersurfer.tk:6969',
+    'udp://tracker.leechers-paradise.org:6969',
+    'udp://zer0day.ch:1337',
+    'udp://explodie.org:6969',
 ]
 
 def _hasher(fname):
