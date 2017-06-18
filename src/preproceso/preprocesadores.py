@@ -327,7 +327,12 @@ class HTMLCleaner(_Processor):
 
         # remove some links (but keeping their text)
         for a_tag in soup.find_all('a'):
-            href = a_tag['href']
+            try:
+                href = a_tag['href']
+            except KeyError:
+                # no link
+                continue
+
             for searchable, stat_key in self.unwrap_links:
                 if searchable in href:
                     # special link, keep stat and replace it by the text

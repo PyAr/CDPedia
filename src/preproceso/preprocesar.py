@@ -127,7 +127,11 @@ class WikiSitio(object):
                 other_pages_scores = []
                 for procesador in self.preprocesadores:
                     tini = time.time()
-                    (this_score, other_scores) = procesador(wikipage)
+                    try:
+                        (this_score, other_scores) = procesador(wikipage)
+                    except:
+                        logger.error("Processor %s crashed on page %r", procesador, page)
+                        raise
                     self.prof_times[procesador] += time.time() - tini
                     self.prof_quant[procesador] += 1
 

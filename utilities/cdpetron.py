@@ -54,7 +54,13 @@ TEST_LIMIT_NAMESPACE = 50
 TEST_LIMIT_SCRAP = 1000
 
 # files/dirs to not remove if we want to keep the processed info during cleaning
-KEEP_PROCESSED = ['preprocesado.txt', 'preprocesado', 'titles.txt']
+KEEP_PROCESSED = [
+    'preprocesado.txt',
+    'preprocesado',
+    'titles.txt',
+    'page_scores_accum.txt',
+    'redirects.txt',
+]
 
 # set up logging
 logger = logging.getLogger()
