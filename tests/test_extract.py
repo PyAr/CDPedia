@@ -129,9 +129,7 @@ class SearcherTestCase(unittest.TestCase):
 
     def test_replace_extensions(self):
         url = "/w/extensions/ImageMap/desc-20.png"
-        should_web = (
-            "http://es.wikipedia.org/w/extensions/ImageMap/desc-20.png"
-        )
+        should_web = "https://es.wikipedia.org/w/extensions/ImageMap/desc-20.png"
         should_dsk = "extensions/ImageMap/desc-20.png"
         self._check(url, should_web, should_dsk)
 
@@ -169,4 +167,13 @@ class SearcherTestCase(unittest.TestCase):
         url = "https://wikimedia.org/api/rest_v1/media/math/render/svg/8f85ec5f1c58.SVG"
         should_web = url
         should_dsk = "math/render/svg/8f85ec5f1c58.SVG"
+        self._check(url, should_web, should_dsk)
+
+    def test_wikipedia_api_graph(self):
+        url = '/api/rest_v1/page/graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
+        should_web = (
+            'https://es.wikipedia.org'
+            '/api/rest_v1/page/graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
+        )
+        should_dsk = 'graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
         self._check(url, should_web, should_dsk)

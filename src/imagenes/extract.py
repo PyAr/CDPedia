@@ -40,7 +40,7 @@ import config
 from src.preproceso import preprocesar
 from src import utiles
 
-WIKIPEDIA_URL = "http://es.wikipedia.org"
+WIKIPEDIA_URL = "https://es.wikipedia.org"
 
 # we plainly don't want some images
 IMAGES_TO_REMOVE = re.compile(
@@ -250,8 +250,13 @@ class ImageParser(object):
             web_url = img
             dsk_url = img[40:]
 
+        elif img.startswith("/api/rest_v1/page/"):
+            web_url = WIKIPEDIA_URL + img
+            dsk_url = img[18:]
+
         else:
-            raise ValueError("Unsupported image type! %r" % img)
+            logger.warning("Unsupported image type! %r", img)
+            return ''
 
         if self.test:
             print("  web url:", web_url)
