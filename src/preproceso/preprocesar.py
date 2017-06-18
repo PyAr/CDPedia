@@ -80,7 +80,6 @@ class WikiSitio(object):
 
     def process(self):
         """Process all pages under a root directory."""
-
         # let's see what was processed from before, and open the log file to keep adding
         if os.path.exists(config.LOG_PREPROCESADO):
             with codecs.open(config.LOG_PREPROCESADO, "rt", "utf8") as fh:
@@ -289,6 +288,10 @@ pages_selector = PagesSelector()
 
 
 def run(root_dir):
+    if os.path.exists(LOG_SCORES_FINAL):
+        logger.info("Skipping the whole processing stage as the final scores log was found.")
+        return
+
     wikisitio = WikiSitio(root_dir)
     wikisitio.process()
     wikisitio.commit()
