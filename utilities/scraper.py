@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright 2010-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2010-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -69,10 +69,10 @@ REVISION_URL = (
 USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
              'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
 
-REQUEST_HEADERS = {'Accept-encoding':'gzip'}
+REQUEST_HEADERS = {'Accept-encoding': 'gzip'}
 
-DataURLs = collections.namedtuple("DataURLs",
-                                  "url temp_dir disk_name, basename")
+DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename")
+
 
 class URLAlizer(object):
     def __init__(self, listado_nombres, dest_dir, language, test_limit):
@@ -127,7 +127,7 @@ def fetch_html(url):
             html = gzipper.read()
 
             defer.returnValue(html)
-        except Exception, err:
+        except Exception as err:
             if isinstance(err, error.Error) and err.status == http.NOT_FOUND:
                 raise
             retries -= 1
@@ -163,7 +163,7 @@ class WikipediaArticle(object):
 
     It should know how to retrive the asociated history page and any revision.
     """
-    HISTORY_CLASS =  WikipediaArticleHistoryItem
+    HISTORY_CLASS = WikipediaArticleHistoryItem
 
     def __init__(self, language, url, basename):
         self.language = language
@@ -196,7 +196,7 @@ class WikipediaArticle(object):
 
     @defer.inlineCallbacks
     def get_history(self, size=6):
-        if self._history is None or size!=self.history_size:
+        if self._history is None or size != self.history_size:
             self.history_size = size
             self._history = yield fetch_html(self.history_url)
         defer.returnValue(self._history)
@@ -217,7 +217,6 @@ class WikipediaArticle(object):
 
         for idx, item in enumerate(revisions):
             yield idx, self.HISTORY_CLASS.FromJSON(item)
-
 
     @defer.inlineCallbacks
     def search_valid_version(self, acceptance_days=7, _show_debug_info=False):
@@ -261,18 +260,18 @@ class WikipediaArticle(object):
         # if the user is registered, it's enough for us! (even if it's a bot)
         if hist_item.user_registered:
             return True
-        #if it's not registered, check for how long this version lasted
+        # if it's not registered, check for how long this version lasted
         if hist_item.date + self.acceptance_delta < prev_date:
             return True
         return False
 
 
-regex = '(<h1 id="firstHeading" class="firstHeading" lang=".+">.+</h1>)(.+)\s*<div class="printfooter">'
-capturar = re.compile(regex, re.MULTILINE|re.DOTALL).search
-no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>',
-                                                re.MULTILINE|re.DOTALL)
-no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->",
-                                                re.MULTILINE|re.DOTALL)
+regex = (
+    '(<h1 id="firstHeading" class="firstHeading" '
+    'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
+capturar = re.compile(regex, re.MULTILINE | re.DOTALL).search
+no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>', re.MULTILINE | re.DOTALL)
+no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->", re.MULTILINE | re.DOTALL)
 
 
 def extract_content(html, url):
@@ -329,7 +328,7 @@ def get_html(url, basename):
 
 
 def obtener_link_200_siguientes(html):
-    links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>',html)
+    links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>', html)
     if links == []:
         return
     return '%s%s' % (WIKI[:-1], links[0])
@@ -344,22 +343,23 @@ def reemplazar_links_paginado(html, n):
 
     def reemplazo(m):
         pre, link, post = m.groups()
-        idx = '"' if (n==2 and delta==-1) else '_%d"'%(n+delta)
-        return '<a href="/wiki/' + link.replace('_',' ') + idx + post
+        idx = '"' if (n == 2 and delta == -1) else '_%d"' % (n + delta)
+        return '<a href="/wiki/' + link.replace('_', ' ') + idx + post
 
     # Reemplazo el link 'siguiente'
     delta = 1
-    html = re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)', reemplazo, html)
+    html = re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)',
+                  reemplazo, html)
 
     # Reemplazo el link 'anterior'
     delta = -1
-    return re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)', reemplazo, html)
+    return re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)',
+                  reemplazo, html)
+
 
 def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html',
-                                       prefix='scrap-',
-                                       dir=temp_dir,
-                                       delete=False)
+    return tempfile.NamedTemporaryFile(suffix='.html', prefix='scrap-', dir=temp_dir, delete=False)
+
 
 @defer.inlineCallbacks
 def save_htmls(data_urls):
@@ -400,13 +400,13 @@ def save_htmls(data_urls):
         if not prox_url:
             defer.returnValue(temporales)
 
-        html = yield get_html(prox_url.replace('&amp;','&'),
-                              data_urls.basename)
+        html = yield get_html(prox_url.replace('&amp;', '&'), data_urls.basename)
         if html is None:
             defer.returnValue(False)
 
         temp_file = get_temp_file(data_urls.temp_dir)
         n += 1
+
 
 @defer.inlineCallbacks
 def fetch(data_urls, language):
@@ -464,8 +464,8 @@ class StatusBoard(object):
                 self.mal += 1
         finally:
             velocidad = self.total / (time.time() - self.tiempo_inicial)
-            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" %
-                (self.total, self.bien, self.mal, velocidad))
+            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" % (
+                self.total, self.bien, self.mal, velocidad))
             sys.stdout.flush()
 
 
@@ -504,7 +504,7 @@ Usar: scraper.py <NOMBRES_ARTICULOS> <LANGUAGE> <DEST_DIR> [CONCURRENT]"
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print USAGE
+        print(USAGE)
         sys.exit(1)
 
     d = main(*sys.argv[1:])
