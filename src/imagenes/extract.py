@@ -273,7 +273,9 @@ class ImageParser(object):
             self.imgs_ok += 1
 
         if '?' in dsk_url:
-            print(u"WARNING: Encontramos una URL que ya venía con GET args :(")
+            logger.warning("URL with GET args: %s", dsk_url)
+            return ''
+
         # devolvemos lo cambiado para el html
         querystr = ''
         if msize is not None:
