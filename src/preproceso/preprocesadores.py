@@ -40,6 +40,7 @@ from __future__ import print_function
 import base64
 import codecs
 import collections
+import logging
 import os
 import re
 
@@ -51,6 +52,8 @@ import bs4
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
+
+logger = logging.getLogger(__name__)
 
 
 class _Processor(object):
@@ -151,6 +154,7 @@ class VIPDecissor(object):
                 mainpage_portals_content = fh.read()
             for link in re_link.findall(mainpage_portals_content):
                 viparts.add(unquote(link).decode('utf8'))
+        logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
         if self._vip_articles is None:

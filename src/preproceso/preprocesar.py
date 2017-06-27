@@ -27,7 +27,7 @@ from src.armado import to3dirs
 from src.preproceso import preprocesadores
 from src import utiles
 
-logger = logging.getLogger('preprocesar')
+logger = logging.getLogger(__name__)
 
 LOG_SCORES_ACCUM = os.path.join(config.DIR_TEMP, 'page_scores_accum.txt')
 LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
@@ -89,6 +89,7 @@ class WikiSitio(object):
         processed_before_log = codecs.open(config.LOG_PREPROCESADO, "at", "utf8")
 
         # get the total of directories to parse
+        logger.info("Getting how many pages under root dir")
         total_pages = sum(len(filenames) for _, _, filenames in os.walk(self.origen))
         logger.info("Quantity of pages to process: %d", total_pages)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2012-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2012-2017 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -31,8 +31,8 @@ import time
 NAMESPACES = (
     14,  # Category
     12,  # Help
-    104, # Anexo
-    100, # Portal
+    104,  # Anexo
+    100,  # Portal
 )
 
 API_URL = (
@@ -99,8 +99,8 @@ def get_articles(language, test_limit):
                     break
 
             # continue, if needed
-            if 'query-continue' in data:
-                contin = data['query-continue']['allpages']['apcontinue']
+            if 'continue' in data:
+                contin = data['continue']['apcontinue']
                 contin = urllib.quote(contin.encode('utf8'))
             else:
                 break
