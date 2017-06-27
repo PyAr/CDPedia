@@ -59,6 +59,7 @@ KEEP_PROCESSED = [
     'preprocesado',
     'titles.txt',
     'page_scores_accum.txt',
+    'page_scores_final.txt',
     'redirects.txt',
 ]
 
