@@ -109,19 +109,19 @@ class WikiSitio(object):
                                    last3dirs, filenames)
                 continue
 
-            for page in filenames:
+            for page_path in filenames:
                 count_processed += 1
                 tl.log("Processing %s (%d/%d)", last3dirs, count_processed, total_pages)
 
-                if " " in page:
-                    logger.warning("Have names with spaces! %s %s", last3dirs, page)
+                if " " in page_path:
+                    logger.warning("Have names with spaces! %s %s", last3dirs, page_path)
 
                 # check if the page was processed or discarded before
-                if page in processed_before_set:
+                if page_path in processed_before_set:
                     count_old_before += 1
                     continue
 
-                wikipage = WikiArchivo(cwd, last3dirs, page)
+                wikipage = WikiArchivo(cwd, last3dirs, page_path)
 
                 this_total_score = 0
                 other_pages_scores = []
@@ -130,7 +130,7 @@ class WikiSitio(object):
                     try:
                         (this_score, other_scores) = procesador(wikipage)
                     except:
-                        logger.error("Processor %s crashed on page %r", procesador, page)
+                        logger.error("Processor %s crashed on page %r", procesador, page_path)
                         raise
                     self.prof_times[procesador] += time.time() - tini
                     self.prof_quant[procesador] += 1
@@ -153,14 +153,15 @@ class WikiSitio(object):
                     wikipage.guardar()
 
                     # save the real page score
-                    scores_log.write("{}|R|{:d}\n".format(page, this_total_score))
+                    scores_log.write("{}|R|{:d}\n".format(
+                        to3dirs.to_pagina(page_path), this_total_score))
 
                     # save the extra pages score (that may exist or not in the dump)
                     for extra_page, extra_score in other_pages_scores:
                         scores_log.write("{}|E|{:d}\n".format(extra_page, extra_score))
 
                 # with score or discarded, log it as processed
-                processed_before_log.write(page + "\n")
+                processed_before_log.write(page_path + "\n")
 
         # all processing done for all the pages
         logger.info("Processed pages: %d new ok, %d discarded, %d already processed before",
