@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 
-"""Build torrent and move files around in a CDPedia server."""
+"""Build torrent and move files around in a CDPedia server.
+
+Packages needed in the system:
+
+    - transmission-cli
+    - deluge-console
+    - deluged
+
+"""
 
 import hashlib
 import os
@@ -10,6 +18,7 @@ import sys
 
 PROJ_DIR = 'CDPedia'
 TORRENT_DIR = 'torrent'
+WEB_DIR = 'www'
 
 TRACKERS = [
     'udp://tracker.openbittorrent.com:80',
@@ -22,6 +31,7 @@ TRACKERS = [
     'udp://zer0day.ch:1337',
     'udp://explodie.org:6969',
 ]
+
 
 def _hasher(fname):
     """Calculate md5 and sha1 from a file's content."""
@@ -60,10 +70,10 @@ def main(image_fname):
     subprocess.call(cmd)
 
     # create the destination directory if not there, and move the torrent file
-    web_dir = os.path.join('www', 'images', lang, dt)
+    web_dir = os.path.join(WEB_DIR, 'images', lang, dt)
     print("Moving to web dir", repr(web_dir))
     if not os.path.exists(web_dir):
-        os.mkdir(web_dir)
+        os.makedirs(web_dir)
     shutil.move(torrent_file, web_dir)
 
     # save hashes
