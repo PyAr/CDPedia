@@ -37,6 +37,7 @@ import urllib2
 
 import config
 
+from src.armado import to3dirs
 from src.preproceso import preprocesar
 from src import utiles
 
@@ -326,17 +327,15 @@ def run():
     logger.info("Normal pages: %d pages to process", total)
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
-    for dir3, fname, _ in preprocesados:
+    for dir3, fname, _, _ in preprocesados:
         try:
             pi.parse(dir3, fname)
         except:
-            logger.exception("Parsing crashed in dir3=%r fname=%r",
-                             dir3, fname)
+            logger.exception("Parsing crashed in dir3=%r fname=%r", dir3, fname)
             raise
 
         done += 1
-        tl.log("Parsing found %d images so far (%d of %d pages)",
-               pi.cant, done, total)
+        tl.log("Parsing found %d images so far (%d of %d pages)", pi.cant, done, total)
 
     pi.dump()
     return pi.imgs_ok, pi.cant

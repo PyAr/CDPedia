@@ -29,6 +29,7 @@ import shutil
 import config
 
 from src import utiles
+from src.armado import to3dirs
 from lru_cache import lru_cache
 
 # This is the total blocks that are keep open using a LRU cache. This number
@@ -207,7 +208,7 @@ class Comprimido(Bloque):
         self.manager = manager
 
     @classmethod
-    def crear(self, redirects, bloqNum, fileNames, verbose=False):
+    def crear(self, redirects, bloqNum, top_filenames, verbose=False):
         '''Genera el comprimido.'''
         if verbose:
             print "Procesando el bloque", bloqNum
@@ -217,10 +218,10 @@ class Comprimido(Bloque):
         # Llenamos el header con archivos reales, con la pag como
         # clave, y la posición/tamaño como valor
         seek = 0
-        for dir3, fileName in fileNames:
-            fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
+        for dir3, filename in top_filenames:
+            fullName = path.join(config.DIR_PAGSLISTAS, dir3, filename)
             size = path.getsize(fullName)
-            header[fileName] = (seek, size)
+            header[filename] = (seek, size)
             seek += size
 
         # Ponemos en el header también los redirects, apuntando en este caso
@@ -231,7 +232,7 @@ class Comprimido(Bloque):
         headerBytes = pickle.dumps(header)
         if verbose:
             print "  archivos: %d   seek total: %d   largo header: %d" % (
-                                    len(fileNames), seek, len(headerBytes))
+                                    len(top_filenames), seek, len(headerBytes))
 
         # abro el archivo a comprimir
         nomfile = path.join(config.DIR_BLOQUES, "%08x.cdp" % bloqNum)
@@ -244,8 +245,8 @@ class Comprimido(Bloque):
         f.write( headerBytes )
 
         # grabo cada uno de los articulos
-        for dir3, fileName in fileNames:
-            fullName = path.join(config.DIR_PAGSLISTAS, dir3, fileName)
+        for dir3, filename in top_filenames:
+            fullName = path.join(config.DIR_PAGSLISTAS, dir3, filename)
             f.write(open( fullName, "rb" ).read())
 
 
@@ -264,20 +265,20 @@ class ArticleManager(BloqueManager):
 
         # pedir todos los articulos, y ordenarlos en un dict por
         # su numero de bloque, segun el hash
-        fileNames = preprocesar.pages_selector.top_pages
+        top_pages = preprocesar.pages_selector.top_pages
         if verbose:
-            print "Procesando", len(fileNames), "articulos"
+            print "Procesando", len(top_pages), "articulos"
 
-        numBloques = len(fileNames) // self.items_per_block + 1
+        numBloques = len(top_pages) // self.items_per_block + 1
         self.guardarNumBloques(numBloques)
         bloques = {}
         all_filenames = set()
-        for dir3, fileName, _ in fileNames:
-            all_filenames.add(fileName)
-            bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
-            bloques.setdefault(bloqNum, []).append((dir3, fileName))
+        for dir3, filename, _, _ in top_pages:
+            all_filenames.add(filename)
+            bloqNum = utiles.coherent_hash(filename.encode('utf8')) % numBloques
+            bloques.setdefault(bloqNum, []).append((dir3, filename))
             if verbose:
-                print "  archs:", bloqNum, repr(dir3), repr(fileName)
+                print "  archs:", bloqNum, repr(dir3), repr(filename)
 
         # armo el diccionario de redirects, también separados por bloques para
         # saber a dónde buscarlos

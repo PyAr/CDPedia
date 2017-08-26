@@ -78,28 +78,29 @@ def to_pagina(filename):
 to_filename = _quote
 
 
-def to_path(pagina):
-    """
-    Pagina tiene que ser unicode.
-    """
-    if not pagina:
+def get_path_file(page):
+    """Get a path (3 dirs) and file name from the page."""
+    if not page:
         raise ValueError
 
-    if ':' in pagina:
-        namespace, posible_pagina = pagina.split(':', 1)
+    # quote here once (the ":" is untouched, and split below will work ok, as namespaces don't
+    # contain quoted chars)
+    page = full_page = _quote(page)
+
+    if ':' in page:
+        namespace, maybe_page = page.split(':', 1)
         if namespace in namespaces:
-            pagina = posible_pagina
+            page = maybe_page
 
-    pagina = _quote(pagina)
     dirs = []
-    if len(pagina) == 1:
-        dirs = [pagina, NULL, NULL]
-    elif len(pagina) == 2:
-        dirs = [pagina[0], pagina[1], NULL]
+    if len(page) == 1:
+        dirs = [page, NULL, NULL]
+    elif len(page) == 2:
+        dirs = [page[0], page[1], NULL]
     else:
-        dirs = list(pagina[:3])
+        dirs = list(page[:3])
 
-    return '/'.join(dirs)
+    return ('/'.join(dirs), full_page)
 
 
 def from_path(path):

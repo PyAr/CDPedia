@@ -96,8 +96,9 @@ class URLAlizer(object):
             if line == "page_title":
                 continue
             basename = line.decode("utf-8").strip()
-            path = os.path.join(self.dest_dir, to3dirs.to_path(basename))
-            disk_name = os.path.join(path, to3dirs.to_filename(basename))
+            three_dirs, filename = to3dirs.get_path_file(basename)
+            path = os.path.join(self.dest_dir, three_dirs)
+            disk_name = os.path.join(path, filename)
             if not os.path.exists(disk_name.encode('utf-8')):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))

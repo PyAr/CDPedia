@@ -17,6 +17,8 @@ import subprocess
 import threading
 import unicodedata
 
+from src.armado import to3dirs
+
 #from .easy_index import Index
 from .compressed_index import Index
 
@@ -126,7 +128,7 @@ def generar_de_html(dirbase, verbose):
         palabras, titulo = filename2palabras(orig)
         redirs.setdefault(dest, []).append((palabras, titulo))
 
-    filenames = preprocesar.pages_selector.top_pages
+    top_pages = preprocesar.pages_selector.top_pages
 
     titles_texts = {}
     with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
@@ -136,7 +138,7 @@ def generar_de_html(dirbase, verbose):
             titles_texts[arch] = (titulo, primtexto)
 
     def gen():
-        for dir3, arch, puntaje in filenames:
+        for dir3, arch, _, puntaje in top_pages:
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
             titulo, primtexto = titles_texts[arch]
@@ -174,4 +176,4 @@ def generar_de_html(dirbase, verbose):
     os.mkdir(config.DIR_INDICE)
 
     Index.create(config.DIR_INDICE, gen())
-    return len(filenames)
+    return len(top_pages)

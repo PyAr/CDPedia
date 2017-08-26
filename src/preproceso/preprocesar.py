@@ -254,18 +254,18 @@ class PagesSelector(object):
         with codecs.open(LOG_SCORES_FINAL, 'rt', encoding='utf8') as fh:
             for line in fh:
                 page, score = line.strip().split(colsep)
-                dir3 = to3dirs.to_path(page)
-                all_pages.append((dir3, page, int(score)))
+                dir3, fname = to3dirs.get_path_file(page)
+                all_pages.append((dir3, fname, page, int(score)))
 
         # order by score, and get top N
-        all_pages.sort(key=operator.itemgetter(2), reverse=True)
+        all_pages.sort(key=operator.itemgetter(3), reverse=True)
         page_limit = config.imageconf['page_limit']
         self._top_pages = all_pages[:page_limit]
 
         # get all items after N that still has the same score that last one
-        last_score = self._top_pages[-1][2]
+        last_score = self._top_pages[-1][3]
         for more_info in all_pages[page_limit:]:
-            if more_info[2] == last_score:
+            if more_info[3] == last_score:
                 self._top_pages.append(more_info)
 
         separator = config.SEPARADOR_COLUMNAS
@@ -282,8 +282,8 @@ class PagesSelector(object):
         if not self._same_info_through_runs:
             # previous info not there, or different: write to disk
             with codecs.open(config.PAG_ELEGIDAS, "wt", "utf8") as fh:
-                for dir3, arch, score in self._top_pages:
-                    info = (dir3, arch, str(score))
+                for dir3, fname, page, score in self._top_pages:
+                    info = (dir3, page, str(score))
                     fh.write(separator.join(info) + "\n")
 
 pages_selector = PagesSelector()
