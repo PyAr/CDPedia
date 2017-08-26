@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import sys
 
+from logging.handlers import RotatingFileHandler
 from os import path
 
 import yaml
@@ -370,6 +371,14 @@ def main(lang, src_info, version, lang_config, gendate,
     logger.info("All done!")
 
 
+class CustomRotatingFH(RotatingFileHandler):
+    """Rotating handler that starts a new file for every run."""
+
+    def __init__(self, *args, **kwargs):
+        RotatingFileHandler.__init__(self, *args, **kwargs)
+        self.doRollover()
+
+
 if __name__ == "__main__":
     msg = u"""
 Generate the CDPedia tarball or iso.
@@ -421,6 +430,9 @@ To update an image with the code and assets changes  in this working copy:
         "%(asctime)s  %(name)-15s %(levelname)-8s %(message)s")
     handler.setFormatter(formatter)
     _logger.setLevel(logging.DEBUG)
+    handler = CustomRotatingFH("generation.log")
+    handler.setFormatter(formatter)
+    _logger.addHandler(handler)
 
     if options.guppy:
         try:

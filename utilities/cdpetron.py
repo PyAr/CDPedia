@@ -28,6 +28,7 @@ import os
 import shutil
 import sys
 import urllib2
+from logging.handlers import RotatingFileHandler
 
 import yaml
 
@@ -63,14 +64,25 @@ KEEP_PROCESSED = [
     'redirects.txt',
 ]
 
+
+class CustomRotatingFH(RotatingFileHandler):
+    """Rotating handler that starts a new file for every run."""
+
+    def __init__(self, *args, **kwargs):
+        RotatingFileHandler.__init__(self, *args, **kwargs)
+        self.doRollover()
+
+
 # set up logging
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 logger.addHandler(handler)
-formatter = logging.Formatter(
-    "%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
+formatter = logging.Formatter("%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
 handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
+handler = CustomRotatingFH("cdpetron.log")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 logger = logging.getLogger("cdpetron")
 
 
