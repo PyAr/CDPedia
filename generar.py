@@ -31,7 +31,7 @@ from os import path
 
 import yaml
 
-#Para poder hacer generar.py > log.txt
+# para poder hacer generar.py > log.txt
 if sys.stdout.encoding is None:
     reload(sys)
     sys.setdefaultencoding('utf8')

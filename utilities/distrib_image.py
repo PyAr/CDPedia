@@ -16,15 +16,8 @@ import shutil
 import subprocess
 import sys
 
-PROJ_DIR = 'CDPedia'
-TORRENT_DIR = 'torrent'
-WEB_DIR = 'www'
-
 TRACKERS = [
     'udp://tracker.openbittorrent.com:80',
-    # 'udp://tracker.publicbt.com:80',
-    # 'udp://tracker.ccc.de:80',
-    # 'udp://tracker.istole.it:80',
     'udp://tracker.opentrackr.org:1337',
     'udp://tracker.coppersurfer.tk:6969',
     'udp://tracker.leechers-paradise.org:6969',
@@ -47,17 +40,17 @@ def _hasher(fname):
     return md5hash.hexdigest(), sha1hash.hexdigest()
 
 
-def main(image_fname):
+def main(wwwdir, torrentdir, image_filepath):
     """Main entry point."""
+    image_fname = os.path.basename(image_filepath)
     parts = image_fname.split("-")
     lang = parts[1]
     dt = parts[3]
-    print("Distributing image file {!r}".format(image_fname))
+    print("Distributing image file {!r}".format(image_filepath))
     print("    lang={!r}  date={!r}".format(lang, dt))
-    image_fpath = os.path.join(PROJ_DIR, image_fname)
 
     # create the .torrent
-    cmd = ['transmission-create', image_fpath]
+    cmd = ['transmission-create', image_filepath]
     for t in TRACKERS:
         cmd.append('-t')
         cmd.append(t)
@@ -70,7 +63,7 @@ def main(image_fname):
     subprocess.call(cmd)
 
     # create the destination directory if not there, and move the torrent file
-    web_dir = os.path.join(WEB_DIR, 'images', lang, dt)
+    web_dir = os.path.join(wwwdir, 'images', lang, dt)
     print("Moving to web dir", repr(web_dir))
     if not os.path.exists(web_dir):
         os.makedirs(web_dir)
@@ -78,7 +71,7 @@ def main(image_fname):
 
     # save hashes
     print("Calculating hashes...")
-    md5_value, sha1_value = _hasher(image_fpath)
+    md5_value, sha1_value = _hasher(image_filepath)
     md5_fname = os.path.join(web_dir, image_fname + '.md5')
     print("Saving to {!r}: {}".format(md5_fname, md5_value))
     with open(md5_fname, 'wt') as fh:
@@ -89,8 +82,8 @@ def main(image_fname):
         fh.write("{}  {}\n".format(sha1_value, image_fname))
 
     # send real file to torrent
-    shutil.move(image_fpath, TORRENT_DIR)
-    torrent_dir_abspath = os.path.abspath(TORRENT_DIR)
+    shutil.move(image_filepath, torrentdir)
+    torrent_dir_abspath = os.path.abspath(torrentdir)
     torrent_file_abspath = os.path.abspath(os.path.join(web_dir, torrent_file))
     cmd = ['deluge-console', '--', 'add', '-p ' + torrent_dir_abspath, torrent_file_abspath]
     subprocess.call(cmd)
@@ -99,11 +92,9 @@ def main(image_fname):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: {} cdpedia_image_filename".format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        print("Usage: {} www_dir torrent_dir cdpedia_image_filename".format(sys.argv[0]))
         exit()
 
-    fname = sys.argv[1]
-    if '/' in fname:
-        fname = fname.split('/')[-1]
-    main(fname)
+    wwwdir, torrentdir, image_filepath = sys.argv[1:]
+    main(wwwdir, torrentdir, image_filepath)

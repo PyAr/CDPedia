@@ -16,8 +16,8 @@ es:
     tarbig:  # we aim for 8 to 10 GB
         type: tarball
         windows: True
-        page_limit: 5000000   # very big number, we want them all!
-        image_reduction: [10, 25, 65, 0]
+        page_limit: 1000000
+        image_reduction: [5, 20, 60, 15]
 
     dvd9:  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
         type: iso
@@ -28,19 +28,19 @@ es:
     dvd5:  # size: DVD-R SL, 12cm:  4,700,319,808 bytes
         type: iso
         windows: True
-        page_limit: 5000000   # very big number, we want them all!
+        page_limit: 800000
         image_reduction: [2, 2, 4, 92]
 
     tarmed:  # we aim for 2 to 3 GB
         type: tarball
         windows: True
-        page_limit: 400000
-        image_reduction: [4, 8, 8, 80]
+        page_limit: 280000
+        image_reduction: [2, 2, 4, 92]
 
     cd:  # size max: 12cm, 80min:  737,280,000 bytes
         type: iso
         windows: True
-        page_limit: 54000
+        page_limit: 48000
         image_reduction: [1, 2, 2, 95]
 
     xo:
@@ -52,8 +52,8 @@ es:
     beta:
         type: tarball
         windows: True
-        page_limit: 10000   # sample version to distribute for others to QA
-        image_reduction: [10, 10, 30, 50]
+        page_limit: 8000   # sample version to distribute for others to QA
+        image_reduction: [5, 5, 10, 80]
 
 # Aymar
 ay:

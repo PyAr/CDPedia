@@ -37,7 +37,6 @@ import urllib2
 
 import config
 
-from src.armado import to3dirs
 from src.preproceso import preprocesar
 from src import utiles
 
