@@ -1,15 +1,38 @@
 # -*- coding: utf8 -*-
 
-from __future__ import with_statement
+from __future__ import with_statement, division
 
 import codecs
 import config
+import Image
 import logging
 import os
 import shutil
 import subprocess
 
 logger = logging.getLogger(__name__)
+
+def scaleImage(frompath, topath, scale_factor):
+    """
+    Reduces the size ofan image by the scale_factor using the PIL library
+    """
+    scale_ratio = scale_factor / 100 # since scale_factor is in percentage
+    try:
+        im = Image.open(frompath)
+    except IOError:
+        logger.warning("Couldn't read image at %s" % frompath)
+        return -1
+    
+    # pull out the original dimensions and calculate resized dimensions
+    width, height = im.size 
+    resize_tuple  = (width * scale_ratio, height * scale_ratio)
+    
+    # resize and save at new destination
+    output_image = im.resize(resize_tuple)
+    output_image.save(topath)
+    logger.info("Success! Resized image saved at %s" % topath)
+    
+    return 0
 
 
 def run(verbose):
@@ -62,18 +85,16 @@ def run(verbose):
 
             # cambiamos el tamaño si debemos, sino sólo copiamos
             if verbose:
-                print "Reescalando a %d%% la imagen %s" % (escl,
-                                                           dskurl.encode("utf8"))
+                print "Reescalando a %d%% la imagen %s" % (escl, dskurl.encode("utf8"))
             if escl == 100:
                 done_ahora[dskurl] = 100
                 shutil.copyfile(frompath, topath)
             else:
-                cmd = ['convert', frompath, '-resize', '%d%%' % (escl,), topath]
-                errorcode = subprocess.call(cmd)
-                if not errorcode:
+                # scale image using PIL
+                status = scaleImage(frompath=frompath, topath=topath, scale_factor=escl)
+                
+                if not status:
                     done_ahora[dskurl] = escl
-                else:
-                    logger.warning("Got %d when processing %s", errorcode, frompath)
 
     # guardamos lo que procesamos ahora
     with codecs.open(config.LOG_REDUCDONE, "w", "utf-8") as fh:
