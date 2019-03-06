@@ -25,7 +25,7 @@ def scaleImage(frompath, topath, scale_factor):
     
     # pull out the original dimensions and calculate resized dimensions
     width, height = im.size 
-    resize_tuple  = (width * scale_ratio, height * scale_ratio)
+    resize_tuple  = (int(width * scale_ratio), int(height * scale_ratio))
     
     # resize and save at new destination
     output_image = im.resize(resize_tuple)
