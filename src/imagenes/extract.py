@@ -301,8 +301,6 @@ class ImageParser(object):
 
         fname = msep.groups()[0]
         fname = urllib2.unquote(fname)
-        # los links están en latin1, it sucks!
-        fname = fname.encode("latin1").decode("utf8")
 
         # si la elegimos, joya
         if fname in self.pag_elegidas:
