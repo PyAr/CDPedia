@@ -329,6 +329,12 @@ class HTMLCleaner(_Processor):
         for tag in sections:
             tag.clear()
 
+        # remove srcset attribute from img tags
+        sections = soup.find_all('img', srcset=True)
+        self.stats['img_srcset'] += len(sections)
+        for s in sections:
+            s.attrs.pop('srcset')
+
         # remove some links (but keeping their text)
         for a_tag in soup.find_all('a'):
             try:
