@@ -138,7 +138,7 @@ def generar_de_html(dirbase, verbose):
             titles_texts[arch] = (titulo, primtexto)
 
     def gen():
-        for dir3, arch, _, puntaje in top_pages:
+        for dir3, arch, puntaje in top_pages:
             # info auxiliar
             nomhtml = os.path.join(dir3, arch)
             titulo, primtexto = titles_texts[arch]

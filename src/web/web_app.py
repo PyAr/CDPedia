@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -190,7 +190,7 @@ class CDPedia(object):
         if request.method == "GET":
             return self.render_template('search.html')
         elif request.method == "POST":
-            search_string = request.form.get("keywords", None)
+            search_string = request.form.get("keywords", '')
             search_string = urllib.unquote_plus(search_string)
             if search_string:
                 search_string_norm = normalize_keyword(search_string)

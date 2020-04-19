@@ -1,6 +1,7 @@
 from twisted.internet import defer, reactor
 from twisted.trial.unittest import TestCase
-from workerpool import WorkerPool
+
+from utilities.workerpool import WorkerPool
 
 
 class WorkerPoolTestCase(TestCase):
