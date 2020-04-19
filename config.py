@@ -113,7 +113,7 @@ CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %
 # load configuration for languages and validate
 _path = os.path.join(os.path.dirname(__file__), "imagtypes.yaml")
 with open(_path, "rt") as fh:
-    imagtypes = yaml.load(fh)
+    imagtypes = yaml.safe_load(fh)
 for lang, imtypes in imagtypes.items():
     for imtype, imdata in imtypes.items():
         if sum(imdata['image_reduction']) != 100:
