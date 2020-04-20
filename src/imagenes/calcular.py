@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  https://launchpad.net/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 """
 Busca las imágenes en los htmls que están en el archivo de preprocesados, y
