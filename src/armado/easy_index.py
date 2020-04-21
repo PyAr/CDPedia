@@ -1,14 +1,31 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
+
 import cPickle
+import operator
 import os
 import random
-import operator
-import glob
 from bz2 import BZ2File as CompressedFile
-
 from lru_cache import lru_cache
+
 from src import utiles
+
 
 class Index(object):
     '''Handles the index.'''
@@ -23,11 +40,9 @@ class Index(object):
         fh.close()
 
         # see how many id files we have
-        idsfilename = os.path.join(directory, "easyindex-*.ids.bz2")
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("easyindex-") and \
-                fn.endswith(".ids.bz2"):
+            if fn.startswith("easyindex-") and fn.endswith(".ids.bz2"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
 
@@ -180,7 +195,7 @@ class Index(object):
             if value in tmp_reverse_id:
                 docid = tmp_reverse_id[value]
             else:
-                docid = ids_cnter
+                docid = str(ids_cnter)
                 tmp_reverse_id[value] = docid
                 ids_cnter += 1
             ids_shelf[docid] = value
@@ -212,4 +227,3 @@ class Index(object):
             fh.close()
 
         return indexed_counter
-

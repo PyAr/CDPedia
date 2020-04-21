@@ -1,4 +1,5 @@
 # on construction, so far to just run some tests
 bs4
-nose
+pytest
 pyyaml
+twisted

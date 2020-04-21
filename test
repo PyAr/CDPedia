@@ -1,1 +1,1 @@
-fades -p python2 -r requirements.txt -x nosetests -s $@
+fades -p python2 -r requirements.txt -x python -m pytest -vs "$@"

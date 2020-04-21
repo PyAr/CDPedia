@@ -324,7 +324,7 @@ def run():
     logger.info("Normal pages: %d pages to process", total)
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
-    for dir3, fname, _, _ in preprocesados:
+    for dir3, fname, _ in preprocesados:
         try:
             pi.parse(dir3, fname)
         except:
