@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2013 CDPedistas (see AUTHORS.txt)
+# Copyright 2013-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -23,21 +23,19 @@ import tempfile
 import unittest
 
 import config
-
-from src.preproceso.preprocesar import PagesSelector
-
+from src.preproceso import preprocesar
 
 
 class PagesSelectorTestCase(unittest.TestCase):
     """Tests for the PagesSelector."""
 
     _dummy_processed = [
-        ('arch1', 'dir1', 5, 3),  # 8
-        ('arch2', 'dir2', 4, 3),  # 7
-        ('arch3', 'dir3', 3, 2),  # 5
-        ('arch4', 'dir4', 3, 1),  # 4
-        ('arch5', 'dir5', 2, 2),  # 4
-        ('arch6', 'dir6', 1, 1),  # 2
+        ('fooarch1', 'f/o/o', 5, 3),  # 8
+        ('bararch2', 'b/a/r', 4, 3),  # 7
+        ('fooarch3', 'f/o/o', 3, 2),  # 5
+        ('bararch4', 'b/a/r', 3, 1),  # 4
+        ('fooarch5', 'f/o/o', 2, 2),  # 4
+        ('bararch6', 'b/a/r', 1, 1),  # 2
     ]
 
     def setUp(self):
@@ -64,6 +62,15 @@ class PagesSelectorTestCase(unittest.TestCase):
         # fix config for version and page limit
         config.imageconf = dict(page_limit=123)
 
+        # log scores
+        fh, path = self._mktemp()
+        for arch, _, v1, v2 in self._dummy_processed:
+            fh.write(config.SEPARADOR_COLUMNAS.join((arch, str(v1 + v2))) + '\n')
+        fh.close()
+        prv_log_preprocesado = preprocesar.LOG_SCORES_FINAL
+        preprocesar.LOG_SCORES_FINAL = path
+        self.addCleanup(setattr, preprocesar, 'LOG_SCORES_FINAL', prv_log_preprocesado)
+
     def _mktemp(self):
         """Make a temporary file."""
         fd, path = tempfile.mkstemp()
@@ -73,18 +80,18 @@ class PagesSelectorTestCase(unittest.TestCase):
 
     def test_assert_attributes_validity(self):
         """Need to first calculate for attribs be valid."""
-        ps = PagesSelector()  # instantiate, and don't calculate
+        ps = preprocesar.PagesSelector()  # instantiate, and don't calculate
         self.assertRaises(ValueError, getattr, ps, 'top_pages')
         self.assertRaises(ValueError, getattr, ps, 'same_info_through_runs')
 
     def test_calculate_top_htmls_simple(self):
         """Calculate top htmls, simple version."""
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         config.imageconf['page_limit'] = 2
         ps.calculate()
         should_pages = [
-            ('dir1', 'arch1', 8),
-            ('dir2', 'arch2', 7),
+            ('f/o/o', 'fooarch1', 8),
+            ('b/a/r', 'bararch2', 7),
         ]
         self.assertEqual(ps.top_pages, should_pages)
 
@@ -101,15 +108,15 @@ class PagesSelectorTestCase(unittest.TestCase):
         The page limit will cut the list in a page that has the same score of
         others, so let's include them all.
         """
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         config.imageconf['page_limit'] = 4
         ps.calculate()
         should_pages = [
-            ('dir1', 'arch1', 8),
-            ('dir2', 'arch2', 7),
-            ('dir3', 'arch3', 5),
-            ('dir4', 'arch4', 4),
-            ('dir5', 'arch5', 4),
+            ('f/o/o', 'fooarch1', 8),
+            ('b/a/r', 'bararch2', 7),
+            ('f/o/o', 'fooarch3', 5),
+            ('b/a/r', 'bararch4', 4),
+            ('f/o/o', 'fooarch5', 4),
         ]
         self.assertEqual(ps.top_pages, should_pages)
 
@@ -123,14 +130,14 @@ class PagesSelectorTestCase(unittest.TestCase):
     def test_sameinfo_noprevious(self):
         """Check 'same info than before', no previous info."""
         os.remove(config.PAG_ELEGIDAS)
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousdifferent(self):
         """Check 'same info than before', previous info there but different."""
         # make one pass just to write the 'choosen pages' file
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         ps.calculate()
 
         # get that file and change it slightly
@@ -140,17 +147,17 @@ class PagesSelectorTestCase(unittest.TestCase):
             fh.writelines(lines[:-1])
 
         # go again, the info will be the same
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousequal(self):
         """Check 'same info than before', previous info there and equal."""
         # make one pass just to write the 'choosen pages' file
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         ps.calculate()
 
         # go again, the info will be the same
-        ps = PagesSelector()
+        ps = preprocesar.PagesSelector()
         ps.calculate()
         self.assertTrue(ps.same_info_through_runs)

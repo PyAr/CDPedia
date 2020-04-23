@@ -303,7 +303,7 @@ class HTMLCleaner(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, 'lxml', from_encoding='utf8')
+        soup = bs4.BeautifulSoup(wikiarchivo.html, features='html.parser', from_encoding='utf8')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')

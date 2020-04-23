@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  https://launchpad.net/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 """Extract images from the HTMLs.
 
@@ -324,7 +324,7 @@ def run():
     logger.info("Normal pages: %d pages to process", total)
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
-    for dir3, fname, _, _ in preprocesados:
+    for dir3, fname, _ in preprocesados:
         try:
             pi.parse(dir3, fname)
         except:

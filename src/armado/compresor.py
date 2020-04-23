@@ -273,7 +273,7 @@ class ArticleManager(BloqueManager):
         self.guardarNumBloques(numBloques)
         bloques = {}
         all_filenames = set()
-        for dir3, filename, _, _ in top_pages:
+        for dir3, filename, _ in top_pages:
             all_filenames.add(filename)
             bloqNum = utiles.coherent_hash(filename.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, filename))

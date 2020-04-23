@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  https://launchpad.net/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 from __future__ import print_function
 
@@ -327,7 +327,7 @@ if __name__ == "__main__":
     # get the language config
     _config_fname = os.path.join(branch_dir, 'languages.yaml')
     with open(_config_fname) as fh:
-        _config = yaml.load(fh)
+        _config = yaml.safe_load(fh)
         try:
             lang_config = _config[args.language]
         except KeyError:
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     # get the image type config
     _config_fname = os.path.join(branch_dir, 'imagtypes.yaml')
     with open(_config_fname) as fh:
-        _config = yaml.load(fh)
+        _config = yaml.safe_load(fh)
         try:
             imag_config = _config[args.language]
         except KeyError:
