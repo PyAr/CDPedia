@@ -333,7 +333,7 @@ if __name__ == "__main__":
                         help="A directory to store all articles and images.")
     parser.add_argument("language",
                         help="The two-letters language name.")
-    parser.add_argument("--extra_pages",
+    parser.add_argument("--extra-pages",
                         help="file with extra pages to be included in the image.")
     args = parser.parse_args()
 
