@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,27 +16,11 @@
 #
 # For further info, check  http://code.google.com/p/cdpedia/
 
-"""Tests for the src.preproceso.preprocesadores module."""
-
-import unittest
 import os
 
-from src.preproceso.preprocesadores import HTMLCleaner
-from .utils import load_fixture
 
-class FakeWikiFile:
-    def __init__(self, html):
-        self.html = html
-
-
-class HTMLCleanerTestCase(unittest.TestCase):
-    """Tests for HTMLCleaner."""
-
-    def test_remove_inlinemath(self):
-        html = load_fixture('article_with_inlinemath.html')
-        assert 'MJX-TeXAtom-ORD' in html
-        pp = HTMLCleaner()
-        wf = FakeWikiFile(html)
-        result = pp(wf)
-        self.assertEqual(result, (0, []))
-        self.assertNotIn('MJX-TeXAtom-ORD', wf.html)
+def load_fixture(filename):
+    """Load a fixture from disk."""
+    filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
+    with open(filepath, "rb") as fh:
+        return fh.read()
