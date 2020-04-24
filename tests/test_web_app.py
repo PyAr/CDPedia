@@ -19,7 +19,7 @@
 import unittest
 
 from src import third_party  # NOQA: Need this to import werkzeug
-from src.web import web_app
+from src.web import web_app, utils
 
 from werkzeug.test import Client
 from werkzeug.wrappers import Response
@@ -143,6 +143,10 @@ class WebAppTestCase(unittest.TestCase):
     def test_on_tutorial(self):
         response = self.client.get("/tutorial")
         self.assertEqual(response.status_code, 200)
+
+def test_get_origin_link():
+    assert utils.get_orig_link(u'Python').endswith(u"/wiki/Python")
+    assert utils.get_orig_link(u'"Love_and_Theft"').endswith(u"/wiki/%22Love_and_Theft%22")
 
 
 if __name__ == '__main__':
