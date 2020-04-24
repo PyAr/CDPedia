@@ -19,10 +19,11 @@
 """Tests for the 'extract' module."""
 
 import unittest
+import bs4
 
 from src.imagenes.extract import ImageParser
 from src.preproceso import preprocesar
-
+from .utils import load_fixture
 
 class FakeSearch(object):
     """Simulate a search giving just the image."""
@@ -34,24 +35,23 @@ class FakeSearch(object):
         return None, self.url, ""
 
 
-class SearcherTestCase(unittest.TestCase):
-    """Tests for the Searcher."""
+class ReplaceImageParserTestCase(unittest.TestCase):
+    """Tests for the ImageParser."""
 
     def setUp(self):
         """Set up."""
-        preprocesar.pages_selector._calculated = True
-        self.pi = ImageParser(test=True)
-        self.pi.test = False
+        self.soup = bs4.BeautifulSoup(features="html.parser")
 
     def _check(self, url, should_web, should_dsk):
         """Do proper checking."""
-        m = FakeSearch(url)
-        r = []
-        self.pi._reemplaza(r, m)
-        dsk, web = r[0]
+
+        tag = self.soup.new_tag("img", src=url)
+
+        dsk, web = ImageParser.replace(tag)
 
         self.assertEqual(web, should_web)
         self.assertEqual(dsk, should_dsk)
+        self.assertEqual(tag.attrs["src"], '/images/' + should_dsk)
 
     def test_replace_wikipedia_commons_5parts(self):
         url = (
@@ -169,11 +169,66 @@ class SearcherTestCase(unittest.TestCase):
         should_dsk = "math/render/svg/8f85ec5f1c58.SVG"
         self._check(url, should_web, should_dsk)
 
-    def test_wikipedia_api_graph(self):
-        url = '/api/rest_v1/page/graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
-        should_web = (
-            'https://es.wikipedia.org'
-            '/api/rest_v1/page/graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
-        )
-        should_dsk = 'graph/png/Londres/0/ad8edccb854188d0e3f0fbf50716096a5bfc2968.png'
-        self._check(url, should_web, should_dsk)
+def test_append_size_querystring():
+    soup = bs4.BeautifulSoup(features="html.parser")
+    url = ("//upload.wikimedia.org/wikipedia/commons/"
+           "thumb/4/40/P_ps.png/35px-P_ps.png")
+
+    tag = soup.new_tag("img", src=url, width='100px', height='50px')
+
+    dsk, web = ImageParser.replace(tag)
+
+    assert tag.attrs.get("width") is None
+    assert tag.attrs.get("height") is None
+    assert tag.attrs['src'].endswith("?s=100px-50px")
+
+def test_no_size_querystring_when_size_undefined():
+    soup = bs4.BeautifulSoup(features="html.parser")
+    url = ("//upload.wikimedia.org/wikipedia/commons/"
+           "thumb/4/40/P_ps.png/35px-P_ps.png")
+
+    tag = soup.new_tag("img", src=url)
+
+    dsk, web = ImageParser.replace(tag)
+
+    assert tag.attrs['src'].endswith(".png")
+
+
+def test_parse_html():
+    html = load_fixture('article_with_inlinemath.html')
+    base_soup = bs4.BeautifulSoup(html, features="html.parser")
+
+    html, _ = ImageParser.parse_html(html, choosen_pages=set())
+
+    soup = bs4.BeautifulSoup(html, features="html.parser")
+
+    assert len(soup.find_all("img")) == 7
+    assert len(soup.find_all("a")) == 221
+    assert len(soup.find_all("a", "external")) == 8
+
+    # no link starting with //
+    assert any([tag.attrs['href'].startswith("//") for tag in soup.find_all("a")])
+
+    assert "data-file-width" not in html
+    assert "data-file-height" not in html
+
+    # check that the "image links" are removed
+    assert len(base_soup.find_all("a", "image")) != 0
+    assert len(soup.find_all("a", "image")) == 0
+
+    # check that the only image removed is "Special:CentralAutoLogin"
+    assert len(soup.find_all("img")) == len(base_soup.find_all("img")) - 1
+    assert any(["AutoLogin" in tag.attrs["src"] for tag in base_soup.find_all("img")])
+    assert not any(["AutoLogin" in tag.attrs["src"] for tag in soup.find_all("img")])
+
+def test_included_pages_links():
+    original_html = load_fixture('article_with_inlinemath.html')
+
+    html, _ = ImageParser.parse_html(original_html, choosen_pages=set())
+    soup1 = bs4.BeautifulSoup(html, features="html.parser")
+
+    html, _ = ImageParser.parse_html(original_html, choosen_pages=set([u"Wikcionario"]))
+    soup2 = bs4.BeautifulSoup(html, features="html.parser")
+
+    no_chosen_pages_count = len(soup1.find_all("a", "nopo"))
+    assert no_chosen_pages_count - 1 == len(soup2.find_all("a", "nopo"))
