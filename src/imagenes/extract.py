@@ -300,7 +300,10 @@ class ImageParser(object):
 
         link = tag.attrs.get('href')
 
-        if link.startswith("http://"):
+        if not link:
+            tag.unwrap()
+            return
+        elif link.startswith("http://"):
             return
         elif not link.startswith(SEPLINK):
             # not a classic article link, leave it as is
