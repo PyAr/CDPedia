@@ -1,5 +1,7 @@
 # on construction, so far to just run some tests
 bs4
+flake8
 pytest
+pytest-mock
 pyyaml
 twisted
