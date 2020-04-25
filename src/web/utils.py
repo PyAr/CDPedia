@@ -38,7 +38,7 @@ def get_title_from_data(data):
 
 
 def get_orig_link(path):
-    """A partir del path devuelve el link original externo."""
+    """Gets the original external link of a path."""
     orig_link = config.URL_WIKIPEDIA + u"wiki/" + \
-                to3dirs.to_pagina(path)
+                urllib.quote(to3dirs.to_pagina(path).encode("utf-8"))
     return orig_link
