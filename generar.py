@@ -52,14 +52,15 @@ def make_it_nicer():
     if hasattr(os, 'nice'):
         os.nice(19)
     else:
-        logger.warning("Platform without `nice` support (running without optimizations)")
+        logger.warning("Platform without 'nice' support (running without optimizations)")
 
     # IO, much more complicated
     pid = os.getpid()
     try:
         subprocess.call(["ionice", "-c", "Idle", "-p", str(pid)])
     except OSError as e:
-        logger.warning("Platform without `ionice` installed! (running without optimizations) %s", e)
+        logger.warning(
+            "Platform without 'ionice' installed! (running without optimizations): %s", e)
 
 
 def copy_dir(src_dir, dst_dir):
