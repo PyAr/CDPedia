@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it

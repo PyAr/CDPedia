@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2012-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2012-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -19,20 +19,11 @@
 """Tests for the 'extract' module."""
 
 import unittest
+
 import bs4
 
 from src.imagenes.extract import ImageParser
-from src.preproceso import preprocesar
 from .utils import load_fixture
-
-class FakeSearch(object):
-    """Simulate a search giving just the image."""
-    def __init__(self, url):
-        self.url = url
-
-    def groups(self):
-        """Fake."""
-        return None, self.url, ""
 
 
 class ReplaceImageParserTestCase(unittest.TestCase):
@@ -169,6 +160,7 @@ class ReplaceImageParserTestCase(unittest.TestCase):
         should_dsk = "math/render/svg/8f85ec5f1c58.SVG"
         self._check(url, should_web, should_dsk)
 
+
 def test_append_size_querystring():
     soup = bs4.BeautifulSoup(features="html.parser")
     url = ("//upload.wikimedia.org/wikipedia/commons/"
@@ -176,11 +168,12 @@ def test_append_size_querystring():
 
     tag = soup.new_tag("img", src=url, width='100px', height='50px')
 
-    dsk, web = ImageParser.replace(tag)
+    ImageParser.replace(tag)
 
     assert tag.attrs.get("width") is None
     assert tag.attrs.get("height") is None
     assert tag.attrs['src'].endswith("?s=100px-50px")
+
 
 def test_no_size_querystring_when_size_undefined():
     soup = bs4.BeautifulSoup(features="html.parser")
@@ -189,7 +182,7 @@ def test_no_size_querystring_when_size_undefined():
 
     tag = soup.new_tag("img", src=url)
 
-    dsk, web = ImageParser.replace(tag)
+    ImageParser.replace(tag)
 
     assert tag.attrs['src'].endswith(".png")
 
@@ -198,7 +191,7 @@ def test_parse_html():
     html = load_fixture('article_with_inlinemath.html')
     base_soup = bs4.BeautifulSoup(html, features="html.parser")
 
-    html, _ = ImageParser.parse_html(html, choosen_pages=set())
+    html, _ = ImageParser.parse_html(html, chosen_pages=set())
 
     soup = bs4.BeautifulSoup(html, features="html.parser")
 
@@ -221,13 +214,24 @@ def test_parse_html():
     assert any(["AutoLogin" in tag.attrs["src"] for tag in base_soup.find_all("img")])
     assert not any(["AutoLogin" in tag.attrs["src"] for tag in soup.find_all("img")])
 
+
+def test_parse_html_complex_article():
+    html = load_fixture('unprocessed_Argentina.html')
+
+    html, _ = ImageParser.parse_html(html, chosen_pages=set())
+
+    # check that links without href are removed
+    soup = bs4.BeautifulSoup(html, features="lxml")
+    assert len(soup.find_all("a", href=None)) == 0
+
+
 def test_included_pages_links():
     original_html = load_fixture('article_with_inlinemath.html')
 
-    html, _ = ImageParser.parse_html(original_html, choosen_pages=set())
+    html, _ = ImageParser.parse_html(original_html, chosen_pages=set())
     soup1 = bs4.BeautifulSoup(html, features="html.parser")
 
-    html, _ = ImageParser.parse_html(original_html, choosen_pages=set([u"Wikcionario"]))
+    html, _ = ImageParser.parse_html(original_html, chosen_pages={u"Wikcionario"})
     soup2 = bs4.BeautifulSoup(html, features="html.parser")
 
     no_chosen_pages_count = len(soup1.find_all("a", "nopo"))

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2008-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,19 +27,17 @@ Also log the URLs that needs to be downloaded.
 from __future__ import with_statement, division, print_function
 
 import codecs
-import functools
 import logging
 import os
-import re
 import sys
 import urllib
 import urllib2
+
 import bs4
 
 import config
-
-from src.preproceso import preprocesar
 from src import utiles
+from src.preproceso import preprocesar
 
 IMG_URL_PREFIX = "/images/"
 
@@ -121,7 +119,7 @@ class ImageParser(object):
 
     def dump(self):
         separador = config.SEPARADOR_COLUMNAS
-        # guardar el log de imágenes
+        # write the images log
         with codecs.open(config.LOG_IMAGENES, "w", "utf-8") as fh:
             for k, v in self.a_descargar.items():
                 fh.write("%s%s%s\n" % (k, separador, v))
@@ -154,7 +152,6 @@ class ImageParser(object):
         with codecs.open(filepath, "wt", "utf-8") as fh:
             fh.write(html)
 
-        # guardamos las imágenes nuevas
         for dsk, web in newimgs:
             self.a_descargar[dsk] = web
         self.dynamics[name] = [dsk for dsk, web in newimgs]
@@ -169,31 +166,29 @@ class ImageParser(object):
                 self.imgs_ok += 1
             return
 
-        # leemos la info original
+        # read the html from the previous processing step
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
         with codecs.open(arch, "r", "utf-8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.pag_elegidas)
 
-        # lo grabamos en destino
+        # store the new html
         if not self.test:
-            # verificamos que exista el directorio de destino
             destdir = os.path.join(config.DIR_PAGSLISTAS, dir3)
             if not os.path.exists(destdir):
                 os.makedirs(destdir)
 
-            # escribimos el archivo
             newpath = os.path.join(destdir, fname)
             with codecs.open(newpath, "w", "utf-8") as fh:
                 fh.write(html)
 
-        # guardamos las imágenes nuevas
+        # update the images to download
         for dsk, web in newimgs:
             self.a_descargar[dsk] = web
 
-        # guardamos al archivo como procesado
-        # tomamos la dsk_url, sin el path relativo
+        # mark the file as processed
+        # using dsk_url without the relative path
         imgs = [x[0] for x in newimgs]
         self.proces_ahora[dir3, fname] = imgs
 
@@ -210,7 +205,7 @@ class ImageParser(object):
                 new_images.add((dsk_url, web_url))
 
         for a_tag in soup.find_all('a'):
-            ImageParser.fixlinks(a_tag, choosen_pages)
+            ImageParser.fixlinks(a_tag, chosen_pages)
 
         html = unicode(soup)
         return html, new_images
@@ -279,8 +274,8 @@ class ImageParser(object):
         querystr = '?s=%s-%s' % (img_width, img_height) if img_width and img_height else ''
 
         # Replace the origial src with the local servable path
-        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s"  % (urllib.quote(dsk_url.encode("latin-1")),
-                                                       querystr)
+        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.quote(dsk_url.encode("latin-1")),
+                                                      querystr)
 
         tag.attrs.pop("data-file-height", None)
         tag.attrs.pop("data-file-width", None)
@@ -294,7 +289,6 @@ class ImageParser(object):
         # If there is an image inside the <a> tag, we remove the link but leave the child image
         child_img_tag = tag.find("img")
         if child_img_tag:
-            #logger.error("%r %r", tag, child_img_tag)
             tag.replace_with(child_img_tag)
             return
 
@@ -302,17 +296,14 @@ class ImageParser(object):
 
         if link.startswith("http://"):
             return
-        elif not link.startswith(SEPLINK):
-            # not a classic article link, leave it as is
-            return
-        else:
+
+        # this is a  classic article link
+        if link.startswith(SEPLINK):
             fname = link[len(SEPLINK):]
             fname = urllib2.unquote(fname)
 
             # if it was choosen, leave it as is
-            if fname in choosen_pages:
-                return
-            else:
+            if fname not in choosen_pages:
                 # mark an unchoosen page with the 'nopo' class
                 tag['class'] = tag.get('class', []) + ['nopo']
 
