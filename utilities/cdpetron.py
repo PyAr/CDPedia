@@ -88,8 +88,13 @@ logger = logging.getLogger("cdpetron")
 
 def get_lists(branch_dir, language, config, test):
     """Get the list of wikipedia articles."""
+    # Save the creation date of the CDPedia
     gendate = datetime.date.today().strftime("%Y%m%d")
-    with open(DATE_FILENAME, 'wb') as fh:
+    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+    _path = os.path.join(direct, DATE_FILENAME)
+    with open(_path, 'wb') as fh:
         fh.write(gendate + "\n")
 
     fh_artall = open(ART_ALL, "wb")
@@ -124,9 +129,6 @@ def get_lists(branch_dir, language, config, test):
     logger.info("Got %d namespace articles", q)
 
     # save the namespace prefixes
-    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
-    if not os.path.exists(direct):
-        os.mkdir(direct)
     _path = os.path.join(direct, NAMESPACES)
     with open(_path, 'wb') as fh:
         for prefix in sorted(prefixes):

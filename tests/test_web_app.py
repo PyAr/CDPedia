@@ -26,7 +26,7 @@ class WebAppTestCase(unittest.TestCase):
 
     def test_main_page_destacado(self):
         response = self.client.get("/")
-        if len(self.app.destacados_mngr.destacados) > 0:
+        if len(self.app.featured_mngr.destacados) > 0:
             self.assertTrue(u"Artículo destacado".encode("utf-8") in response.data)
 
     def test_main_page_portales(self):

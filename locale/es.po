@@ -178,3 +178,11 @@ msgstr "Artículo al azar"
 #: src/web/templates/sidebar.html:31
 msgid "Presented by"
 msgstr "Presentada por"
+
+#: src/web/templates/sidebar.html:40
+msgid "Version"
+msgstr "Versión"
+
+#: src/web/templates/sidebar.html:42
+msgid "Generated on"
+msgstr "Generada el"

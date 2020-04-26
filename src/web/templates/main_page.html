@@ -20,19 +20,19 @@
   <tr><td style="color:#000; font-size:100%" id="mp-tfa">
   <div style="text-align:left;margin:6px">
   <div class="floatright">
-    {{destacado.first_paragraphs}}
-    <div style="text-align: right; font-size:100%"><a href="/wiki/{{destacado.link}}" title="{{destacado.title}}"><b>{{ gettext('Read more...') }}</b></a></div>
+    {{featured.first_paragraphs}}
+    <div style="text-align: right; font-size:100%"><a href="/wiki/{{featured.link}}" title="{{featured.title}}"><b>{{ gettext('Read more...') }}</b></a></div>
   </div>
   </td>
   </tr>
   </table>
   </td>
-    {{portales}}
+    {{portals}}
   </tr>
   </table>
 </div>
 {% else %}
-  {{portales}}
+  {{portals}}
 {% endif %}
 
 {% endblock %}
