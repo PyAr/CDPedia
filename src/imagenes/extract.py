@@ -294,10 +294,9 @@ class ImageParser(object):
 
         link = tag.attrs.get('href')
 
+        # Remove the <a> tag if there is no href
         if not link:
             tag.unwrap()
-            return
-        elif link.startswith("http://"):
             return
 
         # this is a  classic article link
