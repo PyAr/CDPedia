@@ -74,7 +74,9 @@ def test_flake8(mocker):
 def test_ensure_copyright():
     # all non-empty Python files must have a proper copyright somewhere in the first 5 lines
     issues = []
-    regex = re.compile(r"# Copyright \d\d\d\d(-\d\d\d\d)? CDPedistas (see AUTHORS.txt)\n")
+    match_pattern = r"\# Copyright \d{4}(-\d{4})? CDPedistas \(see AUTHORS\.txt\)$"
+
+    regex = re.compile(match_pattern)
     for filepath in _get_python_filepaths():
         if os.stat(filepath).st_size == 0:
             continue
