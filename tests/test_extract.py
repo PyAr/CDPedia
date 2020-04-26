@@ -31,7 +31,7 @@ class ReplaceImageParserTestCase(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        self.soup = bs4.BeautifulSoup(features="html.parser")
+        self.soup = bs4.BeautifulSoup(features="lxml")
 
     def _check(self, url, should_web, should_dsk):
         """Do proper checking."""
@@ -221,7 +221,7 @@ def test_parse_html_complex_article():
     html, _ = ImageParser.parse_html(html, chosen_pages=set())
 
     # check that links without href are removed
-    soup = bs4.BeautifulSoup(html, features="lxml")
+    soup = bs4.BeautifulSoup(html, "lxml")
     assert len(soup.find_all("a", href=None)) == 0
 
 
@@ -229,10 +229,10 @@ def test_included_pages_links():
     original_html = load_fixture('article_with_inlinemath.html')
 
     html, _ = ImageParser.parse_html(original_html, chosen_pages=set())
-    soup1 = bs4.BeautifulSoup(html, features="html.parser")
+    soup1 = bs4.BeautifulSoup(html, "lxml")
 
     html, _ = ImageParser.parse_html(original_html, chosen_pages={u"Wikcionario"})
-    soup2 = bs4.BeautifulSoup(html, features="html.parser")
+    soup2 = bs4.BeautifulSoup(html, "lxml")
 
     no_chosen_pages_count = len(soup1.find_all("a", "nopo"))
     assert no_chosen_pages_count - 1 == len(soup2.find_all("a", "nopo"))

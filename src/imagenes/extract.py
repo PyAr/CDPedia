@@ -193,8 +193,8 @@ class ImageParser(object):
         self.proces_ahora[dir3, fname] = imgs
 
     @staticmethod
-    def parse_html(html, choosen_pages):
-        soup = bs4.BeautifulSoup(html, features="html.parser")
+    def parse_html(html, chosen_pages):
+        soup = bs4.BeautifulSoup(html, "lxml")
 
         new_images = set()
 
