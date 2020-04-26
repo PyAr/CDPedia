@@ -47,3 +47,14 @@ class HTMLCleanerTestCase(unittest.TestCase):
         result = pp(wf)
         self.assertEqual(result, (0, []))
         self.assertNotIn('MJX-TeXAtom-ORD', wf.html)
+
+    def test_remove_img_srcset(self):
+        html = _load_fixture('article_with_images.html')
+        text = 'srcset="//upload.wikimedia.org/'
+        assert text in html
+        pp = HTMLCleaner()
+        wf = FakeWikiFile(html)
+        result = pp(wf)
+        self.assertEqual(result, (0, []))
+        self.assertNotIn(text, wf.html)
+
