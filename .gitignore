@@ -1,2 +1,5 @@
 *.pyc
 temp/
+cdpedia-es*
+cdpetron.log
+.idea
