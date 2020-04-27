@@ -18,7 +18,7 @@
 
 import unittest
 
-from src.preproceso.preprocesadores import Peishranc, SCORE_PEISHRANC
+from src.preprocessing.preprocessors import Peishranc, SCORE_PEISHRANC
 
 
 class FakeWikiArchivo(object):

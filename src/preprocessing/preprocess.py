@@ -24,7 +24,7 @@ from collections import Counter
 from os.path import join, abspath, dirname
 
 from src.armado import to3dirs
-from src.preproceso import preprocesadores
+from src.preprocessing import preprocessors
 from src import utiles
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class WikiSitio(object):
 
     def __init__(self, root_dir):
         self.origen = unicode(abspath(root_dir))
-        self.preprocesadores = [proc() for proc in preprocesadores.TODOS]
+        self.preprocessors = [proc() for proc in preprocessors.ALL]
         self.prof_quant = Counter()
         self.prof_times = Counter()
 
@@ -125,7 +125,7 @@ class WikiSitio(object):
 
                 this_total_score = 0
                 other_pages_scores = []
-                for procesador in self.preprocesadores:
+                for procesador in self.preprocessors:
                     tini = time.time()
                     try:
                         (this_score, other_scores) = procesador(wikipage)
@@ -168,7 +168,7 @@ class WikiSitio(object):
                     count_new_ok, count_new_discarded, count_old_before)
         scores_log.close()
         processed_before_log.close()
-        for procesador in self.preprocesadores:
+        for procesador in self.preprocessors:
             procesador.close()
             logger.debug("Preprocessor %17s usage stats: %s", procesador.nombre, procesador.stats)
 
@@ -307,7 +307,7 @@ def profiled_run(root_dir):
     wikisitio = WikiSitio(root_dir)
 
     # uncomment the following if you want to profile just ONE preprocessor (fix which one)
-    wikisitio.preprocesadores = [preprocesadores.HTMLCleaner()]
+    wikisitio.preprocessors = [preprocessors.HTMLCleaner()]
 
     # select here to run the profiled process or not
     # cProfile.runctx("wikisitio.process()", globals(), locals(), "/tmp/procesar.stat")
@@ -326,7 +326,7 @@ def profiled_run(root_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: preprocesar.py root_dir")
+        print("Usage: preprocess.py root_dir")
         exit()
     if os.path.exists(config.LOG_PREPROCESADO):
         print("ERROR: The PREPROCESADO file is there, it will make some articles to be skipped:",

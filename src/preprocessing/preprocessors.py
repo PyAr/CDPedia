@@ -181,10 +181,10 @@ class VIPArticles(_Processor):
         return (score, [])
 
 
-class OmitirRedirects(_Processor):
+class OmitRedirects(_Processor):
     """Procesa y omite de la compilación a los redirects."""
     def __init__(self):
-        super(OmitirRedirects, self).__init__()
+        super(OmitRedirects, self).__init__()
         self.nombre = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
@@ -357,10 +357,10 @@ class HTMLCleaner(_Processor):
 
 # Clases que serán utilizadas para el preprocesamiento
 # de cada una de las páginas, en orden de ejecución.
-TODOS = [
+ALL = [
     HTMLCleaner,
     VIPArticles,
-    OmitirRedirects,
+    OmitRedirects,
     Peishranc,
     Longitud,
     ContentExtractor,

@@ -21,7 +21,7 @@
 import unittest
 
 from src.imagenes.extract import ImageParser
-from src.preproceso import preprocesar
+from src.preprocessing import preprocess
 
 
 class FakeSearch(object):
@@ -39,7 +39,7 @@ class SearcherTestCase(unittest.TestCase):
 
     def setUp(self):
         """Set up."""
-        preprocesar.pages_selector._calculated = True
+        preprocess.pages_selector._calculated = True
         self.pi = ImageParser(test=True)
         self.pi.test = False
 

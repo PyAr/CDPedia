@@ -16,14 +16,14 @@
 #
 # For further info, check  http://code.google.com/p/cdpedia/
 
-"""Tests for the 'preprocesar' module."""
+"""Tests for the 'preprocess' module."""
 
 import os
 import tempfile
 import unittest
 
 import config
-from src.preproceso import preprocesar
+from src.preprocessing import preprocess
 
 
 class PagesSelectorTestCase(unittest.TestCase):
@@ -67,9 +67,9 @@ class PagesSelectorTestCase(unittest.TestCase):
         for arch, _, v1, v2 in self._dummy_processed:
             fh.write(config.SEPARADOR_COLUMNAS.join((arch, str(v1 + v2))) + '\n')
         fh.close()
-        prv_log_preprocesado = preprocesar.LOG_SCORES_FINAL
-        preprocesar.LOG_SCORES_FINAL = path
-        self.addCleanup(setattr, preprocesar, 'LOG_SCORES_FINAL', prv_log_preprocesado)
+        prv_log_preprocessed = preprocess.LOG_SCORES_FINAL
+        preprocess.LOG_SCORES_FINAL = path
+        self.addCleanup(setattr, preprocess, 'LOG_SCORES_FINAL', prv_log_preprocessed)
 
     def _mktemp(self):
         """Make a temporary file."""
@@ -80,13 +80,13 @@ class PagesSelectorTestCase(unittest.TestCase):
 
     def test_assert_attributes_validity(self):
         """Need to first calculate for attribs be valid."""
-        ps = preprocesar.PagesSelector()  # instantiate, and don't calculate
+        ps = preprocess.PagesSelector()  # instantiate, and don't calculate
         self.assertRaises(ValueError, getattr, ps, 'top_pages')
         self.assertRaises(ValueError, getattr, ps, 'same_info_through_runs')
 
     def test_calculate_top_htmls_simple(self):
         """Calculate top htmls, simple version."""
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         config.imageconf['page_limit'] = 2
         ps.calculate()
         should_pages = [
@@ -108,7 +108,7 @@ class PagesSelectorTestCase(unittest.TestCase):
         The page limit will cut the list in a page that has the same score of
         others, so let's include them all.
         """
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         config.imageconf['page_limit'] = 4
         ps.calculate()
         should_pages = [
@@ -130,14 +130,14 @@ class PagesSelectorTestCase(unittest.TestCase):
     def test_sameinfo_noprevious(self):
         """Check 'same info than before', no previous info."""
         os.remove(config.PAG_ELEGIDAS)
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousdifferent(self):
         """Check 'same info than before', previous info there but different."""
         # make one pass just to write the 'choosen pages' file
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         ps.calculate()
 
         # get that file and change it slightly
@@ -147,17 +147,17 @@ class PagesSelectorTestCase(unittest.TestCase):
             fh.writelines(lines[:-1])
 
         # go again, the info will be the same
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         ps.calculate()
         self.assertFalse(ps.same_info_through_runs)
 
     def test_sameinfo_previousequal(self):
         """Check 'same info than before', previous info there and equal."""
         # make one pass just to write the 'choosen pages' file
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         ps.calculate()
 
         # go again, the info will be the same
-        ps = preprocesar.PagesSelector()
+        ps = preprocess.PagesSelector()
         ps.calculate()
         self.assertTrue(ps.same_info_through_runs)

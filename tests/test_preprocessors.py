@@ -16,12 +16,12 @@
 #
 # For further info, check  http://code.google.com/p/cdpedia/
 
-"""Tests for the src.preproceso.preprocesadores module."""
+"""Tests for the src.preprocessing.preprocessors module."""
 
 import unittest
 import os
 
-from src.preproceso.preprocesadores import HTMLCleaner
+from src.preprocessing.preprocessors import HTMLCleaner
 
 
 class FakeWikiFile:
