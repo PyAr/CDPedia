@@ -154,7 +154,6 @@ def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=Fals
         branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
     if test:
         cmd += " " + str(TEST_LIMIT_SCRAP)
-    print(cmd)
     res = os.system(cmd)
     if res != 0:
         logger.error("Bad result code from scrapping: %r", res)
