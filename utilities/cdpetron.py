@@ -144,6 +144,24 @@ def get_lists(branch_dir, language, config, test):
     return gendate
 
 
+def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
+    """Prepare the command and run scraper.py."""
+
+    logger.info("Let's scrap (with limit=%s)", test)
+    assert os.getcwd() == dump_lang_dir
+    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
+    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
+        branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
+    if test:
+        cmd += " " + str(TEST_LIMIT_SCRAP)
+    print(cmd)
+    res = os.system(cmd)
+    if res != 0:
+        logger.error("Bad result code from scrapping: %r", res)
+        logger.error("Quitting, no point in continue")
+        exit()
+
+
 def scrap_pages(branch_dir, language, dump_lang_dir, test):
     """Get the pages from wikipedia."""
     articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
@@ -152,18 +170,7 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    logger.info("Let's scrap (with limit=%s)", test)
-    assert os.getcwd() == dump_lang_dir
-    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
-    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-        branch_dir, ART_ALL, language, DUMP_ARTICLES, namespaces_path)
-    if test:
-        cmd += " " + str(TEST_LIMIT_SCRAP)
-    res = os.system(cmd)
-    if res != 0:
-        logger.error("Bad result code from scrapping: %r", res)
-        logger.error("Quitting, no point in continue")
-        exit()
+    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test)
 
     logger.info("Checking scraped size")
     total = os.stat(articles_dir).st_size
@@ -181,17 +188,8 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
 
 def scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages):
     """scrap extra pages defined in a text file"""
-    logger.info("Let's scrap selected extra pages")
-    assert os.getcwd() == dump_lang_dir
     extra_pages_file = os.path.join(branch_dir, extra_pages)
-    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
-    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-        branch_dir, extra_pages_file, language, DUMP_ARTICLES, namespaces_path)
-    res = os.system(cmd)
-    if res != 0:
-        logger.error("Bad result code from scrapping: %r", res)
-        logger.error("Quitting, no point in continue")
-        exit()
+    _call_scrapper(branch_dir, language, dump_lang_dir, extra_pages_file)
 
 
 def scrap_portals(dump_lang_dir, language, lang_config):
