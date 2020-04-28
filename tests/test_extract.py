@@ -215,14 +215,15 @@ def test_parse_html():
     assert not any(["AutoLogin" in tag.attrs["src"] for tag in soup.find_all("img")])
 
 
-def test_parse_html_complex_article():
-    html = load_fixture('unprocessed_Argentina.html')
+def test_parse_html_remove_selflinks():
+    link_without_href = '<a class="mw-selflink selflink">Argentina</a>'
 
-    html, _ = ImageParser.parse_html(html, chosen_pages=set())
+    html, _ = ImageParser.parse_html(link_without_href, chosen_pages=set())
 
     # check that links without href are removed
     soup = bs4.BeautifulSoup(html, "lxml")
     assert len(soup.find_all("a", href=None)) == 0
+    assert 'Argentina' in html
 
 
 def test_included_pages_links():
