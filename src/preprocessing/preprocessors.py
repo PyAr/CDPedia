@@ -60,10 +60,10 @@ class _Processor(object):
     """Generic processor, don't use directly, thoght to be subclassed."""
 
     def __init__(self):
-        self.nombre = 'Generic processor'
+        self.name = 'Generic processor'
         self.stats = None
 
-    def __call__(self, wikiarchivo):
+    def __call__(self, wikifile):
         """Aplica el procesador a una instancia de WikiArchivo.
 
         Ejemplo:
@@ -86,12 +86,12 @@ class ContentExtractor(_Processor):
 
     def __init__(self):
         super(ContentExtractor, self).__init__()
-        self.nombre = "ContentExtractor"
+        self.name = "ContentExtractor"
         self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
 
         # extract the title
         node = soup.find('h1')
@@ -115,8 +115,8 @@ class ContentExtractor(_Processor):
             self.stats['text found'] += 1
 
         # dump to disk
-        linea = config.SEPARADOR_COLUMNAS.join((wikiarchivo.url, title, safe_text))
-        self.output.write(linea + '\n')
+        line = config.SEPARADOR_COLUMNAS.join((wikifile.url, title, safe_text))
+        self.output.write(line + '\n')
         return (0, [])
 
     def close(self):
@@ -171,8 +171,8 @@ class VIPArticles(_Processor):
         self.nombre = "VIPArticles"
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        if vip_decissor(wikiarchivo.url):
+    def __call__(self, wikifile):
+        if vip_decissor(wikifile.url):
             self.stats['vip'] += 1
             score = SCORE_VIP
         else:
@@ -189,8 +189,8 @@ class OmitRedirects(_Processor):
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
         node = soup.find('ul', 'redirectText')
         if not node:
             # not a redirect, simple file
@@ -201,12 +201,12 @@ class OmitRedirects(_Processor):
         self.stats['redirect'] += 1
         url_redirect = node.text
         sep_col = config.SEPARADOR_COLUMNAS
-        linea = wikiarchivo.url + sep_col + url_redirect + "\n"
-        self.output.write(linea)
+        line = wikifile.url + sep_col + url_redirect + "\n"
+        self.output.write(line)
 
         # if redirect was very important, transmit this feature
         # to destination article
-        if vip_decissor(wikiarchivo.url):
+        if vip_decissor(wikifile.url):
             trans = [(url_redirect, SCORE_VIP)]
         else:
             trans = []
@@ -230,23 +230,23 @@ class Peishranc(_Processor):
     """
     def __init__(self):
         super(Peishranc, self).__init__()
-        self.nombre = "Peishranc"
+        self.name = "Peishranc"
 
         # regex preparada por perrito666 y tuute, basicamente matchea todos los
         # href-algo, poniendo href como nombre de grupo de eso que matchea,
         # más un "class=" que es opcional (y poniéndole nombre class);
-        self.capturar = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
-                                   r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
+        self.capture = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
+                                  r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        puntajes = {}
-        for enlace in self.capturar.finditer(wikiarchivo.html):
-            data = enlace.groupdict()
+    def __call__(self, wikifile):
+        scores = {}
+        for link in self.capture.finditer(wikifile.html):
+            data = link.groupdict()
 
             # descartamos por clase y por comienzo del link
-            clase = data['class']
-            if clase in ('image', 'internal'):
+            class_ = data['class']
+            if class_ in ('image', 'internal'):
                 continue
 
             # decodificamos y unquoteamos
@@ -261,29 +261,29 @@ class Peishranc(_Processor):
             # by the SLASH word
             lnk = lnk.replace("/", "SLASH")
 
-            puntajes[lnk] = puntajes.get(lnk, 0) + 1
+            scores[lnk] = scores.get(lnk, 0) + 1
 
         # sacamos el "auto-bombo"
-        if wikiarchivo.url in puntajes:
-            del puntajes[wikiarchivo.url]
+        if wikifile.url in scores:
+            del scores[wikifile.url]
 
         # factor score by constant
-        for lnk, score in puntajes.iteritems():
-            puntajes[lnk] = score * SCORE_PEISHRANC
+        for lnk, score in scores.iteritems():
+            scores[lnk] = score * SCORE_PEISHRANC
 
-        return (0, puntajes.items())
+        return (0, scores.items())
 
 
-class Longitud(_Processor):
+class Length(_Processor):
     """Score the page based on its length (html)."""
 
     def __init__(self):
-        super(Longitud, self).__init__()
-        self.nombre = "Longitud"
+        super(Length, self).__init__()
+        self.name = "Length"
 
-    def __call__(self, wikiarchivo):
-        largo = len(wikiarchivo.html)
-        return (largo, [])
+    def __call__(self, wikifile):
+        length = len(wikifile.html)
+        return (length, [])
 
 
 class HTMLCleaner(_Processor):
@@ -302,8 +302,8 @@ class HTMLCleaner(_Processor):
         self.nombre = "HTMLCleaner"
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, features='html.parser', from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, features='html.parser', from_encoding='utf8')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
@@ -351,7 +351,7 @@ class HTMLCleaner(_Processor):
                     break
 
         # fix original html and return no score at all
-        wikiarchivo.html = str(soup)
+        wikifile.html = str(soup)
         return (0, [])
 
 
@@ -362,6 +362,6 @@ ALL = [
     VIPArticles,
     OmitRedirects,
     Peishranc,
-    Longitud,
+    Length,
     ContentExtractor,
 ]

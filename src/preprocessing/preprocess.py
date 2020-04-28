@@ -33,11 +33,11 @@ LOG_SCORES_ACCUM = os.path.join(config.DIR_TEMP, 'page_scores_accum.txt')
 LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
 
 
-class WikiArchivo(object):
-    def __init__(self, cwd, last3dirs, nombre_archivo):
-        self.ruta_relativa = join(last3dirs, nombre_archivo)
-        self.url = nombre_archivo
-        self._filename = join(cwd, nombre_archivo)
+class WikiFile(object):
+    def __init__(self, cwd, last3dirs, file_name):
+        self.relative_path = join(last3dirs, file_name)
+        self.url = file_name
+        self._filename = join(cwd, file_name)
         self._html = None
 
     def get_html(self):
@@ -54,26 +54,26 @@ class WikiArchivo(object):
 
     html = property(get_html, set_html)
 
-    def guardar(self):
+    def save(self):
         """Guarda el archivo, crea los directorios si no están."""
-        destino = join(config.DIR_PREPROCESADO, self.ruta_relativa)
+        output = join(config.DIR_PREPROCESADO, self.relative_path)
         try:
-            os.makedirs(dirname(destino))
+            os.makedirs(dirname(output))
         except os.error:
             # ya estaba
             pass
 
-        with open(destino, 'wb') as fh:
+        with open(output, 'wb') as fh:
             fh.write(self._html)
 
     def __str__(self):
-        return "<WikiArchivo: %s>" % self.url.encode("utf8")
+        return "<WikiFile: %s>" % self.url.encode("utf8")
 
 
-class WikiSitio(object):
+class WikiSite(object):
 
     def __init__(self, root_dir):
-        self.origen = unicode(abspath(root_dir))
+        self.origin = unicode(abspath(root_dir))
         self.preprocessors = [proc() for proc in preprocessors.ALL]
         self.prof_quant = Counter()
         self.prof_times = Counter()
@@ -90,7 +90,7 @@ class WikiSitio(object):
 
         # get the total of directories to parse
         logger.info("Getting how many pages under root dir")
-        total_pages = sum(len(filenames) for _, _, filenames in os.walk(self.origen))
+        total_pages = sum(len(filenames) for _, _, filenames in os.walk(self.origin))
         logger.info("Quantity of pages to process: %d", total_pages)
 
         # open the scores file to keep adding
@@ -98,7 +98,7 @@ class WikiSitio(object):
 
         count_processed = count_new_ok = count_new_discarded = count_old_before = 0
         tl = utiles.TimingLogger(30, logger.debug)
-        for cwd, _, filenames in os.walk(self.origen):
+        for cwd, _, filenames in os.walk(self.origin):
             parts_dir = cwd.split(os.path.sep)
             last3dirs = join(*parts_dir[-3:])
 
@@ -121,19 +121,19 @@ class WikiSitio(object):
                     count_old_before += 1
                     continue
 
-                wikipage = WikiArchivo(cwd, last3dirs, page_path)
+                wikipage = WikiFile(cwd, last3dirs, page_path)
 
                 this_total_score = 0
                 other_pages_scores = []
-                for procesador in self.preprocessors:
+                for processor in self.preprocessors:
                     tini = time.time()
                     try:
-                        (this_score, other_scores) = procesador(wikipage)
+                        (this_score, other_scores) = processor(wikipage)
                     except:
-                        logger.error("Processor %s crashed on page %r", procesador, page_path)
+                        logger.error("Processor %s crashed on page %r", processor, page_path)
                         raise
-                    self.prof_times[procesador] += time.time() - tini
-                    self.prof_quant[procesador] += 1
+                    self.prof_times[processor] += time.time() - tini
+                    self.prof_quant[processor] += 1
 
                     # keep the score for other pages (check before to avoid a bogus function call)
                     if other_scores:
@@ -150,7 +150,7 @@ class WikiSitio(object):
                 else:
                     # all processors done, page not discarded
                     count_new_ok += 1
-                    wikipage.guardar()
+                    wikipage.save()
 
                     # save the real page score
                     scores_log.write("{}|R|{:d}\n".format(
@@ -168,9 +168,9 @@ class WikiSitio(object):
                     count_new_ok, count_new_discarded, count_old_before)
         scores_log.close()
         processed_before_log.close()
-        for procesador in self.preprocessors:
-            procesador.close()
-            logger.debug("Preprocessor %17s usage stats: %s", procesador.nombre, procesador.stats)
+        for processor in self.preprocessors:
+            processor.close()
+            logger.debug("Preprocessor %17s usage stats: %s", processor.name, processor.stats)
 
     def commit(self):
         """Commit all the processing done, adjusting some logs."""
@@ -189,8 +189,8 @@ class WikiSitio(object):
         # load the redirects
         redirects = {}
         with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
-            for linea in fh:
-                r_from, r_to = linea.strip().split(colsep)
+            for line in fh:
+                r_from, r_to = line.strip().split(colsep)
                 redirects[r_from] = r_to
 
         # transfer score
@@ -295,31 +295,31 @@ def run(root_dir):
         logger.info("Skipping the whole processing stage as the final scores log was found.")
         return
 
-    wikisitio = WikiSitio(root_dir)
-    wikisitio.process()
-    wikisitio.commit()
+    wikisite = WikiSite(root_dir)
+    wikisite.process()
+    wikisite.commit()
 
 
 def profiled_run(root_dir):
     # import cProfile
 
     tini = time.time()
-    wikisitio = WikiSitio(root_dir)
+    wikisite = WikiSite(root_dir)
 
     # uncomment the following if you want to profile just ONE preprocessor (fix which one)
-    wikisitio.preprocessors = [preprocessors.HTMLCleaner()]
+    wikisite.preprocessors = [preprocessors.HTMLCleaner()]
 
     # select here to run the profiled process or not
     # cProfile.runctx("wikisitio.process()", globals(), locals(), "/tmp/procesar.stat")
-    wikisitio.process()
+    wikisite.process()
 
-    wikisitio.commit()
+    wikisite.commit()
     tend = time.time()
     print("Whole process", tend - tini)
-    print("In processors", sum(wikisitio.prof_times.values()))
-    for proc in wikisitio.prof_times:
-        quant = wikisitio.prof_quant[proc]
-        total = wikisitio.prof_times[proc]
+    print("In processors", sum(wikisite.prof_times.values()))
+    for proc in wikisite.prof_times:
+        quant = wikisite.prof_quant[proc]
+        total = wikisite.prof_times[proc]
         print("         proc ", proc, quant, total, total / quant)
     print("Full stats (if profile run) saved in /tmp/procesar.stat")
 
