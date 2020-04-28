@@ -18,21 +18,20 @@
 # For further info, check  http://code.google.com/p/cdpedia/
 
 """
-Funciones para generar los ránkings de las páginas.
-Todas reciben como argumento una WikiPagina.
+Functions to generate page rankings. All of them receive a WikiPage
+as argument.
 
-Más tarde otra funcion se encargará del algoritmo que produce el
-ordenamiento final de las páginas, tomando estos subtotales como
-referencia.
+Another function will then handle the algortithm to produce the final
+sorting of the pages, taking the subtotals calculated here as reference.
 
-(facundobatista) Cambié la interacción entre los procesadores y quien
-los llama: ahora los procesadores NO tocan el 'resultado' del WikiSitio,
-ya que esto hacía que se pierda el control del mismo y aparezcan páginas
-espúeras al final.  Ahora cada procesador devuelve dos cosas: el puntaje
-de la página que procesa, y una lista de tuplas (otra_página, puntaje) en
-caso de asignar puntajes a otras páginas.  En caso de querer omitir la
-página que se le ofrece, el procesador debe devolver None en lugar del
-puntaje.
+Processors must not touch the result of WikiSite to prevent loss of
+control over its value and the consequent undesired appearance of spurious
+pages at the end
+
+Each processor returns two things: the score of the page it processes
+and a list of (other_page, score) tuples in case it assigns a score to
+other pages. If a processor wants to omit a given page, it must return
+None instead of the score.
 """
 
 from __future__ import print_function
@@ -64,9 +63,9 @@ class _Processor(object):
         self.stats = None
 
     def __call__(self, wikifile):
-        """Aplica el procesador a una instancia de WikiArchivo.
+        """Apply preprocessor to a WikiFile instance.
 
-        Ejemplo:
+        Example:
           return (123456, [])
         """
         raise NotImplemented
@@ -126,13 +125,14 @@ class ContentExtractor(_Processor):
 
 class VIPDecissor(object):
     """Hold those VIP articles that must be included."""
+
     def __init__(self):
         self._vip_articles = None
 
     def _load(self):
         """Load all needed special articles.
 
-        This is done not an __init__ time because some of this are dynamically
+        This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
         """
         viparts = self._vip_articles = set()
@@ -161,11 +161,13 @@ class VIPDecissor(object):
             self._load()
         return article in self._vip_articles
 
+
 vip_decissor = VIPDecissor()
 
 
 class VIPArticles(_Processor):
     """A processor for articles that *must* be included."""
+
     def __init__(self):
         super(VIPArticles, self).__init__()
         self.nombre = "VIPArticles"
@@ -182,7 +184,8 @@ class VIPArticles(_Processor):
 
 
 class OmitRedirects(_Processor):
-    """Procesa y omite de la compilación a los redirects."""
+    """Process and omit redirects from compilation."""
+
     def __init__(self):
         super(OmitRedirects, self).__init__()
         self.nombre = "Redirects"
@@ -220,21 +223,20 @@ class OmitRedirects(_Processor):
 
 
 class Peishranc(_Processor):
-    """Calcula el peishranc.
+    """Calculate the peishranc.
 
-    Registra las veces que una página es referida por las demás páginas.
-    Ignora las auto-referencias y los duplicados.
+    Register how many times a page is referred by the rest of the pages.
+    Ignore self-references and duplicates.
 
-    NOTA: Si se cambia algo de esta clase, por favor correr los casos de prueba
-    en el directorio tests.
+    NOTE: In case of any change in this class, please run the test cases from
+    the tests directory.
     """
+
     def __init__(self):
         super(Peishranc, self).__init__()
         self.name = "Peishranc"
 
-        # regex preparada por perrito666 y tuute, basicamente matchea todos los
-        # href-algo, poniendo href como nombre de grupo de eso que matchea,
-        # más un "class=" que es opcional (y poniéndole nombre class);
+        # Capture href and class attributes of `a` tags in corresponding named groups.
         self.capture = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
                                   r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
         self.stats = collections.Counter()
@@ -244,17 +246,17 @@ class Peishranc(_Processor):
         for link in self.capture.finditer(wikifile.html):
             data = link.groupdict()
 
-            # descartamos por clase y por comienzo del link
+            # discard by class and by link start
             class_ = data['class']
             if class_ in ('image', 'internal'):
                 continue
 
-            # decodificamos y unquoteamos
+            # decode and unquote
             lnk = data['href']
             try:
                 lnk = unquote(lnk).decode('utf8')
             except UnicodeDecodeError:
-                print("ERROR al unquotear/decodear el link", repr(lnk))
+                logger.error('unquoting/decoding link failed: %s', repr(lnk))
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
@@ -263,7 +265,7 @@ class Peishranc(_Processor):
 
             scores[lnk] = scores.get(lnk, 0) + 1
 
-        # sacamos el "auto-bombo"
+        # remove "self-praise"
         if wikifile.url in scores:
             del scores[wikifile.url]
 
@@ -355,8 +357,8 @@ class HTMLCleaner(_Processor):
         return (0, [])
 
 
-# Clases que serán utilizadas para el preprocesamiento
-# de cada una de las páginas, en orden de ejecución.
+# Classes that will be used for preprocessing each page,
+# in execution order.
 ALL = [
     HTMLCleaner,
     VIPArticles,

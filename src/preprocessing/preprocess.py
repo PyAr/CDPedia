@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Uso: preprocesar.py
+Usage: preprocess.py root_dir
 
-Aplica los procesadores definidos en preprocesadores a cada
-una de las páginas, para producir la prioridad con la que página
-será (o no) incluída en la compilación.
-
+Apply to each page the processors defined in preprocessors, producing
+the priority for it to be included (or not) in the compilation.
 """
 
 from __future__ import with_statement, unicode_literals, print_function
@@ -34,6 +32,8 @@ LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
 
 
 class WikiFile(object):
+    """Manage source file of a wiki page."""
+
     def __init__(self, cwd, last3dirs, file_name):
         self.relative_path = join(last3dirs, file_name)
         self.url = file_name
@@ -41,7 +41,7 @@ class WikiFile(object):
         self._html = None
 
     def get_html(self):
-        """Devuelve el contenido del archivo, lo carga si no lo tenía."""
+        """Return file content, load it if not loaded."""
         if self._html is None:
             with open(self._filename, 'rb') as fh:
                 self._html = fh.read()
@@ -49,18 +49,18 @@ class WikiFile(object):
         return self._html
 
     def set_html(self, data):
-        """Setea el html."""
+        """Set html source."""
         self._html = data
 
     html = property(get_html, set_html)
 
     def save(self):
-        """Guarda el archivo, crea los directorios si no están."""
+        """Save file, create directories that don't exist."""
         output = join(config.DIR_PREPROCESADO, self.relative_path)
         try:
             os.makedirs(dirname(output))
         except os.error:
-            # ya estaba
+            # dirname exists
             pass
 
         with open(output, 'wb') as fh:
@@ -71,6 +71,7 @@ class WikiFile(object):
 
 
 class WikiSite(object):
+    """Apply preprocessors to saved wikipages source files."""
 
     def __init__(self, root_dir):
         self.origin = unicode(abspath(root_dir))
@@ -310,7 +311,7 @@ def profiled_run(root_dir):
     wikisite.preprocessors = [preprocessors.HTMLCleaner()]
 
     # select here to run the profiled process or not
-    # cProfile.runctx("wikisitio.process()", globals(), locals(), "/tmp/procesar.stat")
+    # cProfile.runctx("wikisite.process()", globals(), locals(), "/tmp/procesar.stat")
     wikisite.process()
 
     wikisite.commit()
@@ -329,7 +330,7 @@ if __name__ == "__main__":
         print("Usage: preprocess.py root_dir")
         exit()
     if os.path.exists(config.LOG_PREPROCESADO):
-        print("ERROR: The PREPROCESADO file is there, it will make some articles to be skipped:",
+        print("ERROR: The PREPROCESSED file is there, it will make some articles to be skipped:",
               config.LOG_PREPROCESADO)
         exit()
 
