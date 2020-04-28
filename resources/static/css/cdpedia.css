@@ -101,3 +101,7 @@ div#pyar-logo-h-inst img {
 div#pyar-logo-v-side img {
     margin-top: 20px;
 }
+
+.mediaContainer {
+    border: .12em dashed blue;
+    }
