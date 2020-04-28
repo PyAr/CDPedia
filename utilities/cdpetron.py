@@ -186,7 +186,7 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
 
 
 def scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages):
-    """scrap extra pages defined in a text file"""
+    """Scrap extra pages defined in a text file."""
     extra_pages_file = os.path.join(branch_dir, extra_pages)
     _call_scrapper(branch_dir, language, dump_lang_dir, extra_pages_file)
 
