@@ -42,12 +42,11 @@ import collections
 import logging
 import os
 import re
-
 from urllib2 import unquote
 
-import config
-
 import bs4
+
+import config
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
@@ -68,7 +67,7 @@ class _Processor(object):
         Example:
           return (123456, [])
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def close(self):
         """Close operations, save stuff if needed.

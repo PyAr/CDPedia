@@ -10,20 +10,19 @@ the priority for it to be included (or not) in the compilation.
 
 from __future__ import with_statement, unicode_literals, print_function
 
-import os
 import codecs
-import config
 import logging
 import operator
+import os
 import sys
 import time
-
 from collections import Counter
 from os.path import join, abspath, dirname
 
+import config
+from src import utiles
 from src.armado import to3dirs
 from src.preprocessing import preprocessors
-from src import utiles
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class WikiSite(object):
                     tini = time.time()
                     try:
                         (this_score, other_scores) = processor(wikipage)
-                    except:
+                    except Exception:
                         logger.error("Processor %s crashed on page %r", processor, page_path)
                         raise
                     self.prof_times[processor] += time.time() - tini
