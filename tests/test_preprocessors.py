@@ -22,25 +22,18 @@ import unittest
 import os
 
 from src.preproceso.preprocesadores import HTMLCleaner
-
+from .utils import load_fixture
 
 class FakeWikiFile:
     def __init__(self, html):
         self.html = html
 
 
-def _load_fixture(filename):
-    """Load a fixture from disk."""
-    filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
-    with open(filepath, "rb") as fh:
-        return fh.read()
-
-
 class HTMLCleanerTestCase(unittest.TestCase):
     """Tests for HTMLCleaner."""
 
     def test_remove_inlinemath(self):
-        html = _load_fixture('article_with_inlinemath.html')
+        html = load_fixture('article_with_inlinemath.html')
         assert 'MJX-TeXAtom-ORD' in html
         pp = HTMLCleaner()
         wf = FakeWikiFile(html)
