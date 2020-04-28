@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2008-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,37 +27,29 @@ Also log the URLs that needs to be downloaded.
 from __future__ import with_statement, division, print_function
 
 import codecs
-import functools
 import logging
 import os
-import re
 import sys
 import urllib
 import urllib2
 
-import config
+import bs4
 
-from src.preprocessing import preprocess
+import config
 from src import utiles
+from src.preprocessing import preprocess
+
+IMG_URL_PREFIX = "/images/"
 
 WIKIPEDIA_URL = "https://es.wikipedia.org"
 
 # we plainly don't want some images
-IMAGES_TO_REMOVE = re.compile(
-    '<img.*?src=".*?/Special:CentralAutoLogin/.*?".*?/>'
-)
-
-# to find the images links
-IMG_REGEX = re.compile('<img(.*?)src="(.*?)"(.*?)/>')
-
-# to find the pages links
-LINKS_REGEX = re.compile('<a (.*?)href="(.*?)"(.*?)>(.*?)</a>', re.MULTILINE | re.DOTALL)
+IMAGES_TO_REMOVE = [
+    'Special:CentralAutoLogin',
+]
 
 # to get the link after the wiki part
-SEPLINK = re.compile("/wiki/(.*)")
-
-# to extracth the sizes of an image
-WIDTH_HEIGHT = re.compile('width="(\d+)" height="(\d+)"')
+SEPLINK = "/wiki/"
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +119,7 @@ class ImageParser(object):
 
     def dump(self):
         separador = config.SEPARADOR_COLUMNAS
-        # guardar el log de imágenes
+        # write the images log
         with codecs.open(config.LOG_IMAGENES, "w", "utf-8") as fh:
             for k, v in self.a_descargar.items():
                 fh.write("%s%s%s\n" % (k, separador, v))
@@ -155,14 +147,11 @@ class ImageParser(object):
         with codecs.open(filepath, "rt", encoding="utf8") as fh:
             html = fh.read()
 
-        newimgs = []
-        reemplaza = functools.partial(self._reemplaza, newimgs)
-        html = IMG_REGEX.sub(reemplaza, html)
+        html, newimgs = self.parse_html(html, self.pag_elegidas)
 
         with codecs.open(filepath, "wt", "utf-8") as fh:
             fh.write(html)
 
-        # guardamos las imágenes nuevas
         for dsk, web in newimgs:
             self.a_descargar[dsk] = web
         self.dynamics[name] = [dsk for dsk, web in newimgs]
@@ -177,138 +166,148 @@ class ImageParser(object):
                 self.imgs_ok += 1
             return
 
-        # leemos la info original
+        # read the html from the previous processing step
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
         with codecs.open(arch, "r", "utf-8") as fh:
             html = fh.read()
 
-        # clean some images that we just don't want
-        html = IMAGES_TO_REMOVE.sub("", html)
+        html, newimgs = self.parse_html(html, self.pag_elegidas)
 
-        # sacamos imágenes y reemplazamos paths
-        newimgs = []
-        reemplaza = functools.partial(self._reemplaza, newimgs)
-        html = IMG_REGEX.sub(reemplaza, html)
-        html = LINKS_REGEX.sub(self._fixlinks, html)
-
-        # lo grabamos en destino
+        # store the new html
         if not self.test:
-            # verificamos que exista el directorio de destino
             destdir = os.path.join(config.DIR_PAGSLISTAS, dir3)
             if not os.path.exists(destdir):
                 os.makedirs(destdir)
 
-            # escribimos el archivo
             newpath = os.path.join(destdir, fname)
             with codecs.open(newpath, "w", "utf-8") as fh:
                 fh.write(html)
 
-        # guardamos las imágenes nuevas
+        # update the images to download
         for dsk, web in newimgs:
             self.a_descargar[dsk] = web
 
-        # guardamos al archivo como procesado
-        # tomamos la dsk_url, sin el path relativo
+        # mark the file as processed
+        # using dsk_url without the relative path
         imgs = [x[0] for x in newimgs]
         self.proces_ahora[dir3, fname] = imgs
 
-    def _reemplaza(self, newimgs, m):
-        p1, img, p3 = m.groups()
-        if self.test:
-            print("img", img)
+    @staticmethod
+    def parse_html(html, chosen_pages):
+        soup = bs4.BeautifulSoup(html, "lxml")
 
-        # reemplazamos ancho y alto por un fragment en la URL de la imagen
-        msize = WIDTH_HEIGHT.search(p3)
-        p3 = WIDTH_HEIGHT.sub("", p3)
-        web_url = 'http:' + img
+        new_images = set()
 
-        if img.startswith("//upload.wikimedia.org/wikipedia/commons/"):
-            partes = img[33:].split("/")
+        for img_tag in soup.find_all('img'):
+
+            dsk_url, web_url = ImageParser.replace(img_tag)
+            if dsk_url:
+                new_images.add((dsk_url, web_url))
+
+        for a_tag in soup.find_all('a'):
+            ImageParser.fixlinks(a_tag, chosen_pages)
+
+        html = unicode(soup)
+        return html, new_images
+
+    @staticmethod
+    def replace(tag):
+        """Replaces the img tag in place and return the disk and web urls"""
+        img_src = tag.attrs.get("src")
+
+        web_url = 'http:' + img_src
+
+        if img_src.startswith("//upload.wikimedia.org/wikipedia/commons/"):
+            partes = img_src[33:].split("/")
             if len(partes) == 6:
                 del partes[4]
             elif len(partes) == 4:
                 pass
             else:
-                raise ValueError("Strange image format! %r" % img)
+                raise ValueError("Strange image format! %r" % img_src)
 
             dsk_url = "/".join(partes)
 
-        elif img.startswith("//bits.wikimedia.org/"):
-            dsk_url = img[46:]
+        elif img_src.startswith("//bits.wikimedia.org/"):
+            dsk_url = img_src[46:]
 
-        elif img.startswith("//upload.wikimedia.org/wikipedia/es/"):
-            dsk_url = img[36:]
+        elif img_src.startswith("//upload.wikimedia.org/wikipedia/es/"):
+            dsk_url = img_src[36:]
 
-        elif img.startswith("//upload.wikimedia.org/"):
-            dsk_url = img[23:]
+        elif img_src.startswith("//upload.wikimedia.org/"):
+            dsk_url = img_src[23:]
 
-        elif img.startswith("/w/extensions/"):
-            web_url = WIKIPEDIA_URL + img
-            dsk_url = img[3:]
+        elif img_src.startswith("/w/extensions/"):
+            web_url = WIKIPEDIA_URL + img_src
+            dsk_url = img_src[3:]
 
-        elif img.startswith("https://wikimedia.org/api/rest_v1/media/"):
-            web_url = img
-            dsk_url = img[40:]
+        elif img_src.startswith("https://wikimedia.org/api/rest_v1/media/"):
+            web_url = img_src
+            dsk_url = img_src[40:]
 
-        elif img.startswith("/api/rest_v1/page/"):
-            web_url = WIKIPEDIA_URL + img
-            dsk_url = img[18:]
-
+        elif img_src.startswith("/api/rest_v1/page/"):
+            web_url = WIKIPEDIA_URL + img_src
+            dsk_url = img_src[18:]
+        elif any((to_remove in img_src for to_remove in IMAGES_TO_REMOVE)):
+            tag.extract()
+            return None, None
         else:
-            logger.warning("Unsupported image type! %r", img)
-            return ''
-
-        if self.test:
-            print("  web url:", web_url)
-            print("  dsk url:", dsk_url)
+            logger.warning("Unsupported image type. Won't be included: %r", img_src)
+            return None, None
 
         # enhance disk paths so they represent the image
         if '/render/svg/' in dsk_url and not dsk_url.lower().endswith('.svg'):
             dsk_url += '.svg'
 
-        # si la imagen a reemplazar no la teníamos de antes, y tampoco
-        # es builtin...
-        if dsk_url not in self.a_descargar and web_url is not None:
-            newimgs.append((dsk_url, web_url))
-            self.imgs_ok += 1
-
         if '?' in dsk_url:
-            logger.warning("URL with GET args: %s", dsk_url)
-            return ''
+            logger.warning("Unsupported image with GET args. Won't be included: %s", dsk_url)
+            return None, None
 
-        # devolvemos lo cambiado para el html
-        querystr = ''
-        if msize is not None:
-            querystr = '?s=%s-%s' % msize.groups()
-        htm_url = '<img%ssrc="/images/%s%s"%s/>' % (
-            p1, urllib.quote(dsk_url.encode("latin-1")), querystr, p3)
-        return htm_url
+        logger.debug("web url: %r, dsk_url %r", web_url, dsk_url)
 
-    def _fixlinks(self, mlink):
-        """Pone clase "nopo" a los links que apuntan a algo descartado."""
-        relleno_anterior, link, relleno, texto = mlink.groups()
-        # Si lo que hay dentro del link es una imagen, devolvemos solo la imagen
-        if texto.startswith('<img'):
-            return texto
+        # Replace the width and height by a querystring in the src of the image
+        # The idea here is to append the size of the image as a query string.
+        # This way we have the information of the real width and height of the image when
+        # the request is made so the web server can return a Bogus image if the image was
+        # not included in the disk
+        img_width, img_height = tag.attrs.pop("width", None), tag.attrs.pop("height", None)
+        querystr = '?s=%s-%s' % (img_width, img_height) if img_width and img_height else ''
 
-        if link.startswith("http://"):
-            return mlink.group()
+        # Replace the origial src with the local servable path
+        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.quote(dsk_url.encode("latin-1")),
+                                                      querystr)
 
-        msep = SEPLINK.match(link)
-        if not msep:
-            # un link no clásico, no nos preocupa
-            return mlink.group()
+        tag.attrs.pop("data-file-height", None)
+        tag.attrs.pop("data-file-width", None)
 
-        fname = msep.groups()[0]
-        fname = urllib2.unquote(fname)
+        return dsk_url, web_url
 
-        # si la elegimos, joya
-        if fname in self.pag_elegidas:
-            return mlink.group()
+    @staticmethod
+    def fixlinks(tag, choosen_pages):
+        """Multiple postprocesses to the links"""
 
-        # sino, la marcamos como "nopo"
-        new = '<a class="nopo" %s href="%s"%s>%s</a>' % (relleno_anterior, link, relleno, texto)
-        return new
+        # If there is an image inside the <a> tag, we remove the link but leave the child image
+        child_img_tag = tag.find("img")
+        if child_img_tag:
+            tag.replace_with(child_img_tag)
+            return
+
+        link = tag.attrs.get('href')
+
+        # Remove the <a> tag if there is no href
+        if not link:
+            tag.unwrap()
+            return
+
+        # this is a  classic article link
+        if link.startswith(SEPLINK):
+            fname = link[len(SEPLINK):]
+            fname = urllib2.unquote(fname)
+
+            # if it was choosen, leave it as is
+            if fname not in choosen_pages:
+                # mark an unchoosen page with the 'nopo' class
+                tag['class'] = tag.get('class', []) + ['nopo']
 
 
 def run():
@@ -324,6 +323,7 @@ def run():
     logger.info("Normal pages: %d pages to process", total)
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
+    
     for dir3, fname, _ in preprocessed:
         try:
             pi.parse(dir3, fname)
