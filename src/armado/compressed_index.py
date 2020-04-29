@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf8 -*
 
 # Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 # This program is free software: you can redistribute it and/or modify it
@@ -15,6 +15,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
 
 import array
 import bisect
@@ -32,14 +33,15 @@ DOCSTORE_CACHE_SIZE = 20
 
 
 def delta_encode(docset, sorted=sorted, with_reps=False):
-    """
-    docset is an array of long integers, it contain the begin position
-    of every word in the set.
-    sorted is a sorting function, it must be a callable
-    with_reps is True on search, but false on creation
+    """Compress an array of numbers in a string.
+
+    - docset is an array of long integers, it contain the begin position
+      of every word in the set.
+    - sorted is a sorting function, it must be a callable
+    - with_reps is True on search, but false on creation.
     """
     pdoc = -1
-    rv = array.array("B")
+    rv = array.array('B')
     rva = rv.append
     flag = (0, 0x80)
     for doc in sorted(docset):
@@ -60,12 +62,12 @@ def delta_encode(docset, sorted=sorted, with_reps=False):
 
 
 def delta_decode(docset, ctor=set, append="add", with_reps=False):
-    """
-    Decode a compressed encoded bucket.
-    Docset is a string, representing a byte's array
-    ctor is the final container
-    append is the callable attribute used to add an element into the ctor
-    with_reps is used on unpickle
+    """Decode a compressed encoded bucket.
+
+    - docset is a string, representing a byte's array
+    - ctor is the final container
+    - append is the callable attribute used to add an element into the ctor
+    - with_reps is used on unpickle.
     """
     doc = 0
     pdoc = -1
@@ -93,13 +95,12 @@ delta_decode_str = delta_decode
 
 
 class FrozenStringList:
-    """
-    Manages a FrozenStringList
-    self.heap contain a concatenation of every string appended.
-    self.index is an array of long bytes and represents the begin position
-    of every substring added to heap.
-    """
+    """Manage a FrozenStringList.
 
+    - self.heap contains a concatenation of every string appended.
+    - self.index is an array of long bytes and represents the begin position
+      of every substring added to heap.
+    """
     def __init__(self, iterable=None):
         self.index = array.array("l", [0])
         self.heap = ""
@@ -129,6 +130,7 @@ class FrozenStringList:
         return "%s(%r)" % (self.__class__.__name__, list(self))
 
     def append(self, value):
+        """Append one term to the frozenlist."""
         if not isinstance(value, str):
             raise TypeError("String expected")
 
@@ -136,16 +138,19 @@ class FrozenStringList:
         self.heap += value
 
     def extend(self, iterable):
-        """ self.heap contain a concatenation of every string appended
+        """Extends the list.
+
+        self.heap contain a concatenation of every string appended
         self.index is an array of long bytes and represents the begin position
-        of every substring added to heap
+        of every substring added to heap.
         """
         iterable = list(iterable)
+        len_ = len
 
-        pos = len(self.heap)
+        pos = len_(self.heap)
         index_a = self.index.append
         for s in iterable:
-            pos += len(s)
+            pos += len_(s)
             index_a(pos)
 
         self.heap += "".join(iterable)
@@ -167,11 +172,13 @@ class FrozenStringList:
 
 
 class TermSimilitudeMatrixBase:
-    """ Includes 2 data structures, both FrozenStringList.
-    self.terms is used to store the alphabetically ordered terms index.
-    self.matrix is a square matrix and have has many rows and columns as
-    terms are indexed. A cell can be true, meaning that both terms
-    (the one of the row and the one of the column) are similar.
+    """Find similar terms to the one searched.
+
+    Includes 2 data structures, both FrozenStringList.
+    - self.terms is used to store the alphabetically ordered terms index.
+    - self.matrix is a square matrix and have has many rows and columns as
+      terms are indexed. A cell can be true, meaning that both terms
+      (the one of the row and the one of the column) are similar.
     In order to provide a compressed storage use, every row is delta_encoded,
     and every delta_encoded row is added to a FrozenStringList.
     """
@@ -187,7 +194,7 @@ class TermSimilitudeMatrixBase:
 
             N = len(terms)
             for i, t1 in enumerate(terms):
-                bucket = array.array("l")
+                bucket = array.array('l')
                 bucket_a = bucket.append
                 valid = not t1  # <- it's ok for empty terms not to match themselves
                 for i2 in similar(t1):
@@ -202,7 +209,8 @@ class TermSimilitudeMatrixBase:
                     progress_callback(i * 100.0 / N)
 
     def init_similar_impl(self):
-        """
+        """Initilize similarity data structure.
+
         To initialize something for 'similar', inherit this
         class function. It is called BEFORE calling similar.
         The terms are stored in self.terms, ordered by ids.
@@ -210,9 +218,7 @@ class TermSimilitudeMatrixBase:
         pass
 
     def similar_impl(self, t):
-        """
-        Iterable using t's similar terms indices.
-        """
+        """Iterable using t's similar terms indices."""
         raise NotImplementedError
 
     def pickle(self):
@@ -227,10 +233,7 @@ class TermSimilitudeMatrixBase:
         return rv
 
     def lookup_term_index(self, t):
-        """
-        Returns the index for the specified term,
-        raises KeyError if not found
-        """
+        """Return the index for the specified term."""
         i = bisect.bisect_left(self.terms, t)
         if i >= len(self.terms) or self.terms[i] != t:
             raise KeyError(t)
@@ -238,9 +241,9 @@ class TermSimilitudeMatrixBase:
         return i
 
     def lookup_term_value(self, i):
-        """
-        Returns the text for the specified term index.
-        Raises IndexError if the index is invalid
+        """Return the text for the specified term index.
+
+        Raises IndexError if the index is invalid.
         """
         return self.terms[i]
 
@@ -252,8 +255,8 @@ class TermSimilitudeMatrixBase:
             return False
 
     def similar_terms(self, t):
-        """
-        Returns an iterable over the indices of similar terms.
+        """Return an iterable over the indices of similar terms.
+
         Raises KeyError if the term is not found.
         """
         terms = self.terms
@@ -269,11 +272,11 @@ class TermSimilitudeMatrixBase:
         # It's quadratic on the length of the term,
         # so we'll limit the length of the subterm to 20 characters max
         #
-        for tv in iter(
-            t[a:a + l]
+        iterator = iter(t[a:a + l]
             for l in xrange(min(20, len(t)), 0, -1)
             for a in xrange(len(t) - l + 1)
-        ):
+        )
+        for tv in iterator:
             try:
                 # an exact match is a godsend - we just look it up
                 i = self.lookup_term_index(tv)
@@ -316,13 +319,14 @@ try:
     import SuffixTree
 
     class TermSimilitudeMatrix(TermSimilitudeMatrixBase):
-        """ Uses SuffixTree library compiled in C++. """
+        """Uses SuffixTree library compiled in C++."""
         def init_similar_impl(self):
             self.stree = stree = SuffixTree.SubstringDict()
             for i, t in enumerate(self.terms):
                 stree[t] = i
 
         def similar_impl(self, t):
+            """Return the set of similar terms."""
             # SuffixTree tiende a generar muchas repeticiones
             return set(self.stree[t])
 
@@ -330,15 +334,27 @@ try:
 except ImportError:
 
     class TermSimilitudeMatrix(TermSimilitudeMatrixBase):
-        """If a term t is included in other, is yielded as similar."""
+        """Pure python implementation.
+
+        Uses a simplified condition, term t is included in other,
+        is yielded as similar.
+        """
         def similar_impl(self, t):
+            """Return the set of similar terms."""
             for i, st in enumerate(self.terms):
                 if t in st:
                     yield i
 
 
 class Index(object):
-    """Handles the index."""
+    """Handle the index.
+
+    It's the class that implements the index's API.
+    Main functions are:
+    - create: to create the index data structure
+    - search and partial_search: to find any terms
+    - random: returns a random entry
+    """
 
     def __init__(self, directory):
         self._directory = directory
@@ -375,7 +391,7 @@ class Index(object):
         return idx
 
     def _get_info_id(self, allids):
-        """Returns the values for the given ids.
+        """Return the values for the given ids.
 
         As it groups the ids according to the file, is much faster than
         retrieving one by one.
@@ -403,7 +419,7 @@ class Index(object):
                 yield idx[i]
 
     def items(self):
-        """Returns an iterator over the stored items."""
+        """Return an iterator over the stored items."""
         matrix = self.matrix
         doc_lookup = self._get_info_id
         for i, docset in enumerate(self.docsets):
@@ -412,7 +428,7 @@ class Index(object):
             yield key, list(values)
 
     def values(self):
-        """Returns an iterator over the stored values."""
+        """Return an iterator over the stored values."""
         doc_lookup = self._get_info_id
         for i, docset in enumerate(self.docsets):
             values = doc_lookup(delta_decode(docset))
@@ -423,17 +439,17 @@ class Index(object):
         return self.matrix.terms
 
     def random(self):
-        """Returns a random value."""
+        """Return a random value."""
         cual = random.randint(0, self.idfiles_count - 1)
         idx = self._get_ids_shelve(cual)
         return random.choice(idx.values())
 
     def __contains__(self, key):
-        """Returns if the key is in the index or not."""
+        """Return if the key is in the index or not."""
         return self.matrix.contains_term(key.encode("utf8"))
 
     def search(self, keys):
-        """Returns all the values that are found for those keys.
+        """Return all the values that are found for those keys.
 
         The AND boolean operation is applied to the keys.
         """
@@ -459,7 +475,7 @@ class Index(object):
         return self._get_info_id(results)
 
     def partial_search(self, keys):
-        """Returns all the values that are found for those partial keys.
+        """Return all the values that are found for those partial keys.
 
         The received keys are taken as part of the real keys (suffix,
         preffix, or in the middle).
@@ -494,16 +510,16 @@ class Index(object):
 
     @classmethod
     def create(cls, directory, source):
-        """Creates the index in the directory.
+        """Create the index in the directory.
 
         The "source" generates pairs (key, value) to store in the index.  The
         key must be a string, the value can be any hashable Python object.
 
-        It must return the quantity of pairs indexed.
+        It must return the numbers of pairs indexed.
         """
-        # dict contain de value of every doc numbered. Keys are integers
+        # dict container of the values of every doc numbered. Keys are integers
         ids_shelf = {}
-        # contain de 'buckets' (arrays of integers) associated with every key (word)
+        # contains 'buckets' (arrays of integers) associated with every key (word)
         key_shelf = {}
         # ids counter
         ids_cnter = 0
@@ -606,7 +622,7 @@ class Index(object):
         sys.stdout.flush()
 
         def progress_cb(p):
-            print >> sys.stderr, "\r Computing similitude matrix...  %d%%\t" % int(p),
+            print( "\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
         matrix = TermSimilitudeMatrix(
