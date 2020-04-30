@@ -32,7 +32,7 @@ FLAKE8_OPTIONS = {'max_line_length': 99, 'select': ['E', 'W', 'F', 'C', 'N']}
 
 def _get_python_filepaths():
     """Helper to retrieve paths of Python files."""
-    python_paths = ['cdpedia.py', 'config.py', 'generar.py']
+    python_paths = ['cdpedia.py', 'config.py', 'cdpetron.py']
     for root in ['src', 'utilities']:
         for dirpath, dirnames, filenames in os.walk(root):
 
