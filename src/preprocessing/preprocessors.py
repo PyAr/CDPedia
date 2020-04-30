@@ -21,12 +21,12 @@
 Functions to generate page rankings. All of them receive a WikiPage
 as argument.
 
-Another function will then handle the algortithm to produce the final
+Another function will then handle the algorithm to produce the final
 sorting of the pages, taking the subtotals calculated here as reference.
 
 Processors must not touch the result of WikiSite to prevent loss of
 control over its value and the consequent undesired appearance of spurious
-pages at the end
+pages at the end.
 
 Each processor returns two things: the score of the page it processes
 and a list of (other_page, score) tuples in case it assigns a score to
