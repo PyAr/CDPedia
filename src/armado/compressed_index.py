@@ -593,9 +593,7 @@ class Index(object):
         print("      ", bucket_entries, "entries")
         print("      ", len(ids_shelf), "documents")
         print("")
-        print("      ", len(key_shelf) // max(
-            1, len(ids_shelf)
-        ), "terms on avg per documents")
+        print("      ", len(key_shelf) // max(1, len(ids_shelf)), "terms on avg per documents")
         print("")
         print("  Bucket bytes", bucket_bytes)
         print("  Bucket entries", bucket_entries)
@@ -612,7 +610,7 @@ class Index(object):
         #   And keeping them joined in memory (FrozenStringList) helps
         #   avoid referencing overhead.
 
-        sitems = sorted([(k.encode("utf8"), v) for k, v in key_shelf.iteritems()])
+        sitems = sorted((k.encode("utf8"), v) for k, v in key_shelf.iteritems())
         assert all("\n" not in k for k, v in sitems), "Terms cannot contain newlines"
 
         # free the big dict... eats up a lot
