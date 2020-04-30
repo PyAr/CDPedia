@@ -185,4 +185,4 @@ msgstr "Versión"
 
 #: src/web/templates/sidebar.html:42
 msgid "Generated on"
-msgstr "Generada el"
+msgstr "Generada en"

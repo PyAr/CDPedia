@@ -19,6 +19,7 @@
 
 import codecs
 import gettext
+import locale
 import operator
 import os
 import posixpath
@@ -74,6 +75,8 @@ class CDPedia(object):
                                      extensions=['jinja2.ext.i18n'],
                                      autoescape=False)
         self.jinja_env.globals["watchdog"] = True if watchdog else False
+        self.jinja_env.globals["date"] = self.get_creation_date()
+        self.jinja_env.globals["version"] = config.VERSION
         translations = gettext.translation("core", 'locale',
                                            [self.art_mngr.language])
         self.jinja_env.install_gettext_translations(translations)
@@ -81,14 +84,6 @@ class CDPedia(object):
         self.template_manager = TemplateManager(template_path)
         self.img_mngr = compresor.ImageManager(verbose=verbose)
         self.featured_mngr = Destacados(self.art_mngr, debug=False)
-
-        self.version = config.VERSION
-
-        _path = 'temp/cdroot/cdpedia/assets/dynamic/start_date.txt'
-        with open(_path, 'rt') as f:
-            self.date = f.read().strip()
-        self.date_object = datetime.strptime(self.date, "%Y%m%d")
-        self.date_object = self.date_object.strftime("%d/%m/%Y")
 
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
         self.index.start()
@@ -109,6 +104,16 @@ class CDPedia(object):
         ])
         self._tutorial_ready = False
 
+    def get_creation_date(self):
+        locale.setlocale(locale.LC_ALL, '')
+        _path = os.path.join(config.DIR_ASSETS, 'start_date.txt')
+        with open(_path, 'rt') as f:
+            date = f.read().strip()
+        creation_date = datetime.strptime(date, "%Y%m%d")
+        locale.setlocale(locale.LC_ALL, 'es_ES.utf8')
+        creation_date = creation_date.strftime("%B %Y")
+        return creation_date
+
     def on_main_page(self, request):
         featured_data = self.featured_mngr.get_destacado()
         featured = None
@@ -128,8 +133,6 @@ class CDPedia(object):
                                     title="Portada",
                                     featured=featured,
                                     portals=portals,
-                                    version=self.version,
-                                    date=self.date_object
                                     )
 
     def on_article(self, request, name):
@@ -147,8 +150,6 @@ class CDPedia(object):
                                     orig_link=orig_link,
                                     article=data,
                                     language=self.art_mngr.language,
-                                    version=self.version,
-                                    date=self.date_object
                                     )
 
     def on_image(self, request, name):
@@ -186,11 +187,7 @@ class CDPedia(object):
         data = codecs.open(asset_file, "rb", "utf8").read()
         title = utils.get_title_from_data(data)
 
-        p = self.render_template('institucional.html',
-                                 title=title,
-                                 asset=data,
-                                 version=self.version,
-                                 date=self.date_object)
+        p = self.render_template('institucional.html', title=title, asset=data)
         return p
 
     # @ei.espera_indice # TODO
@@ -258,8 +255,6 @@ class CDPedia(object):
                                     results=sorted_results,
                                     start=start,
                                     quantity=quantity,
-                                    version=self.version,
-                                    date=self.date_object
                                     )
 
     def on_tutorial(self, request):
@@ -304,14 +299,11 @@ class CDPedia(object):
             response = self.render_template("404.html",
                                             article_name=e.article_name,
                                             original_link=e.original_link,
-                                            version=self.version,
-                                            date=self.date_object
                                             )
             response.status_code = 404
             return response
         except InternalServerError, e:
-            response = self.render_template("500.html", message=e.description, version=self.version,
-                                            date=self.date_object)
+            response = self.render_template("500.html", message=e.description)
             response.status_code = 500
             return response
         except HTTPException, e:

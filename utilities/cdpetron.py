@@ -88,13 +88,8 @@ logger = logging.getLogger("cdpetron")
 
 def get_lists(branch_dir, language, config, test):
     """Get the list of wikipedia articles."""
-    # Save the creation date of the CDPedia
     gendate = datetime.date.today().strftime("%Y%m%d")
-    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
-    if not os.path.exists(direct):
-        os.mkdir(direct)
-    _path = os.path.join(direct, DATE_FILENAME)
-    with open(_path, 'wb') as fh:
+    with open(DATE_FILENAME, 'wb') as fh:
         fh.write(gendate + "\n")
 
     fh_artall = open(ART_ALL, "wb")
@@ -129,6 +124,9 @@ def get_lists(branch_dir, language, config, test):
     logger.info("Got %d namespace articles", q)
 
     # save the namespace prefixes
+    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
+    if not os.path.exists(direct):
+        os.mkdir(direct)
     _path = os.path.join(direct, NAMESPACES)
     with open(_path, 'wb') as fh:
         for prefix in sorted(prefixes):
@@ -141,9 +139,18 @@ def get_lists(branch_dir, language, config, test):
     tot += q
     logger.info("Have %d articles to mandatorily include", q)
 
+
     fh_artall.close()
     logger.info("Total of articles: %d", tot)
     return gendate
+
+
+def save_creation_date(date):
+    """Save the creation date of the CDPedia."""
+    generation_date = date
+    _path = os.path.join(config.DIR_ASSETS, DATE_FILENAME)
+    with open(_path, 'wt') as f:
+        f.write(generation_date + "\n")
 
 
 def scrap_pages(branch_dir, language, dump_lang_dir, test):
@@ -218,7 +225,7 @@ def clean(branch_dir, dump_dir, keep_processed):
         os.mkdir(image_dump_dir)
 
     # let's create a temp directory for the generation with a symlink to
-    # images (clean it first if already there). Note thtat 'temp' and
+    # images (clean it first if already there). Note that 'temp' and
     # 'images' are hardcoded here, as this is what expects
     # the generation part)
     temp_dir = os.path.join(branch_dir, "temp")
@@ -294,6 +301,8 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
             clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
         generar.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
 
+    save_creation_date(gendate)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate CDPedia images")
@@ -365,6 +374,7 @@ if __name__ == "__main__":
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
     import list_articles_by_namespaces
     import generar
+    import config
     from src.scrapping import portals
 
     # dump dir may not exist, let's just create if it doesn't
