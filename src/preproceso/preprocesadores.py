@@ -303,7 +303,7 @@ class HTMLCleaner(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, 'lxml', from_encoding='utf8')
+        soup = bs4.BeautifulSoup(wikiarchivo.html, features='html.parser', from_encoding='utf8')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
@@ -328,6 +328,12 @@ class HTMLCleaner(_Processor):
         self.stats['inline_math'] += len(sections)
         for tag in sections:
             tag.clear()
+
+        # remove srcset attribute from img tags
+        sections = soup.find_all('img', srcset=True)
+        self.stats['img_srcset'] += len(sections)
+        for tag in sections:
+            tag.attrs.pop('srcset')
 
         # remove some links (but keeping their text)
         for a_tag in soup.find_all('a'):

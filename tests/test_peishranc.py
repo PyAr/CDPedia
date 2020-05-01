@@ -1,8 +1,25 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
 import unittest
 
 from src.preproceso.preprocesadores import Peishranc, SCORE_PEISHRANC
+
 
 class FakeWikiArchivo(object):
     """Fake Wikiarchivo, just to hold the html."""
@@ -10,12 +27,13 @@ class FakeWikiArchivo(object):
         self.html = html
         self.url = url
 
+
 class PeishrancTests(unittest.TestCase):
     """Tests para el Peishranc."""
 
     def setUp(self):
         """Set up."""
-        self.peishranc = Peishranc(None)
+        self.peishranc = Peishranc()
 
     def test_cero_a_la_pagina(self):
         """Link simple."""
@@ -99,12 +117,6 @@ class PeishrancTests(unittest.TestCase):
         _, r = self.peishranc(fwa)
         self.assertEqual(r, [(u'otrapag', SCORE_PEISHRANC)])
 
-    def test_comienza_archivo(self):
-        """Descartamos los que comienzan con Archivo."""
-        fwa = FakeWikiArchivo('ab <a href="/wiki/Archivo:foobar">Foo</a> dc')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [])
-
     def test_barra(self):
         """Reemplazamos la /."""
         fwa = FakeWikiArchivo('abcd <a href="/wiki/foo/bar">FooBar</a> dcba')
@@ -116,30 +128,3 @@ class PeishrancTests(unittest.TestCase):
         fwa = FakeWikiArchivo('abcd <a href="/wiki/f%C3%B3u">FooBar</a> dcba')
         _, r = self.peishranc(fwa)
         self.assertEqual(r, [(u'fóu', SCORE_PEISHRANC)])
-
-    def test_namespace_incluido_simple(self):
-        """El link es parte de un namespace que incluímos."""
-        fwa = FakeWikiArchivo('ad <a href="/wiki/Anexo:foobar">FooBar</a> dcb')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'Anexo:foobar', SCORE_PEISHRANC)])
-
-    def test_namespace_incluido_acento(self):
-        """El link es parte de un namespace ok, pero con nombre acentuado."""
-        fwa = FakeWikiArchivo('a <a href="/wiki/Categoría:foobar">Foo</a> a')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'Categoría:foobar', SCORE_PEISHRANC)])
-
-    def test_namespace_excluido_normal(self):
-        """El link es parte de un namespace que NO incluímos."""
-        fwa = FakeWikiArchivo('abd <a href="/wiki/Imagen:foobar">Foo</a> dcba')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [])
-
-    def test_namespace_excluido_quoteado(self):
-        """Algunos namespaces vienen quoteados."""
-        fwa = FakeWikiArchivo('d<a href="/wiki/Discusi%C3%B3n:foo">Foo</a>d')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [])
-
-if __name__ == "__main__":
-    unittest.main()

@@ -35,6 +35,8 @@ ul#f-icons li {
 }
 #f-icon-poweredby-pyar img {
 	height: 40px;
+    position: relative;
+    top: -0.5em;
 }
 
 a.nopo {
@@ -90,3 +92,19 @@ li.search-result-title{
 li.search-result-text{
     font-size: 85%;
 }
+
+div#pyar-logo-h-inst img {
+    margin-top: 10px;
+    margin-bottom: 10px;  
+}
+
+div#pyar-logo-v-side img {
+    margin-top: 20px;
+}
+
+.mediaContainer {
+    border: .12em dashed blue;
+    margin-top: .5em;
+    margin-bottom: .5em;
+    padding: .1em;
+    }

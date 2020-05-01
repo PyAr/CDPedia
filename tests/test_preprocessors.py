@@ -22,28 +22,32 @@ import unittest
 import os
 
 from src.preproceso.preprocesadores import HTMLCleaner
-
+from .utils import load_fixture
 
 class FakeWikiFile:
     def __init__(self, html):
         self.html = html
 
 
-def _load_fixture(filename):
-    """Load a fixture from disk."""
-    filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
-    with open(filepath, "rb") as fh:
-        return fh.read()
-
-
 class HTMLCleanerTestCase(unittest.TestCase):
     """Tests for HTMLCleaner."""
 
     def test_remove_inlinemath(self):
-        html = _load_fixture('article_with_inlinemath.html')
+        html = load_fixture('article_with_inlinemath.html')
         assert 'MJX-TeXAtom-ORD' in html
         pp = HTMLCleaner()
         wf = FakeWikiFile(html)
         result = pp(wf)
         self.assertEqual(result, (0, []))
         self.assertNotIn('MJX-TeXAtom-ORD', wf.html)
+
+    def test_remove_img_srcset(self):
+        html = _load_fixture('article_with_images.html')
+        text = 'srcset="//upload.wikimedia.org/'
+        assert text in html
+        pp = HTMLCleaner()
+        wf = FakeWikiFile(html)
+        result = pp(wf)
+        self.assertEqual(result, (0, []))
+        self.assertNotIn(text, wf.html)
+

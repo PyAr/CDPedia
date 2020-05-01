@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2017-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  https://launchpad.net/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 """Tests for the 'to3dirs' module."""
 
@@ -54,20 +54,20 @@ class PageTestCase(unittest.TestCase):
         self.assertEqual(r, word)
 
 
-class PathTestCase(unittest.TestCase):
+class PathFileTestCase(unittest.TestCase):
 
     def test_simple(self):
-        r = to3dirs.to_path("moño")
-        self.assertEqual(r, "m/o/ñ")
+        r = to3dirs.get_path_file("moño")
+        self.assertEqual(r, ("m/o/ñ", "moño"))
 
     def test_short(self):
-        r = to3dirs.to_path("mo")
-        self.assertEqual(r, "m/o/_")
+        r = to3dirs.get_path_file("mo")
+        self.assertEqual(r, ("m/o/_", "mo"))
 
     def test_very_short(self):
-        r = to3dirs.to_path("m")
-        self.assertEqual(r, "m/_/_")
+        r = to3dirs.get_path_file("m")
+        self.assertEqual(r, ("m/_/_", "m"))
 
     def test_encoding(self):
-        r = to3dirs.to_path("2.3")
-        self.assertEqual(r, "2/%/2")
+        r = to3dirs.get_path_file("2.3")
+        self.assertEqual(r, ("2/%/2", "2%2E3"))

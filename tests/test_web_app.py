@@ -1,13 +1,28 @@
-# -*- coding: utf-8 -*-
-import os
-import sys
+# -*- coding: utf8 -*-
+
+# Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
 import unittest
 
-from src import third_party # Need this to import werkzeug
-from src.web import web_app, searcher
+from src import third_party  # NOQA: Need this to import werkzeug
+from src.web import web_app, utils
 
 from werkzeug.test import Client
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Response
 
 
 class WebAppTestCase(unittest.TestCase):
@@ -109,11 +124,10 @@ class WebAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_search_post(self):
-        response = self.client.post("/search", data={"keywords":"a"})
+        response = self.client.post("/search", data={"keywords": "a"})
         self.assertEqual(response.status_code, 302)
         self.assertTrue("/search/" in response.location)
-        response = self.client.post("/search", data={"keywords":"a"},
-                                    follow_redirects=True)
+        response = self.client.post("/search", data={"keywords": "a"}, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
     def test_search_term_url(self):
@@ -122,13 +136,18 @@ class WebAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue("/search/%s" % "+".join(words) in response.location)
 
-        response = self.client.post("/search", data={"keywords": u" ".join(words)},
-                                                     follow_redirects=True)
+        response = self.client.post(
+            "/search", data={"keywords": u" ".join(words)}, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
     def test_on_tutorial(self):
         response = self.client.get("/tutorial")
         self.assertEqual(response.status_code, 200)
+
+def test_get_origin_link():
+    assert utils.get_orig_link(u'Python').endswith(u"/wiki/Python")
+    assert utils.get_orig_link(u'"Love_and_Theft"').endswith(u"/wiki/%22Love_and_Theft%22")
+
 
 if __name__ == '__main__':
     unittest.main()
