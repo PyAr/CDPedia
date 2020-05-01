@@ -105,13 +105,10 @@ class CDPedia(object):
         self._tutorial_ready = False
 
     def get_creation_date(self):
-        locale.setlocale(locale.LC_ALL, '')
         _path = os.path.join(config.DIR_ASSETS, 'start_date.txt')
         with open(_path, 'rt') as f:
             date = f.read().strip()
         creation_date = datetime.strptime(date, "%Y%m%d")
-        locale.setlocale(locale.LC_ALL, 'es_ES.utf8')
-        creation_date = creation_date.strftime("%B %Y")
         return creation_date
 
     def on_main_page(self, request):

@@ -36,11 +36,11 @@
   </div>
   <br/>
   <div>
-     <h6>
+     <small>
        {{ gettext('Version') }} {{ version }}
        </br>
-       {{ gettext('Generated on') }} {{ date }}
-     </h6>
+       {{ gettext('Generated on') }} {{ gettext(date.strftime('%B')) }} {{ date.strftime(' %Y') }}
+     </small>
   </div>
   </div>
 
