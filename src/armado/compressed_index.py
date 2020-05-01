@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*
+# -*- coding: utf8 -*-
 
 # Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 # This program is free software: you can redistribute it and/or modify it
@@ -537,7 +537,7 @@ class Index(object):
             # process key
             if not isinstance(key, basestring):
                 raise TypeError("The key must be string or unicode")
-            if "\n" in key:
+            if '\n' in key:
                 raise ValueError("Key cannot contain newlines")
 
             # docid -> info final
