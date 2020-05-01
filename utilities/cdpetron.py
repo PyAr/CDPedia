@@ -144,6 +144,23 @@ def get_lists(branch_dir, language, config, test):
     return gendate
 
 
+def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
+    """Prepare the command and run scraper.py."""
+
+    logger.info("Let's scrap (with limit=%s)", test)
+    assert os.getcwd() == dump_lang_dir
+    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
+    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
+        branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
+    if test:
+        cmd += " " + str(TEST_LIMIT_SCRAP)
+    res = os.system(cmd)
+    if res != 0:
+        logger.error("Bad result code from scrapping: %r", res)
+        logger.error("Quitting, no point in continue")
+        exit()
+
+
 def scrap_pages(branch_dir, language, dump_lang_dir, test):
     """Get the pages from wikipedia."""
     articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
@@ -152,18 +169,7 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    logger.info("Let's scrap (with limit=%s)", test)
-    assert os.getcwd() == dump_lang_dir
-    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
-    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-        branch_dir, ART_ALL, language, DUMP_ARTICLES, namespaces_path)
-    if test:
-        cmd += " " + str(TEST_LIMIT_SCRAP)
-    res = os.system(cmd)
-    if res != 0:
-        logger.error("Bad result code from scrapping: %r", res)
-        logger.error("Quitting, no point in continue")
-        exit()
+    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test)
 
     logger.info("Checking scraped size")
     total = os.stat(articles_dir).st_size
@@ -177,6 +183,12 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
                 blocks += 1
             total += blocks * 512
     logger.info("Total size of scraped articles: %d MB", total // 1024 ** 2)
+
+
+def scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages):
+    """Scrap extra pages defined in a text file."""
+    extra_pages_file = os.path.join(branch_dir, extra_pages)
+    _call_scrapper(branch_dir, language, dump_lang_dir, extra_pages_file)
 
 
 def scrap_portals(dump_lang_dir, language, lang_config):
@@ -243,7 +255,7 @@ def clean(branch_dir, dump_dir, keep_processed):
 
 
 def main(branch_dir, dump_dir, language, lang_config, imag_config,
-         nolists, noscrap, noclean, image_type, test):
+         nolists, noscrap, noclean, image_type, test, extra_pages):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
@@ -271,6 +283,9 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
     if not noscrap:
         scrap_portals(dump_lang_dir, language, lang_config)
         scrap_pages(branch_dir, language, dump_lang_dir, test)
+
+    if extra_pages:
+        scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages)
 
     os.chdir(branch_dir)
 
@@ -315,6 +330,8 @@ if __name__ == "__main__":
                         help="A directory to store all articles and images.")
     parser.add_argument("language",
                         help="The two-letters language name.")
+    parser.add_argument("--extra-pages",
+                        help="file with extra pages to be included in the image.")
     args = parser.parse_args()
 
     if args.no_clean and not args.image_type:
@@ -371,4 +388,4 @@ if __name__ == "__main__":
 
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
-         noclean=args.no_clean, image_type=args.image_type, test=args.test_mode)
+         noclean=args.no_clean, image_type=args.image_type, test=args.test_mode, extra_pages=args.extra_pages)
