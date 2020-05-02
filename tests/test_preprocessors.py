@@ -42,7 +42,7 @@ class HTMLCleanerTestCase(unittest.TestCase):
         self.assertNotIn('MJX-TeXAtom-ORD', wf.html)
 
     def test_remove_img_srcset(self):
-        html = _load_fixture('article_with_images.html')
+        html = load_fixture('article_with_images.html')
         text = 'srcset="//upload.wikimedia.org/'
         assert text in html
         pp = HTMLCleaner()
