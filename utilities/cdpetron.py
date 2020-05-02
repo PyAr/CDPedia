@@ -276,8 +276,12 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
     if not nolists:
         gendate = get_lists(branch_dir, language, lang_config, test)
     else:
-        with open(DATE_FILENAME, 'rt') as fh:
-            gendate = fh.read().strip()
+        try:
+            with open(DATE_FILENAME, 'rt') as fh:
+                gendate = fh.read().strip()
+        except IOError:
+            logger.error("%s does not exists. Run at least once without --no-lists", DATE_FILENAME)
+            exit()
     logger.info("Date of generation: %s", gendate)
 
     if not noscrap:
