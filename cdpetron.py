@@ -298,14 +298,14 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
             clean(branch_dir, dump_imags_dir, keep_processed=True)
-            generar.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
+            generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
             # keep previous processed if not new scrapped articles and not testing
             keep_processed = noscrap and not test
             clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
-        generar.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
+        generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
 
 
 if __name__ == "__main__":
@@ -378,8 +378,7 @@ if __name__ == "__main__":
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
-    from src import list_articles_by_namespaces
-    from src import generar
+    from src import list_articles_by_namespaces, generate
     from src.scrapping import portals
 
     # dump dir may not exist, let's just create if it doesn't
