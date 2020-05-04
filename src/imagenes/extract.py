@@ -37,7 +37,7 @@ import bs4
 
 import config
 from src import utiles
-from src.preproceso import preprocesar
+from src.preprocessing import preprocess
 
 IMG_URL_PREFIX = "/images/"
 
@@ -69,7 +69,7 @@ class ImageParser(object):
         # get which files we processed last time for images and 'nopo' marks
         # (only if the articles are the same, otherwise we need to reprocess
         # everything because of the nopo marks)
-        same_before = preprocesar.pages_selector.same_info_through_runs
+        same_before = preprocess.pages_selector.same_info_through_runs
         self.proces_antes = {}
         if not test and same_before and os.path.exists(config.LOG_IMAGPROC):
             with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
@@ -312,9 +312,9 @@ class ImageParser(object):
 
 def run():
     """Extract the images from htmls, and also do extra work on those pages."""
-    preprocesados = preprocesar.pages_selector.top_pages
+    preprocessed = preprocess.pages_selector.top_pages
     pi = ImageParser()
-    total = len(preprocesados)
+    total = len(preprocessed)
     logger.info("Image parser inited")
 
     logger.info("Extract images from special resources.")
@@ -324,7 +324,7 @@ def run():
     done = 0
     tl = utiles.TimingLogger(30, logger.debug)
 
-    for dir3, fname, _ in preprocesados:
+    for dir3, fname, _ in preprocessed:
         try:
             pi.parse(dir3, fname)
         except:
@@ -359,7 +359,7 @@ if __name__ == "__main__":
     handler.setFormatter(formatter)
     _logger.setLevel(logging.DEBUG)
 
-    preprocesar.pages_selector._calculated = True
+    preprocess.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
     print("\n".join(str(x) for x in pi.a_descargar.items()))
