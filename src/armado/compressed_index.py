@@ -74,7 +74,7 @@ def delta_decode(docset, ctor=set, append="add", with_reps=False):
     rv = ctor()
     rva = getattr(rv, append)
     shif = 0
-    abucket = array.array("B")
+    abucket = array.array('B')
     abucket.fromstring(docset)
     for b in abucket:
         doc |= (b & 0x7F) << shif
@@ -102,7 +102,7 @@ class FrozenStringList:
       of every substring added to heap.
     """
     def __init__(self, iterable=None):
-        self.index = array.array("l", [0])
+        self.index = array.array('l', [0])
         self.heap = ""
         if iterable:
             self.extend(iterable)
@@ -165,7 +165,7 @@ class FrozenStringList:
     def unpickle(data):
         rv = FrozenStringList()
         rv.index = delta_decode_str(
-            data[0], ctor=(lambda: array.array("l")), append="append", with_reps=True
+            data[0], ctor=(lambda: array.array('l')), append='append', with_reps=True
         )
         rv.heap = data[1]
         return rv
@@ -562,7 +562,7 @@ class Index(object):
                 #
                 # NOTE: right now, at most one repetition per property is sent
                 # by cdpindex.py
-                bucket = key_shelf[key] = array.array("l")
+                bucket = key_shelf[key] = array.array('l')
             bucket.append(docid)
 
         # prepare for serialization:
