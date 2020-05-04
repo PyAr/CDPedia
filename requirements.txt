@@ -5,3 +5,6 @@ pytest
 pytest-mock
 pyyaml
 twisted
+pyopenssl
+lxml
+service_identity

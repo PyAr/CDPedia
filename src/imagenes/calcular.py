@@ -40,7 +40,7 @@ import operator
 
 import config
 from src.armado import to3dirs
-from src.preproceso import preprocesar
+from src.preprocessing import preprocess
 
 logger = logging.getLogger("images.calculate")
 
@@ -91,8 +91,8 @@ def run():
     # si una misma imagen está en un artículo importante y en otro que no, la
     # imagen va a quedar al 100%)
     imagenes = {}
-    preprocesados = preprocesar.pages_selector.top_pages
-    for posic_archivo, (dir3, fname, _) in enumerate(preprocesados):
+    preprocessed = preprocess.pages_selector.top_pages
+    for posic_archivo, (dir3, fname, _) in enumerate(preprocessed):
         # sacamos qué imágenes le corresponde a este archivo
         dskurls = pag_imagenes[(dir3, fname)]
 
