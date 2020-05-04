@@ -153,13 +153,11 @@ class FrozenStringList:
             pos += len_(s)
             index_a(pos)
 
-        self.heap += "".join(iterable)
+        self.heap += ''.join(iterable)
 
     def pickle(self):
-        return (
-            delta_encode_str(self.index, sorted=lambda x: x, with_reps=True),
-            self.heap,
-        )
+        encoded_index = delta_encode_str(self.index, sorted=lambda x: x, with_reps=True)
+        return encoded_index, self.heap
 
     @staticmethod
     def unpickle(data):
