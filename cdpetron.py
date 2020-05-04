@@ -378,8 +378,8 @@ if __name__ == "__main__":
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
-    import list_articles_by_namespaces
-    import generar
+    from src import list_articles_by_namespaces
+    from src import generar
     from src.scrapping import portals
 
     # dump dir may not exist, let's just create if it doesn't

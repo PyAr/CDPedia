@@ -1,6 +1,6 @@
 # -- encoding: utf-8 --
 
-# Copyright 2008-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -31,16 +31,18 @@ from os import path
 
 import yaml
 
-# para poder hacer generar.py > log.txt
-if sys.stdout.encoding is None:
-    reload(sys)
-    sys.setdefaultencoding('utf8')
-
 import config
 from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.imagenes import extract, download, reducir, calcular
+
+
+# para poder hacer generar.py > log.txt
+if sys.stdout.encoding is None:
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+
 
 # get a logger (may be already set up, or will set up in __main__)
 logger = logging.getLogger('generar')
@@ -130,7 +132,7 @@ def copy_sources():
     """Copy the source code files."""
     # el src
     dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src")
-    dir_a_cero(dest_src)
+    clean_dir(dest_src)
     shutil.copy(path.join("src", "__init__.py"), dest_src)
     shutil.copy(path.join("src", "utiles.py"), dest_src)
     copy_dir(path.join("src", "armado"),
@@ -148,8 +150,8 @@ def copy_sources():
                     os.path.join(config.DIR_CDBASE, "cdpedia"))
 
 
-def dir_a_cero(path):
-    """Crea un directorio borrando lo viejo si existiera."""
+def clean_dir(path):
+    """Create a directory, and delete existing one if needed."""
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
@@ -163,7 +165,8 @@ def build_iso(dest):
                      "-J", config.DIR_CDBASE])
 
 
-def genera_run_config():
+def gen_run_config():
+    """Generate the config file used on the final user computer."""
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
     f.write('import os\n\n')
     f.write('VERSION = %s\n' % repr(config.VERSION))
@@ -187,10 +190,11 @@ def genera_run_config():
     f.close()
 
 
-def preparaTemporal(procesar_articles):
+def prepare_temporary_dirs(process_articles):
+    """Create, clean or rerun using the previous state in logs."""
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
-        if not procesar_articles:
+        if not process_articles:
             # preparamos paths y vemos que todo esté ok
             src_indices = path.join(config.DIR_CDBASE, "cdpedia", "indice")
             src_bloques = config.DIR_BLOQUES
@@ -256,11 +260,12 @@ def update_mini(image_path):
 
 
 def main(lang, src_info, version, lang_config, gendate,
-         verbose=False, desconectado=False, procesar_articles=True):
+         verbose=False, desconectado=False, process_articles=True):
+    """Generate the CDPedia tarball or iso."""
     # don't affect the rest of the machine
     make_it_nicer()
 
-    if procesar_articles:
+    if process_articles:
         try:
             import SuffixTree  # NOQA
         except ImportError:
@@ -285,14 +290,14 @@ def main(lang, src_info, version, lang_config, gendate,
     config.langconf = lang_config
 
     logger.info("Starting!")
-    preparaTemporal(procesar_articles)
+    prepare_temporary_dirs(process_articles)
 
     logger.info("Copying the assets and locale files")
     copy_assets(src_info, config.DIR_ASSETS)
     shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
 
     articulos = path.join(src_info, "articles")
-    if procesar_articles:
+    if process_articles:
         logger.info("Preprocessing")
         if not path.exists(articulos):
             logger.error("Couldn't find articles dir: %r", articulos)
@@ -324,7 +329,7 @@ def main(lang, src_info, version, lang_config, gendate,
     q_blocks, q_images = ImageManager.generar_bloques(verbose)
     logger.info("Got %d blocks with %d images", q_blocks, q_images)
 
-    if not procesar_articles:
+    if not process_articles:
         logger.info("Not generating index and blocks (by user request)")
     elif preprocess.pages_selector.same_info_through_runs:
         logger.info("Same articles than previous run "
@@ -360,7 +365,7 @@ def main(lang, src_info, version, lang_config, gendate,
         copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
 
     logger.info("Generating runtime config")
-    genera_run_config()
+    gen_run_config()
 
     base_dest_name = "cdpedia-%s-%s-%s-%s" % (lang, config.VERSION, gendate, version)
     if config.imageconf["type"] == "iso":
@@ -424,7 +429,7 @@ To update an image with the code and assets changes  in this working copy:
 
     verbose = bool(options.verbose)
     desconectado = bool(options.desconectado)
-    procesar_articles = not bool(options.noarticles)
+    process_articles = not bool(options.noarticles)
 
     # setup logging
     _logger = logging.getLogger()
@@ -458,4 +463,4 @@ To update an image with the code and assets changes  in this working copy:
         update_mini(direct)
     else:
         gendate = datetime.date.today().strftime("%Y%m%d")
-        main(lang, direct, version, lang_config, gendate, verbose, desconectado, procesar_articles)
+        main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)
