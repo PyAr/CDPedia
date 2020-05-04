@@ -152,29 +152,26 @@ msgid "Homepage"
 msgstr "Portada"
 
 #: src/web/templates/sidebar.html:10
-msgid "Wikipedia in the Web"
-msgstr "Wikipedia en la Web"
-
-#: src/web/templates/sidebar.html:11
-msgid "Help"
-msgstr "Ayuda"
-
-#: src/web/templates/sidebar.html:15 src/web/templates/sidebar.html:20
-msgid "Search"
-msgstr "Buscar"
-
-#: src/web/templates/sidebar.html:19
-msgid "Search articles with this text"
-msgstr "Busca artículos con este texto"
-
-#: src/web/templates/sidebar.html:24
-msgid "Suprise"
-msgstr "Sorprendete"
-
-#: src/web/templates/sidebar.html:27
 msgid "Random article"
 msgstr "Artículo al azar"
 
-#: src/web/templates/sidebar.html:31
+#: src/web/templates/sidebar.html:11
+msgid "Wikipedia in the Web"
+msgstr "Wikipedia en la Web"
+
+#: src/web/templates/sidebar.html:12
+msgid "Help"
+msgstr "Ayuda"
+
+#: src/web/templates/sidebar.html:16 src/web/templates/sidebar.html:21
+msgid "Search"
+msgstr "Buscar"
+
+#: src/web/templates/sidebar.html:20
+msgid "Search articles with this text"
+msgstr "Busca artículos con este texto"
+
+
+#: src/web/templates/sidebar.html:27
 msgid "Presented by"
 msgstr "Presentada por"
