@@ -139,7 +139,6 @@ def get_lists(branch_dir, language, config, test):
     tot += q
     logger.info("Have %d articles to mandatorily include", q)
 
-
     fh_artall.close()
     logger.info("Total of articles: %d", tot)
     return gendate
