@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2006-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2006-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -15,24 +15,23 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  http://code.google.com/p/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 """
-Funciones para generar los ránkings de las páginas.
-Todas reciben como argumento una WikiPagina.
+Functions to generate page rankings. All of them receive a WikiPage
+as argument.
 
-Más tarde otra funcion se encargará del algoritmo que produce el
-ordenamiento final de las páginas, tomando estos subtotales como
-referencia.
+Another function will then handle the algorithm to produce the final
+sorting of the pages, taking the subtotals calculated here as reference.
 
-(facundobatista) Cambié la interacción entre los procesadores y quien
-los llama: ahora los procesadores NO tocan el 'resultado' del WikiSitio,
-ya que esto hacía que se pierda el control del mismo y aparezcan páginas
-espúeras al final.  Ahora cada procesador devuelve dos cosas: el puntaje
-de la página que procesa, y una lista de tuplas (otra_página, puntaje) en
-caso de asignar puntajes a otras páginas.  En caso de querer omitir la
-página que se le ofrece, el procesador debe devolver None en lugar del
-puntaje.
+Processors must not touch the result of WikiSite to prevent loss of
+control over its value and the consequent undesired appearance of spurious
+pages at the end.
+
+Each processor returns two things: the score of the page it processes
+and a list of (other_page, score) tuples in case it assigns a score to
+other pages. If a processor wants to omit a given page, it must return
+None instead of the score.
 """
 
 from __future__ import print_function
@@ -43,12 +42,11 @@ import collections
 import logging
 import os
 import re
-
 from urllib2 import unquote
 
-import config
-
 import bs4
+
+import config
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
@@ -60,16 +58,16 @@ class _Processor(object):
     """Generic processor, don't use directly, thoght to be subclassed."""
 
     def __init__(self):
-        self.nombre = 'Generic processor'
+        self.name = 'Generic processor'
         self.stats = None
 
-    def __call__(self, wikiarchivo):
-        """Aplica el procesador a una instancia de WikiArchivo.
+    def __call__(self, wikifile):
+        """Apply preprocessor to a WikiFile instance.
 
-        Ejemplo:
+        Example:
           return (123456, [])
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def close(self):
         """Close operations, save stuff if needed.
@@ -86,12 +84,12 @@ class ContentExtractor(_Processor):
 
     def __init__(self):
         super(ContentExtractor, self).__init__()
-        self.nombre = "ContentExtractor"
+        self.name = "ContentExtractor"
         self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
 
         # extract the title
         node = soup.find('h1')
@@ -115,8 +113,8 @@ class ContentExtractor(_Processor):
             self.stats['text found'] += 1
 
         # dump to disk
-        linea = config.SEPARADOR_COLUMNAS.join((wikiarchivo.url, title, safe_text))
-        self.output.write(linea + '\n')
+        line = config.SEPARADOR_COLUMNAS.join((wikifile.url, title, safe_text))
+        self.output.write(line + '\n')
         return (0, [])
 
     def close(self):
@@ -126,13 +124,14 @@ class ContentExtractor(_Processor):
 
 class VIPDecissor(object):
     """Hold those VIP articles that must be included."""
+
     def __init__(self):
         self._vip_articles = None
 
     def _load(self):
         """Load all needed special articles.
 
-        This is done not an __init__ time because some of this are dynamically
+        This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
         """
         viparts = self._vip_articles = set()
@@ -161,18 +160,20 @@ class VIPDecissor(object):
             self._load()
         return article in self._vip_articles
 
+
 vip_decissor = VIPDecissor()
 
 
 class VIPArticles(_Processor):
     """A processor for articles that *must* be included."""
+
     def __init__(self):
         super(VIPArticles, self).__init__()
         self.nombre = "VIPArticles"
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        if vip_decissor(wikiarchivo.url):
+    def __call__(self, wikifile):
+        if vip_decissor(wikifile.url):
             self.stats['vip'] += 1
             score = SCORE_VIP
         else:
@@ -181,16 +182,17 @@ class VIPArticles(_Processor):
         return (score, [])
 
 
-class OmitirRedirects(_Processor):
-    """Procesa y omite de la compilación a los redirects."""
+class OmitRedirects(_Processor):
+    """Process and omit redirects from compilation."""
+
     def __init__(self):
-        super(OmitirRedirects, self).__init__()
+        super(OmitRedirects, self).__init__()
         self.nombre = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, "lxml", from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
         node = soup.find('ul', 'redirectText')
         if not node:
             # not a redirect, simple file
@@ -201,12 +203,12 @@ class OmitirRedirects(_Processor):
         self.stats['redirect'] += 1
         url_redirect = node.text
         sep_col = config.SEPARADOR_COLUMNAS
-        linea = wikiarchivo.url + sep_col + url_redirect + "\n"
-        self.output.write(linea)
+        line = wikifile.url + sep_col + url_redirect + "\n"
+        self.output.write(line)
 
         # if redirect was very important, transmit this feature
         # to destination article
-        if vip_decissor(wikiarchivo.url):
+        if vip_decissor(wikifile.url):
             trans = [(url_redirect, SCORE_VIP)]
         else:
             trans = []
@@ -220,70 +222,69 @@ class OmitirRedirects(_Processor):
 
 
 class Peishranc(_Processor):
-    """Calcula el peishranc.
+    """Calculate the peishranc.
 
-    Registra las veces que una página es referida por las demás páginas.
-    Ignora las auto-referencias y los duplicados.
+    Register how many times a page is referred by the rest of the pages.
+    Ignore self-references and duplicates.
 
-    NOTA: Si se cambia algo de esta clase, por favor correr los casos de prueba
-    en el directorio tests.
+    NOTE: In case of any change in this class, please run the test cases from
+    the tests directory.
     """
+
     def __init__(self):
         super(Peishranc, self).__init__()
-        self.nombre = "Peishranc"
+        self.name = "Peishranc"
 
-        # regex preparada por perrito666 y tuute, basicamente matchea todos los
-        # href-algo, poniendo href como nombre de grupo de eso que matchea,
-        # más un "class=" que es opcional (y poniéndole nombre class);
-        self.capturar = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
-                                   r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
+        # Capture href and class attributes of `a` tags in corresponding named groups.
+        self.capture = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
+                                  r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        puntajes = {}
-        for enlace in self.capturar.finditer(wikiarchivo.html):
-            data = enlace.groupdict()
+    def __call__(self, wikifile):
+        scores = {}
+        for link in self.capture.finditer(wikifile.html):
+            data = link.groupdict()
 
-            # descartamos por clase y por comienzo del link
-            clase = data['class']
-            if clase in ('image', 'internal'):
+            # discard by class and by link start
+            class_ = data['class']
+            if class_ in ('image', 'internal'):
                 continue
 
-            # decodificamos y unquoteamos
+            # decode and unquote
             lnk = data['href']
             try:
                 lnk = unquote(lnk).decode('utf8')
             except UnicodeDecodeError:
-                print("ERROR al unquotear/decodear el link", repr(lnk))
+                logger.error('unquoting/decoding link failed: %s', repr(lnk))
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
             # by the SLASH word
             lnk = lnk.replace("/", "SLASH")
 
-            puntajes[lnk] = puntajes.get(lnk, 0) + 1
+            scores[lnk] = scores.get(lnk, 0) + 1
 
-        # sacamos el "auto-bombo"
-        if wikiarchivo.url in puntajes:
-            del puntajes[wikiarchivo.url]
+        # remove "self-praise"
+        if wikifile.url in scores:
+            del scores[wikifile.url]
 
         # factor score by constant
-        for lnk, score in puntajes.iteritems():
-            puntajes[lnk] = score * SCORE_PEISHRANC
+        for lnk, score in scores.iteritems():
+            scores[lnk] = score * SCORE_PEISHRANC
 
-        return (0, puntajes.items())
+        return (0, scores.items())
 
 
-class Longitud(_Processor):
+class Length(_Processor):
     """Score the page based on its length (html)."""
 
     def __init__(self):
-        super(Longitud, self).__init__()
-        self.nombre = "Longitud"
+        super(Length, self).__init__()
+        self.name = "Length"
 
-    def __call__(self, wikiarchivo):
-        largo = len(wikiarchivo.html)
-        return (largo, [])
+    def __call__(self, wikifile):
+        length = len(wikifile.html)
+        return (length, [])
 
 
 class HTMLCleaner(_Processor):
@@ -302,8 +303,8 @@ class HTMLCleaner(_Processor):
         self.nombre = "HTMLCleaner"
         self.stats = collections.Counter()
 
-    def __call__(self, wikiarchivo):
-        soup = bs4.BeautifulSoup(wikiarchivo.html, features='html.parser', from_encoding='utf8')
+    def __call__(self, wikifile):
+        soup = bs4.BeautifulSoup(wikifile.html, features='html.parser', from_encoding='utf8')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')
@@ -351,17 +352,17 @@ class HTMLCleaner(_Processor):
                     break
 
         # fix original html and return no score at all
-        wikiarchivo.html = str(soup)
+        wikifile.html = str(soup)
         return (0, [])
 
 
-# Clases que serán utilizadas para el preprocesamiento
-# de cada una de las páginas, en orden de ejecución.
-TODOS = [
+# Classes that will be used for preprocessing each page,
+# in execution order.
+ALL = [
     HTMLCleaner,
     VIPArticles,
-    OmitirRedirects,
+    OmitRedirects,
     Peishranc,
-    Longitud,
+    Length,
     ContentExtractor,
 ]
