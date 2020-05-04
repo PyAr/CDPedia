@@ -153,14 +153,6 @@ def save_creation_date(date):
         f.write(generation_date + "\n")
 
 
-def scrap_pages(branch_dir, language, dump_lang_dir, test):
-    """Get the pages from wikipedia."""
-    articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
-    logger.info("Assure articles dir is empty: %r", articles_dir)
-    if os.path.exists(articles_dir):
-        shutil.rmtree(articles_dir)
-    os.mkdir(articles_dir)
-
 def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
