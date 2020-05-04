@@ -261,11 +261,11 @@ class ArticleManager(BloqueManager):
         self._prep_archive_dir(lang)
 
         # lo importamos acá porque no es necesario en producción
-        from src.preproceso import preprocesar
+        from src.preprocessing import preprocess
 
         # pedir todos los articulos, y ordenarlos en un dict por
         # su numero de bloque, segun el hash
-        top_pages = preprocesar.pages_selector.top_pages
+        top_pages = preprocess.pages_selector.top_pages
         if verbose:
             print "Procesando", len(top_pages), "articulos"
 

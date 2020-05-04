@@ -37,7 +37,7 @@ if sys.stdout.encoding is None:
     sys.setdefaultencoding('utf8')
 
 import config
-from src.preproceso import preprocesar
+from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.imagenes import extract, download, reducir, calcular
@@ -298,10 +298,10 @@ def main(lang, src_info, version, lang_config, gendate,
             logger.error("Couldn't find articles dir: %r", articulos)
             raise EnvironmentError("Directory not found, can't continue")
             sys.exit()
-        preprocesar.run(articulos)
+        preprocess.run(articulos)
 
         logger.info("Calculating which stay and which don't")
-        preprocesar.pages_selector.calculate()
+        preprocess.pages_selector.calculate()
 
         logger.info("Generating the images log")
         taken, adesc = extract.run()
@@ -326,7 +326,7 @@ def main(lang, src_info, version, lang_config, gendate,
 
     if not procesar_articles:
         logger.info("Not generating index and blocks (by user request)")
-    elif preprocesar.pages_selector.same_info_through_runs:
+    elif preprocess.pages_selector.same_info_through_runs:
         logger.info("Same articles than previous run "
                     "(not generating index and blocks)")
     else:

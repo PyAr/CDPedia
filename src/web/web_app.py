@@ -317,7 +317,7 @@ class CDPedia(object):
 
 def create_app(watchdog, verbose=False, with_static=True, with_debugger=True,
                use_evalex=True):
-    from werkzeug.wsgi import SharedDataMiddleware
+    from werkzeug.middleware.shared_data import SharedDataMiddleware
     from werkzeug.debug import DebuggedApplication
     app = CDPedia(watchdog, verbose=verbose)
     if with_static:

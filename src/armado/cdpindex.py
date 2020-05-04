@@ -115,7 +115,7 @@ def filename2palabras(fname):
 
 def generar_de_html(dirbase, verbose):
     # lo importamos acá porque no es necesario en producción
-    from src.preproceso import preprocesar
+    from src.preprocessing import preprocess
 
     # armamos las redirecciones
     redirs = {}
@@ -128,7 +128,7 @@ def generar_de_html(dirbase, verbose):
         palabras, titulo = filename2palabras(orig)
         redirs.setdefault(dest, []).append((palabras, titulo))
 
-    top_pages = preprocesar.pages_selector.top_pages
+    top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
     with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:

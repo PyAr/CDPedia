@@ -7,6 +7,7 @@
     <div class="pBody">
     <ul id="navegacionBody">
     <li id="n-mainpage"><a href="/">{{ gettext('Homepage') }}</a></li>
+    <li id="n-al_azar"><a href="/al_azar">{{ gettext('Random article') }}</a></li>
     <li id="n-portal"><a href="http://es.wikipedia.org/">{{ gettext('Wikipedia in the Web') }}</a></li>
     <li id="n-help"><a href="/institucional/ayuda.html">{{ gettext('Help') }}</a></li>
     </ul>
@@ -18,13 +19,6 @@
     <input id="searchInput" name="keywords" size="13"/>
     <button title="{{ gettext('Search articles with this text') }}" name="button" type="submit" id="searchButton">
     <img alt="{{ gettext('Search') }}" src="/static/img/search-ltr.png"></button>
-    </form>
-    </div>
-  <br />
-  <h5>{{ gettext('Suprise') }}</h5>
-    <div class="pBody">
-    <form method="get" action="/al_azar">
-        <input value="{{ gettext('Random article') }}" type="submit"/>
     </form>
     </div>
   <br />

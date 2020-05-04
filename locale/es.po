@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-05-01 15:58-0300\n"
+"POT-Creation-Date: 2020-05-01 16:29-0300\n"
 "PO-Revision-Date: 2014-06-14 12:11-0300\n"
 "Last-Translator: Facundo Batista <facundo@taniquetil.com.ar>\n"
 "MIME-Version: 1.0\n"
@@ -16,52 +16,52 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 1.3\n"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "January"
 msgstr "Enero"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "February"
 msgstr "Febrero"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 #, fuzzy
 msgid "March"
 msgstr "Marzo"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "April"
 msgstr "Abril"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "May"
 msgstr "Mayo"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "June"
 msgstr "Junio"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "July"
 msgstr "Julio"
 
-#: src/web/months.py:3
+#: src/web/translations.py:3
 msgid "August"
 msgstr "Agosto"
 
-#: src/web/months.py:4
+#: src/web/translations.py:4
 msgid "September"
 msgstr "Septiembre"
 
-#: src/web/months.py:4
+#: src/web/translations.py:4
 msgid "October"
 msgstr "Octubre"
 
-#: src/web/months.py:4
+#: src/web/translations.py:4
 msgid "November"
 msgstr "Noviembre"
 
-#: src/web/months.py:4
+#: src/web/translations.py:4
 msgid "December"
 msgstr "Diciembre"
 
@@ -218,7 +218,7 @@ msgstr "Busca artículos con este texto"
 
 #: src/web/templates/sidebar.html:24
 msgid "Suprise"
-msgstr "Sorprendete"
+msgstr ""
 
 #: src/web/templates/sidebar.html:27
 msgid "Random article"
