@@ -280,7 +280,7 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
             with open(DATE_FILENAME, 'rt') as fh:
                 gendate = fh.read().strip()
         except IOError:
-            logger.error("%s does not exists. Run at least once without --no-lists", DATE_FILENAME)
+            logger.error("No article list available. Run at least once without --no-lists")
             exit()
     logger.info("Date of generation: %s", gendate)
 
