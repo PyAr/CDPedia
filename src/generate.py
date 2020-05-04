@@ -190,7 +190,7 @@ def gen_run_config():
     f.close()
 
 
-def do_temporary_dirs(process_articles):
+def prepare_temporary_dirs(process_articles):
     """Create, clean or rerun using the previous state in logs."""
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
@@ -290,7 +290,7 @@ def main(lang, src_info, version, lang_config, gendate,
     config.langconf = lang_config
 
     logger.info("Starting!")
-    do_temporary_dirs(process_articles)
+    prepare_temporary_dirs(process_articles)
 
     logger.info("Copying the assets and locale files")
     copy_assets(src_info, config.DIR_ASSETS)
