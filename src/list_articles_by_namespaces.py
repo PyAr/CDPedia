@@ -66,6 +66,7 @@ def retryable(func):
 
 @retryable
 def hit_api(**kwords):
+    """Call Wikimedia's API and pull the information."""
     url = API_URL % kwords
     logger.debug("Hit %r", url)
     u = urllib2.urlopen(url)
