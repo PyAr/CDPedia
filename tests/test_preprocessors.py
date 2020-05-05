@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf8 -*-
 
 # Copyright 2017 CDPedistas (see AUTHORS.txt)
 #
@@ -18,8 +19,8 @@
 
 """Tests for the src.preprocessing.preprocessors module."""
 
-import unittest
 import os
+import unittest
 
 from src.preprocessing.preprocessors import HTMLCleaner
 from .utils import load_fixture, FakeWikiFile
