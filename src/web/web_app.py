@@ -17,9 +17,9 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-
 import codecs
 import gettext
+import locale
 import operator
 import os
 import posixpath
@@ -27,26 +27,26 @@ import re
 import tarfile
 import tempfile
 import urllib
-
+from datetime import datetime
 from mimetypes import guess_type
 
-import utils
-import bmp
-import config
-
-from src.armado import compresor
-from src.armado import cdpindex
-from src.armado.cdpindex import normaliza as normalize_keyword
-from src.armado import to3dirs
-from destacados import Destacados
-from searcher import Searcher
-from utils import TemplateManager
 from src import third_party  # Need this to import 3rd_party (werkzeug, jinja2)
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
+
+import bmp
+import config
+import utils
+from destacados import Destacados
+from searcher import Searcher
+from src.armado import cdpindex
+from src.armado.cdpindex import normaliza as normalize_keyword
+from src.armado import compresor
+from src.armado import to3dirs
+from utils import TemplateManager
 
 ARTICLES_BASE_URL = u"wiki"
 
@@ -75,82 +75,90 @@ class CDPedia(object):
                                      extensions=['jinja2.ext.i18n'],
                                      autoescape=False)
         self.jinja_env.globals["watchdog"] = True if watchdog else False
+        self.jinja_env.globals["date"] = self.get_creation_date()
+        self.jinja_env.globals["version"] = config.VERSION
         translations = gettext.translation("core", 'locale',
                                            [self.art_mngr.language])
         self.jinja_env.install_gettext_translations(translations)
 
         self.template_manager = TemplateManager(template_path)
         self.img_mngr = compresor.ImageManager(verbose=verbose)
-        self.destacados_mngr = Destacados(self.art_mngr, debug=False)
+        self.featured_mngr = Destacados(self.art_mngr, debug=False)
 
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
         self.index.start()
 
         self.searcher = Searcher(self.index, self.search_cache_size)
         self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
-
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
-            Rule('/%s/<nombre>' % ARTICLES_BASE_URL, endpoint='articulo'),
-            Rule('/al_azar', endpoint='al_azar'),
+            Rule('/%s/<name>' % ARTICLES_BASE_URL, endpoint='article'),
+            Rule('/al_azar', endpoint='random'),
             Rule('/search', endpoint='search'),
             Rule('/search/<key>', endpoint='search_results'),
-            Rule('/images/<path:nombre>', endpoint='imagen'),
-            Rule('/institucional/<path:path>', endpoint='institucional'),
+            Rule('/images/<path:name>', endpoint='image'),
+            Rule('/institucional/<path:path>', endpoint='institutional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
             Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
         ])
         self._tutorial_ready = False
 
+    def get_creation_date(self):
+        _path = os.path.join(config.DIR_ASSETS, 'start_date.txt')
+        with open(_path, 'rt') as f:
+            date = f.read().strip()
+        creation_date = datetime.strptime(date, "%Y%m%d")
+        return creation_date
+
     def on_main_page(self, request):
-        data_destacado = self.destacados_mngr.get_destacado()
-        destacado = None
-        if data_destacado is not None:
-            link, title, first_paragraphs = data_destacado
-            destacado = {"link": link, "title": title,
-                         "first_paragraphs": first_paragraphs}
+        featured_data = self.featured_mngr.get_destacado()
+        featured = None
+        if featured_data is not None:
+            link, title, first_paragraphs = featured_data
+            featured = {"link": link, "title": title,
+                        "first_paragraphs": first_paragraphs}
 
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
         if os.path.exists(_path):
             with codecs.open(_path, "rb", encoding='utf8') as fh:
-                portales = fh.read()
+                portals = fh.read()
         else:
-            portales = ""
+            portals = ""
 
         return self.render_template('main_page.html',
-            title="Portada",
-            destacado=destacado,
-            portales=portales,
-        )
+                                    title="Portada",
+                                    featured=featured,
+                                    portals=portals,
+                                    )
 
-    def on_articulo(self, request, nombre):
-        orig_link = utils.get_orig_link(nombre)
+    def on_article(self, request, name):
+        orig_link = utils.get_orig_link(name)
         try:
-            data = self.art_mngr.get_item(nombre)
+            data = self.art_mngr.get_item(name)
         except Exception, e:
             raise InternalServerError(u"Error interno al buscar contenido: %s" % e)
 
         if data is None:
-            raise ArticleNotFound(nombre, orig_link)
+            raise ArticleNotFound(name, orig_link)
 
         return self.render_template('article.html',
-            article_name=nombre,
-            orig_link=orig_link,
-            article=data,
-            language=self.art_mngr.language,
-        )
+                                    article_name=name,
+                                    orig_link=orig_link,
+                                    article=data,
+                                    language=self.art_mngr.language,
+                                    )
 
-    def on_imagen(self, request, nombre):
+    def on_image(self, request, name):
         try:
-            normpath = posixpath.normpath(nombre)
+            normpath = posixpath.normpath(name)
             asset_data = self.img_mngr.get_item(normpath)
         except Exception, e:
             msg = u"Error interno al buscar imagen: %s" % e
             raise InternalServerError(msg)
         if asset_data is None:
             if self.verbose:
-                print "WARNING: no pudimos encontrar", repr(nombre)
+                print "WARNING: no pudimos encontrar", repr(name)
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
@@ -159,10 +167,10 @@ class CDPedia(object):
                 raise InternalServerError("Error al generar imagen")
             img = bmp.BogusBitMap(width, height)
             return Response(img.data, mimetype="img/bmp")
-        type_ = guess_type(nombre)[0]
+        type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
-    def on_institucional(self, request, path):
+    def on_institutional(self, request, path):
         path = os.path.join("institucional", path)
         asset_file = os.path.join(config.DIR_ASSETS, path)
         if os.path.isdir(asset_file):
@@ -179,13 +187,13 @@ class CDPedia(object):
         p = self.render_template('institucional.html', title=title, asset=data)
         return p
 
-    #@ei.espera_indice # TODO
-    def on_al_azar(self, request):
+    # @ei.espera_indice # TODO
+    def on_random(self, request):
         link, tit = self.index.get_random()
         link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
         return redirect(urllib.quote(link.encode("utf-8")))
 
-    #@ei.espera_indice # TODO
+    # @ei.espera_indice # TODO
     def on_search(self, request):
         if request.method == "GET":
             return self.render_template('search.html')
@@ -211,7 +219,7 @@ class CDPedia(object):
 
         # group by link, giving priority to the title of the original articles
         grouped_results = {}
-        for link, title, ptje, original, texto in results:
+        for link, title, ptje, original, text in results:
             # remove 3 dirs from link and add the proper base url
             link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
 
@@ -224,34 +232,34 @@ class CDPedia(object):
                 if original:
                     # save the info of the original article
                     tit = title
-                    txt = texto
+                    txt = text
                 grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
             else:
-                grouped_results[link] = (title, ptje, tit_tokens, texto)
+                grouped_results[link] = (title, ptje, tit_tokens, text)
 
         # clean the tokens
-        for link, (tit, ptje, tokens, texto) in grouped_results.iteritems():
+        for link, (tit, ptje, tokens, text) in grouped_results.iteritems():
             tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
         # sort the results
-        candidates = ((k, ) + tuple(v) for k, v in grouped_results.iteritems())
+        candidates = ((k,) + tuple(v) for k, v in grouped_results.iteritems())
         sorted_results = sorted(candidates, key=operator.itemgetter(2),
                                 reverse=True)
 
         return self.render_template('search.html',
-            search_words=words,
-            results=sorted_results,
-            start=start,
-            quantity=quantity
-        )
+                                    search_words=words,
+                                    results=sorted_results,
+                                    start=start,
+                                    quantity=quantity,
+                                    )
 
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
             if not os.path.exists(tmpdir):
                 tar = tarfile.open(os.path.join(config.DIR_ASSETS,
-                                   "tutorial.tar.bz2"), mode="r:bz2")
+                                                "tutorial.tar.bz2"), mode="r:bz2")
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True
@@ -287,7 +295,8 @@ class CDPedia(object):
         except ArticleNotFound, e:
             response = self.render_template("404.html",
                                             article_name=e.article_name,
-                                            original_link=e.original_link)
+                                            original_link=e.original_link,
+                                            )
             response.status_code = 404
             return response
         except InternalServerError, e:
@@ -320,8 +329,10 @@ def create_app(watchdog, verbose=False, with_static=True, with_debugger=True,
         app.wsgi_app = DebuggedApplication(app.wsgi_app, use_evalex)
     return app
 
+
 if __name__ == '__main__':
     from werkzeug.serving import run_simple
+
     app = create_app()
     run_simple('127.0.0.1', 8000, app, use_debugger=True, use_reloader=False,
                threaded=True)

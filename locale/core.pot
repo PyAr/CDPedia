@@ -1,21 +1,69 @@
 # Translations template for PROJECT.
-# Copyright (C) 2014 ORGANIZATION
+# Copyright (C) 2020 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-07-15 23:00-0300\n"
+"POT-Creation-Date: 2020-05-01 16:29-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 1.3\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: src/web/translations.py:3
+msgid "January"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "February"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "March"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "April"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "May"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "June"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "July"
+msgstr ""
+
+#: src/web/translations.py:3
+msgid "August"
+msgstr ""
+
+#: src/web/translations.py:4
+msgid "September"
+msgstr ""
+
+#: src/web/translations.py:4
+msgid "October"
+msgstr ""
+
+#: src/web/translations.py:4
+msgid "November"
+msgstr ""
+
+#: src/web/translations.py:4
+msgid "December"
+msgstr ""
 
 #: src/web/templates/404.html:2
 msgid "Article not found"
@@ -158,5 +206,13 @@ msgstr ""
 
 #: src/web/templates/sidebar.html:31
 msgid "Presented by"
+msgstr ""
+
+#: src/web/templates/sidebar.html:40
+msgid "Version"
+msgstr ""
+
+#: src/web/templates/sidebar.html:42
+msgid "Generated on"
 msgstr ""
 

@@ -3,7 +3,7 @@ Steps to generate locale files
 
 First, re-generate the pot file:
 
-    pybabel -v extract -F locale/babel.config -o locale/core.pot src/web/templates/
+    pybabel -v extract -F locale/babel.config -o locale/core.pot src/web
 
 
 Then, for every language, do (in the example, I'm doing it for 'es'):
