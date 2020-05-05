@@ -1,46 +1,78 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
+from __future__ import print_function
+
+import array
+import bisect
+from bz2 import BZ2File as CompressedFile
 import cPickle
+import operator
 import os
 import random
-import array
 import sys
-import bisect
-import operator
-from bz2 import BZ2File as CompressedFile
 
 from lru_cache import lru_cache
 
-DOCSTORE_BUCKET_SIZE = (1 << 20)
+DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
 
 
 def delta_encode(docset, sorted=sorted, with_reps=False):
+    """Compress an array of numbers in a string.
+
+    - docset is an array of long integers, it contain the begin position
+      of every word in the set.
+    - sorted is a sorting function, it must be a callable
+    - with_reps is True on search, but false on creation.
+    """
     pdoc = -1
     rv = array.array('B')
     rva = rv.append
-    flag = (0,0x80)
+    flag = (0, 0x80)
     for doc in sorted(docset):
         if with_reps or doc != pdoc:
-            if not with_reps and doc<=pdoc:
+            if not with_reps and doc <= pdoc:
                 # decreasing sequence element escaped by 0 delta entry
                 rva(0)
                 pdoc = -1
-            doc, pdoc = doc-pdoc, doc
+            doc, pdoc = doc - pdoc, doc
             while True:
-                b = doc & 0x7F
-                doc >>= 7
-                b |= flag[doc != 0]
+                b = doc & 0x7F  # copies to b the last 7 bits on doc
+                doc >>= 7  # to right 7 bits doc number
+                b |= flag[doc != 0]  # add 0x80 (128, 2^7) if doc is greater
                 rva(b)
                 if not doc:
-                    break
+                    break  # if doc is zero, stop, else add another byte to this entry
     return rv.tostring()
 
-def delta_decode(docset, ctor=set, append='add', with_reps=False):
+
+def delta_decode(docset, ctor=set, append="add", with_reps=False):
+    """Decode a compressed encoded bucket.
+
+    - docset is a string, representing a byte's array
+    - ctor is the final container
+    - append is the callable attribute used to add an element into the ctor
+    - with_reps is used on unpickle.
+    """
     doc = 0
     pdoc = -1
     rv = ctor()
-    rva = getattr(rv,append)
+    rva = getattr(rv, append)
     shif = 0
     abucket = array.array('B')
     abucket.fromstring(docset)
@@ -57,28 +89,35 @@ def delta_decode(docset, ctor=set, append='add', with_reps=False):
             doc = shif = 0
     return rv
 
+
 delta_encode_str = delta_encode
 delta_decode_str = delta_decode
 
 
 class FrozenStringList:
+    """Manage a FrozenStringList.
+
+    - self.heap contains a concatenation of every string appended.
+    - self.index is an array of long bytes and represents the begin position
+      of every substring added to heap.
+    """
     def __init__(self, iterable=None):
-        self.index = array.array('l',[0])
+        self.index = array.array('l', [0])
         self.heap = ""
         if iterable:
             self.extend(iterable)
 
     def __getitem__(self, ix):
         if ix < 0:
-            raise IndexError, "Negative index"
-        elif ix >= (len(self.index)-1):
-            raise IndexError, "FrozenStringList index out of range"
+            raise IndexError("Negative index")
+        elif ix >= (len(self.index) - 1):
+            raise IndexError("FrozenStringList index out of range")
         else:
             index = self.index
-            return self.heap[ index[ix] : index[ix+1] ]
+            return self.heap[index[ix]:index[ix + 1]]
 
     def __len__(self):
-        return len(self.index)-1
+        return len(self.index) - 1
 
     def __iter__(self):
         for i in xrange(len(self)):
@@ -91,18 +130,25 @@ class FrozenStringList:
         return "%s(%r)" % (self.__class__.__name__, list(self))
 
     def append(self, value):
+        """Append one term to the frozenlist."""
         if not isinstance(value, str):
-            raise TypeError, "String expected"
+            raise TypeError("String expected")
 
-        self.index.append( len(self.heap) + len(value) )
+        self.index.append(len(self.heap) + len(value))
         self.heap += value
 
     def extend(self, iterable):
-        iterable = list(iterable)
+        """Extends the list.
 
+        self.heap contain a concatenation of every string appended
+        self.index is an array of long bytes and represents the begin position
+        of every substring added to heap.
+        """
+        iterable = list(iterable)
         len_ = len
-        index_a = self.index.append
+
         pos = len_(self.heap)
+        index_a = self.index.append
         for s in iterable:
             pos += len_(s)
             index_a(pos)
@@ -110,24 +156,32 @@ class FrozenStringList:
         self.heap += ''.join(iterable)
 
     def pickle(self):
-        return (delta_encode_str(self.index,
-                    sorted=lambda x:x,
-                    with_reps=True),
-                self.heap)
+        encoded_index = delta_encode_str(self.index, sorted=lambda x: x, with_reps=True)
+        return encoded_index, self.heap
 
     @staticmethod
     def unpickle(data):
         rv = FrozenStringList()
-        rv.index = delta_decode_str(data[0],
-            ctor=(lambda:array.array('l')),
-            append='append',
-            with_reps=True)
+        rv.index = delta_decode_str(
+            data[0], ctor=(lambda: array.array('l')), append='append', with_reps=True
+        )
         rv.heap = data[1]
         return rv
 
 
 class TermSimilitudeMatrixBase:
-    def __init__(self, terms = [], progress_callback = lambda : None):
+    """Find similar terms to the one searched.
+
+    Includes 2 data structures, both FrozenStringList.
+    - self.terms is used to store the alphabetically ordered terms index.
+    - self.matrix is a square matrix and have has many rows and columns as
+      terms are indexed. A cell can be true, meaning that both terms
+      (the one of the row and the one of the column) are similar.
+    In order to provide a compressed storage use, every row is delta_encoded,
+    and every delta_encoded row is added to a FrozenStringList.
+    """
+
+    def __init__(self, terms=[], progress_callback=lambda: None):
         self.terms = terms = FrozenStringList(sorted(terms))
         self.matrix = matrix = FrozenStringList()
 
@@ -137,33 +191,32 @@ class TermSimilitudeMatrixBase:
             matrix_a = matrix.append
 
             N = len(terms)
-            for i,t1 in enumerate(terms):
+            for i, t1 in enumerate(terms):
                 bucket = array.array('l')
                 bucket_a = bucket.append
-                valid = not t1 # <- it's ok for empty terms not to match themselves
+                valid = not t1  # <- it's ok for empty terms not to match themselves
                 for i2 in similar(t1):
-                    if i != i2: # <- omit the diagonal, which is implicit
+                    if i != i2:  # <- omit the diagonal, which is implicit
                         bucket_a(i2)
                     else:
                         valid = True
                 assert valid, ("Invalid bucket - the term must match to itself", t1)
-                matrix_a( delta_encode_str(bucket) )
+                matrix_a(delta_encode_str(bucket))
 
                 if not (i % 100):
-                    progress_callback(i*100.0/N)
+                    progress_callback(i * 100.0 / N)
 
     def init_similar_impl(self):
-        """
-        Si hace falta inicializar algo para 'similar', hacerlo acá.
-        Se llama antes de llamar a similar.
-        Los términos (en el orden de sus ids) están en self.terms.
+        """Initilize similarity data structure.
+
+        To initialize something for 'similar', inherit this
+        class function. It is called BEFORE calling similar.
+        The terms are stored in self.terms, ordered by ids.
         """
         pass
 
     def similar_impl(self, t):
-        """
-        Iterable sobre los índices de términos similares a t.
-        """
+        """Iterable using t's similar terms indices."""
         raise NotImplementedError
 
     def pickle(self):
@@ -178,20 +231,17 @@ class TermSimilitudeMatrixBase:
         return rv
 
     def lookup_term_index(self, t):
-        """
-        Returns the index for the specified term,
-        raises KeyError if not found
-        """
+        """Return the index for the specified term."""
         i = bisect.bisect_left(self.terms, t)
         if i >= len(self.terms) or self.terms[i] != t:
-            raise KeyError, t
+            raise KeyError(t)
 
         return i
 
     def lookup_term_value(self, i):
-        """
-        Returns the text for the specified term index.
-        Raises IndexError if the index is invalid
+        """Return the text for the specified term index.
+
+        Raises IndexError if the index is invalid.
         """
         return self.terms[i]
 
@@ -199,12 +249,12 @@ class TermSimilitudeMatrixBase:
         try:
             self.lookup_term_index(t)
             return True
-        except KeyError,e:
+        except KeyError:
             return False
 
     def similar_terms(self, t):
-        """
-        Returns an iterable over the indices of similar terms.
+        """Return an iterable over the indices of similar terms.
+
         Raises KeyError if the term is not found.
         """
         terms = self.terms
@@ -220,9 +270,11 @@ class TermSimilitudeMatrixBase:
         # It's quadratic on the length of the term,
         # so we'll limit the length of the subterm to 20 characters max
         #
-        for tv in iter( t[a:a+l]
-                        for l in xrange(min(20,len(t)),0,-1)
-                        for a in xrange(len(t)-l+1) ):
+        iterator = iter(t[a:a + l]
+            for l in xrange(min(20, len(t)), 0, -1)
+            for a in xrange(len(t) - l + 1)
+        )
+        for tv in iterator:
             try:
                 # an exact match is a godsend - we just look it up
                 i = self.lookup_term_index(tv)
@@ -231,7 +283,7 @@ class TermSimilitudeMatrixBase:
 
             if i is not None:
                 candidates = delta_decode_str(self.matrix[i])
-                candidates.add(i) # <- the matrix omits the diagnoal
+                candidates.add(i)  # <- the matrix omits the diagnoal
                 break
         else:
             # ouch... no substring found in the matrix.
@@ -240,12 +292,12 @@ class TermSimilitudeMatrixBase:
             #   letters should be in the index and thus in the matrix.
             candidates = set()
             candidates_a = candidates.add
-            for i,st in enumerate(terms):
+            for i, st in enumerate(terms):
                 if st in t:
                     # Found a substring in the matrix, all matches
                     # will be a subset of matches for the substring
                     candidates = delta_decode_str(self.matrix[i])
-                    candidates.add(i) # <- the matrix omits the diagnoal
+                    candidates.add(i)  # <- the matrix omits the diagnoal
                     break
                 elif t in st:
                     candidates_a(i)
@@ -265,26 +317,42 @@ try:
     import SuffixTree
 
     class TermSimilitudeMatrix(TermSimilitudeMatrixBase):
+        """Uses SuffixTree library compiled in C++."""
         def init_similar_impl(self):
             self.stree = stree = SuffixTree.SubstringDict()
-            for i,t in enumerate(self.terms):
+            for i, t in enumerate(self.terms):
                 stree[t] = i
 
         def similar_impl(self, t):
+            """Return the set of similar terms."""
             # SuffixTree tiende a generar muchas repeticiones
             return set(self.stree[t])
+
 
 except ImportError:
 
     class TermSimilitudeMatrix(TermSimilitudeMatrixBase):
+        """Pure python implementation.
+
+        Uses a simplified condition, term t is included in other,
+        is yielded as similar.
+        """
         def similar_impl(self, t):
-            for i,st in enumerate(self.terms):
+            """Return the set of similar terms."""
+            for i, st in enumerate(self.terms):
                 if t in st:
                     yield i
 
 
 class Index(object):
-    '''Handles the index.'''
+    """Handle the index.
+
+    It's the class that implements the index's API.
+    Main functions are:
+    - create: to create the index data structure
+    - search and partial_search: to find any terms
+    - random: returns a random entry
+    """
 
     def __init__(self, directory):
         self._directory = directory
@@ -305,17 +373,15 @@ class Index(object):
         self.matrix, self.docsets = matrix, docsets
 
         # see how many id files we have
-        idsfilename = os.path.join(directory, "compindex-*.ids.bz2")
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("compindex-") and \
-                fn.endswith(".ids.bz2"):
+            if fn.startswith("compindex-") and fn.endswith(".ids.bz2"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
 
     @lru_cache(DOCSTORE_CACHE_SIZE)
     def _get_ids_shelve(self, cual):
-        '''Return the ids index.'''
+        """Return the ids index."""
         fname = os.path.join(self._directory, "compindex-%02d.ids.bz2" % cual)
         fh = CompressedFile(fname, "rb")
         idx = cPickle.load(fh)
@@ -323,11 +389,11 @@ class Index(object):
         return idx
 
     def _get_info_id(self, allids):
-        '''Returns the values for the given ids.
+        """Return the values for the given ids.
 
         As it groups the ids according to the file, is much faster than
         retrieving one by one.
-        '''
+        """
         # group the id per file
         cuales = {}
         cualesg = cuales.get
@@ -351,7 +417,7 @@ class Index(object):
                 yield idx[i]
 
     def items(self):
-        '''Returns an iterator over the stored items.'''
+        """Return an iterator over the stored items."""
         matrix = self.matrix
         doc_lookup = self._get_info_id
         for i, docset in enumerate(self.docsets):
@@ -360,8 +426,7 @@ class Index(object):
             yield key, list(values)
 
     def values(self):
-        '''Returns an iterator over the stored values.'''
-        matrix_lookup = self.matrix.lookup_term_value
+        """Return an iterator over the stored values."""
         doc_lookup = self._get_info_id
         for i, docset in enumerate(self.docsets):
             values = doc_lookup(delta_decode(docset))
@@ -372,20 +437,20 @@ class Index(object):
         return self.matrix.terms
 
     def random(self):
-        '''Returns a random value.'''
+        """Return a random value."""
         cual = random.randint(0, self.idfiles_count - 1)
         idx = self._get_ids_shelve(cual)
         return random.choice(idx.values())
 
     def __contains__(self, key):
-        '''Returns if the key is in the index or not.'''
+        """Return if the key is in the index or not."""
         return self.matrix.contains_term(key.encode("utf8"))
 
     def search(self, keys):
-        '''Returns all the values that are found for those keys.
+        """Return all the values that are found for those keys.
 
         The AND boolean operation is applied to the keys.
-        '''
+        """
         results = None
         matrix = self.matrix
         docsets = self.docsets
@@ -393,10 +458,12 @@ class Index(object):
             key = key.encode("utf8")
             if not matrix.contains_term(key):
                 continue
+            # returns a set of matches
             allids = delta_decode(docsets[matrix.lookup_term_index(key)])
             if results is None:
                 results = allids
             else:
+                # this and is the intersection of both sets
                 results &= allids
 
         if not results:
@@ -406,13 +473,13 @@ class Index(object):
         return self._get_info_id(results)
 
     def partial_search(self, keys):
-        '''Returns all the values that are found for those partial keys.
+        """Return all the values that are found for those partial keys.
 
         The received keys are taken as part of the real keys (suffix,
         preffix, or in the middle).
 
         The AND boolean operation is applied to the keys.
-        '''
+        """
         results = None
         matrix = self.matrix
         docsets = self.docsets
@@ -441,20 +508,27 @@ class Index(object):
 
     @classmethod
     def create(cls, directory, source):
-        '''Creates the index in the directory.
+        """Create the index in the directory.
 
         The "source" generates pairs (key, value) to store in the index.  The
         key must be a string, the value can be any hashable Python object.
 
-        It must return the quantity of pairs indexed.
-        '''
+        It must return the numbers of pairs indexed.
+        """
+        # dict container of the values of every doc numbered. Keys are integers
         ids_shelf = {}
+        # contains 'buckets' (arrays of integers) associated with every key (word)
         key_shelf = {}
+        # ids counter
         ids_cnter = 0
+        # dict, keys are the values (tuples) and values are the ids
         tmp_reverse_id = {}
+        #  indexed entries's counter
         indexed_counter = 0
 
         # fill them
+        # key are words extracted from titles, redirects
+        # value are tuples (nomhtml, titulo, ptje, its_a_title, primtexto)
         for key, value in source:
             indexed_counter += 1
 
@@ -465,6 +539,7 @@ class Index(object):
                 raise ValueError("Key cannot contain newlines")
 
             # docid -> info final
+            # don't add to tmp_reverse_id or ids_shelf if the value is repeated
             if value in tmp_reverse_id:
                 docid = tmp_reverse_id[value]
             else:
@@ -474,6 +549,8 @@ class Index(object):
                 ids_cnter += 1
 
             # keys -> docid
+            # if the key (word) is new, create a new bucket (array)
+            # every bucket has the ids of the index entries
             if key in key_shelf:
                 bucket = key_shelf[key]
             else:
@@ -488,7 +565,7 @@ class Index(object):
 
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
-        print " Delta-encoding index buckets...",
+        print(" Delta-encoding index buckets...")
         sys.stdout.flush()
 
         bucket_bytes = 0
@@ -500,24 +577,26 @@ class Index(object):
             bucket_bytes += len(key_shelf[key])
             bucket_maxentries = max(bucket_maxentries, len(docset))
 
-            assert delta_decode(key_shelf[key]) == set(docset), \
-                ("Delta-encoding error", docset)
+            assert delta_decode(key_shelf[key]) == set(docset), (
+                "Delta-encoding error",
+                docset,
+            )
 
-        print "done"
+        print("done")
 
         # print statistics
 
-        print "  Index contains:"
-        print "      ", len(key_shelf), "terms"
-        print "      ", bucket_entries, "entries"
-        print "      ", len(ids_shelf), "documents"
-        print
-        print "      ", len(key_shelf) // max(1,len(ids_shelf)), "terms on avg per documents"
-        print
-        print "  Bucket bytes", bucket_bytes
-        print "  Bucket entries", bucket_entries
-        print "  Bucket maximum size", bucket_maxentries
-        print "  Avg bytes per entry", (float(bucket_bytes) / max(1,bucket_entries))
+        print("  Index contains:")
+        print("      ", len(key_shelf), "terms")
+        print("      ", bucket_entries, "entries")
+        print("      ", len(ids_shelf), "documents")
+        print("")
+        print("      ", len(key_shelf) // max(1, len(ids_shelf)), "terms on avg per documents")
+        print("")
+        print("  Bucket bytes", bucket_bytes)
+        print("  Bucket entries", bucket_entries)
+        print("  Bucket maximum size", bucket_maxentries)
+        print("  Avg bytes per entry", (float(bucket_bytes) / max(1, bucket_entries)))
 
         # save key
         # Format:
@@ -529,53 +608,51 @@ class Index(object):
         #   And keeping them joined in memory (FrozenStringList) helps
         #   avoid referencing overhead.
 
-        sitems = sorted([ (k.encode("utf8"),v)
-                          for k,v in key_shelf.iteritems() ])
-        assert all('\n' not in k for k,v in sitems), \
-            "Terms cannot contain newlines"
+        sitems = sorted((k.encode("utf8"), v) for k, v in key_shelf.iteritems())
+        assert all("\n" not in k for k, v in sitems), "Terms cannot contain newlines"
 
         # free the big dict... eats up a lot
         del key_shelf
 
-        print " Computing similitude matrix...",
+        print(" Computing similitude matrix...",)
         sys.stdout.flush()
 
-
         def progress_cb(p):
-            print >> sys.stderr, "\r Computing similitude matrix...  %d%%\t" % int(p),
+            print( "\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
-        matrix = TermSimilitudeMatrix(map(operator.itemgetter(0), sitems),
-                progress_callback = progress_cb)
+        matrix = TermSimilitudeMatrix(
+            map(operator.itemgetter(0), sitems), progress_callback=progress_cb
+        )
         docsets = FrozenStringList(map(operator.itemgetter(1), sitems))
         del sitems
 
-        print "done"
-        print " Saving:"
+        print("done")
+        print(" Saving:")
 
         keyfilename = os.path.join(directory, "compindex.key.bz2")
         fh = CompressedFile(keyfilename, "wb")
-        cPickle.dump( (matrix.pickle(), docsets.pickle()), fh, 2)
-        print "  Uncompressed keystore bytes", fh.tell()
+        cPickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
+        print("  Uncompressed keystore bytes", fh.tell())
         fh.close()
 
         fh = open(keyfilename, "rb")
-        fh.seek(0,2)
-        print "  Final keystore bytes", fh.tell()
+        fh.seek(0, 2)
+        print("  Final keystore bytes", fh.tell())
         print
         fh.close()
 
         # split ids_shelf in N dicts of about ~16M pickled data each,
         # this helps get better compression ratios
-        NB = sum( len(cPickle.dumps(item,2)) for item in ids_shelf.iteritems() )
-        print "  Total docstore bytes", NB
+        NB = sum(len(cPickle.dumps(item, 2)) for item in ids_shelf.iteritems())
+        print("  Total docstore bytes", NB)
 
-        N = int((NB + DOCSTORE_BUCKET_SIZE/2) // DOCSTORE_BUCKET_SIZE)
+        N = int((NB + DOCSTORE_BUCKET_SIZE / 2) // DOCSTORE_BUCKET_SIZE)
         if not N:
             N = 1
-        print "  Docstore buckets", N, "(", NB//N, " bytes per bucket)"
+        print("  Docstore buckets", N, "(", NB // N, " bytes per bucket)")
         all_idshelves = [{} for i in xrange(N)]
-        for k,v in ids_shelf.iteritems():
+        for k, v in ids_shelf.iteritems():
             cual = k % N
             all_idshelves[cual][k] = v
 
@@ -591,12 +668,12 @@ class Index(object):
             fh.close()
 
             fh = open(idsfilename, "rb")
-            fh.seek(0,2)
+            fh.seek(0, 2)
             doccomp += fh.tell()
             fh.close()
 
-        print "  Docstore uncompressed bytes", docucomp
-        print "  Docstore compressed bytes", doccomp
-        print
+        print("  Docstore uncompressed bytes", docucomp)
+        print("  Docstore compressed bytes", doccomp)
+        print("")
 
         return indexed_counter

@@ -31,5 +31,14 @@
     <a href="/institucional/pyar.html"><img src="/static/img/pyar-logo-vertical.png" alt="Python Argentina"/></a>
     </center>
   </div>
+  <br/>
+  <div>
+     <small>
+       {{ gettext('Version') }} {{ version }}
+       </br>
+       {{ gettext('Generated on') }} {{ gettext(date.strftime('%B')) }} {{ date.strftime(' %Y') }}
+     </small>
   </div>
+  </div>
+
   <!-- /panel -->
