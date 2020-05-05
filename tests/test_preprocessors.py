@@ -96,6 +96,17 @@ class HTMLCleanerTestCase(unittest.TestCase):
         self.assertEqual(result, (0, []))
         self.assertEqual(html_fixed, wikifile.html)
 
+    def test_remove_jump_links(self):
+        text1 = '<a class="mw-jump-link" href="#mw-head">'
+        text2 = '<a class="mw-jump-link" href="#p-search">'
+        assert text1 in self.article_1
+        assert text2 in self.article_1
+        wikifile = FakeWikiFile(self.article_1)
+        result = self.process(wikifile)
+        self.assertEqual(result, (0, []))
+        assert text1 not in wikifile.html
+        assert text2 not in wikifile.html
+
     def test_remove_inline_alerts(self):
         # Make shure references like `[1]` are not touched.
         html = ('<p>Foo<sup>[<i><a href="link">spam spam<a></i>]</sup> '

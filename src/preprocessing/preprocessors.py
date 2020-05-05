@@ -358,6 +358,18 @@ class HTMLCleaner(_Processor):
             tag.extract()
             self.stats['hidden_subtitle'] += 1
 
+        # remove toc jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#mw-head')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove search jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#p-search')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
         # remove inline alerts (bracketed superscript with italic text)
         for tag in soup.find_all('sup'):
             children = tag.children
