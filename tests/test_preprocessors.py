@@ -22,12 +22,7 @@ import unittest
 import os
 
 from src.preprocessing.preprocessors import HTMLCleaner
-from .utils import load_fixture
-
-
-class FakeWikiFile:
-    def __init__(self, html):
-        self.html = html
+from .utils import load_fixture, FakeWikiFile
 
 
 class HTMLCleanerTestCase(unittest.TestCase):
