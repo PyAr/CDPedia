@@ -45,6 +45,7 @@ import re
 from urllib2 import unquote
 
 import bs4
+from bs4 import Comment
 
 import config
 
@@ -350,6 +351,45 @@ class HTMLCleaner(_Processor):
                     self.stats[stat_key] += 1
                     a_tag.unwrap()
                     break
+
+        # remove hidden subtitle
+        tag = soup.find('div', id='siteSub')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_subtitle'] += 1
+
+        # remove inline alerts (bracketed superscript with italic text)
+        for tag in soup.find_all('sup'):
+            children = tag.children
+            try:
+                if next(children) == '[' and next(children).name == 'i':
+                    tag.extract()
+                    self.stats['inline_alerts'] += 1
+            except StopIteration:
+                continue
+
+        # remove printfooter
+        tag = soup.find('div', class_='printfooter')
+        if tag is not None:
+            tag.extract()
+            self.stats['print_footer'] += 1
+
+        # remove hidden categories section
+        tag = soup.find('div', id='mw-hidden-catlinks')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_categories'] += 1
+
+        # remove comments
+        for tag in soup(text=True):
+            if isinstance(tag, Comment):
+                tag.extract()
+                self.stats['comments'] += 1
+
+        # remove mediawiki parsing error red notices
+        for tag in soup('span', class_='error'):
+            tag.extract()
+            self.stats['parsing_error_notices'] += 1
 
         # fix original html and return no score at all
         wikifile.html = str(soup)
