@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-# Copyright 2006-2012 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -15,14 +14,15 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# For further info, check  http://code.google.com/p/cdpedia/
+# For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
 
-import os
-import sys
 import codecs
-import platform
+import os
 import optparse
+import platform
+import sys
 import threading
 import traceback
 import webbrowser
@@ -36,64 +36,68 @@ os.chdir(os.path.dirname(cdpedia_path))
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
 
-# Logeamos stdout y stderr si estamos en windows, salvo que sea un debug build
-# para construir el exe
+# We log stdout and stderr if it is the Windows platform,
+# except it is a debug build to compile the .exe file.
 if platform.system() == 'Windows' and not os.path.exists('debug'):
     log_filename = os.path.join(os.path.expanduser('~'), 'cdpedia.log')
     try:
         log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
-    except:     # Si no podemos logear ni mostrar el error porque no
-        pass    # tenemos una consola no podemos hacer nada.
+    except:     # If we can't log or show the error because we
+        pass    # don't have a terminal we can't do anything.
 
-from src import third_party # Need this to import thirdparty (werkzeug and jinja2)
-from werkzeug.serving import ThreadedWSGIServer
+import config
+from src import third_party  # Need this to import thirdparty (werkzeug and jinja2)
 from src.utiles import WatchDog, find_open_port
 from src.web.web_app import create_app
-import config
+from werkzeug.serving import ThreadedWSGIServer
 
 # imports extras para pyinstaller
 import SocketServer
 import Queue
 import uuid
 
+
 def handle_crash(type, value, tb):
-    '''Function to handle any exception that is not addressed explicitly.'''
+    """Handle any exception that is not addressed explicitly."""
     if issubclass(type, KeyboardInterrupt):
-        # Nos vamos!
-        print "Saliendo por pedido del usuario"
+        # We leave!
+        print("Closed by user request.")
         cd_wd_timer.cancel()
         sys.exit(0)
     else:
         exception = traceback.format_exception(type, value, tb)
         exception = "".join(exception)
-        print exception
+        print(exception)
+
 
 def close():
-    ''' Cierra el servidor y termina cdpedia '''
-    print "Saliendo por watchdog timer"
+    """Shutdown the server."""
+    print("Exiting by watchdog timer")
     server.shutdown()
     sys.exit(0)
 
+
 def cd_watch_dog():
-    ''' Comprueba que el CD está puesto '''
+    """Check that the CD is inserted."""
     global cd_wd_timer
 
     try:
-        archivos = os.listdir('.')
+        files = os.listdir('.')
     except OSError:
-        # El CD no esta disponible
+        # The CD is not available.
         close()
 
-    if not 'cdpedia.py' in archivos:
-        # El CD no es CDPedia
+    if 'cdpedia.py' not in files:
+        # The CD is not CDPedia.
         close()
 
-    # Sigue andando, probemos mas tarde
+    # It's working, let's try later.
     cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
     cd_wd_timer.daemon = True
     cd_wd_timer.start()
+
 
 def sleep_and_browse():
     server_up.wait()
@@ -102,11 +106,14 @@ def sleep_and_browse():
     else:
         index = "http://%s:%d/%s/%s" % (config.HOSTNAME, config.PORT,
                                         config.EDICION_ESPECIAL, config.INDEX)
-    webbrowser.open(index)
+    if not webbrowser.open(index):
+        print("You need a browser installed in your system to access the CDPedia content.")
+        server.shutdown()
+        sys.exit(0)
 
 
-# En Python 2.5 el SocketServer no tiene un shutdown, así que si estamos
-# en esa versión, lo ponemos nosotros (copiado de 2.6, basicamente).
+# Python 2.5 version: SocketServer has no shutdown.
+# We copied it from 2.6 version.
 
 if sys.version_info < (2, 6):
     import select
@@ -150,9 +157,9 @@ if sys.version_info < (2, 6):
 if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.add_option("-v", "--verbose", action="store_true", default=False,
-                  dest="verbose", help="muestra info de lo que va haciendo")
+                      dest="verbose", help="shows information about what is done")
     parser.add_option("-d", "--daemon", action="store_true", default=False,
-                  dest="daemon", help="daemonize server")
+                      dest="daemon", help="daemonize server")
     parser.add_option("-p", "--port", type="int", dest="port",
                       default=config.PORT)
     parser.add_option("-m", "--host", type="str", dest="hostname",
@@ -174,7 +181,7 @@ if __name__ == "__main__":
         # CD WatchDog timer
         cd_wd_timer = None
 
-        # Tiempo entre llamadas a cd_watch_dog en segundos
+        # Time between calls to cd_watch_dog in seconds.
         CD_WD_SECONDS = 10
 
         cd_wd_timer = threading.Timer(CD_WD_SECONDS, cd_watch_dog)
@@ -186,13 +193,13 @@ if __name__ == "__main__":
         browser_watchdog = None
         if config.BROWSER_WD_SECONDS:
             browser_watchdog = WatchDog(callback=close, sleep=config.BROWSER_WD_SECONDS)
-            # Iniciamos el watchdog por más que aún no esté levantado el browser ya que
-            # el tiempo del watchdog es mucho mayor que el que se tarda en levantar el server
-            # y el browser.
+            # We start the watchdog even if the browser is not yet up since
+            # the watchdog time is much longer than the time it takes to raise
+            # the server and the browser.
             browser_watchdog.start()
 
         if options.verbose:
-            print "Levantando el server..."
+            print("Raising the server...")
 
         app = create_app(browser_watchdog, verbose=options.verbose)
 
@@ -202,7 +209,7 @@ if __name__ == "__main__":
         server.serve_forever()
 
         if options.verbose:
-            print "Terminado, saliendo."
+            print("Finished.")
         cd_wd_timer.cancel()
 
     else:
