@@ -270,23 +270,15 @@ class WikipediaArticle(object):
 regex = (
     '(<h1 id="firstHeading" class="firstHeading" '
     'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
-capturar = re.compile(regex, re.MULTILINE | re.DOTALL).search
-no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>', re.MULTILINE | re.DOTALL)
-no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->", re.MULTILINE | re.DOTALL)
+capture = re.compile(regex, re.MULTILINE | re.DOTALL).search
 
 
 def extract_content(html, url):
-    encontrado = capturar(html)
-    if not encontrado:
+    found = capture(html)
+    if not found:
         # unknown html format
-        raise ValueError("El archivo %s posee un formato desconocido" % url)
-    newhtml = "\n".join(encontrado.groups())
-
-    # algunas limpiezas más
-    newhtml = no_ocultas.sub("", newhtml)
-    newhtml = no_pp_report.sub("", newhtml)
-
-    return newhtml
+        raise ValueError("HTML file from %s has an unknown format" % url)
+    return "\n".join(encontrado.groups())
 
 
 @defer.inlineCallbacks
