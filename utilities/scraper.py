@@ -278,7 +278,7 @@ def extract_content(html, url):
     if not found:
         # unknown html format
         raise ValueError("HTML file from %s has an unknown format" % url)
-    return "\n".join(encontrado.groups())
+    return "\n".join(found.groups())
 
 
 @defer.inlineCallbacks
