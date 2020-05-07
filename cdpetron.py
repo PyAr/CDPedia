@@ -1,6 +1,6 @@
 #!//usr/bin/env python
 
-# Copyright 2014-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -283,8 +283,12 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
     if not nolists:
         gendate = get_lists(branch_dir, language, lang_config, test)
     else:
-        with open(DATE_FILENAME, 'rt') as fh:
-            gendate = fh.read().strip()
+        try:
+            with open(DATE_FILENAME, 'rt') as fh:
+                gendate = fh.read().strip()
+        except IOError:
+            logger.error("No article list available. Run at least once without --no-lists")
+            exit()
     logger.info("Date of generation: %s", gendate)
 
     if not noscrap:
@@ -344,7 +348,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.no_clean and not args.image_type:
-        print("ERROR: --no-clean option is only usable when --image-type was indicated")
+        logger.error("--no-clean option is only usable when --image-type was indicated")
         exit()
 
     branch_dir = os.path.abspath(args.branch_dir)
@@ -357,8 +361,8 @@ if __name__ == "__main__":
         try:
             lang_config = _config[args.language]
         except KeyError:
-            print("ERROR: there's no %r in language config file %r" % (
-                  args.language, _config_fname))
+            logger.error("there's no %r in language config file %r",
+                         args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
 
@@ -369,19 +373,19 @@ if __name__ == "__main__":
         try:
             imag_config = _config[args.language]
         except KeyError:
-            print("ERROR: there's no %r in image type config file %r" % (
-                  args.language, _config_fname))
+            logger.error("there's no %r in image type config file %r",
+                         args.language, _config_fname)
             exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
         if args.image_type not in imag_config:
-            print("ERROR: there's no %r image in the image type config" % (
-                  args.image_type))
+            logger.error("there's no %r image in the image type config",
+                         args.image_type)
             exit()
 
     # branch dir must exist
     if not os.path.exists(branch_dir):
-        print("ERROR: The branch dir doesn't exist!")
+        logger.error("The branch dir doesn't exist!")
         exit()
 
     # fix sys path to branch dir and import the rest of stuff from there
