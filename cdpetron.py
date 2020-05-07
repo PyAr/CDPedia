@@ -353,7 +353,7 @@ if __name__ == "__main__":
             lang_config = _config[args.language]
         except KeyError:
             logger.error("there's no %r in language config file %r",
-                  args.language, _config_fname)
+                         args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
 
@@ -365,13 +365,13 @@ if __name__ == "__main__":
             imag_config = _config[args.language]
         except KeyError:
             logger.error("there's no %r in image type config file %r",
-                  args.language, _config_fname)
+                         args.language, _config_fname)
             exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
         if args.image_type not in imag_config:
-            logger.error("there's no %r image in the image type config" % (
-                  args.image_type))
+            logger.error("there's no %r image in the image type config",
+                         args.image_type)
             exit()
 
     # branch dir must exist
