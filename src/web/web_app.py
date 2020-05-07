@@ -101,6 +101,7 @@ class CDPedia(object):
             Rule('/watchdog/update', endpoint='watchdog_update'),
             Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
+            Rule('/favicon.ico', endpoint='favicon'),
         ])
         self._tutorial_ready = False
 
@@ -168,6 +169,13 @@ class CDPedia(object):
             img = bmp.BogusBitMap(width, height)
             return Response(img.data, mimetype="img/bmp")
         type_ = guess_type(name)[0]
+        return Response(asset_data, mimetype=type_)
+
+    def on_favicon(self, request):
+        asset_file = os.path.join(config.DIR_ASSETS, 'static', 'misc', 'favicon.ico')
+        with open(asset_file, 'rb') as f:
+            asset_data = f.read()
+        type_ = guess_type(asset_file)[0]
         return Response(asset_data, mimetype=type_)
 
     def on_institutional(self, request, path):
