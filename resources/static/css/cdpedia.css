@@ -7,6 +7,10 @@
 	overflow: hidden;
 }
 
+#toc {
+    display: table;
+}
+
 ul#navegacionBody {
 	list-style-type: none;
 	list-style-image: none;
