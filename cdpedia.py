@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2006-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -109,7 +109,7 @@ def sleep_and_browse():
     if not webbrowser.open(index):
         print("You need a browser installed in your system to access the CDPedia content.")
         server.shutdown()
-        sys.exit(0)
+        sys.exit(-1)
 
 
 # Python 2.5 version: SocketServer has no shutdown.
