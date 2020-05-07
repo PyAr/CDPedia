@@ -352,8 +352,8 @@ if __name__ == "__main__":
         try:
             lang_config = _config[args.language]
         except KeyError:
-            logger.error("there's no %r in language config file %r" % (
-                  args.language, _config_fname))
+            logger.error("there's no %r in language config file %r",
+                  args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
 
@@ -364,8 +364,8 @@ if __name__ == "__main__":
         try:
             imag_config = _config[args.language]
         except KeyError:
-            logger.error("there's no %r in image type config file %r" % (
-                  args.language, _config_fname))
+            logger.error("there's no %r in image type config file %r",
+                  args.language, _config_fname)
             exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
