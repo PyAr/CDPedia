@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html style="height: 100%" lang="es"><head>
-  <title>CDPedia</title>
+<html style="height: 100%" lang="es">
+<head>
+  <title>{{ title }}</title>
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <meta content="CDPedia - wikipedia offline" name="description">
   <meta content="El Equipo de CDPedia" name="author">
@@ -10,181 +11,171 @@
   <link href="css/bootstrap-docs.css" media="screen" rel="stylesheet" type="text/css">
   <link href="css/css.css" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="img/favicon.ico">
- </head>
- <body style="height: 100%">
+</head>
+<body style="height: 100%">
 
   <main class="bs-masthead" id="content" role="main">
-  <div id="main-container" class="container">
+    <div id="main-container" class="container">
 
-   <h1>CDPedia</h1>
-   <p class="lead">Acced&eacute; a la información de la Wikipedia en castellano aunque no tengas una conexión a Internet.</p>
+      <h1>{{ header }}</h1>
+      <p class="lead">{{ slogan }}</p>
 
-   <ul class="bs-masthead-links">
-    <li>
-    <a class="btn btn-large" href="https://pyar.discourse.group/c/cdpedia/">Unite al foro para charlar »</a>
-    </li>
-    <li>
-    <a class="btn btn-large" href="https://github.com/PyAr/CDPedia">Colabor&aacute; »</a>
-    </li>
-   </ul>
+      <ul class="bs-masthead-links">
+        <li>
+          <a class="btn btn-large" href="https://pyar.discourse.group/c/cdpedia/">{{ join_discourse }}</a>
+        </li>
+        <li>
+          <a class="btn btn-large" href="https://github.com/PyAr/CDPedia">{{ collaborate }}</a>
+        </li>
+      </ul>
 
-  </div>
+    </div>
   </main>
 
   <div class="container-dark">
-   <div class="container">
-    <div class="row">
-     <div class="col-lg-4">
-      <h2>Libre</h2>
-      <p>CDPedia es Software Libre, te recomendamos (y te agradecemos) que
-      copies estos discos y archivos, y los regales a tus amigos, familia y
-      conocidos.</p>
+    <div class="container">
+      <div class="row">
+      <div class="col-lg-4">
+        <h2>{{ subtitle_free }}</h2>
+        <p>{{ free_text_a }}</p>
 
-      <p>La información debe ser libre, así mejoramos la calidad de
-      nuestra educación.</p>
-     </div>
+        <p>{{ free_text_b }}</p>
+      </div>
 
-     <div class="col-lg-4">
-      <h2>Colaborativa</h2>
-      <p>CDPedia es desarrollado por un grupo de personas como vos que dedican
-      su tiempo y conocimiento para proveer una herramienta de utilidad para
-      la comunidad.</p>
+      <div class="col-lg-4">
+        <h2>{{ subtitle_collaborative }}</h2>
+        <p>{{ collaborative_text_a }}</p>
 
-      <p>Unite, es f&aacute;cil y seguro tenemos alguna tarea en la que nos podes
-      ayudar.</p>
-     </div>
+        <p>{{ collaborative_text_b }}</p>
+      </div>
 
-     <div class="col-lg-4">
-      <h2>Multiplataforma</h2>
-      <p>CDPedia Funciona en Linux, Mac o Windows sin tener que instalar
-      ningún software adicional (se necesita solamente Python que en Linux y
-      Mac ya viene instalado, y la versión para Windows está incluída y se usa
-      directamente).</p>
-     </div>
+      <div class="col-lg-4">
+        <h2>{{ subtitle_cross_platform }}</h2>
+        <p>{{ cross_platform_text }}</p>
+      </div>
 
+      </div>
     </div>
-   </div>
   </div>
 
   <div class="container">
-   <h2 name="download">Descargala</h2>
+    <h2 name="download">{{ subtitle_download_it }}</h2>
 
-   <p>La última versión es la 0.8.4, con contenido a Junio 2017, y se puede descargar de las siguientes formas</p>
+    <p>{{ download_it_text_a }}</p>
 
-   <p>Si tenés la posibilidad, agradecemos que bajes y compartas los archivos vía BitTorrent.</p>
+    <p>{{ download_it_text_b }}</p>
 
-   <table class="table table-bordered table-striped table-hover">
-    <thead>
-     <tr>
-      <th>Formato</th>
-      <th>Tamaño</th>
-      <th>Checksums</th>
-      <th>Descargar</th>
-      <th>Contenido</th>
-     </tr>
-    </thead>
-    <tbody>
-     <tr>
-      <td>CD</td>
-      <td>701 MB</td>
-      <td><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.md5">md5</a> - 
-          <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.sha1">sha1</a></td>
-      <td>
-       <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.torrent">Torrent</a>
-      </td>
-      <td>48 mil páginas, 5% de las imágenes</td>
-     </tr>
+    <table class="table table-bordered table-striped table-hover">
+      <thead>
+        <tr>
+          <th>{{ table_head_format }}</th>
+          <th>{{ table_head_size }}</th>
+          <th>{{ table_head_checksums }}</th>
+          <th>{{ table_head_download }}</th>
+          <th>{{ table_head_content }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ table_body_cd }}</td>
+          <td>{{ table_body_cd_weight }}</td>
+          <td>
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.md5">{{ table_body_checksum_md5 }}</a> - 
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.sha1">{{ table_body_checksum_sha1 }}</a>
+          </td>
+          <td>
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-cd.iso.torrent">{{ table_body_torrent }}</a>
+          </td>
+          <td>{{ table_body_cd_content }}</td>
+        </tr>
 
-     <tr>
-      <td>Tarball, medio</td>
-      <td>2.4 GB</td>
-      <td><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.md5">md5</a> - 
-          <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.sha1">sha1</a></td>
-      <td>
-       <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.torrent">Torrent</a></p>
-      </td>
-      <td>280 mil páginas, 8% de las imágenes</td>
-     </tr>
+        <tr>
+          <td>{{ table_body_tarball_m }}</td>
+          <td>{{ table_body_tarball_m_weight }}</td>
+          <td>
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.md5">{{ table_body_checksum_md5 }}</a> - 
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.sha1">{{ table_body_checksum_sha1 }}</a>
+          </td>
+          <td>
+            <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarmed.tar.xz.torrent">{{ table_body_torrent }}</a></p>
+          </td>
+          <td>{{ table_body_tarball_m_content }}</td>
+        </tr>
 
-     <tr>
-      <td>DVD</td>
-      <td>4.2 GB</td>
-      <td><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.md5">md5</a> - 
-          <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.sha1">sha1</a></td>
-      <td>
-       <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.torrent">Torrent</a></p>
-      </td>
-      <td>800 mil páginas, 8% de las imágenes</td>
-     </tr>
+        <tr>
+          <td>{{ table_body_dvd }}</td>
+          <td>{{ table_body_dvd_weight }}</td>
+          <td>
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.md5">{{ table_body_checksum_md5 }}</a> - 
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.sha1">{{ table_body_checksum_sha1 }}</a>
+          </td>
+          <td>
+            <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-dvd5.iso.torrent">{{ table_body_torrent }}</a></p>
+          </td>
+          <td>{{ table_body_dvd_content }}</td>
+        </tr>
 
-     <tr>
-      <td>Tarball, grande</td>
-      <td>14 GB</td>
-      <td><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.md5">md5</a> - 
-          <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.sha1">sha1</a></td>
-      <td>
-       <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.torrent">Torrent</a></p>
-      </td>
-      <td>Un millón de páginas, 85% de las imágenes</td>
-     </tr>
+        <tr>
+          <td>{{ table_body_tarball_b }}</td>
+          <td>{{ table_body_tarball_b_weight }}</td>
+          <td>
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.md5">{{ table_body_checksum_md5 }}</a> - 
+            <a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.sha1">{{ table_body_checksum_sha1 }}</a>
+          </td>
+          <td>
+            <p><a href="http://cdpedia.python.org.ar/images/es/20170627/cdpedia-es-0.8.4-20170627-tarbig.tar.xz.torrent">{{ table_body_torrent }}</a></p>
+          </td>
+          <td>{{ table_body_tarball_b_content }}</td>
+        </tr>
 
-    </tbody>
-   </table>
+      </tbody>
+    </table>
 
-   <p>Todos los archivos (torrentes, checksums, etc) los podés ver <a href="http://cdpedia.python.org.ar/images/es/current/">acá</a>.</p>
+    <p>{{ table_reference_a }}<a href="http://cdpedia.python.org.ar/images/es/current/">{{ table_reference_b }}</a>.</p>
 
   </div>
 
   <div class="container">
 
-   <h2>¿Qué hago con el archivo que bajé?</h2>
+    <h2>{{ subtitle_what_do_i_do }}</h2>
 
-   <p>Se pueden descargar archivos en dos formatos.</p>
+    <p>{{ what_do_i_do_text_a }}</p>
 
-   <p>Puede ser una imagen de disco (especialmente pensado para caber en un CD o un DVD, dependiendo la versión). Lo primero que tenés que hacer es grabarlo a un disco virgen, para lo cual necesitas una grabadora y un software para grabar. Si usas Windows y no tenés ninguno instalado en tu equipo, te recomendamos <a class="http" href="http://infrarecorder.org/?page_id=5">InfraRecorder</a> que es Software Libre y muy fácil de usar (como ejemplo, podes <a class="http" href="http://www.youtube.com/watch?v=_5QLoTl9qu8">ver una gu&iacute;a en video</a>).</p>
+    <p>{{ what_do_i_do_text_b_1 }}<a class="http" href="http://infrarecorder.org/?page_id=5">{{ what_do_i_do_text_b_2 }}</a>{{ what_do_i_do_text_b_3 }}<a class="http" href="http://www.youtube.com/watch?v=_5QLoTl9qu8">{{ what_do_i_do_text_b_4 }}</a>{{ what_do_i_do_text_b_5 }}</p>
 
-   <p>También puede ser un tarball, o sea directamente los archivos listos para descomprimir y utilizar. Los podés descargar y descomprimir directamente en una memoria USB o en un disco rígido, y usar la CDPedia.</p>
+    <p>{{ what_do_i_do_text_c }}</p>
 
-   <div class="bs-callout bs-callout-info">
-    <h4>Hacé copias para regalar</h4>
-    <p>Si tenés discos disponibles, hacé algunas copias de CDPedia para regalar a tus familiares y amigos, a la biblioteca de tu barrio, o a la escuela de tus hijos.</p>
-    <p>¡Difundí CDPedia!</p>
-   </div>
+    <div class="bs-callout bs-callout-info">
+      <h4>{{ what_do_i_do_suggestion_a }}</h4>
+      <p>{{ what_do_i_do_suggestion_b }}</p>
+      <p>{{ what_do_i_do_suggestion_c }}</p>
+    </div>
 
-   <h2>¿Cómo la uso?</h2>
+    <h2>{{ subtitle_how_to_use }}</h2>
 
-   <p>Ponés el disco generado en tu equipo y cuando se abra la carpeta con el CD hacés doble click en el archivo cdpedia.py. Se abrirá tu navegador con la portada de CDPedia.</p>
+    <p>{{ how_to_use_text_a }}</p>
 
-   <p>Si bajaste los archivos comprimidos, sólo hace falta descomprimirlos en cualquier lado y listo, no hace falta quemar un disco.</p>
+    <p>{{ how_to_use_text_b }}</p>
 
-   <p>Esta versión funciona en Linux, Mac o Windows sin tener que instalar ningún software adicional (se necesita solamente Python que en Linux y Mac ya viene instalado, y la versión para Windows está incluída y se usa directamente).</p>
+    <p>{{ how_to_use_text_c }}</p>
 
-   <p>Para usar la CDPedia en modo servidor (instalándola en una sola máquina pero accediendo a la misma de muchas otras), <a href="http://python.org.ar/Proyectos/CDPedia/ModoServidor">estas son las instrucciones.</a></p>
+    <p>{{ how_to_use_text_d_1 }}<a href="http://python.org.ar/Proyectos/CDPedia/ModoServidor">{{ subtitle_how_to_use_text_d_2 }}</a></p>
 
-   <h2 rel="download">Mas Informaci&oacute;n</h2>
-   <p>
-   CDPedia es un proyecto de <a href="http://python.org.ar">Python Argentina</a> para acceder a la información de la Wikipedia en castellano aunque no tengas una conexión a Internet.
-   </p>
+    <h2 rel="download">{{ subtitle_more_info }}</h2>
+    <p>{{ more_info_text_a_1 }}<a href="http://python.org.ar">{{ more_info_text_a_2 }}</a>{{ more_info_text_a_3 }}</p>
 
-   <p>
-   Toda la información incluída fue obtenida de Wikipedia durante Marzo del 2014, y es una foto del contenido on-line en un momento dado. Te sugerimos acceder a la información directamente en la Wikipedia Web si es que necesitás información actualizada de uno de los temas.
-   </p>
+    <p>{{ more_info_text_b }}</p>
 
-   <p>
-   Importante: la CDPedia es Software Libre, te recomendamos (y te agradecemos) que copies estos discos y archivos, y los regales a tus amigos, familia y conocidos. La información debe ser libre, así mejoramos la calidad de nuestra educación.
-   </p>
+    <p>{{ more_info_text_c }}</p>
 
-   <p>
-   ¡Que la disfrutes!
-   </p>
+    <p>{{ enjoy }}</p>
   </div>
 
   <footer class="bs-footer" role="contentinfo">
-   <div class="container">
-    <p>Seguinos en Twitter
-    &nbsp;<a href="http://twitter.com/PythonArgentina">@PythonArgentina</a></p>
-    <p><a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC</a> <a href="https://raw.githubusercontent.com/PyAr/CDPedia/master/AUTHORS.txt">Los CDPedistas</a>
-   </div>
+    <div class="container">
+      <p>{{ follow_us_on_twitter_a }}<a href="http://twitter.com/PythonArgentina">{{ follow_us_on_twitter_b }}</a></p>
+      <p><a href="http://creativecommons.org/licenses/by-nc/4.0/">{{ cc_license }}</a> <a href="https://raw.githubusercontent.com/PyAr/CDPedia/master/AUTHORS.txt">{{ authors }}</a>
+    </div>
   </footer>
  </body>
 </html>
