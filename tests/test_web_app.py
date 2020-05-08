@@ -144,6 +144,12 @@ class WebAppTestCase(unittest.TestCase):
         response = self.client.get("/tutorial")
         self.assertEqual(response.status_code, 200)
 
+    def test_on_favicon(self):
+        response = self.client.get("/favicon.ico")
+        self.assertEqual(response.status_code, 200)
+        ico_signature = b'\x00\x00\x01\x00'
+        self.assertTrue(response.data.startswith(ico_signature))
+
 def test_get_origin_link():
     assert utils.get_orig_link(u'Python').endswith(u"/wiki/Python")
     assert utils.get_orig_link(u'"Love_and_Theft"').endswith(u"/wiki/%22Love_and_Theft%22")
