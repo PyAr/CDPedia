@@ -77,7 +77,7 @@ class WebAppTestCase(unittest.TestCase):
 
         response = self.client.get("/al_azar", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue("De Wikipedia, la enciclopedia libre" in response.data)
+        self.assertTrue('h1 class="firstHeading"' in response.data)
 
     def test_institucional(self):
         response = self.client.get("/institucional/ayuda.html")
