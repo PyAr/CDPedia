@@ -45,7 +45,6 @@ import re
 from urllib2 import unquote
 
 import bs4
-from bs4 import Comment
 
 import config
 
@@ -170,7 +169,7 @@ class VIPArticles(_Processor):
 
     def __init__(self):
         super(VIPArticles, self).__init__()
-        self.nombre = "VIPArticles"
+        self.name = "VIPArticles"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -188,7 +187,7 @@ class OmitRedirects(_Processor):
 
     def __init__(self):
         super(OmitRedirects, self).__init__()
-        self.nombre = "Redirects"
+        self.name = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
@@ -301,7 +300,7 @@ class HTMLCleaner(_Processor):
 
     def __init__(self):
         super(HTMLCleaner, self).__init__()
-        self.nombre = "HTMLCleaner"
+        self.name = "HTMLCleaner"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -394,7 +393,7 @@ class HTMLCleaner(_Processor):
 
         # remove comments
         for tag in soup(text=True):
-            if isinstance(tag, Comment):
+            if isinstance(tag, bs4.Comment):
                 tag.extract()
                 self.stats['comments'] += 1
 
