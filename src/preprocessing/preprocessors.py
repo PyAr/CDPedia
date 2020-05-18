@@ -290,23 +290,6 @@ class Length(_Processor):
 class HTMLCleaner(_Processor):
     """Remove different HTML parts or sections."""
 
-    target_tags = [
-        # (description, action, tag[, attr_key, attr_val]*)
-        ('edit_section', 'clear', 'span', 'class', 'mw-editsection'),
-        ('error_notice', 'remove', 'span', 'class', 'error'),
-        ('hidden_categories', 'remove', 'div', 'id', 'mw-hidden-catlinks'),
-        ('hidden_subtitle', 'remove', 'div', 'id', 'siteSub'),
-        ('img_srcset', 'pop_srcset', 'img', 'srcset', True),
-        ('inline_alert', 'remove_inline_alert', 'sup'),
-        ('inline_math', 'clear', 'span', 'class', 'mwe-math-mathml-inline'),
-        ('jump_link_search', 'remove', 'a', 'class', 'mw-jump-link', 'href', '#p-search'),
-        ('jump_link_toc', 'remove', 'a', 'class', 'mw-jump-link', 'href', '#mw-head'),
-        ('message_box', 'clear', 'table', 'class', 'ambox'),
-        ('not_last_version', 'clear', 'div', 'id', 'contentSub'),
-        ('print_footer', 'remove', 'div', 'class', 'printfooter'),
-        ('special_link', 'unwrap_link', 'a','href', True),  # keep after other `a` tags
-    ]
-
     # if the first column found in a link, replace it by its text (keeping stats
     # using the second column)
     unwrap_links = [
@@ -318,15 +301,95 @@ class HTMLCleaner(_Processor):
     def __init__(self):
         super(HTMLCleaner, self).__init__()
         self.name = "HTMLCleaner"
-        self.targets = self._build_targets()
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
         soup = bs4.BeautifulSoup(wikifile.html, features='html.parser', from_encoding='utf8')
 
-        # process tags
-        for tag, action, descr in self._find_tags(soup):
-            action(tag, descr)
+        # remove text and links of 'not last version'
+        tag = soup.find('div', id='contentSub')
+        if tag is not None:
+            tag.clear()
+            self.stats['notlastversion'] += 1
+
+        # remove edit section
+        sections = soup.find_all('span', class_="mw-editsection")
+        self.stats['edit_sections'] += len(sections)
+        for tag in sections:
+            tag.clear()
+
+        # remove ambox (reference needed) section
+        sections = soup.find_all('table', class_="ambox")
+        self.stats['ambox'] += len(sections)
+        for tag in sections:
+            tag.clear()
+
+        # remove inline math
+        sections = soup.find_all('span', class_="mwe-math-mathml-inline")
+        self.stats['inline_math'] += len(sections)
+        for tag in sections:
+            tag.clear()
+
+        # remove srcset attribute from img tags
+        sections = soup.find_all('img', srcset=True)
+        self.stats['img_srcset'] += len(sections)
+        for tag in sections:
+            tag.attrs.pop('srcset')
+
+        # remove some links (but keeping their text)
+        for a_tag in soup.find_all('a'):
+            try:
+                href = a_tag['href']
+            except KeyError:
+                # no link
+                continue
+
+            for searchable, stat_key in self.unwrap_links:
+                if searchable in href:
+                    # special link, keep stat and replace it by the text
+                    self.stats[stat_key] += 1
+                    a_tag.unwrap()
+                    break
+
+        # remove hidden subtitle
+        tag = soup.find('div', id='siteSub')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_subtitle'] += 1
+
+        # remove toc jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#mw-head')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove search jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#p-search')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove inline alerts (bracketed superscript with italic text)
+        for tag in soup.find_all('sup'):
+            children = tag.children
+            try:
+                if next(children) == '[' and next(children).name == 'i':
+                    tag.extract()
+                    self.stats['inline_alerts'] += 1
+            except StopIteration:
+                continue
+
+        # remove printfooter
+        tag = soup.find('div', class_='printfooter')
+        if tag is not None:
+            tag.extract()
+            self.stats['print_footer'] += 1
+
+        # remove hidden categories section
+        tag = soup.find('div', id='mw-hidden-catlinks')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_categories'] += 1
 
         # remove comments
         for tag in soup(text=True):
@@ -334,90 +397,14 @@ class HTMLCleaner(_Processor):
                 tag.extract()
                 self.stats['comments'] += 1
 
+        # remove mediawiki parsing error red notices
+        for tag in soup('span', class_='error'):
+            tag.extract()
+            self.stats['parsing_error_notices'] += 1
+
         # fix original html and return no score at all
         wikifile.html = str(soup)
         return (0, [])
-
-    def _build_targets(self):
-        """Put info of targeted tags into a conveniently structured dict."""
-        targets = dict()
-        for target in self.target_tags:
-            descr, action, tag_name = target[:3]
-            i = iter(target[3:])
-            attrs = tuple(zip(i, i))
-            info = (attrs, getattr(self, action), descr)
-            try:
-                targets[tag_name].append(info)
-            except KeyError:
-                targets[tag_name] = [info]
-        return targets
-
-    def _find_tags(self, soup):
-        tags = []
-        for elem in soup.descendants:
-            try:
-                action, descr = self._get_action(elem)
-            except ValueError:
-                continue
-            tags.append((elem, action, descr))
-        return tags
-
-    def _get_action(self, tag):
-        try:
-            for attrs, action, descr in self.targets[tag.name]:
-                if self._match_conditions(tag, attrs):
-                    return action, descr
-        except KeyError:
-            pass
-        raise ValueError('Not a targeted tag.')
-
-    def _match_conditions(self, tag, attrs):
-        """Check if tag matches conditions for running action."""
-        for k, v in attrs:
-            if v is True:
-                if not tag.has_attr(k):
-                    return False
-                continue
-            if v not in tag.get_attribute_list(k):
-                return False
-        if tag.parent is None:  # parent removed
-            return False
-        return True
-
-    def clear(self, tag, descr):
-        """Remove tag inner content from tree."""
-        tag.clear()
-        self.stats[descr] += 1
-
-    def remove(self, tag, descr):
-        """Remove tag and its content from tree."""
-        tag.extract()
-        self.stats[descr] += 1
-
-    def unwrap_link(self, tag, descr):
-        """Remove special link tags but keep original text."""
-        href = tag.attrs['href']
-        for searchable, stat_key in self.unwrap_links:
-            if searchable in href and tag.parent:
-                # special link, keep stat and replace it by the text
-                self.stats[stat_key] += 1
-                tag.unwrap()
-                break
-
-    def pop_srcset(self, tag, descr):
-        """Remove srcset attribute from tag."""
-        tag.attrs.pop('srcset')
-        self.stats[descr] += 1
-
-    def remove_inline_alert(self, tag, descr):
-        """Remove bracketed superscript with italic text inline alerts."""
-        children = tag.children
-        try:
-            if next(children) == '[' and next(children).name == 'i':
-                tag.extract()
-                self.stats[descr] += 1
-        except StopIteration:
-            return
 
 
 # Classes that will be used for preprocessing each page,
