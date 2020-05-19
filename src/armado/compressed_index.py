@@ -271,9 +271,9 @@ class TermSimilitudeMatrixBase:
         # so we'll limit the length of the subterm to 20 characters max
         #
         iterator = iter(
-            t[a:a + l]
-            for l in xrange(min(20, len(t)), 0, -1)
-            for a in xrange(len(t) - l + 1)
+            t[a:a + length]
+            for length in xrange(min(20, len(t)), 0, -1)
+            for a in xrange(len(t) - length + 1)
         )
         for tv in iterator:
             try:
