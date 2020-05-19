@@ -386,8 +386,7 @@ class HTMLCleaner(_Processor):
             self.stats['print_footer'] += 1
 
         # remove hidden categories section
-        tag = soup.find('div', id='mw-hidden-catlinks')
-        if tag is not None:
+        for tag in soup.find_all('div', id='mw-hidden-catlinks'):
             tag.extract()
             self.stats['hidden_categories'] += 1
 
