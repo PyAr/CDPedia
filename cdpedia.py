@@ -57,7 +57,7 @@ if platform.system() == 'Windows' and not os.path.exists('debug'):
         log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
-    except Exception:     # If we can't log or show the error because we
+    except :     # If we can't log or show the error because we
         pass    # don't have a terminal we can't do anything.
 
 
