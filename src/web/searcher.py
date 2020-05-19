@@ -31,6 +31,7 @@ EOS = object()
 # regex used in untested code, see get_grouped() below
 LIMPIA = re.compile("[(),]")
 
+
 class Cache(dict):
     """A dict-like, but with a max limit."""
     def __init__(self, limit, discard_func):
@@ -125,7 +126,7 @@ class Searcher(object):
         # maybe the requested results are already retrieved from index
         need_to_retrieve = start + quantity - len(prev_results)
         if not need_to_retrieve:
-            return prev_results[start:start+quantity]
+            return prev_results[start:start + quantity]
 
         # lock may be EOS, signaling that the search already finished
         if lock is not EOS:
@@ -142,7 +143,7 @@ class Searcher(object):
                 else:
                     self.active_searches[search_id] = (search, prev_results,
                                                        lock, words)
-        return prev_results[start:start+quantity]
+        return prev_results[start:start + quantity]
 
     def get_grouped(self, search_id, quantity=10):
         """Get the results, old fashion grouped.
@@ -182,5 +183,5 @@ class Searcher(object):
             tokens.difference_update(tit_tokens)
 
         # ordenamos la nueva info descendiente y devolvemos todo
-        candidatos = ((k,) + tuple(v) for k,v in agrupados.iteritems())
+        candidatos = ((k,) + tuple(v) for k, v in agrupados.iteritems())
         return sorted(candidatos, key=operator.itemgetter(2), reverse=True)

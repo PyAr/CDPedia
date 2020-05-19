@@ -16,16 +16,18 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import os
-import re
+from __future__ import print_function
+
 import config
 import itertools
+import re
 from random import choice
 
-destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?'   \
-                           '<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)'\
-                           '(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))',
-                           re.MULTILINE | re.DOTALL)
+destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?'
+                          r'<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)'
+                          r'(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))',
+                          re.MULTILINE | re.DOTALL)
+
 
 class Destacados(object):
     def __init__(self, article_manager, debug=False, verbose=False):
@@ -37,7 +39,6 @@ class Destacados(object):
             self.destacados = [x.strip().decode('utf8') for x in destacados]
 
         self._iter = itertools.cycle(self.destacados)
-
 
     def get_destacado(self):
         """Devuelve un destacado al azar... eventualmente."""
@@ -58,7 +59,7 @@ class Destacados(object):
 
             # destacado roto :|
             if self.verbose:
-                print (u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
+                print(u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
             self.destacados.remove(link)
         else:
             # no hay destacado
@@ -74,8 +75,7 @@ class Destacados(object):
 
         if not m:
             if self.verbose:
-                print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
+                print("WARNING: Este articulo rompe la regexp para destacado: %s" % link)
             return None
         titulo, primeros_parrafos = m.groups()
         return link, titulo, primeros_parrafos
-

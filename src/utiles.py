@@ -58,6 +58,7 @@ def coherent_hash(txt):
     """Devuelve el mismo número en distintas versiones de Py y plataformas."""
     return int(md5(txt).hexdigest()[-6:], 16)
 
+
 def find_open_port(starting_from=8000, host="127.0.0.1"):
     """
     Finds a free port.
@@ -68,7 +69,7 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((host, port))
-        except socket.error, e:
+        except socket.error:
             port += 1
         else:
             s.close()

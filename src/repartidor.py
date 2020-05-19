@@ -17,10 +17,13 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import threading, Queue, time
+import Queue
+import threading
+import time
 
 # cuanto duerme para que el while no mate el procesador
 SLEEP = .3
+
 
 class _Trabajador(threading.Thread):
     """Clase que usa el repartidor internamente.
@@ -64,8 +67,7 @@ class Pool(object):
         self.qRecbir = [Queue.Queue() for x in range(self._cantw)]
         self.eTermin = [threading.Event() for x in range(self._cantw)]
         for i in range(self._cantw):
-            h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i],
-                           self.eTermin[i])
+            h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i], self.eTermin[i])
             h.start()
         self.logf("Se crearon %d hilos" % (cant,))
 
@@ -113,7 +115,6 @@ class Pool(object):
 
             # dormimos para que el while no me ocupe todo el procesador
             time.sleep(SLEEP)
-
 
         for q in self.qEnviar:
             q.put("quit")
