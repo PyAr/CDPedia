@@ -18,6 +18,8 @@
 # Author: Raymond Hettinger
 # http://code.activestate.com/recipes/498245/
 
+from __future__ import print_function
+
 from collections import deque
 
 
@@ -34,8 +36,12 @@ def lru_cache(maxsize):
         def wrapper(*args):
 
             # localize variable access (ugly but fast)
-            _cache=cache; _len=len; _refcount=refcount; _maxsize=maxsize
-            queue_append=queue.append; queue_popleft = queue.popleft
+            _cache = cache
+            _len = len
+            _refcount = refcount
+            _maxsize = maxsize
+            queue_append = queue.append
+            queue_popleft = queue.popleft
 
             # get cache entry or compute if not found
             try:
@@ -81,11 +87,11 @@ if __name__ == '__main__':
 
     @lru_cache(maxsize=20)
     def f(x, y):
-        return 3*x+y
+        return 3 * x + y
 
     domain = range(5)
     from random import choice
     for i in range(1000):
         r = f(choice(domain), choice(domain))
 
-    print f.hits, f.misses
+    print(f.hits, f.misses)

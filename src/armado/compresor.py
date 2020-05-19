@@ -31,7 +31,7 @@ Formato del bloque:
     Artículos, uno detrás del otro (el origen es 0 despues del header)
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 import bz2
 import os
@@ -53,6 +53,7 @@ from lru_cache import lru_cache
 # The most restricted system appears to be windows with 512 files per proocess.
 BLOCKS_CACHE_SIZE = 100
 
+
 class BloqueManager(object):
     """Clase base para los manejadores de bloques de archivos.
 
@@ -60,10 +61,10 @@ class BloqueManager(object):
     Tiene dos hijos muy parecidos, ArticleManager y ImageManager, que definen
     las constantes necesarias para poder funcionar.
     """
-    archive_dir = None # Esto deberia apuntar al dir donde estan los bloques
-    archive_extension = ".hdp" # Extension de los bloques que maneja esto
-    archive_class = None # La clase que se va a usar para los  bloques
-    items_per_block = 0 # Cantidad de items por bloque
+    archive_dir = None  # Esto deberia apuntar al dir donde estan los bloques
+    archive_extension = ".hdp"  # Extension de los bloques que maneja esto
+    archive_class = None  # La clase que se va a usar para los  bloques
+    items_per_block = 0  # Cantidad de items por bloque
 
     def __init__(self, verbose=False):
         fname = os.path.join(self.archive_dir, 'numbloques.txt')
@@ -99,23 +100,23 @@ class BloqueManager(object):
         f.write(str(cant) + '\n')
         f.close()
 
-    @lru_cache(BLOCKS_CACHE_SIZE) # This LRU is shared between inherited managers
+    @lru_cache(BLOCKS_CACHE_SIZE)  # This LRU is shared between inherited managers
     def getBloque(self, nombre):
         comp = self.archive_class(os.path.join(self.archive_dir, nombre),
                                   self.verbose, self)
         if self.verbose:
-            print "block opened from file:", nombre
+            print("block opened from file:", nombre)
         return comp
 
     def get_item(self, fileName):
         bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % self.num_bloques
         bloqName = "%08x%s" % (bloqNum, self.archive_extension)
         if self.verbose:
-            print "block:", bloqName
+            print("block:", bloqName)
         comp = self.getBloque(bloqName)
         item = comp.get_item(fileName)
         if self.verbose and item is not None:
-            print "len item:", len(item)
+            print("len item:", len(item))
         return item
 
 
@@ -127,11 +128,11 @@ class Bloque(object):
 
         info = self.header[fileName]
         if self.verbose:
-            print "encontrado:", info
+            print("encontrado:", info)
         if isinstance(info, basestring):
             # info es un link a lo real, hacemos semi-recursivo
             if self.verbose:
-                print "redirect!"
+                print("redirect!")
             data = self.manager.get_item(info)
         else:
             (seek, size) = info
@@ -143,8 +144,9 @@ class Bloque(object):
         """Cleanup."""
         if hasattr(self, "fh"):
             if self.verbose:
-                print "closing block: ", self.fh.name
+                print("closing block: ", self.fh.name)
             self.fh.close()
+
 
 class BloqueImagenes(Bloque):
     """Un bloque de imágenes.
@@ -169,7 +171,7 @@ class BloqueImagenes(Bloque):
     def crear(self, bloqNum, fileNames, verbose=False):
         '''Genera el archivo.'''
         if verbose:
-            print "Procesando el bloque de imágenes", bloqNum
+            print("Procesando el bloque de imágenes", bloqNum)
 
         header = {}
 
@@ -184,13 +186,13 @@ class BloqueImagenes(Bloque):
 
         headerBytes = bz2.compress(pickle.dumps(header))
         if verbose:
-            print "  archivos: %d   seek total: %d   largo header: %d" % (
-                    len(fileNames), seek, len(headerBytes))
+            print("  archivos: %d   seek total: %d   largo header: %d" % (
+                len(fileNames), seek, len(headerBytes)))
 
         # abro el archivo a comprimir
         nomfile = os.path.join(config.DIR_ASSETS, 'images', "%08x.cdi" % bloqNum)
         if verbose:
-            print "  grabando en", nomfile
+            print("  grabando en", nomfile)
         f = open(nomfile, "wb")
 
         # grabo la longitud del header, y el header
@@ -227,7 +229,7 @@ class Comprimido(Bloque):
     def crear(self, redirects, bloqNum, top_filenames, verbose=False):
         '''Genera el comprimido.'''
         if verbose:
-            print "Procesando el bloque", bloqNum
+            print("Procesando el bloque", bloqNum)
 
         header = {}
 
@@ -247,23 +249,23 @@ class Comprimido(Bloque):
 
         headerBytes = pickle.dumps(header)
         if verbose:
-            print "  archivos: %d   seek total: %d   largo header: %d" % (
-                                    len(top_filenames), seek, len(headerBytes))
+            print("  archivos: %d   seek total: %d   largo header: %d" % (
+                len(top_filenames), seek, len(headerBytes)))
 
         # abro el archivo a comprimir
         nomfile = path.join(config.DIR_BLOQUES, "%08x.cdp" % bloqNum)
         if verbose:
-            print "  grabando en", nomfile
+            print("  grabando en", nomfile)
         f = CompressedFile(nomfile, "wb")
 
         # grabo la longitud del header, y el header
-        f.write( struct.pack("<l", len(headerBytes) ) )
-        f.write( headerBytes )
+        f.write(struct.pack("<l", len(headerBytes)))
+        f.write(headerBytes)
 
         # grabo cada uno de los articulos
         for dir3, filename in top_filenames:
             fullName = path.join(config.DIR_PAGSLISTAS, dir3, filename)
-            f.write(open( fullName, "rb" ).read())
+            f.write(open(fullName, "rb").read())
 
 
 class ArticleManager(BloqueManager):
@@ -283,7 +285,7 @@ class ArticleManager(BloqueManager):
         # su numero de bloque, segun el hash
         top_pages = preprocess.pages_selector.top_pages
         if verbose:
-            print "Procesando", len(top_pages), "articulos"
+            print("Procesando", len(top_pages), "articulos")
 
         numBloques = len(top_pages) // self.items_per_block + 1
         self.guardarNumBloques(numBloques)
@@ -294,7 +296,7 @@ class ArticleManager(BloqueManager):
             bloqNum = utiles.coherent_hash(filename.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, filename))
             if verbose:
-                print "  archs:", bloqNum, repr(dir3), repr(filename)
+                print("  archs:", bloqNum, repr(dir3), repr(filename))
 
         # armo el diccionario de redirects, también separados por bloques para
         # saber a dónde buscarlos
@@ -312,7 +314,7 @@ class ArticleManager(BloqueManager):
             bloqNum = utiles.coherent_hash(orig.encode('utf8')) % numBloques
             redirects.setdefault(bloqNum, []).append((orig, dest))
             if verbose:
-                print "  redirs:", bloqNum, repr(orig), repr(dest)
+                print("  redirs:", bloqNum, repr(orig), repr(dest))
 
         # armamos cada uno de los comprimidos
         tot_archs = 0
@@ -354,7 +356,7 @@ class ImageManager(BloqueManager):
                 name = os.path.join(dirname, f)[len(config.DIR_IMGSLISTAS) + 1:]
                 fileNames.append(name)
         if verbose:
-            print "Procesando", len(fileNames), "imágenes"
+            print("Procesando", len(fileNames), "imágenes")
 
         numBloques = len(fileNames) // self.items_per_block + 1
         self.guardarNumBloques(numBloques)
@@ -363,7 +365,7 @@ class ImageManager(BloqueManager):
             bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append(fileName)
             if verbose:
-                print "  archs:", bloqNum, repr(fileName)
+                print("  archs:", bloqNum, repr(fileName))
 
         tot = 0
         for bloqNum, fileNames in bloques.items():

@@ -16,7 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import codecs
 import collections
@@ -28,9 +28,10 @@ import config
 
 from src import repartidor, utiles
 
-HEADERS = {'User-Agent':
-    'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
-    'Ubuntu/8.10 (intrepid) Firefox/3.0.5'
+HEADERS = {
+    'User-Agent': (
+        'Mozilla/5.0 (X11; U; Linux i686; es-ES; rv:1.9.0.5) Gecko/2008121622 '
+        'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
 logger = logging.getLogger("images.download")
@@ -57,12 +58,12 @@ def descargar(data):
             _descargar(url, fullpath)
             # todo bien
             return None
-        except urllib2.HTTPError, err:
+        except urllib2.HTTPError as err:
             # error espeso, devolvemos el código
             return "HTTPError: %d" % (err.code,)
-        except Exception, e:
+        except Exception as e:
             # algo raro, reintentamos
-            print "Uh...", e
+            print("Uh...", e)
 
     # demasiados reintentos, devolvemos el último error
     return str(e)

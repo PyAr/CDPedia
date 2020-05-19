@@ -24,15 +24,7 @@ Deja en un log las URLs que hay que bajar (todas aquellas que no deberían ya
 venir en el dump).
 """
 
-from __future__ import with_statement
-from __future__ import division
-
-usage = """Extractor de URLs de imágenes.
-
-Para probar el funcionamiento:
-
-  extrae.py dir3 archivo.html
-"""
+from __future__ import with_statement, division
 
 import codecs
 import logging
@@ -42,9 +34,18 @@ import config
 from src.armado import to3dirs
 from src.preprocessing import preprocess
 
+usage = """Extractor de URLs de imágenes.
+
+Para probar el funcionamiento:
+
+  extrae.py dir3 archivo.html
+"""
+
+
 logger = logging.getLogger("images.calculate")
 
 SCALES = (100, 75, 50, 0)
+
 
 class Escalador(object):
     """Indica en que escala dejar la imagen."""

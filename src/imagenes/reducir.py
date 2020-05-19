@@ -16,7 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import codecs
 import config
@@ -67,7 +67,7 @@ def run(verbose):
             # reglas para no escalar algunas imagenes: math/*, .png, y < 2KB
             if dskurl.startswith('math') or dskurl.endswith('.png') or \
                os.stat(frompath).st_size < 2048:
-#                print "Forzando imagen a escala 100 por reglas", repr(dskurl)
+                # print("Forzando imagen a escala 100 por reglas", repr(dskurl))
                 escl = 100
 
             # vemos si lo que hay que hacer ahora no lo teníamos hecho de antes
@@ -78,8 +78,7 @@ def run(verbose):
 
             # cambiamos el tamaño si debemos, sino sólo copiamos
             if verbose:
-                print "Reescalando a %d%% la imagen %s" % (escl,
-                                                           dskurl.encode("utf8"))
+                print("Reescalando a %d%% la imagen %s" % (escl, dskurl.encode("utf8")))
             if escl == 100:
                 done_ahora[dskurl] = 100
                 shutil.copyfile(frompath, topath)
@@ -106,5 +105,5 @@ def run(verbose):
 
     # si es verbose ya avisamos una por una
     if not verbose and notfound:
-        print "  WARNING: No encontramos %d imágenes!" % (notfound,)
+        print("  WARNING: No encontramos %d imágenes!" % (notfound,))
     return notfound
