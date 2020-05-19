@@ -1,5 +1,23 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
+from __future__ import print_function
+
 """
 Biblioteca para armar y leer los índices.
 
@@ -19,7 +37,7 @@ import unicodedata
 
 from src.armado import to3dirs
 
-#from .easy_index import Index
+# from .easy_index import Index
 from .compressed_index import Index
 
 usage = """Indice de títulos de la CDPedia
@@ -35,7 +53,8 @@ Para generar el archivo de indice hacer:
 """
 
 # separamos por palabras
-PALABRAS = re.compile("\w+", re.UNICODE)
+PALABRAS = re.compile(r"\w+", re.UNICODE)
+
 
 def normaliza(txt):
     """Recibe una frase y devuelve sus palabras ya normalizadas."""
@@ -143,11 +162,11 @@ def generar_de_html(dirbase, verbose):
             nomhtml = os.path.join(dir3, arch)
             titulo, primtexto = titles_texts[arch]
             if verbose:
-                print "Agregando al índice [%r]  (%r)" % (titulo, nomhtml)
+                print("Agregando al índice [%r]  (%r)" % (titulo, nomhtml))
 
             # a las palabras del título le damos mucha importancia: 50, más
             # el puntaje original sobre 1000, como desempatador
-            ptje = 50 + puntaje//1000
+            ptje = 50 + puntaje // 1000
             for pal in PALABRAS.findall(normaliza(titulo)):
                 yield pal, (nomhtml, titulo, ptje, True, primtexto)
 
