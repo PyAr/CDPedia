@@ -1,15 +1,33 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
+# Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
+from __future__ import print_function
+
 import config
 import itertools
+import re
 from random import choice
 
-destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?'   \
-                           '<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)'\
-                           '(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))',
-                           re.MULTILINE | re.DOTALL)
+destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?'
+                          r'<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)'
+                          r'(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))',
+                          re.MULTILINE | re.DOTALL)
+
 
 class Destacados(object):
     def __init__(self, article_manager, debug=False, verbose=False):
@@ -21,7 +39,6 @@ class Destacados(object):
             self.destacados = [x.strip().decode('utf8') for x in destacados]
 
         self._iter = itertools.cycle(self.destacados)
-
 
     def get_destacado(self):
         """Devuelve un destacado al azar... eventualmente."""
@@ -42,7 +59,7 @@ class Destacados(object):
 
             # destacado roto :|
             if self.verbose:
-                print (u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
+                print(u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
             self.destacados.remove(link)
         else:
             # no hay destacado
@@ -58,8 +75,7 @@ class Destacados(object):
 
         if not m:
             if self.verbose:
-                print "WARNING: Este articulo rompe la regexp para destacado: %s" % link
+                print("WARNING: Este articulo rompe la regexp para destacado: %s" % link)
             return None
         titulo, primeros_parrafos = m.groups()
         return link, titulo, primeros_parrafos
-

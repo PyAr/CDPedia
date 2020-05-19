@@ -270,7 +270,8 @@ class TermSimilitudeMatrixBase:
         # It's quadratic on the length of the term,
         # so we'll limit the length of the subterm to 20 characters max
         #
-        iterator = iter(t[a:a + l]
+        iterator = iter(
+            t[a:a + l]
             for l in xrange(min(20, len(t)), 0, -1)
             for a in xrange(len(t) - l + 1)
         )
@@ -618,7 +619,7 @@ class Index(object):
         sys.stdout.flush()
 
         def progress_cb(p):
-            print( "\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
+            print("\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
         matrix = TermSimilitudeMatrix(

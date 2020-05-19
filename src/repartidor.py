@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 
+# Copyright 2010-2020 CDPedistas (see AUTHORS.txt)
 #
-# repartidor.py - reparte trabajos en distintos hilos
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
 #
-# Copyright (C) 2009 - Facundo Batista <facundo@taniquetil.com.ar>
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import threading, Queue, time
+import Queue
+import threading
+import time
 
 # cuanto duerme para que el while no mate el procesador
 SLEEP = .3
+
 
 class _Trabajador(threading.Thread):
     """Clase que usa el repartidor internamente.
@@ -66,8 +67,7 @@ class Pool(object):
         self.qRecbir = [Queue.Queue() for x in range(self._cantw)]
         self.eTermin = [threading.Event() for x in range(self._cantw)]
         for i in range(self._cantw):
-            h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i],
-                           self.eTermin[i])
+            h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i], self.eTermin[i])
             h.start()
         self.logf("Se crearon %d hilos" % (cant,))
 
@@ -115,7 +115,6 @@ class Pool(object):
 
             # dormimos para que el while no me ocupe todo el procesador
             time.sleep(SLEEP)
-
 
         for q in self.qEnviar:
             q.put("quit")

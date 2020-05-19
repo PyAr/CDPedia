@@ -1,6 +1,24 @@
+# Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
 # This is the recipe #498245: LRU cache decorator
 # Author: Raymond Hettinger
 # http://code.activestate.com/recipes/498245/
+
+from __future__ import print_function
 
 from collections import deque
 
@@ -18,8 +36,12 @@ def lru_cache(maxsize):
         def wrapper(*args):
 
             # localize variable access (ugly but fast)
-            _cache=cache; _len=len; _refcount=refcount; _maxsize=maxsize
-            queue_append=queue.append; queue_popleft = queue.popleft
+            _cache = cache
+            _len = len
+            _refcount = refcount
+            _maxsize = maxsize
+            queue_append = queue.append
+            queue_popleft = queue.popleft
 
             # get cache entry or compute if not found
             try:
@@ -65,11 +87,11 @@ if __name__ == '__main__':
 
     @lru_cache(maxsize=20)
     def f(x, y):
-        return 3*x+y
+        return 3 * x + y
 
     domain = range(5)
     from random import choice
     for i in range(1000):
         r = f(choice(domain), choice(domain))
 
-    print f.hits, f.misses
+    print(f.hits, f.misses)
