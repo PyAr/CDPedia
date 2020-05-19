@@ -17,9 +17,10 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
+
 import codecs
 import gettext
-import locale
 import operator
 import os
 import posixpath
@@ -30,7 +31,7 @@ import urllib
 from datetime import datetime
 from mimetypes import guess_type
 
-from src import third_party  # Need this to import 3rd_party (werkzeug, jinja2)
+from src import third_party  # NOQA - Need this to import 3rd_party (werkzeug, jinja2)
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
@@ -77,8 +78,8 @@ class CDPedia(object):
         self.jinja_env.globals["watchdog"] = True if watchdog else False
         self.jinja_env.globals["date"] = self.get_creation_date()
         self.jinja_env.globals["version"] = config.VERSION
-        translations = gettext.translation("core", 'locale',
-                                           [self.art_mngr.language])
+        translations = gettext.translation(
+            "core", 'locale', [self.art_mngr.language])
         self.jinja_env.install_gettext_translations(translations)
 
         self.template_manager = TemplateManager(template_path)
@@ -101,6 +102,7 @@ class CDPedia(object):
             Rule('/watchdog/update', endpoint='watchdog_update'),
             Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
+            Rule('/favicon.ico', endpoint='favicon'),
         ])
         self._tutorial_ready = False
 
@@ -126,18 +128,15 @@ class CDPedia(object):
         else:
             portals = ""
 
-        return self.render_template('main_page.html',
-                                    title="Portada",
-                                    featured=featured,
-                                    portals=portals,
-                                    )
+        return self.render_template(
+            'main_page.html', title="Portada", featured=featured, portals=portals)
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
         try:
             data = self.art_mngr.get_item(name)
-        except Exception, e:
-            raise InternalServerError(u"Error interno al buscar contenido: %s" % e)
+        except Exception as err:
+            raise InternalServerError(u"Error interno al buscar contenido: %s" % err)
 
         if data is None:
             raise ArticleNotFound(name, orig_link)
@@ -153,31 +152,38 @@ class CDPedia(object):
         try:
             normpath = posixpath.normpath(name)
             asset_data = self.img_mngr.get_item(normpath)
-        except Exception, e:
-            msg = u"Error interno al buscar imagen: %s" % e
+        except Exception as err:
+            msg = u"Error interno al buscar imagen: %s" % err
             raise InternalServerError(msg)
         if asset_data is None:
             if self.verbose:
-                print "WARNING: no pudimos encontrar", repr(name)
+                print("WARNING: no pudimos encontrar", repr(name))
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
                 height = int(height)
-            except Exception, e:
+            except Exception:
                 raise InternalServerError("Error al generar imagen")
             img = bmp.BogusBitMap(width, height)
             return Response(img.data, mimetype="img/bmp")
         type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
+    def on_favicon(self, request):
+        asset_file = os.path.join(config.DIR_ASSETS, 'static', 'misc', 'favicon.ico')
+        with open(asset_file, 'rb') as f:
+            asset_data = f.read()
+        type_ = guess_type(asset_file)[0]
+        return Response(asset_data, mimetype=type_)
+
     def on_institutional(self, request, path):
         path = os.path.join("institucional", path)
         asset_file = os.path.join(config.DIR_ASSETS, path)
         if os.path.isdir(asset_file):
-            print "WARNING: ", repr(asset_file), "es un directorio"
+            print("WARNING: ", repr(asset_file), "es un directorio")
             raise NotFound()
         if not os.path.exists(asset_file):
-            print "WARNING: no pudimos encontrar", repr(asset_file)
+            print("WARNING: no pudimos encontrar", repr(asset_file))
             raise NotFound()
 
         # all unicode
@@ -258,8 +264,8 @@ class CDPedia(object):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
             if not os.path.exists(tmpdir):
-                tar = tarfile.open(os.path.join(config.DIR_ASSETS,
-                                                "tutorial.tar.bz2"), mode="r:bz2")
+                tar = tarfile.open(
+                    os.path.join(config.DIR_ASSETS, "tutorial.tar.bz2"), mode="r:bz2")
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True
@@ -272,9 +278,10 @@ class CDPedia(object):
     def on_watchdog_update(self, request):
         self.watchdog.update()
         seconds = str(int(config.BROWSER_WD_SECONDS * 0.85))
-        resp = Response("<html><head><meta http-equiv='refresh' content='%s'" \
-                        "></head><body></body></html>" % seconds,
-                        mimetype="text/html")
+        html = (
+            "<html><head><meta http-equiv='refresh' content='%s'></head><body></body></html>" % (
+                seconds,))
+        resp = Response(html, mimetype="text/html")
         return resp
 
     def on_index_ready(self, request):
@@ -292,19 +299,17 @@ class CDPedia(object):
         try:
             endpoint, values = adapter.match()
             return getattr(self, 'on_' + endpoint)(request, **values)
-        except ArticleNotFound, e:
-            response = self.render_template("404.html",
-                                            article_name=e.article_name,
-                                            original_link=e.original_link,
-                                            )
+        except ArticleNotFound as err:
+            response = self.render_template(
+                "404.html", article_name=err.article_name, original_link=err.original_link)
             response.status_code = 404
             return response
-        except InternalServerError, e:
-            response = self.render_template("500.html", message=e.description)
+        except InternalServerError as err:
+            response = self.render_template("500.html", message=err.description)
             response.status_code = 500
             return response
-        except HTTPException, e:
-            return e
+        except HTTPException as err:
+            return err
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
