@@ -327,7 +327,7 @@ def run():
     for dir3, fname, _ in preprocessed:
         try:
             pi.parse(dir3, fname)
-        except:
+        except Exception:
             logger.exception("Parsing crashed in dir3=%r fname=%r", dir3, fname)
             raise
 

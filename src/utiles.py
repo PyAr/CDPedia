@@ -1,5 +1,21 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
 """Some small utilities."""
 
 import time
@@ -42,6 +58,7 @@ def coherent_hash(txt):
     """Devuelve el mismo número en distintas versiones de Py y plataformas."""
     return int(md5(txt).hexdigest()[-6:], 16)
 
+
 def find_open_port(starting_from=8000, host="127.0.0.1"):
     """
     Finds a free port.
@@ -52,7 +69,7 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((host, port))
-        except socket.error, e:
+        except socket.error:
             port += 1
         else:
             s.close()

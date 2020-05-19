@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 # -*- coding: utf8 -*-
 
 # Copyright 2006-2020 CDPedistas (see AUTHORS.txt)
@@ -18,13 +20,16 @@
 
 from __future__ import print_function
 
+import Queue  # NOQA: this is needed by pyinstaller
+import SocketServer  # NOQA: this is needed by pyinstaller
 import codecs
-import os
 import optparse
+import os
 import platform
 import sys
 import threading
 import traceback
+import uuid  # NOQA: this is needed by pyinstaller
 import webbrowser
 
 # change execution path, so we can access all cdpedia internals (code and
@@ -36,6 +41,14 @@ os.chdir(os.path.dirname(cdpedia_path))
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
 
+# imports after sys path was fixed
+import config  # NOQA
+from src import third_party  # NOQA: Need this to import thirdparty (werkzeug and jinja2)
+from src.utiles import WatchDog, find_open_port  # NOQA
+from src.web.web_app import create_app  # NOQA
+from werkzeug.serving import ThreadedWSGIServer  # NOQAr
+
+
 # We log stdout and stderr if it is the Windows platform,
 # except it is a debug build to compile the .exe file.
 if platform.system() == 'Windows' and not os.path.exists('debug'):
@@ -44,19 +57,8 @@ if platform.system() == 'Windows' and not os.path.exists('debug'):
         log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
-    except:     # If we can't log or show the error because we
+    except Exception:     # If we can't log or show the error because we
         pass    # don't have a terminal we can't do anything.
-
-import config
-from src import third_party  # Need this to import thirdparty (werkzeug and jinja2)
-from src.utiles import WatchDog, find_open_port
-from src.web.web_app import create_app
-from werkzeug.serving import ThreadedWSGIServer
-
-# imports extras para pyinstaller
-import SocketServer
-import Queue
-import uuid
 
 
 def handle_crash(type, value, tb):
@@ -139,7 +141,7 @@ if sys.version_info < (2, 6):
 
                 try:
                     self.process_request(request, client_address)
-                except:
+                except Exception:
                     self.handle_error(request, client_address)
                     self.close_request(request)
         finally:

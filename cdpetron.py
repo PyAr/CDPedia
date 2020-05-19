@@ -1,4 +1,4 @@
-#!//usr/bin/env python
+#!/usr/bin/env python
 
 # Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 #

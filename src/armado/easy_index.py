@@ -214,7 +214,7 @@ class Index(object):
         if not N:
             N = 1
         all_idshelves = [{} for i in range(N)]
-        for k,v in ids_shelf.iteritems():
+        for k, v in ids_shelf.iteritems():
             cual = utiles.coherent_hash(k) % N
             all_idshelves[cual][k] = v
 

@@ -56,6 +56,7 @@ class Namespaces(object):
 
         return tocheck in self._namespaces
 
+
 namespaces = Namespaces()
 
 

@@ -1,6 +1,22 @@
 # -*- coding: utf8 -*-
 
-from __future__ import with_statement
+# Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
+from __future__ import with_statement, print_function
 
 import codecs
 import config
@@ -51,7 +67,7 @@ def run(verbose):
             # reglas para no escalar algunas imagenes: math/*, .png, y < 2KB
             if dskurl.startswith('math') or dskurl.endswith('.png') or \
                os.stat(frompath).st_size < 2048:
-#                print "Forzando imagen a escala 100 por reglas", repr(dskurl)
+                # print("Forzando imagen a escala 100 por reglas", repr(dskurl))
                 escl = 100
 
             # vemos si lo que hay que hacer ahora no lo teníamos hecho de antes
@@ -62,8 +78,7 @@ def run(verbose):
 
             # cambiamos el tamaño si debemos, sino sólo copiamos
             if verbose:
-                print "Reescalando a %d%% la imagen %s" % (escl,
-                                                           dskurl.encode("utf8"))
+                print("Reescalando a %d%% la imagen %s" % (escl, dskurl.encode("utf8")))
             if escl == 100:
                 done_ahora[dskurl] = 100
                 shutil.copyfile(frompath, topath)
@@ -90,5 +105,5 @@ def run(verbose):
 
     # si es verbose ya avisamos una por una
     if not verbose and notfound:
-        print "  WARNING: No encontramos %d imágenes!" % (notfound,)
+        print("  WARNING: No encontramos %d imágenes!" % (notfound,))
     return notfound
