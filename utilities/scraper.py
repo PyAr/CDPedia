@@ -42,7 +42,7 @@ import workerpool
 
 # import stuff from project's trunk
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from src.armado import to3dirs
+from src.armado import to3dirs  # NOQA import after fixing path
 
 # log all bad stuff
 _logger = logging.getLogger()
@@ -268,11 +268,11 @@ class WikipediaArticle(object):
 
 
 regex = (
-    '(<h1 id="firstHeading" class="firstHeading" '
-    'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
+    r'(<h1 id="firstHeading" class="firstHeading" '
+    r'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
 capturar = re.compile(regex, re.MULTILINE | re.DOTALL).search
 no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>', re.MULTILINE | re.DOTALL)
-no_pp_report = re.compile("<!--\s*?NewPP limit report.*?-->", re.MULTILINE | re.DOTALL)
+no_pp_report = re.compile(r"<!--\s*?NewPP limit report.*?-->", re.MULTILINE | re.DOTALL)
 
 
 def extract_content(html, url):
@@ -349,12 +349,12 @@ def reemplazar_links_paginado(html, n):
 
     # Reemplazo el link 'siguiente'
     delta = 1
-    html = re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)',
+    html = re.sub(r'(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 siguientes</a>)',
                   reemplazo, html)
 
     # Reemplazo el link 'anterior'
     delta = -1
-    return re.sub('(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)',
+    return re.sub(r'(<a href="/w/index.php\?title=)(?P<link>[^&]+)[^>]+(>200 previas</a>)',
                   reemplazo, html)
 
 
@@ -418,7 +418,7 @@ def fetch(data_urls, language):
     except PageHaveNoRevisions:
         logger("Version not found: %s", data_urls.basename)
         defer.returnValue(False)
-    except:
+    except Exception:
         logger.exception("ERROR while getting valid version for %r",
                          data_urls.url)
         defer.returnValue(False)

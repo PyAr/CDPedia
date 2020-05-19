@@ -14,7 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
 from utilities.workerpool import WorkerPool
