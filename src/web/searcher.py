@@ -1,4 +1,21 @@
 # -*- coding: utf8 -*-
+
+# Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For further info, check  https://github.com/PyAr/CDPedia/
+
 """The Searcher."""
 
 import Queue
@@ -13,6 +30,7 @@ EOS = object()
 
 # regex used in untested code, see get_grouped() below
 LIMPIA = re.compile("[(),]")
+
 
 class Cache(dict):
     """A dict-like, but with a max limit."""
@@ -108,7 +126,7 @@ class Searcher(object):
         # maybe the requested results are already retrieved from index
         need_to_retrieve = start + quantity - len(prev_results)
         if not need_to_retrieve:
-            return prev_results[start:start+quantity]
+            return prev_results[start:start + quantity]
 
         # lock may be EOS, signaling that the search already finished
         if lock is not EOS:
@@ -125,7 +143,7 @@ class Searcher(object):
                 else:
                     self.active_searches[search_id] = (search, prev_results,
                                                        lock, words)
-        return prev_results[start:start+quantity]
+        return prev_results[start:start + quantity]
 
     def get_grouped(self, search_id, quantity=10):
         """Get the results, old fashion grouped.
@@ -165,5 +183,5 @@ class Searcher(object):
             tokens.difference_update(tit_tokens)
 
         # ordenamos la nueva info descendiente y devolvemos todo
-        candidatos = ((k,) + tuple(v) for k,v in agrupados.iteritems())
+        candidatos = ((k,) + tuple(v) for k, v in agrupados.iteritems())
         return sorted(candidatos, key=operator.itemgetter(2), reverse=True)
