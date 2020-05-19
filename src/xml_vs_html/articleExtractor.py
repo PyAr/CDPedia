@@ -14,8 +14,10 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import sys, codecs
-#from xml.sax.xmlreader import IncrementalParser
+from __future__ import print_function
+
+import codecs
+import sys
 import xml.sax
 
 usage = """Usar: %s [-x] filename title outfile
@@ -23,19 +25,20 @@ usage = """Usar: %s [-x] filename title outfile
 -x significa "exacto"
 """
 
+
 class Handler(xml.sax.handler.ContentHandler):
     in_page = False
     in_title = False
     this_page = False
     in_this_text = False
 
-    def __init__ (self, exacto, wanted, out):
+    def __init__(self, exacto, wanted, out):
         self.wanted = wanted
         self.accum_title = ""
         self.out = out
         self.exacto = exacto
 
-    def startElement (self, name, attrs):
+    def startElement(self, name, attrs):
         if name == 'page':
             self.in_page = True
         if self.in_page and name == 'title':
@@ -43,7 +46,7 @@ class Handler(xml.sax.handler.ContentHandler):
         if self.this_page and name == "text":
             self.in_this_text = True
 
-    def endElement (self, name):
+    def endElement(self, name):
         if name == 'page':
             self.in_page = False
             self.this_page = False
@@ -51,17 +54,17 @@ class Handler(xml.sax.handler.ContentHandler):
             self.in_title = False
             if self.exacto:
                 if self.wanted == self.accum_title:
-                    print self.accum_title
+                    print(self.accum_title)
                     self.this_page = True
             else:
                 if self.wanted in self.accum_title:
-                    print self.accum_title
+                    print(self.accum_title)
                     self.this_page = True
             self.accum_title = ""
         if name == "text":
             self.in_this_text = False
 
-    def characters (self, content):
+    def characters(self, content):
         if self.in_title:
             self.accum_title += content
             return
@@ -71,7 +74,7 @@ class Handler(xml.sax.handler.ContentHandler):
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print usage % sys.argv[0]
+        print(usage % sys.argv[0])
         sys.exit(1)
 
     exacto = False

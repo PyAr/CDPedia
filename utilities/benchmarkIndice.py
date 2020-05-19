@@ -20,8 +20,7 @@
 Muestra info del índice.
 """
 
-from __future__ import division
-from __future__ import with_statement
+from __future__ import division, with_statement, print_function
 
 import sys
 import os
@@ -31,9 +30,10 @@ import functools
 import subprocess
 
 sys.path.append(os.path.abspath("."))
-from src.armado.cdpindex import IndexInterface
+from src.armado.cdpindex import IndexInterface  # NOQA import after fixing path
 
 BLOQUE = 20
+
 
 class Timer(object):
     def __init__(self, msg, divisor=1):
@@ -45,17 +45,19 @@ class Timer(object):
 
     def __exit__(self, *args):
         tnow = time.time()
-        mseg = 1000 * (tnow-self.t) / self.divisor
-        print "%8.1fms  %s" % (mseg, self.msg)
+        mseg = 1000 * (tnow - self.t) / self.divisor
+        print("%8.1fms  %s" % (mseg, self.msg))
         self.t = tnow
+
 
 def usoMemoria():
     pid = os.getpid()
     cmd = "ps -o vsize=,rss= -p " + str(pid)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     info = p.stdout.read()
-    v,r = map(int, info.strip().split())
+    v, r = map(int, info.strip().split())
     return v + r
+
 
 def main(direct):
     memant = usoMemoria()
@@ -65,11 +67,11 @@ def main(direct):
         indice.ready.wait()
     memdesp = usoMemoria()
 
-    print "               ocupa memoria:  %d KB" % (memdesp - memant)
+    print("               ocupa memoria:  %d KB" % (memdesp - memant))
 
     with Timer("Listado completo palabras"):
         palabras = [x.decode("utf8") for x in indice.listado_palabras()]
-    print "               cant palabras:", len(palabras)
+    print("               cant palabras:", len(palabras))
 
     # palabras completas
     azar = functools.partial(random.choice, palabras)
@@ -93,7 +95,7 @@ def main(direct):
             indice.search(p)
 
     # palabras completas de a 5
-    pals = [("%s "*5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
+    pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
     with Timer("Palabras completas, de a 5", BLOQUE):
         for p in pals:
             indice.search(p)
@@ -122,18 +124,19 @@ def main(direct):
             indice.partial_search(p)
 
     # palabras parciales, de a 5
-    pals = [("%s "*5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
+    pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
     with Timer("Palabras parciales, de a 5", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
     memdesp = usoMemoria()
-    print "\nNuevo consumo de memoria:  %d KB" % (memdesp - memant)
+    print("\nNuevo consumo de memoria:  %d KB" % (memdesp - memant))
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print "Usar:  benchmarkIndice.py <dir_indice>"
-        print "           dir_indice es el directorio donde está el índice"
+        print("Usar:  benchmarkIndice.py <dir_indice>")
+        print("           dir_indice es el directorio donde está el índice")
         sys.exit()
 
     base = sys.argv[1]

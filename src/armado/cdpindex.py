@@ -35,8 +35,6 @@ import subprocess
 import threading
 import unicodedata
 
-from src.armado import to3dirs
-
 # from .easy_index import Index
 from .compressed_index import Index
 

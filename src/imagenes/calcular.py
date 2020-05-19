@@ -31,7 +31,6 @@ import logging
 import operator
 
 import config
-from src.armado import to3dirs
 from src.preprocessing import preprocess
 
 usage = """Extractor de URLs de imágenes.

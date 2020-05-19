@@ -16,22 +16,24 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
+
 import sys
-import os
-sys.path.append(os.getcwd())
-
 import optparse
+import os
 
-from src.armado.compresor import ArticleManager, ImageManager
+sys.path.append(os.getcwd())
+from src.armado.compresor import ArticleManager, ImageManager  # NOQA import after fixing path
+
 
 def main(manager, nom_item, verbose):
     info = manager.get_item(nom_item)
     if info is None:
-        print "No se encontró el item"
+        print("No se encontró el item")
     else:
-        print "Largo item devuelto", len(info)
+        print("Largo item devuelto", len(info))
         if verbose:
-            print "Artículo:\n", repr(info)
+            print("Artículo:\n", repr(info))
 
 
 if __name__ == "__main__":
@@ -41,11 +43,13 @@ if __name__ == "__main__":
 
     parser = optparse.OptionParser()
     parser.set_usage(msg)
-    parser.add_option("-v", "--verbose", action="store_true",
-                  dest="verbose", help="muestra info de lo que va haciendo")
+    parser.add_option(
+        "-v", "--verbose", action="store_true", dest="verbose",
+        help="muestra info de lo que va haciendo")
 
-    parser.add_option("-i", "--image", action="store_true", dest="image",
-                  help=u"busca en imagenes (busca artículos por default)")
+    parser.add_option(
+        "-i", "--image", action="store_true", dest="image",
+        help=u"busca en imagenes (busca artículos por default)")
 
     (options, args) = parser.parse_args()
 
@@ -61,4 +65,3 @@ if __name__ == "__main__":
         manager = ArticleManager(verbose=verbose)
 
     main(manager, nom_item, verbose)
-

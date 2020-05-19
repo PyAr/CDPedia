@@ -43,9 +43,7 @@ from bz2 import BZ2File as CompressedFile
 import shutil
 
 import config
-
 from src import utiles
-from src.armado import to3dirs
 from lru_cache import lru_cache
 
 # This is the total blocks that are keep open using a LRU cache. This number
