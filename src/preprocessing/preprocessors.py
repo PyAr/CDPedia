@@ -169,7 +169,7 @@ class VIPArticles(_Processor):
 
     def __init__(self):
         super(VIPArticles, self).__init__()
-        self.nombre = "VIPArticles"
+        self.name = "VIPArticles"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -187,7 +187,7 @@ class OmitRedirects(_Processor):
 
     def __init__(self):
         super(OmitRedirects, self).__init__()
-        self.nombre = "Redirects"
+        self.name = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
@@ -300,7 +300,7 @@ class HTMLCleaner(_Processor):
 
     def __init__(self):
         super(HTMLCleaner, self).__init__()
-        self.nombre = "HTMLCleaner"
+        self.name = "HTMLCleaner"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -350,6 +350,56 @@ class HTMLCleaner(_Processor):
                     self.stats[stat_key] += 1
                     a_tag.unwrap()
                     break
+
+        # remove hidden subtitle
+        tag = soup.find('div', id='siteSub')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_subtitle'] += 1
+
+        # remove toc jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#mw-head')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove search jump link
+        tag = soup.find('a', class_='mw-jump-link', href='#p-search')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove inline alerts (bracketed superscript with italic text)
+        for tag in soup.find_all('sup'):
+            children = tag.children
+            try:
+                if next(children) == '[' and next(children).name == 'i':
+                    tag.extract()
+                    self.stats['inline_alerts'] += 1
+            except StopIteration:
+                continue
+
+        # remove printfooter
+        tag = soup.find('div', class_='printfooter')
+        if tag is not None:
+            tag.extract()
+            self.stats['print_footer'] += 1
+
+        # remove hidden categories section
+        for tag in soup.find_all('div', id='mw-hidden-catlinks'):
+            tag.extract()
+            self.stats['hidden_categories'] += 1
+
+        # remove comments
+        for tag in soup(text=True):
+            if isinstance(tag, bs4.Comment):
+                tag.extract()
+                self.stats['comments'] += 1
+
+        # remove mediawiki parsing error red notices
+        for tag in soup('span', class_='error'):
+            tag.extract()
+            self.stats['parsing_error_notices'] += 1
 
         # fix original html and return no score at all
         wikifile.html = str(soup)

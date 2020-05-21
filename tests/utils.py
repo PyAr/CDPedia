@@ -17,6 +17,12 @@
 import os
 
 
+class FakeWikiFile:
+    def __init__(self, html, url='url'):
+        self.html = html
+        self.url = url
+
+
 def load_fixture(filename):
     """Load a fixture from disk."""
     filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)

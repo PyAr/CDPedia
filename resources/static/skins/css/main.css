@@ -625,6 +625,7 @@ body.ltr #footer #footer-places {
  */
 #content {
 	line-height: 1.5em;
+	overflow-y: auto;
 }
 #bodyContent {
 	font-size: 0.8em;
@@ -682,6 +683,7 @@ h6 {
 	padding-bottom: .17em;
 	border-bottom: 1px solid #aaa;
 	width: auto;
+	overflow: hidden;
 }
 h1 { font-size: 188%; }
 h1 .editsection { font-size: 53%; }
