@@ -14,17 +14,29 @@
 #
 # For further info, check  http://code.google.com/p/cdpedia/
 
+from __future__ import unicode_literals
+
+import codecs
 import os
+
+import bs4
 
 
 class FakeWikiFile:
+    """Emulate a simplified WikiFile object."""
+
     def __init__(self, html, url='url'):
-        self.html = html
+        self.soup = bs4.BeautifulSoup(html, features='html.parser')
         self.url = url
+
+    @property
+    def html(self):
+        """Return unicode representation of current soup."""
+        return self.soup.decode()
 
 
 def load_fixture(filename):
     """Load a fixture from disk."""
     filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
-    with open(filepath, "rb") as fh:
+    with codecs.open(filepath, "r", encoding='utf-8') as fh:
         return fh.read()
