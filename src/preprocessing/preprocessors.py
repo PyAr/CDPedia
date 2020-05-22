@@ -98,7 +98,7 @@ class ContentExtractor(_Processor):
             title = node.text.strip()
             self.stats['title found'] += 1
 
-        # extract the first parragraph
+        # extract the first paragraph
         node = wikifile.soup.find('p')
         if node is None:
             safe_text = ''
