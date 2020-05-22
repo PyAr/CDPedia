@@ -35,6 +35,8 @@ import time
 from collections import Counter
 from os.path import join, abspath, dirname
 
+import bs4
+
 import config
 from src import utiles
 from src.armado import to3dirs
@@ -47,27 +49,32 @@ LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
 
 
 class WikiFile(object):
-    """Manage source file of a wiki page."""
+    """Manage the content of a wiki page."""
 
     def __init__(self, cwd, last3dirs, file_name):
         self.relative_path = join(last3dirs, file_name)
         self.url = file_name
         self._filename = join(cwd, file_name)
-        self._html = None
+        self._soup = None
 
-    def get_html(self):
-        """Return file content, load it if not loaded."""
-        if self._html is None:
+    @property
+    def soup(self):
+        """Return html soup of article, load content from file if needed."""
+        if self._soup is None:
             with open(self._filename, 'rb') as fh:
-                self._html = fh.read()
+                self._soup = bs4.BeautifulSoup(fh.read(), features='lxml', from_encoding='utf-8')
 
-        return self._html
+        return self._soup
 
-    def set_html(self, data):
-        """Set html source."""
-        self._html = data
+    @soup.setter
+    def set_soup(self, soup):
+        """Set html soup."""
+        self._soup = soup
 
-    html = property(get_html, set_html)
+    @property
+    def html(self):
+        """Return current html as unicode string."""
+        return self.soup.decode()
 
     def save(self):
         """Save file, create directories that don't exist."""
@@ -78,11 +85,12 @@ class WikiFile(object):
             # dirname exists
             pass
 
+        content = self._soup.encode(encoding='utf-8')
         with open(output, 'wb') as fh:
-            fh.write(self._html)
+            fh.write(content)
 
     def __str__(self):
-        return "<WikiFile: %s>" % self.url.encode("utf8")
+        return '<WikiFile: {}>'.format(self.url).encode('utf-8')  # py3: return unicode
 
 
 class WikiSite(object):
