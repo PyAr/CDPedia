@@ -40,3 +40,13 @@ def load_fixture(filename):
     filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
     with codecs.open(filepath, "r", encoding='utf-8') as fh:
         return fh.read()
+
+
+def load_test_article(name):
+    """Return HTML content and FakeWikiFile instance of article."""
+    if not name.endswith('.html'):
+        name = name + '.html'
+    html = load_fixture(name)
+    wikifile = FakeWikiFile(html)
+    return html, wikifile
+
