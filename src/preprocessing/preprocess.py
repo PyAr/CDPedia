@@ -315,6 +315,7 @@ pages_selector = PagesSelector()
 
 
 def run(root_dir):
+    """Apply preprocessors and save results."""
     if os.path.exists(LOG_SCORES_FINAL):
         logger.info("Skipping the whole processing stage as the final scores log was found.")
         return
@@ -325,6 +326,7 @@ def run(root_dir):
 
 
 def profiled_run(root_dir):
+    """Apply preprocessors and save results while profiling the whole process."""
     # import cProfile
 
     tini = time.time()
