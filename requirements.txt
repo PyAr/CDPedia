@@ -1,6 +1,7 @@
 # on construction, so far to just run some tests
 bs4
 flake8
+jinja2 # TODO: this is to get the jinja2 new dependency, must be fixed.
 pytest
 pytest-mock
 pyyaml
