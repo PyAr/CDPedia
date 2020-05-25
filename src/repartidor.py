@@ -28,7 +28,7 @@ SLEEP = .3
 class _Trabajador(threading.Thread):
     """Clase que usa el repartidor internamente.
 
-    Ejecuta una función recibida de afuera.
+    Ejecuta una funciÃ³n recibida de afuera.
     """
     def __init__(self, nro, funcion, colaInput, colaOutput, termine):
         self.yo = nro
@@ -63,8 +63,8 @@ class Pool(object):
             self.logf = logf
 
         # lanzamos los n hilos para cada destino
-        self.qEnviar = [Queue.Queue() for x in range(self._cantw)]
-        self.qRecbir = [Queue.Queue() for x in range(self._cantw)]
+        self.qEnviar = [queue.Queue() for x in range(self._cantw)]
+        self.qRecbir = [queue.Queue() for x in range(self._cantw)]
         self.eTermin = [threading.Event() for x in range(self._cantw)]
         for i in range(self._cantw):
             h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i], self.eTermin[i])
@@ -74,7 +74,7 @@ class Pool(object):
     def procesa(self, trabajos):
         """Procesa los trabajos recibidos.
 
-        Los desparrama entre los trabajadores, en paralelo, mientras estén
+        Los desparrama entre los trabajadores, en paralelo, mientras estÃ©n
         libres.  Va entregando los resultados como generador, siempre con el
         payload al principio.
 
@@ -92,7 +92,7 @@ class Pool(object):
             self.logf("Hay encolados (%d) o estamos esperando algun "
                       "trabajo (%r)" % (len(encolados), disponibles))
 
-            # si hay algún hilo libre le damos trabajo (si hay)
+            # si hay algÃºn hilo libre le damos trabajo (si hay)
             while (encolados and (True in disponibles)):
                 payload = encolados.pop()
                 libre = disponibles.index(True)
@@ -101,7 +101,7 @@ class Pool(object):
                 disponibles[libre] = False
                 self.logf("Enviamos %r al hilo %d" % (payload, libre))
 
-            # revisamos los pendientes, para ver si terminó alguno
+            # revisamos los pendientes, para ver si terminÃ³ alguno
             for i in range(self._cantw):
                 if not self.eTermin[i].isSet():
                     continue
