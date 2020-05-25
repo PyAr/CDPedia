@@ -41,7 +41,7 @@ from . import utils
 from .destacados import Destacados
 from .searcher import Searcher
 from src.armado import cdpindex
-from src.armado.cdpindex import normaliza as normalize_keyword
+from src.armado.cdpindex import normalize_words
 from src.armado import compresor
 from src.armado import to3dirs
 from .utils import TemplateManager
@@ -204,14 +204,14 @@ class CDPedia(object):
             search_string = request.form.get("keywords", '')
             search_string = urllib.parse.unquote_plus(search_string)
             if search_string:
-                search_string_norm = normalize_keyword(search_string)
+                search_string_norm = normalize_words(search_string)
                 words = search_string_norm.split()
                 self.searcher.start_search(words)
                 return redirect("/search/" + "+".join(words))
             return redirect("/")
 
     def on_search_results(self, request, key):
-        search_string_norm = urllib.parse.unquote_plus(normalize_keyword(key))
+        search_string_norm = urllib.parse.unquote_plus(normalize_words(key))
         words = search_string_norm.split()
         start = int(request.args.get("start", 0))
         quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))

@@ -51,9 +51,9 @@ Para generar el archivo de indice hacer:
 PALABRAS = re.compile(r"\w+", re.UNICODE)
 
 
-def normaliza(txt):
-    """Recibe una frase y devuelve sus palabras ya normalizadas."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
+def normalize_words(txt):
+    """Splits a text into words converting and removing non ascii representable letters."""
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("utf-8")
     return txt
 
 
@@ -121,7 +121,7 @@ def filename2palabras(fname):
     """Transforma un filename en sus palabras y título."""
     if fname.endswith(".html"):
         fname = fname[:-5]
-    x = normaliza(fname)
+    x = normalize_words(fname)
     p = x.split("_")
     t = " ".join(p)
     return p, t
@@ -162,7 +162,7 @@ def generar_de_html(dirbase, verbose):
             # a las palabras del título le damos mucha importancia: 50, más
             # el puntaje original sobre 1000, como desempatador
             ptje = 50 + puntaje // 1000
-            for pal in PALABRAS.findall(normaliza(titulo)):
+            for pal in PALABRAS.findall(normalize_words(titulo)):
                 yield pal, (nomhtml, titulo, ptje, True, primtexto)
 
             # pasamos las palabras de los redirects también que apunten
