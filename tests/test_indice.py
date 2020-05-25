@@ -90,9 +90,9 @@ def test_same_keys(create_index):
 
 def test_mixed(create_index):
     """Two items with the same key and something else."""
-    idx = create_index([("a", 3), (u"ñ", 7), ("a", 5)])
+    idx = create_index([("a", 3), ("ñ", 7), ("a", 5)])
     items = sorted(idx.items())
-    assert items == [("a", [3, 5]), (u"ñ", [7])]
+    assert items == [("a", [3, 5]), ("ñ", [7])]
 
 
 # --- Test the .values method.
@@ -127,7 +127,7 @@ def test_values_same_keys(create_index):
 
 def test_values_mixed(create_index):
     """Two values with the same key and something else."""
-    idx = create_index([(u"ñ", 3), ("b", 7), (u"ñ", 5)])
+    idx = create_index([("ñ", 3), ("b", 7), ("ñ", 5)])
     values = sorted(idx.values())
     assert values == [3, 5, 7]
 
@@ -165,9 +165,9 @@ def test_infunc_one_item(create_index):
 
 def test_infunc_several_values(create_index):
     """Several values stored."""
-    idx = create_index([("a", 3), (u"ñ", 5)])
+    idx = create_index([("a", 3), ("ñ", 5)])
     assert "a" in idx
-    assert u"ñ" in idx
+    assert "ñ" in idx
     assert "c" not in idx
 
 
@@ -211,10 +211,10 @@ def test_search_same_keys(create_index):
 
 def test_search_mixed(create_index):
     """Two values with the same key and something else."""
-    idx = create_index([("a", 3), (u"ñ", 7), ("a", 5)])
+    idx = create_index([("a", 3), ("ñ", 7), ("a", 5)])
     res = idx.search(["a"])
     assert set(res) == {3, 5}
-    res = idx.search([u"ñ"])
+    res = idx.search(["ñ"])
     assert list(res) == [7]
     res = idx.search(["c"])
     assert list(res) == []
@@ -247,7 +247,7 @@ def test_partialsearch_nothing(create_index):
 
 def test_partialsearch_prefix(create_index):
     """Match its prefix."""
-    idx = create_index([(u"abñc", 3)])
+    idx = create_index([("abñc", 3)])
     res = idx.partial_search(["ab"])
     assert list(res) == [3]
     res = idx.partial_search(["ad"])
@@ -256,8 +256,8 @@ def test_partialsearch_prefix(create_index):
 
 def test_partialsearch_suffix(create_index):
     """Match its suffix."""
-    idx = create_index([(u"abñd", 3)])
-    res = idx.partial_search([u"ñd"])
+    idx = create_index([("abñd", 3)])
+    res = idx.partial_search(["ñd"])
     assert list(res) == [3]
     res = idx.partial_search(["ad"])
     assert list(res) == []
@@ -265,8 +265,8 @@ def test_partialsearch_suffix(create_index):
 
 def test_partialsearch_middle(create_index):
     """Match in the middle."""
-    idx = create_index([(u"abñd", 3)])
-    res = idx.partial_search([u"bñ"])
+    idx = create_index([("abñd", 3)])
+    res = idx.partial_search(["bñ"])
     assert list(res) == [3]
     res = idx.partial_search(["cb"])
     assert list(res) == []
@@ -321,7 +321,7 @@ def test_create_key_string(get_engine):
 def test_create_key_unicode(get_engine):
     """Keys can be unicode."""
     tempdir, engine = get_engine()
-    engine.create(tempdir, [(u"año", 33)])
+    engine.create(tempdir, [("año", 33)])
 
 
 def test_create_key_badtype(get_engine):

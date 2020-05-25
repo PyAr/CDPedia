@@ -26,5 +26,5 @@ class FakeWikiFile:
 def load_fixture(filename):
     """Load a fixture from disk."""
     filepath = os.path.join(os.getcwd(), 'tests', 'fixtures', filename)
-    with open(filepath, "rb") as fh:
+    with open(filepath, "r", encoding='utf-8') as fh:
         return fh.read()

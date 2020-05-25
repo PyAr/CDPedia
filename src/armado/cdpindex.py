@@ -16,8 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
 """
 Biblioteca para armar y leer los índices.
 
@@ -26,7 +24,6 @@ para crear el índice.
 """
 
 import base64
-import codecs
 import config
 import os
 import re
@@ -101,7 +98,7 @@ class IndexInterface(threading.Thread):
     def listado_valores(self):
         """Devuelve la info de todos los artículos."""
         self.ready.wait()
-        return sorted(set(x[:2] for x in self.indice.values()))
+        return sorted(set(x[:2] for x in list(self.indice.values())))
 
     def get_random(self):
         """Devuelve un artículo al azar."""
@@ -136,7 +133,7 @@ def generar_de_html(dirbase, verbose):
 
     # armamos las redirecciones
     redirs = {}
-    for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
+    for linea in open(config.LOG_REDIRECTS, "r", encoding="utf-8"):
         orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
 
         # del original, que es el que redirecciona, no tenemos título, así
@@ -148,7 +145,7 @@ def generar_de_html(dirbase, verbose):
     top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
-    with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
+    with open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
         for line in fh:
             arch, titulo, encoded_primtexto = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtexto = base64.b64decode(encoded_primtexto).decode("utf8")

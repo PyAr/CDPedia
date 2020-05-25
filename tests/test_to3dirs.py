@@ -18,7 +18,7 @@
 
 """Tests for the 'to3dirs' module."""
 
-from __future__ import unicode_literals
+
 
 import unittest
 

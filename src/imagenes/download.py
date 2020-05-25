@@ -16,13 +16,10 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement, print_function
-
-import codecs
 import collections
 import logging
 import os
-import urllib2
+import urllib.parse
 
 import config
 
@@ -43,8 +40,8 @@ def _descargar(url, fullpath):
     if not os.path.exists(basedir):
         os.makedirs(basedir)
 
-    req = urllib2.Request(url.encode("utf8"), headers=HEADERS)
-    u = urllib2.urlopen(req)
+    req = urllib.request.Request(url.encode("utf8"), headers=HEADERS)
+    u = urllib.request.urlopen(req)
 
     img = u.read()
     with open(fullpath, "wb") as fh:
@@ -53,20 +50,21 @@ def _descargar(url, fullpath):
 
 def descargar(data):
     url, fullpath = data
-    for i in range(3):
+    retries = 3
+    for i in range(retries):
         try:
             _descargar(url, fullpath)
             # todo bien
             return None
-        except urllib2.HTTPError as err:
+        except urllib.error.HTTPError as err:
             # error espeso, devolvemos el código
             return "HTTPError: %d" % (err.code,)
         except Exception as e:
             # algo raro, reintentamos
             print("Uh...", e)
-
-    # demasiados reintentos, devolvemos el último error
-    return str(e)
+            # demasiados reintentos, devolvemos el último error
+            if i == retries - 1:
+                return str(e)
 
 
 def retrieve():
@@ -76,12 +74,12 @@ def retrieve():
     # vemos cuales tuvieron problemas antes
     log_errores = os.path.join(config.DIR_TEMP, "imagenes_neterror.txt")
     if os.path.exists(log_errores):
-        with codecs.open(log_errores, "r", "utf8") as fh:
+        with open(log_errores, "r", encoding="utf8") as fh:
             imgs_problemas = set(x.strip() for x in fh)
     else:
         imgs_problemas = set()
 
-    for linea in codecs.open(config.LOG_REDUCCION, "r", "utf8"):
+    for linea in open(config.LOG_REDUCCION, "r", encoding="utf8"):
         linea = linea.strip()
         if not linea:
             continue
@@ -105,7 +103,7 @@ def retrieve():
         else:
             errores[stt] += 1
             c_err += 1
-            with codecs.open(log_errores, "a", "utf8") as fh:
+            with open(log_errores, "a", encoding="utf8") as fh:
                 fh.write(url + "\n")
 
         tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, c_ok, c_err)

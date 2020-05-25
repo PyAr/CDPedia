@@ -17,8 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """The Searcher."""
-
-import Queue
+import queue
 import collections
 import operator
 import re
@@ -59,7 +58,7 @@ class Cache(dict):
 class ThreadedSearch(threading.Thread):
     """The real search, in other thread."""
     def __init__(self, index, words):
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.index = index
         self.words = words
         self.discarded = False
@@ -68,6 +67,7 @@ class ThreadedSearch(threading.Thread):
     def run(self):
         """Do the search."""
         # full match
+        print("searching %r" % self.words)
         result = self.index.search(self.words)
         if self.discarded:
             return
@@ -132,7 +132,7 @@ class Searcher(object):
         if lock is not EOS:
             with lock:
                 # we need to get more results from index
-                for _ in xrange(need_to_retrieve):
+                for _ in range(need_to_retrieve):
                     result = search.queue.get()
                     if result is EOS:
                         vals = (search, prev_results, EOS, words)
@@ -160,7 +160,7 @@ class Searcher(object):
         agrupados = {}
         for link, titulo, ptje, original, texto in candidatos:
             # quitamos 3 dirs del link y agregamos "wiki"
-            link = u"wiki" + link[5:]
+            link = "wiki" + link[5:]
 
             # los tokens los ponemos en minúscula porque las mayúscula les
             # da un efecto todo entrecortado
@@ -178,10 +178,10 @@ class Searcher(object):
                 agrupados[link] = (titulo, ptje, tit_tokens, texto)
 
         # limpiamos los tokens
-        for link, (tit, ptje, tokens, texto) in agrupados.iteritems():
+        for link, (tit, ptje, tokens, texto) in agrupados.items():
             tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
         # ordenamos la nueva info descendiente y devolvemos todo
-        candidatos = ((k,) + tuple(v) for k, v in agrupados.iteritems())
+        candidatos = ((k,) + tuple(v) for k, v in agrupados.items())
         return sorted(candidatos, key=operator.itemgetter(2), reverse=True)

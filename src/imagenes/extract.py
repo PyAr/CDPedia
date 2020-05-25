@@ -24,14 +24,10 @@ those URLs for them to point to disk.
 Also log the URLs that needs to be downloaded.
 """
 
-from __future__ import with_statement, division, print_function
-
-import codecs
 import logging
 import os
 import sys
-import urllib
-import urllib2
+import urllib.parse
 
 import bs4
 
@@ -72,7 +68,7 @@ class ImageParser(object):
         same_before = preprocess.pages_selector.same_info_through_runs
         self.proces_antes = {}
         if not test and same_before and os.path.exists(config.LOG_IMAGPROC):
-            with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
+            with open(config.LOG_IMAGPROC, "r", encoding="utf-8") as fh:
                 for linea in fh:
                     partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
                     dir3 = partes[0]
@@ -85,7 +81,7 @@ class ImageParser(object):
         # levantamos la info de lo planeado a descargar
         self.descarg_antes = {}
         if not test and os.path.exists(config.LOG_IMAGENES):
-            with codecs.open(config.LOG_IMAGENES, "r", "utf-8") as fh:
+            with open(config.LOG_IMAGENES, "r", encoding="utf-8") as fh:
                 for linea in fh:
                     dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
                     self.descarg_antes[dsk] = web
@@ -99,14 +95,14 @@ class ImageParser(object):
         sep = config.SEPARADOR_COLUMNAS
         self.pag_elegidas = set()
         if not test:
-            with codecs.open(config.PAG_ELEGIDAS, "r", "utf-8") as fh:
+            with open(config.PAG_ELEGIDAS, "r", encoding="utf-8") as fh:
                 self.pag_elegidas = set(x.strip().split(sep)[1] for x in fh)
         logger.debug("Quantity of chosen pages, raw: %d",
                      len(self.pag_elegidas))
 
         pageleg = self.pag_elegidas
         if not test:
-            with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
+            with open(config.LOG_REDIRECTS, "r", encoding="utf-8") as fh:
                 for linea in fh:
                     orig, dest = linea.strip().split(sep)
                     if dest in pageleg:
@@ -120,20 +116,20 @@ class ImageParser(object):
     def dump(self):
         separador = config.SEPARADOR_COLUMNAS
         # write the images log
-        with codecs.open(config.LOG_IMAGENES, "w", "utf-8") as fh:
-            for k, v in self.a_descargar.items():
+        with open(config.LOG_IMAGENES, "w", encoding="utf-8") as fh:
+            for k, v in list(self.a_descargar.items()):
                 fh.write("%s%s%s\n" % (k, separador, v))
 
         # reescribimos todos los preproc que recorrimos
-        with codecs.open(config.LOG_IMAGPROC, "w", "utf-8") as fh:
-            for (dir3, fname), dskurls in self.proces_ahora.items():
+        with open(config.LOG_IMAGPROC, "w", encoding="utf-8") as fh:
+            for (dir3, fname), dskurls in list(self.proces_ahora.items()):
                 if dskurls:
                     dskurls = separador.join(dskurls)
                     linea = separador.join((dir3, fname, dskurls))
                 else:
                     linea = separador.join((dir3, fname))
                 fh.write(linea + "\n")
-            for name, dskurls in self.dynamics.items():
+            for name, dskurls in list(self.dynamics.items()):
                 dskurls = separador.join(dskurls)
                 linea = separador.join((config.DYNAMIC, name, dskurls))
                 fh.write(linea + "\n")
@@ -144,12 +140,12 @@ class ImageParser(object):
             logger.warning("Special file not found: %r", filepath)
             return
 
-        with codecs.open(filepath, "rt", encoding="utf8") as fh:
+        with open(filepath, "rt", encoding="utf8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.pag_elegidas)
 
-        with codecs.open(filepath, "wt", "utf-8") as fh:
+        with open(filepath, "wt", encoding="utf-8") as fh:
             fh.write(html)
 
         for dsk, web in newimgs:
@@ -168,7 +164,7 @@ class ImageParser(object):
 
         # read the html from the previous processing step
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
-        with codecs.open(arch, "r", "utf-8") as fh:
+        with open(arch, "r", encoding="utf-8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.pag_elegidas)
@@ -180,7 +176,7 @@ class ImageParser(object):
                 os.makedirs(destdir)
 
             newpath = os.path.join(destdir, fname)
-            with codecs.open(newpath, "w", "utf-8") as fh:
+            with open(newpath, "w", encoding="utf-8") as fh:
                 fh.write(html)
 
         # update the images to download
@@ -207,7 +203,7 @@ class ImageParser(object):
         for a_tag in soup.find_all('a'):
             ImageParser.fixlinks(a_tag, chosen_pages)
 
-        html = unicode(soup)
+        html = str(soup)
         return html, new_images
 
     @staticmethod
@@ -274,8 +270,8 @@ class ImageParser(object):
         querystr = '?s=%s-%s' % (img_width, img_height) if img_width and img_height else ''
 
         # Replace the origial src with the local servable path
-        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.quote(dsk_url.encode("latin-1")),
-                                                      querystr)
+        tag.attrs['src'] = IMG_URL_PREFIX + urllib.parse.quote(
+            dsk_url.encode("latin-1")) + querystr
 
         tag.attrs.pop("data-file-height", None)
         tag.attrs.pop("data-file-width", None)
@@ -302,7 +298,7 @@ class ImageParser(object):
         # this is a  classic article link
         if link.startswith(SEPLINK):
             fname = link[len(SEPLINK):]
-            fname = urllib2.unquote(fname)
+            fname = urllib.parse.unquote(fname)
 
             # if it was choosen, leave it as is
             if fname not in choosen_pages:
@@ -362,4 +358,4 @@ if __name__ == "__main__":
     preprocess.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
-    print("\n".join(str(x) for x in pi.a_descargar.items()))
+    print("\n".join(str(x) for x in list(pi.a_descargar.items())))

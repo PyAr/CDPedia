@@ -16,12 +16,11 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function, unicode_literals
+
 
 import itertools
 import os
 import re
-from codecs import open
 from io import StringIO
 
 import pytest
@@ -55,7 +54,7 @@ class MultiIO(StringIO):
     Really needed to deal with flake8 lib in Python 2. Will go away in Python 3.
     """
     def write(self, line):
-        super(MultiIO, self).write(line.decode("utf8"))
+        super(MultiIO, self).write(line)
 
 
 def test_flake8(mocker):

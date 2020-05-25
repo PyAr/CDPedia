@@ -16,8 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
 import config
 import itertools
 import re
@@ -36,7 +34,7 @@ class Destacados(object):
         self.verbose = verbose
 
         with open(config.DESTACADOS) as destacados:
-            self.destacados = [x.strip().decode('utf8') for x in destacados]
+            self.destacados = [x.strip() for x in destacados]
 
         self._iter = itertools.cycle(self.destacados)
 
@@ -48,7 +46,7 @@ class Destacados(object):
         while self.destacados and not data:
             if self.debug:
                 try:
-                    link = self._iter.next()
+                    link = next(self._iter)
                 except StopIteration:
                     return None
             else:
@@ -59,7 +57,7 @@ class Destacados(object):
 
             # destacado roto :|
             if self.verbose:
-                print(u"WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
+                print("WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
             self.destacados.remove(link)
         else:
             # no hay destacado

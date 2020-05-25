@@ -16,7 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import unicode_literals
+
 
 import unittest
 

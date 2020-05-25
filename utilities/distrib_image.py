@@ -25,6 +25,7 @@ Packages needed in the system:
     - deluged
 
 """
+from __future__ import print_function
 
 import hashlib
 import os
@@ -80,7 +81,7 @@ def main(wwwdir, torrentdir, image_filepath):
 
     # create the destination directory if not there, and move the torrent file
     web_dir = os.path.join(wwwdir, 'images', lang, dt)
-    print("Moving to web dir", repr(web_dir))
+    print(("Moving to web dir", repr(web_dir)))
     if not os.path.exists(web_dir):
         os.makedirs(web_dir)
     shutil.move(torrent_file, web_dir)

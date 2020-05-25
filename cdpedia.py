@@ -18,10 +18,10 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
 
-import Queue  # NOQA: this is needed by pyinstaller
-import SocketServer  # NOQA: this is needed by pyinstaller
+
+import queue  # NOQA: this is needed by pyinstaller
+import socketserver  # NOQA: this is needed by pyinstaller
 import codecs
 import optparse
 import os

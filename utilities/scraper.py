@@ -18,10 +18,7 @@
 # For further info, check  http://code.google.com/p/cdpedia/
 
 """Download the whole wikipedia."""
-
-from __future__ import with_statement
-
-import StringIO
+import io
 import collections
 import datetime
 import functools
@@ -33,7 +30,7 @@ import re
 import sys
 import tempfile
 import time
-import urllib
+import urllib.parse
 
 from twisted.internet import defer, reactor
 from twisted.web import client, error, http

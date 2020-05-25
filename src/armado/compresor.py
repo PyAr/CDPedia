@@ -31,20 +31,17 @@ Formato del bloque:
     Artículos, uno detrás del otro (el origen es 0 despues del header)
 """
 
-from __future__ import division, print_function
-
 import bz2
 import os
-import codecs
 import struct
-import cPickle as pickle
+import pickle as pickle
 from os import path
 from bz2 import BZ2File as CompressedFile
 import shutil
 
 import config
 from src import utiles
-from lru_cache import lru_cache
+from .lru_cache import lru_cache
 
 # This is the total blocks that are keep open using a LRU cache. This number
 # must be less than the maximum number of files open per process.
@@ -127,7 +124,7 @@ class Bloque(object):
         info = self.header[fileName]
         if self.verbose:
             print("encontrado:", info)
-        if isinstance(info, basestring):
+        if isinstance(info, str):
             # info es un link a lo real, hacemos semi-recursivo
             if self.verbose:
                 print("redirect!")
@@ -299,7 +296,7 @@ class ArticleManager(BloqueManager):
         # armo el diccionario de redirects, también separados por bloques para
         # saber a dónde buscarlos
         redirects = {}
-        for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
+        for linea in open(config.LOG_REDIRECTS, "r", encoding="utf-8"):
             orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
 
             # solamente nos quedamos con este redirect si realmente apunta a
@@ -317,7 +314,7 @@ class ArticleManager(BloqueManager):
         # armamos cada uno de los comprimidos
         tot_archs = 0
         tot_redirs = 0
-        for bloqNum, fileNames in bloques.items():
+        for bloqNum, fileNames in list(bloques.items()):
             tot_archs += len(fileNames)
             redirs_thisblock = redirects.get(bloqNum, [])
             tot_redirs += len(redirs_thisblock)
@@ -331,7 +328,7 @@ class ArticleManager(BloqueManager):
         # check for unicode before decoding, as we may be here twice in
         # the case of articles that are redirects to others (so, let's avoid
         # double decoding!)
-        if article is not None and isinstance(article, str):
+        if article is not None and isinstance(article, bytes):
             article = article.decode("utf-8")
         return article
 
@@ -366,7 +363,7 @@ class ImageManager(BloqueManager):
                 print("  archs:", bloqNum, repr(fileName))
 
         tot = 0
-        for bloqNum, fileNames in bloques.items():
+        for bloqNum, fileNames in list(bloques.items()):
             tot += len(fileNames)
             BloqueImagenes.crear(bloqNum, fileNames, verbose)
 

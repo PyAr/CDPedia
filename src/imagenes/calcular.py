@@ -66,7 +66,7 @@ class Escalador(object):
     def __call__(self, nro):
         if nro >= self.limite:
             # pasamos al próximo valor
-            (self.limite, self.escala) = self.gen_pares.next()
+            (self.limite, self.escala) = next(self.gen_pares)
         return self.escala
 
 

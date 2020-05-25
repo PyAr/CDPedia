@@ -34,15 +34,12 @@ other pages. If a processor wants to omit a given page, it must return
 None instead of the score.
 """
 
-from __future__ import print_function
-
 import base64
-import codecs
 import collections
 import logging
 import os
 import re
-from urllib2 import unquote
+from urllib.parse import unquote
 
 import bs4
 
@@ -85,16 +82,16 @@ class ContentExtractor(_Processor):
     def __init__(self):
         super(ContentExtractor, self).__init__()
         self.name = "ContentExtractor"
-        self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
+        self.output = open(config.LOG_TITLES, "at", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml")
 
         # extract the title
         node = soup.find('h1')
         if node is None:
-            title = u"<no-title>"
+            title = "<no-title>"
             self.stats['title not found'] += 1
         else:
             title = node.text.strip()
@@ -138,7 +135,7 @@ class VIPDecissor(object):
 
         # some manually curated pages
         if config.DESTACADOS is not None:
-            with codecs.open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
+            with open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
                 for line in fh:
                     viparts.add(line.strip())
 
@@ -188,11 +185,11 @@ class OmitRedirects(_Processor):
     def __init__(self):
         super(OmitRedirects, self).__init__()
         self.name = "Redirects"
-        self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
+        self.output = open(config.LOG_REDIRECTS, "a", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
+        soup = bs4.BeautifulSoup(wikifile.html, "lxml")
         node = soup.find('ul', 'redirectText')
         if not node:
             # not a redirect, simple file
@@ -251,12 +248,7 @@ class Peishranc(_Processor):
                 continue
 
             # decode and unquote
-            lnk = data['href']
-            try:
-                lnk = unquote(lnk).decode('utf8')
-            except UnicodeDecodeError:
-                logger.error('unquoting/decoding link failed: %s', repr(lnk))
-                continue
+            lnk = unquote(data['href'])
 
             # "/" are not really stored like that in disk, they are replaced
             # by the SLASH word
@@ -269,10 +261,10 @@ class Peishranc(_Processor):
             del scores[wikifile.url]
 
         # factor score by constant
-        for lnk, score in scores.iteritems():
+        for lnk, score in list(scores.items()):
             scores[lnk] = score * SCORE_PEISHRANC
 
-        return (0, scores.items())
+        return (0, list(scores.items()))
 
 
 class Length(_Processor):
@@ -304,7 +296,7 @@ class HTMLCleaner(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, features='html.parser', from_encoding='utf8')
+        soup = bs4.BeautifulSoup(wikifile.html, features='html.parser')
 
         # remove text and links of 'not last version'
         tag = soup.find('div', id='contentSub')

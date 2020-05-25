@@ -16,18 +16,17 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
-import StringIO
 import argparse
 import datetime
 import gzip
+import io
 import itertools
 import logging
 import os
 import shutil
 import sys
-import urllib2
+import urllib.parse
+import urllib.request
 from logging.handlers import RotatingFileHandler
 
 import yaml
@@ -89,23 +88,23 @@ logger = logging.getLogger("cdpetron")
 def get_lists(branch_dir, language, config, test):
     """Get the list of wikipedia articles."""
     gendate = datetime.date.today().strftime("%Y%m%d")
-    with open(DATE_FILENAME, 'wb') as fh:
+    with open(DATE_FILENAME, 'w', encoding="utf-8") as fh:
         fh.write(gendate + "\n")
 
     fh_artall = open(ART_ALL, "wb")
 
     url = URL_LIST % dict(language=language)
     logger.info("Getting list file: %r", url)
-    u = urllib2.urlopen(url)
-    logger.debug("Got headers: %s", u.headers.items())
-    fh = StringIO.StringIO(u.read())
+    u = urllib.request.urlopen(url)
+    logger.debug("Got headers: %s", list(u.headers.items()))
+    fh = io.BytesIO(u.read())
     gz = gzip.GzipFile(fileobj=fh)
 
     # walk through lines, easier to count and assure all lines are proper
     # saved into final file, mainly because of last line separator
     q = 0
     for line in gz:
-        fh_artall.write(line.strip() + "\n")
+        fh_artall.write(line.strip() + b"\n")
         q += 1
     tot = q
     gz.close()
@@ -118,7 +117,7 @@ def get_lists(branch_dir, language, config, test):
     prefixes = set()
     for article in list_articles_by_namespaces.get_articles(language, test):
         q += 1
-        fh_artall.write(article.encode('utf8') + "\n")
+        fh_artall.write(article.encode('utf8') + b"\n")
         prefixes.add(article.split(":", 1)[0])
     tot += q
     logger.info("Got %d namespace articles", q)
@@ -130,12 +129,12 @@ def get_lists(branch_dir, language, config, test):
     _path = os.path.join(direct, NAMESPACES)
     with open(_path, 'wb') as fh:
         for prefix in sorted(prefixes):
-            fh.write(prefix.encode("utf8") + "\n")
+            fh.write(prefix.encode("utf8") + b"\n")
 
     q = 0
     for page in config['include']:
         q += 1
-        fh_artall.write(page.encode('utf8') + "\n")
+        fh_artall.write(page.encode('utf8') + b"\n")
     tot += q
     logger.info("Have %d articles to mandatorily include", q)
 
@@ -212,7 +211,7 @@ def scrap_portals(dump_lang_dir, language, lang_config):
         return
 
     logger.info("Downloading portal index from %r", portal_index_url)
-    u = urllib2.urlopen(portal_index_url)
+    u = urllib.request.urlopen(portal_index_url)
     html = u.read()
     logger.info("Scrapping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
@@ -220,7 +219,7 @@ def scrap_portals(dump_lang_dir, language, lang_config):
     new_html = portals.generate(items)
 
     # save it
-    with open(os.path.join(direct, "portals.html"), 'wb') as fh:
+    with open(os.path.join(direct, "portals.html"), 'w', encoding="utf-8") as fh:
         fh.write(new_html)
     logger.info("Portal scrapping done")
 

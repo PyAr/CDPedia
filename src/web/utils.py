@@ -15,9 +15,9 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 import re
-import urllib
 import os.path
 import string
+import urllib.parse
 
 from src.armado import to3dirs
 import config
@@ -47,16 +47,15 @@ class TemplateManager(object):
 
 def get_title_from_data(data):
     if data is None:
-        return u""
+        return ""
     for regexp in (re_header, re_title):
         match = regexp.search(data)
         if match is not None:
             return match.group(1)
-    return u""
+    return ""
 
 
 def get_orig_link(path):
     """Gets the original external link of a path."""
-    orig_link = (
-        config.URL_WIKIPEDIA + u"wiki/" + urllib.quote(to3dirs.to_pagina(path).encode("utf-8")))
-    return orig_link
+
+    return config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(to3dirs.to_pagina(path))

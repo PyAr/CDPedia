@@ -16,9 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement, print_function
-
-import codecs
 import config
 import logging
 import os
@@ -35,7 +32,7 @@ def run(verbose):
     # leemos las imágenes que procesamos antes
     done_antes = {}
     if os.path.exists(config.LOG_REDUCDONE):
-        with codecs.open(config.LOG_REDUCDONE, "r", "utf-8") as fh:
+        with open(config.LOG_REDUCDONE, "r", encoding="utf-8") as fh:
             for linea in fh:
                 partes = linea.strip().split()
                 escala = int(partes[0])
@@ -46,7 +43,7 @@ def run(verbose):
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # cargamos la escala que va para cada página
-    with codecs.open(config.LOG_REDUCCION, "r", "utf-8") as fh:
+    with open(config.LOG_REDUCCION, "r", encoding="utf-8") as fh:
         for linea in fh:
             partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
             escl = int(partes[0])
@@ -91,8 +88,8 @@ def run(verbose):
                     logger.warning("Got %d when processing %s", errorcode, frompath)
 
     # guardamos lo que procesamos ahora
-    with codecs.open(config.LOG_REDUCDONE, "w", "utf-8") as fh:
-        for dskurl, escl in done_ahora.iteritems():
+    with open(config.LOG_REDUCDONE, "w", encoding="utf-8") as fh:
+        for dskurl, escl in done_ahora.items():
             fh.write("%3d %s\n" % (escl, dskurl))
 
     # vemos lo que sobró de la vez pasada y lo borramos

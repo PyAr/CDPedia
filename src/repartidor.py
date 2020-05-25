@@ -17,7 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import Queue
+import queue
 import threading
 import time
 

@@ -24,16 +24,17 @@ bmp.py - module for constructing simple BMP graphics files
 
 """
 
-import cPickle
+import base64
+import pickle
 import bz2
 
 from math import ceil, hypot
-from StringIO import StringIO
+from io import StringIO
 
 BOGUS_W = 87
 BOGUS_H = 16
 
-BOGUS_LABEL = cPickle.loads(bz2.decompress('''
+BOGUS_LABEL = pickle.loads(bz2.decompress(base64.b64decode(b'''
 QlpoOTFBWSZTWako/W0AAy/dgAAQAEF/4AAgIAREAGAIKD0GC8ESfF2+57b2yt3a7l3geKbCGqap
 ADTTIFNVT9SGElN+qqoBoAJTyVFQzVGIG1J6SYIGCFR6qgDTQS28Wyyb4igKtikvU7/Hhx0xej8Q
 wbo1Ig6zMMaFEuWSbSRFiXMdQ7Y08Vl1ROkPeFSamOA5mGzAJNm8usHDW8O3PO7mu5WFVm8qwjN0
@@ -57,7 +58,7 @@ klkXPZGiRrlk2vhx9Pt+OtLeGgwaDYNoLQAB70kj6l3veqPc9zdGP13fyPk2XgP24H8anfDQ6zXh
 g0G3Cvc7uulQBCS+JTBIERUwa+9hw6H76puXL8KMr6/N0ijyKCvPKqKfD7+eY2223cYdsbbA2wG2
 qqq/H1fj37Lb89yqAFVaTENtuJlttJsXSdAturkLiM3w34L3n9aLTjoH7J8gAAAB7veEkAAAADnO
 c55PMUQQwTRJVCMQ001EiRCqRBMQwkQ0JJRQSkEiwEqyMlJQDESJNUrSMUhICwhEQRIwKSgSEESl
-BCDCSyUCTEKEASEKyJDEKCl+/woDLarX/F3JFOFCQqSj9bQ='''.decode('base64')))
+BCDCSyUCTEKEASEKyJDEKCl+/woDLarX/F3JFOFCQqSj9bQ=''')))
 
 
 def shortToString(i):
@@ -66,8 +67,8 @@ def shortToString(i):
   return chr(lo) + chr(hi)
 
 def longToString(i):
-  hi = (long(i) & 0x7fff0000) >> 16
-  lo = long(i) & 0x0000ffff
+  hi = (int(i) & 0x7fff0000) >> 16
+  lo = int(i) & 0x0000ffff
   return shortToString(lo) + shortToString(hi)
 
 
@@ -83,7 +84,7 @@ class Color(object):
 
   def __setattr__(self, name, value):
     if hasattr(self, name):
-      raise AttributeError, "Color is immutable"
+      raise AttributeError("Color is immutable")
     else:
       object.__setattr__(self, name, value)
 
@@ -91,9 +92,9 @@ class Color(object):
     return "R:%d G:%d B:%d" % (self.red, self.grn, self.blu )
     
   def __hash__( self ):
-    return ( ( long(self.blu) ) + 
-              ( long(self.grn) <<  8 ) + 
-              ( long(self.red) << 16 ) )
+    return ( ( int(self.blu) ) + 
+              ( int(self.grn) <<  8 ) + 
+              ( int(self.red) << 16 ) )
   
   def __eq__( self, other ):
     return (self is other) or (self.toLong == other.toLong)
