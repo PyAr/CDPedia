@@ -81,7 +81,7 @@ class URLAlizer(object):
         self.fh = open(listado_nombres, 'r')
         self.test_limit = test_limit
 
-    def next(self):
+    def __next__(self):
         while True:
             if self.test_limit is not None:
                 self.test_limit -= 1
@@ -92,7 +92,7 @@ class URLAlizer(object):
                 raise StopIteration
             if line == "page_title":
                 continue
-            basename = line.decode("utf-8").strip()
+            basename = line.strip()
             three_dirs, filename = to3dirs.get_path_file(basename)
             path = os.path.join(self.dest_dir, three_dirs)
             disk_name = os.path.join(path, filename)
@@ -100,7 +100,7 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
-                quoted_url = urllib.quote(basename.encode('utf-8'))
+                quoted_url = urllib.parse.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 wiki = WIKI % dict(lang=self.language)
                 url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
@@ -120,7 +120,7 @@ def fetch_html(url):
         try:
             data = yield client.getPage(url, headers=REQUEST_HEADERS,
                                         timeout=60, agent=USER_AGENT)
-            compressedstream = StringIO.StringIO(data)
+            compressedstream = io.BytesIO(data)
             gzipper = gzip.GzipFile(fileobj=compressedstream)
             html = gzipper.read()
 
@@ -167,7 +167,7 @@ class WikipediaArticle(object):
         self.language = language
         self.url = url
         self.basename = basename
-        self.quoted_basename = urllib.quote(
+        self.quoted_basename = urllib.parse.quote(
             basename.encode('utf-8')).replace(' ', '_')
         self._history = None
         self.history_size = 6
@@ -202,7 +202,7 @@ class WikipediaArticle(object):
     def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
         assert len(pages) == 1
-        pageid = pages.keys()[0]
+        pageid = list(pages.keys())[0]
         if pageid == '-1':
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisions(self)
@@ -363,7 +363,7 @@ def save_htmls(data_urls):
 
     temp_file = get_temp_file(data_urls.temp_dir)
 
-    if u"Categoría" not in data_urls.basename:
+    if "Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
         temp_file.write(html)
         temp_file.close()
@@ -469,7 +469,7 @@ def main(nombres, language, dest_dir, namespaces_path, test_limit=None, pool_siz
     data_urls = URLAlizer(nombres, dest_dir, language, test_limit)
     board = StatusBoard(language)
     yield pool.start(board.process, data_urls)
-    print   # final new line for console aesthetic
+    print()   # final new line for console aesthetic
 
 
 USAGE = """
