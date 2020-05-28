@@ -238,12 +238,8 @@ class Peishranc(_Processor):
         for a_tag in wikifile.soup.find_all('a', href=True):
 
             # discard by class
-            try:
-                if any(c in ('image', 'internal') for c in a_tag.get('class')):
-                    continue
-            except TypeError:
-                # tag has no class attribute
-                pass
+            if any(c in ('image', 'internal') for c in a_tag.get('class', '')):
+                continue
 
             # discard by href start
             href = a_tag.get('href')
