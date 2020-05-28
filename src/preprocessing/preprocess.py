@@ -71,8 +71,7 @@ class WikiFile(object):
         """Set html soup."""
         self._soup = soup
 
-    @property
-    def html(self):
+    def get_html(self):
         """Return current html as unicode string."""
         return self.soup.decode()
 

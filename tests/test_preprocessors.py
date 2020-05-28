@@ -253,7 +253,7 @@ class TestLength(object):
 
     def test_length(self, length):
         """Test correct length score."""
-        html = 'abcd <p>foo bar baz</p> dcbá'
+        html = '<html><body>abcd <p>foo bar baz</p> dcbá</body></html>'
         wikifile = FakeWikiFile(html)
         score, _ = length(wikifile)
         assert score == len(html)
@@ -274,7 +274,7 @@ class TestHTMLCleaner(object):
         assert text in html
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert text not in wikifile.html
+        assert text not in wikifile.get_html()
 
     def test_remove_img_srcset(self, cleaner, article_2):
         """Test removal of srcset attribute."""
@@ -283,7 +283,7 @@ class TestHTMLCleaner(object):
         assert text in html
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert text not in wikifile.html
+        assert text not in wikifile.get_html()
 
     def test_remove_not_last_version_text(self, cleaner):
         """Test removal of unwanted text."""
@@ -293,7 +293,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_edit_section(self, cleaner):
         """Test removal of edit links."""
@@ -303,7 +303,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_ambox(self, cleaner):
         """Test removal of message boxes."""
@@ -313,7 +313,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_links_keep_text(self, cleaner, article_2):
         """Test unwrapping of special links."""
@@ -324,8 +324,9 @@ class TestHTMLCleaner(object):
         assert all(text in html for text in texts_remove)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert all(text in wikifile.html for text in texts_keep)
-        assert not all(text in wikifile.html for text in texts_remove)
+        html_fixed = wikifile.get_html()
+        assert all(text in html_fixed for text in texts_keep)
+        assert not all(text in html_fixed for text in texts_remove)
 
     def test_remove_hidden_subtitle(self, cleaner):
         """Test removal of subtitle."""
@@ -334,7 +335,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_jump_links(self, cleaner, article_2):
         """Test removal of unwanted jump links."""
@@ -345,8 +346,9 @@ class TestHTMLCleaner(object):
         assert text2 in html
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert text1 not in wikifile.html
-        assert text2 not in wikifile.html
+        html_fixed = wikifile.get_html()
+        assert text1 not in html_fixed
+        assert text2 not in html_fixed
 
     def test_remove_inline_alerts(self, cleaner):
         """Test removal of inline alerts keeping similar looking references."""
@@ -356,7 +358,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_printfooter(self, cleaner, article_2):
         """Test removal of print footer."""
@@ -365,7 +367,7 @@ class TestHTMLCleaner(object):
         assert text in html
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert text not in wikifile.html
+        assert text not in wikifile.get_html()
 
     def test_remove_hidden_categories(self, cleaner):
         """Test removal of hidden categories sections."""
@@ -375,7 +377,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_comments(self, cleaner):
         """Test removal of HTML comments."""
@@ -385,7 +387,7 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 
     def test_remove_parsing_errors(self, cleaner):
         """Test removal of wikipedia parsing error notices."""
@@ -395,5 +397,5 @@ class TestHTMLCleaner(object):
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
-        assert html_fixed in wikifile.html
+        assert html_fixed in wikifile.get_html()
 

@@ -281,7 +281,7 @@ class Length(_Processor):
         self.name = "Length"
 
     def __call__(self, wikifile):
-        length = len(wikifile.html)
+        length = len(wikifile.get_html())
         return (length, [])
 
 

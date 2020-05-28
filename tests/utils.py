@@ -29,8 +29,7 @@ class FakeWikiFile:
         self.soup = bs4.BeautifulSoup(html, features='lxml')
         self.url = url
 
-    @property
-    def html(self):
+    def get_html(self):
         """Return unicode representation of current soup."""
         return self.soup.decode()
 

@@ -69,7 +69,7 @@ class TestWikiFile(object):
     def test_html(self, article, wikifile):
         """Test html output."""
         wf = wikifile(*article)
-        assert 'content' in wf.html
+        assert 'content' in wf.get_html()
 
     def test_str(self, article, wikifile):
         """Test string representation."""
