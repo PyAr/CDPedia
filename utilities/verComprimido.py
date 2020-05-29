@@ -19,9 +19,6 @@
 """
 Muestra info del archivo comprimido.
 """
-
-from __future__ import division, with_statement, print_function
-
 import operator
 import sys
 import os
@@ -42,8 +39,8 @@ def main(fname, a_extraer):
     #                  v -> (seek, size) o el nombre del apuntado
     archivos = []
     redirects = 0
-    for name, info in c.header.items():
-        if isinstance(info, basestring):
+    for name, info in list(c.header.items()):
+        if isinstance(info, str):
             redirects += 1
         else:
             (seek, size) = info
