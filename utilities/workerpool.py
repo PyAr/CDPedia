@@ -27,7 +27,10 @@ class WorkerPool(object):
     def _worker(self, function, iterable):
         """One worker instance."""
         while True:
-            args = next(iterable)
+            try:
+                args = next(iterable)
+            except StopIteration:
+                return
             try:
                 yield function(args)
             except Exception:

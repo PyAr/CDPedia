@@ -19,13 +19,11 @@
 
 """Download the whole wikipedia."""
 
-from __future__ import with_statement
-
-import StringIO
 import collections
 import datetime
 import functools
 import gzip
+import io
 import json
 import logging
 import os
@@ -66,10 +64,10 @@ REVISION_URL = (
     'title=%(title)s&oldid=%(revno)s'
 )
 
-USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
-             'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
+USER_AGENT = b'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
+             b'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
 
-REQUEST_HEADERS = {'Accept-encoding': 'gzip'}
+REQUEST_HEADERS = {b'Accept-encoding': b'gzip'}
 
 DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename")
 
@@ -81,10 +79,10 @@ class URLAlizer(object):
         self.temp_dir = dest_dir + ".tmp"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
-        self.fh = open(listado_nombres, 'r')
+        self.fh = open(listado_nombres, 'r', encoding='utf-8')
         self.test_limit = test_limit
 
-    def next(self):
+    def __next__(self):
         while True:
             if self.test_limit is not None:
                 self.test_limit -= 1
@@ -95,7 +93,7 @@ class URLAlizer(object):
                 raise StopIteration
             if line == "page_title":
                 continue
-            basename = line.decode("utf-8").strip()
+            basename = line.strip()
             three_dirs, filename = to3dirs.get_path_file(basename)
             path = os.path.join(self.dest_dir, three_dirs)
             disk_name = os.path.join(path, filename)
@@ -103,7 +101,7 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
-                quoted_url = urllib.quote(basename.encode('utf-8'))
+                quoted_url = urllib.parse.quote(basename.encode('utf-8'))
                 # Skip wikipedia automatic redirect
                 wiki = WIKI % dict(lang=self.language)
                 url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
@@ -121,11 +119,11 @@ def fetch_html(url):
     retries = 3
     while True:
         try:
-            data = yield client.getPage(url, headers=REQUEST_HEADERS,
+            data = yield client.getPage(url.encode('utf-8'), headers=REQUEST_HEADERS,
                                         timeout=60, agent=USER_AGENT)
-            compressedstream = StringIO.StringIO(data)
+            compressedstream = io.BytesIO(data)
             gzipper = gzip.GzipFile(fileobj=compressedstream)
-            html = gzipper.read()
+            html = gzipper.read().decode('utf-8')
 
             defer.returnValue(html)
         except Exception as err:
@@ -170,7 +168,7 @@ class WikipediaArticle(object):
         self.language = language
         self.url = url
         self.basename = basename
-        self.quoted_basename = urllib.quote(
+        self.quoted_basename = urllib.parse.quote(
             basename.encode('utf-8')).replace(' ', '_')
         self._history = None
         self.history_size = 6
@@ -205,7 +203,7 @@ class WikipediaArticle(object):
     def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
         assert len(pages) == 1
-        pageid = pages.keys()[0]
+        pageid = next(iter(pages))
         if pageid == '-1':
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisions(self)
@@ -304,11 +302,6 @@ def get_html(url, basename):
         # we surely didn't download it all
         logger("Try again (unfinished download): %s", basename)
         defer.returnValue(False)
-    try:
-        html.decode("utf8")
-    except UnicodeDecodeError:
-        logger("Try again (not utf8): %s", basename)
-        defer.returnValue(False)
 
     try:
         html = extract_content(html, url)
@@ -368,7 +361,7 @@ def save_htmls(data_urls):
 
     if u"Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
         defer.returnValue([(temp_file, data_urls.disk_name)])
 
@@ -387,7 +380,7 @@ def save_htmls(data_urls):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
 
         if not prox_url:
