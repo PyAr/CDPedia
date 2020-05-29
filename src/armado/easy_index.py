@@ -81,7 +81,7 @@ class Index(object):
         '''Returns an iterator over the stored items.'''
         for key, allids in self.key_shelf.items():
             values = self._get_info_id(allids)
-            yield key, list(values)
+            yield key, sorted(list(values))
 
     def values(self):
         '''Returns an iterator over the stored values.'''
