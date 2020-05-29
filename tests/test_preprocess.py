@@ -66,10 +66,13 @@ class TestWikiFile(object):
         wf = wikifile(*article)
         assert wf.soup.find('p') is not None
 
-    def test_html(self, article, wikifile):
-        """Test html output."""
-        wf = wikifile(*article)
-        assert 'content' in wf.get_html()
+    def test_length(self, article, wikifile):
+        """Test html length."""
+        cwd, last3dirs, file_name = article
+        wf = wikifile(cwd, last3dirs, file_name)
+        wf.soup  # load content
+        length = os.stat(os.path.join(cwd, file_name)).st_size
+        assert length == wf.original_html_length
 
     def test_str(self, article, wikifile):
         """Test string representation."""

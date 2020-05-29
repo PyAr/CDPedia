@@ -27,6 +27,7 @@ class FakeWikiFile:
 
     def __init__(self, html, url='url'):
         self.soup = bs4.BeautifulSoup(html, features='lxml')
+        self.original_html_length = len(html)
         self.url = url
 
     def get_html(self):
