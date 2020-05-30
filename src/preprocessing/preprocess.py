@@ -55,23 +55,23 @@ class WikiFile(object):
         self.relative_path = join(last3dirs, file_name)
         self.url = file_name
         self._filename = join(cwd, file_name)
-        self.original_html_length = None
+        self._original_html_length = None
         self._soup = None
 
     @property
     def soup(self):
         """Return html soup of article, load content from file if needed."""
         if self._soup is None:
-            self.original_html_length = os.stat(self._filename).st_size
             with open(self._filename, 'rb') as fh:
                 self._soup = bs4.BeautifulSoup(fh, features='lxml', from_encoding='utf-8')
 
         return self._soup
 
-    @soup.setter
-    def set_soup(self, soup):
-        """Set html soup."""
-        self._soup = soup
+    @property
+    def original_html_length(self):
+        if self._original_html_length is None:
+            self._original_html_length = os.stat(self._filename).st_size
+        return self._original_html_length
 
     def save(self):
         """Save file, create directories that don't exist."""
