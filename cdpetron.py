@@ -86,11 +86,11 @@ logger.addHandler(handler)
 logger = logging.getLogger("cdpetron")
 
 
-def get_lists(branch_dir, language, config, test):
+def get_lists(branch_dir, language, lang_config, test):
     """Get the list of wikipedia articles."""
-    gendate = datetime.date.today().strftime("%Y%m%d")
-    with open(DATE_FILENAME, 'wb') as fh:
-        fh.write(gendate + "\n")
+    # save the creation date everytime we start listing everything; this is the moment that
+    # reflects better "when the wikipedia was created"
+    gendate = save_creation_date()
 
     fh_artall = open(ART_ALL, "wb")
 
@@ -133,7 +133,7 @@ def get_lists(branch_dir, language, config, test):
             fh.write(prefix.encode("utf8") + "\n")
 
     q = 0
-    for page in config['include']:
+    for page in lang_config['include']:
         q += 1
         fh_artall.write(page.encode('utf8') + "\n")
     tot += q
@@ -141,15 +141,33 @@ def get_lists(branch_dir, language, config, test):
 
     fh_artall.close()
     logger.info("Total of articles: %d", tot)
+
     return gendate
 
 
-def save_creation_date(date):
+def save_creation_date():
     """Save the creation date of the CDPedia."""
-    generation_date = date
-    _path = os.path.join(config.DIR_ASSETS, DATE_FILENAME)
-    with open(_path, 'wt') as f:
+    generation_date = datetime.date.today().strftime("%Y%m%d")
+    _path = os.path.join(DUMP_RESOURCES, DATE_FILENAME)
+    with open(_path, 'wb') as f:
         f.write(generation_date + "\n")
+    logger.info("Date of generation saved: %s", generation_date)
+    return generation_date
+
+
+def load_creation_date():
+    """Load the creation date of the CDPedia.
+
+    Having this in disk means that the lists were generated. Returns None if can't read it.
+    """
+    _path = os.path.join(DUMP_RESOURCES, DATE_FILENAME)
+    try:
+        with open(_path, 'rb') as fh:
+            generation_date = fh.read().strip()
+    except IOError:
+        return
+    logger.info("Date of generation loaded: %s", generation_date)
+    return generation_date
 
 
 def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
@@ -280,16 +298,13 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
         os.mkdir(dump_lang_dir)
     os.chdir(dump_lang_dir)
 
-    if not nolists:
-        gendate = get_lists(branch_dir, language, lang_config, test)
-    else:
-        try:
-            with open(DATE_FILENAME, 'rt') as fh:
-                gendate = fh.read().strip()
-        except IOError:
+    if nolists:
+        gendate = load_creation_date()
+        if gendate is None:
             logger.error("No article list available. Run at least once without --no-lists")
-            exit()
-    logger.info("Date of generation: %s", gendate)
+            return
+    else:
+        gendate = get_lists(branch_dir, language, lang_config, test)
 
     if not noscrap:
         scrap_portals(dump_lang_dir, language, lang_config)
@@ -317,8 +332,6 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
             keep_processed = noscrap and not test
             clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
         generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
-
-    save_creation_date(gendate)
 
 
 if __name__ == "__main__":
@@ -391,7 +404,6 @@ if __name__ == "__main__":
     # fix sys path to branch dir and import the rest of stuff from there
     sys.path.insert(1, branch_dir)
     sys.path.insert(1, os.path.join(branch_dir, "utilities"))
-    import config
     from src import list_articles_by_namespaces, generate
     from src.scrapping import portals
 
