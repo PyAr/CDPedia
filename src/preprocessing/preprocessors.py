@@ -231,6 +231,9 @@ class Peishranc(_Processor):
     def __init__(self):
         super(Peishranc, self).__init__()
         self.name = "Peishranc"
+        # discard links not starting with this prefix
+        self.prefix = '/wiki/'
+        self.prefix_length = len(self.prefix)
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -243,11 +246,11 @@ class Peishranc(_Processor):
 
             # discard by href start
             href = a_tag.get('href')
-            if not href.startswith('/wiki/'):
+            if not href.startswith(self.prefix):
                 continue
 
             # discard prefix and fragment part
-            link = href[6:].split('#', 1)[0]
+            link = href[self.prefix_length:].split('#', 1)[0]
 
             # decode and unquote
             try:
