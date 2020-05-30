@@ -313,10 +313,6 @@ class TestPagesSelector(object):
 class TestRun(object):
     """Tests for the `run` function."""
 
-    @pytest.fixture
-    def scores(self, mocker):
-        pass
-
     def test_skip(self, mocker, caplog):
         mocker.patch('os.path.exists', mocker.Mock(return_value=True))
         """Skip preprocessing if final scores file exists."""
