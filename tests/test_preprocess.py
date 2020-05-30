@@ -66,10 +66,12 @@ class TestWikiFile(object):
         wf = wikifile(*article)
         assert wf.soup.find('p') is not None
 
-    def test_html(self, article, wikifile):
-        """Test html output."""
-        wf = wikifile(*article)
-        assert 'content' in wf.html
+    def test_length(self, article, wikifile):
+        """Test html length."""
+        cwd, last3dirs, file_name = article
+        wf = wikifile(cwd, last3dirs, file_name)
+        length = os.stat(os.path.join(cwd, file_name)).st_size
+        assert length == wf.original_html_length
 
     def test_str(self, article, wikifile):
         """Test string representation."""
@@ -309,10 +311,6 @@ class TestPagesSelector(object):
 
 class TestRun(object):
     """Tests for the `run` function."""
-
-    @pytest.fixture
-    def scores(self, mocker):
-        pass
 
     def test_skip(self, mocker, caplog):
         mocker.patch('os.path.exists', mocker.Mock(return_value=True))

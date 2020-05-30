@@ -26,11 +26,11 @@ class FakeWikiFile:
     """Emulate a simplified WikiFile object."""
 
     def __init__(self, html, url='url'):
-        self.soup = bs4.BeautifulSoup(html, features='html.parser')
+        self.soup = bs4.BeautifulSoup(html, features='lxml')
+        self.original_html_length = len(html)
         self.url = url
 
-    @property
-    def html(self):
+    def get_html(self):
         """Return unicode representation of current soup."""
         return self.soup.decode()
 

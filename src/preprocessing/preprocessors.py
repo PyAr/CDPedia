@@ -231,6 +231,9 @@ class Peishranc(_Processor):
     def __init__(self):
         super(Peishranc, self).__init__()
         self.name = "Peishranc"
+        # discard links not starting with this prefix
+        self.prefix = '/wiki/'
+        self.prefix_length = len(self.prefix)
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -238,20 +241,16 @@ class Peishranc(_Processor):
         for a_tag in wikifile.soup.find_all('a', href=True):
 
             # discard by class
-            try:
-                if any(c in ('image', 'internal') for c in a_tag.get('class')):
-                    continue
-            except TypeError:
-                # tag has no class attribute
-                pass
+            if any(c in ('image', 'internal') for c in a_tag.get('class', '')):
+                continue
 
             # discard by href start
             href = a_tag.get('href')
-            if not href.startswith('/wiki/'):
+            if not href.startswith(self.prefix):
                 continue
 
             # discard prefix and fragment part
-            link = href[6:].split('#', 1)[0]
+            link = href[self.prefix_length:].split('#', 1)[0]
 
             # decode and unquote
             try:
@@ -285,7 +284,7 @@ class Length(_Processor):
         self.name = "Length"
 
     def __call__(self, wikifile):
-        length = len(wikifile.html)
+        length = wikifile.original_html_length
         return (length, [])
 
 
