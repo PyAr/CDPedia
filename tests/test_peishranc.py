@@ -16,115 +16,134 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import unittest
+"""Tests for Peishranc preprocessor."""
+
+from __future__ import unicode_literals
+
+import bs4
 
 from src.preprocessing.preprocessors import Peishranc, SCORE_PEISHRANC
+from .utils import FakeWikiFile
+
+import pytest
 
 
-class FakeWikiArchivo(object):
-    """Fake Wikiarchivo, just to hold the html."""
-    def __init__(self, html, url='url'):
-        self.html = html
-        self.url = url
+@pytest.fixture
+def peishranc():
+    """Set PeishRanc instance to use in all tests."""
+    return Peishranc()
 
 
-class PeishrancTests(unittest.TestCase):
-    """Tests para el Peishranc."""
+def test_zero_page_score(peishranc):
+    """Test a simple link."""
+    wikifile = FakeWikiFile('abcd <a href="/wiki/foobar">FooBar</a> dcba')
+    v, _ = peishranc(wikifile)
+    assert v == 0
 
-    def setUp(self):
-        """Set up."""
-        self.peishranc = Peishranc()
 
-    def test_cero_a_la_pagina(self):
-        """Link simple."""
-        fwa = FakeWikiArchivo('abcd <a href="/wiki/foobar">FooBar</a> dcba')
-        v, _ = self.peishranc(fwa)
-        self.assertEqual(v, 0)
+def test_simple_link(peishranc):
+    """Test a simple link."""
+    wikifile = FakeWikiFile('abcd <a href="/wiki/foobar">FooBar</a> dcba')
+    _, r = peishranc(wikifile)
+    assert r == [('foobar', SCORE_PEISHRANC)]
 
-    def test_simple(self):
-        """Link simple."""
-        fwa = FakeWikiArchivo('abcd <a href="/wiki/foobar">FooBar</a> dcba')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'foobar', SCORE_PEISHRANC)])
 
-    def test_con_clase(self):
-        """Link que tiene 'class'."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar" class="clase">FooBar</a> dcba'
-        )
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'foobar', SCORE_PEISHRANC)])
+def test_link_with_class(peishranc):
+    """Test link with `class` attribute."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar" class="clase">FooBar</a> dcba'
+    )
+    _, r = peishranc(wikifile)
+    assert r == [('foobar', SCORE_PEISHRANC)]
 
-    def test_hasta_el_numeral(self):
-        """El link es hasta el numeral."""
-        fwa = FakeWikiArchivo('abcd <a href="/wiki/foobar#xy">FooBar</a> dcba')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'foobar', SCORE_PEISHRANC)])
 
-    def test_doble_distinto(self):
-        """Dos links diferentes."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
-            'mmm kkk lll <a href="/wiki/otrapag">Otra pag</a> final\n'
-        )
-        _, r = self.peishranc(fwa)
-        should = [
-            (u'foobar', SCORE_PEISHRANC),
-            (u'otrapag', SCORE_PEISHRANC),
-        ]
-        self.assertEqual(r, should)
+def test_remove_link_prefix_fragment(peishranc):
+    """Link is text between prefix and numeral."""
+    wikifile = FakeWikiFile('abcd <a href="/wiki/foobar#xy">FooBar</a> dcba')
+    _, r = peishranc(wikifile)
+    assert r == [('foobar', SCORE_PEISHRANC)]
 
-    def test_doble_igual(self):
-        """Dos links iguales."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
-            'mmm kkk lll <a href="/wiki/foobar">Lo mismo</a> final\n'
-        )
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'foobar', 2 * SCORE_PEISHRANC)])
 
-    def test_autobombo(self):
-        """No dar puntaje a la misma pag."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
-            'mmm kkk lll <a href="/wiki/urlanalizada">Lo mismo</a> final\n',
-            url='urlanalizada')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'foobar', SCORE_PEISHRANC)])
+def test_two_different_links(peishranc):
+    """Test score given to two different links."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
+        'mmm kkk lll <a href="/wiki/otrapag">Otra pag</a> final\n'
+    )
+    _, r = peishranc(wikifile)
+    should = [
+        ('foobar', SCORE_PEISHRANC),
+        ('otrapag', SCORE_PEISHRANC),
+    ]
+    assert r == should
 
-    def test_class_image(self):
-        """Descartamos los class image."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar" class="image">FooBar</a> dcba'
-        )
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [])
 
-    def test_class_internal(self):
-        """Descartamos los class internal."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar" class="internal">FooBar</a> dcba'
-        )
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [])
+def test_two_equal_links(peishranc):
+    """Test score given to two equal links."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
+        'mmm kkk lll <a href="/wiki/foobar">Lo mismo</a> final\n'
+    )
+    _, r = peishranc(wikifile)
+    assert r == [('foobar', 2 * SCORE_PEISHRANC)]
 
-    def test_doble_con_class(self):
-        """Dos links diferentes, uno con class ok el otro no."""
-        fwa = FakeWikiArchivo(
-            'abcd <a href="/wiki/foobar" class="image">FooBar</a> dcbrr ppp\n'
-            'mmm kkk lll <a href="/wiki/otrapag" class="ok">Otra pag</a> fin\n'
-        )
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'otrapag', SCORE_PEISHRANC)])
 
-    def test_barra(self):
-        """Reemplazamos la /."""
-        fwa = FakeWikiArchivo('abcd <a href="/wiki/foo/bar">FooBar</a> dcba')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'fooSLASHbar', SCORE_PEISHRANC)])
+def test_self_praise(peishranc):
+    """Do not score links to the page that's being processed."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar">FooBar</a> dcba qwerty rrr ppp\n'
+        'mmm kkk lll <a href="/wiki/urlanalizada">Lo mismo</a> final\n',
+        url='urlanalizada')
+    _, r = peishranc(wikifile)
+    assert r == [('foobar', SCORE_PEISHRANC)]
 
-    def test_unquote(self):
-        """Aplicamos unquote al link."""
-        fwa = FakeWikiArchivo('abcd <a href="/wiki/f%C3%B3u">FooBar</a> dcba')
-        _, r = self.peishranc(fwa)
-        self.assertEqual(r, [(u'fóu', SCORE_PEISHRANC)])
+
+def test_discard_image_class(peishranc):
+    """Discard links of `image` class."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar" class="image">FooBar</a> dcba'
+    )
+    _, r = peishranc(wikifile)
+    assert r == []
+
+
+def test_discard_internal_class(peishranc):
+    """Discard links of `internal` class."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar" class="internal">FooBar</a> dcba'
+    )
+    _, r = peishranc(wikifile)
+    assert r == []
+
+
+def test_two_links_with_class(peishranc):
+    """Test one link with good class and other with bad class."""
+    wikifile = FakeWikiFile(
+        'abcd <a href="/wiki/foobar" class="image">FooBar</a> dcbrr ppp\n'
+        'mmm kkk lll <a href="/wiki/otrapag" class="ok">Otra pag</a> fin\n'
+    )
+    _, r = peishranc(wikifile)
+    assert r == [('otrapag', SCORE_PEISHRANC)]
+
+
+def test_replace_slash(peishranc):
+    """Test replacement of `/` with `SLASH` in final link text."""
+    wikifile = FakeWikiFile('abcd <a href="/wiki/foo/bar">FooBar</a> dcba')
+    _, r = peishranc(wikifile)
+    assert r == [('fooSLASHbar', SCORE_PEISHRANC)]
+
+
+def test_unquote(peishranc):
+    """Test link unquoting."""
+    wikifile = FakeWikiFile('abcd <a href="/wiki/f%C3%B3u">FooBar</a> dcba')
+    _, r = peishranc(wikifile)
+    assert r == [('fóu', SCORE_PEISHRANC)]
+
+
+def test_no_link(peishranc):
+    """Test no link in page."""
+    wikifile = FakeWikiFile('abcd <p>foo bar baz</p> dcba')
+    v, r = peishranc(wikifile)
+    assert v == 0
+    assert r == []
+
