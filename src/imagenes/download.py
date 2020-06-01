@@ -40,7 +40,7 @@ def _descargar(url, fullpath):
     if not os.path.exists(basedir):
         os.makedirs(basedir)
 
-    req = urllib.request.Request(url.encode("utf8"), headers=HEADERS)
+    req = urllib.request.Request(url, headers=HEADERS)
     u = urllib.request.urlopen(req)
 
     img = u.read()
