@@ -409,7 +409,7 @@ class Index(object):
             bucket(i)
 
         # get the info for each file
-        for cual, ids in list(cuales.items()):
+        for cual, ids in cuales.items():
             idx = self._get_ids_shelve(cual)
             for i in ids:
                 yield idx[i]

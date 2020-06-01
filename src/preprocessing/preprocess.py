@@ -212,7 +212,7 @@ class WikiSite(object):
 
         # transfer score
         transferred_scores = Counter()
-        for page, score in list(all_scores.items()):
+        for page, score in all_scores.items():
             if page not in redirects:
                 transferred_scores[page] += score
                 continue

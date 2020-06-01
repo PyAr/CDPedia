@@ -117,19 +117,19 @@ class ImageParser(object):
         separador = config.SEPARADOR_COLUMNAS
         # write the images log
         with open(config.LOG_IMAGENES, "w", encoding="utf-8") as fh:
-            for k, v in list(self.a_descargar.items()):
+            for k, v in self.a_descargar.items():
                 fh.write("%s%s%s\n" % (k, separador, v))
 
         # reescribimos todos los preproc que recorrimos
         with open(config.LOG_IMAGPROC, "w", encoding="utf-8") as fh:
-            for (dir3, fname), dskurls in list(self.proces_ahora.items()):
+            for (dir3, fname), dskurls in self.proces_ahora.items():
                 if dskurls:
                     dskurls = separador.join(dskurls)
                     linea = separador.join((dir3, fname, dskurls))
                 else:
                     linea = separador.join((dir3, fname))
                 fh.write(linea + "\n")
-            for name, dskurls in list(self.dynamics.items()):
+            for name, dskurls in self.dynamics.items():
                 dskurls = separador.join(dskurls)
                 linea = separador.join((config.DYNAMIC, name, dskurls))
                 fh.write(linea + "\n")
@@ -358,4 +358,4 @@ if __name__ == "__main__":
     preprocess.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
-    print("\n".join(str(x) for x in list(pi.a_descargar.items())))
+    print("\n".join(str(x) for x in pi.a_descargar.items()))

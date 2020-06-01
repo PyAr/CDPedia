@@ -314,7 +314,7 @@ class ArticleManager(BloqueManager):
         # armamos cada uno de los comprimidos
         tot_archs = 0
         tot_redirs = 0
-        for bloqNum, fileNames in list(bloques.items()):
+        for bloqNum, fileNames in bloques.items():
             tot_archs += len(fileNames)
             redirs_thisblock = redirects.get(bloqNum, [])
             tot_redirs += len(redirs_thisblock)
@@ -363,7 +363,7 @@ class ImageManager(BloqueManager):
                 print("  archs:", bloqNum, repr(fileName))
 
         tot = 0
-        for bloqNum, fileNames in list(bloques.items()):
+        for bloqNum, fileNames in bloques.items():
             tot += len(fileNames)
             BloqueImagenes.crear(bloqNum, fileNames, verbose)
 

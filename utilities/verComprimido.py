@@ -39,7 +39,7 @@ def main(fname, a_extraer):
     #                  v -> (seek, size) o el nombre del apuntado
     archivos = []
     redirects = 0
-    for name, info in list(c.header.items()):
+    for name, info in c.header.items():
         if isinstance(info, str):
             redirects += 1
         else:

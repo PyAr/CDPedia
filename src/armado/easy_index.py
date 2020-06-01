@@ -68,7 +68,7 @@ class Index(object):
             cuales.setdefault(cual, []).append(i)
 
         # get the info for each file
-        for cual, ids in list(cuales.items()):
+        for cual, ids in cuales.items():
             idx = self._get_ids_shelve(cual)
             for i in ids:
                 yield idx[i]
@@ -110,11 +110,11 @@ class Index(object):
         intersectados = reduce(operator.iand, (set(d) for d in results))
         final = {}
         for result in results:
-            for pagtit, ptje in list(result.items()):
+            for pagtit, ptje in result.items():
                 if pagtit in intersectados:
                     final[pagtit] = final.get(pagtit, 0) + ptje
 
-        final = [(pag, tit, ptje) for (pag, tit), ptje in list(final.items())]
+        final = [(pag, tit, ptje) for (pag, tit), ptje in final.items()]
         return sorted(final, key=operator.itemgetter(2), reverse=True)
 
     def search(self, keys):
