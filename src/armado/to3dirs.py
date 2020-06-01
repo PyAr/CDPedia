@@ -27,7 +27,10 @@ Current implementation complies with two needs:
 - that the 3-dirs path can be deduced from a filename (after conversion from a page)
 """
 import os
-import urllib.parse
+try:
+    from urllib.parse import unquote
+except ImportError:  # python2 compat
+    from urllib import unquote
 
 import config
 
@@ -69,7 +72,7 @@ def to_pagina(filename):
 
     s == to_pagina(to_filename(s))
     """
-    return urllib.parse.unquote(filename)
+    return unquote(filename)
 
 
 to_filename = _quote
