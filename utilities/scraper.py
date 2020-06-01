@@ -101,7 +101,7 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
-                quoted_url = urllib.parse.quote(basename.encode('utf-8'))
+                quoted_url = urllib.parse.quote(basename)
                 # Skip wikipedia automatic redirect
                 wiki = WIKI % dict(lang=self.language)
                 url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
@@ -168,8 +168,7 @@ class WikipediaArticle(object):
         self.language = language
         self.url = url
         self.basename = basename
-        self.quoted_basename = urllib.parse.quote(
-            basename.encode('utf-8')).replace(' ', '_')
+        self.quoted_basename = urllib.parse.quote(basename).replace(' ', '_')
         self._history = None
         self.history_size = 6
 
@@ -344,7 +343,8 @@ def reemplazar_links_paginado(html, n):
 
 
 def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html', prefix='scrap-', dir=temp_dir, delete=False)
+    return tempfile.NamedTemporaryFile(
+        suffix='.html', prefix='scrap-', dir=temp_dir, delete=False, mode='w', encoding='utf-8')
 
 
 @defer.inlineCallbacks
@@ -361,7 +361,7 @@ def save_htmls(data_urls):
 
     if u"Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
-        temp_file.write(html.encode('utf-8'))
+        temp_file.write(html)
         temp_file.close()
         defer.returnValue([(temp_file, data_urls.disk_name)])
 
@@ -380,7 +380,7 @@ def save_htmls(data_urls):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
-        temp_file.write(html.encode('utf-8'))
+        temp_file.write(html)
         temp_file.close()
 
         if not prox_url:
