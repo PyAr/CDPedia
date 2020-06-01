@@ -243,7 +243,7 @@ class TestPagesSelector(object):
         # check info is stored ok in disk
         should_stored = [config.SEPARADOR_COLUMNAS.join(map(str, p)) + '\n'
                          for p in should_pages]
-        with open(config.PAG_ELEGIDAS, 'rt') as fh:
+        with open(config.PAG_ELEGIDAS, 'r', encoding='utf-8') as fh:
             lines = fh.readlines()
         assert lines == should_stored
 
@@ -268,7 +268,7 @@ class TestPagesSelector(object):
         # check info is stored ok in disk
         should_stored = [config.SEPARADOR_COLUMNAS.join(map(str, p)) + '\n'
                          for p in should_pages]
-        with open(config.PAG_ELEGIDAS, 'rt') as fh:
+        with open(config.PAG_ELEGIDAS, 'r', encoding='utf-8') as fh:
             lines = fh.readlines()
         assert lines == should_stored
 
@@ -287,9 +287,9 @@ class TestPagesSelector(object):
         ps.calculate()
 
         # get that file and change it slightly
-        with codecs.open(config.PAG_ELEGIDAS, 'rt', encoding='utf-8') as fh:
+        with codecs.open(config.PAG_ELEGIDAS, 'r', encoding='utf-8') as fh:
             lines = fh.readlines()
-        with codecs.open(config.PAG_ELEGIDAS, 'wt', encoding='utf-8') as fh:
+        with codecs.open(config.PAG_ELEGIDAS, 'w', encoding='utf-8') as fh:
             fh.writelines(lines[:-1])
 
         # go again, the info won't be the same

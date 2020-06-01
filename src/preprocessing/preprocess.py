@@ -83,7 +83,7 @@ class WikiFile(object):
             fh.write(content)
 
     def __str__(self):
-        return '<WikiFile: {}>'.format(self.url).encode('utf-8')  # py3: return unicode
+        return '<WikiFile: {}>'.format(self.url)
 
 
 class WikiSite(object):
