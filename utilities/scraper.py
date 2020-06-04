@@ -359,9 +359,9 @@ def save_htmls(data_urls):
 
     temp_file = get_temp_file(data_urls.temp_dir)
 
-    if u"Categoría" not in data_urls.basename:
+    if "Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
         defer.returnValue([(temp_file, data_urls.disk_name)])
 
@@ -380,7 +380,7 @@ def save_htmls(data_urls):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
 
         if not prox_url:
