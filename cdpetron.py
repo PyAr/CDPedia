@@ -41,12 +41,6 @@ ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
 NAMESPACES = "namespace_prefixes.txt"
 
-# the directory (inside the one specified by the user) that actually
-# holds the articles, images and resources
-DUMP_ARTICLES = "articles"
-DUMP_IMAGES = "images"
-DUMP_RESOURCES = 'resources'
-
 # base url
 WIKI_BASE = 'http://%(language)s.wikipedia.org'
 
@@ -63,6 +57,40 @@ KEEP_PROCESSED = [
     'page_scores_final.txt',
     'redirects.txt',
 ]
+
+
+class Location(object):
+    """Holder for the different working locations, presenting an enum-like interface.
+
+    It also ensures that each dir is properly prefixed with selected language, and that it exists.
+    """
+
+    # the directory (inside the one specified by the user) that actually
+    # holds the articles, images and resources
+    ARTICLES = "articles"
+    IMAGES = "images"
+    RESOURCES = 'resources'
+
+    def __init__(self, dumpdir, branchdir, language):
+        self.dumpbase = os.path.abspath(dumpdir)
+        self.branchdir = os.path.abspath(branchdir)
+
+        self.langdir = os.path.join(self.dumpbase, language)
+        self.articles = os.path.join(self.langdir, self.ARTICLES)
+        self.resources = os.path.join(self.langdir, self.RESOURCES)
+        self.images = os.path.join(self.dumpbase, self.IMAGES)  # language agnostic
+
+        # (maybe) create all the above directories (except branchdir); note they are ordered!
+        to_create = [
+            self.dumpbase,
+            self.langdir,
+            self.articles,
+            self.resources,
+            self.images,
+        ]
+        for item in to_create:
+            if not os.path.exists(item):
+                os.mkdir(item)
 
 
 class CustomRotatingFH(RotatingFileHandler):
@@ -86,13 +114,14 @@ logger.addHandler(handler)
 logger = logging.getLogger("cdpetron")
 
 
-def get_lists(branch_dir, language, lang_config, test):
+def get_lists(language, lang_config, test):
     """Get the list of wikipedia articles."""
     # save the creation date everytime we start listing everything; this is the moment that
     # reflects better "when the wikipedia was created"
     gendate = save_creation_date()
 
-    fh_artall = open(ART_ALL, "wb")
+    all_articles = os.path.join(location.langdir, ART_ALL)
+    fh_artall = open(all_articles, "wb")
 
     url = URL_LIST % dict(language=language)
     logger.info("Getting list file: %r", url)
@@ -124,10 +153,7 @@ def get_lists(branch_dir, language, lang_config, test):
     logger.info("Got %d namespace articles", q)
 
     # save the namespace prefixes
-    direct = os.path.join(dump_dir, language, DUMP_RESOURCES)
-    if not os.path.exists(direct):
-        os.mkdir(direct)
-    _path = os.path.join(direct, NAMESPACES)
+    _path = os.path.join(location.resources, NAMESPACES)
     with open(_path, 'wb') as fh:
         for prefix in sorted(prefixes):
             fh.write(prefix.encode("utf8") + "\n")
@@ -148,7 +174,7 @@ def get_lists(branch_dir, language, lang_config, test):
 def save_creation_date():
     """Save the creation date of the CDPedia."""
     generation_date = datetime.date.today().strftime("%Y%m%d")
-    _path = os.path.join(DUMP_RESOURCES, DATE_FILENAME)
+    _path = os.path.join(location.resources, DATE_FILENAME)
     with open(_path, 'wb') as f:
         f.write(generation_date + "\n")
     logger.info("Date of generation saved: %s", generation_date)
@@ -160,7 +186,7 @@ def load_creation_date():
 
     Having this in disk means that the lists were generated. Returns None if can't read it.
     """
-    _path = os.path.join(DUMP_RESOURCES, DATE_FILENAME)
+    _path = os.path.join(location.resources, DATE_FILENAME)
     try:
         with open(_path, 'rb') as fh:
             generation_date = fh.read().strip()
@@ -170,13 +196,12 @@ def load_creation_date():
     return generation_date
 
 
-def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
+def _call_scrapper(language, articles_file, test=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
-    assert os.getcwd() == dump_lang_dir
-    namespaces_path = os.path.join(dump_lang_dir, DUMP_RESOURCES, NAMESPACES)
+    namespaces_path = os.path.join(location.resources, NAMESPACES)
     cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-        branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
+        location.branchdir, articles_file, language, location.articles, namespaces_path)
     if test:
         cmd += " " + str(TEST_LIMIT_SCRAP)
     res = os.system(cmd)
@@ -186,15 +211,16 @@ def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=Fals
         exit()
 
 
-def scrap_pages(branch_dir, language, dump_lang_dir, test):
+def scrap_pages(language, test):
     """Get the pages from wikipedia."""
-    articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
+    articles_dir = location.articles
     logger.info("Assure articles dir is empty: %r", articles_dir)
     if os.path.exists(articles_dir):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test)
+    all_articles = os.path.join(location.langdir, ART_ALL)
+    _call_scrapper(language, all_articles, test)
 
     logger.info("Checking scraped size")
     total = os.stat(articles_dir).st_size
@@ -210,19 +236,14 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
     logger.info("Total size of scraped articles: %d MB", total // 1024 ** 2)
 
 
-def scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages):
+def scrap_extra_pages(language, extra_pages):
     """Scrap extra pages defined in a text file."""
-    extra_pages_file = os.path.join(branch_dir, extra_pages)
-    _call_scrapper(branch_dir, language, dump_lang_dir, extra_pages_file)
+    extra_pages_file = os.path.join(location.branchdir, extra_pages)
+    _call_scrapper(language, extra_pages_file)
 
 
-def scrap_portals(dump_lang_dir, language, lang_config):
+def scrap_portals(language, lang_config):
     """Get the portal index and scrap it."""
-    # always create the resources directory
-    direct = os.path.join(dump_lang_dir, DUMP_RESOURCES)
-    if not os.path.exists(direct):
-        os.mkdir(direct)
-
     # get the portal url, get out if don't have it
     portal_index_url = lang_config.get('portal_index')
     if portal_index_url is None:
@@ -238,30 +259,23 @@ def scrap_portals(dump_lang_dir, language, lang_config):
     new_html = portals.generate(items)
 
     # save it
-    with open(os.path.join(direct, "portals.html"), 'wb') as fh:
+    with open(os.path.join(location.resources, "portals.html"), 'wb') as fh:
         fh.write(new_html)
     logger.info("Portal scrapping done")
 
 
-def clean(branch_dir, dump_dir, keep_processed):
+def clean(keep_processed):
     """Clean and setup the temp directory."""
-    # we need a directory for the images in the dump dir (but keep it
-    # if already there, we want to cache images!)
-    image_dump_dir = os.path.join(dump_dir, DUMP_IMAGES)
-    logger.info("Assure directory for images is there: %r", image_dump_dir)
-    if not os.path.exists(image_dump_dir):
-        os.mkdir(image_dump_dir)
-
     # let's create a temp directory for the generation with a symlink to
     # images (clean it first if already there). Note that 'temp' and
     # 'images' are hardcoded here, as this is what expects
     # the generation part)
-    temp_dir = os.path.join(branch_dir, "temp")
+    temp_dir = os.path.join(location.branchdir, "temp")
     if not os.path.exists(temp_dir):
         # start it fresh
         logger.info("Temp dir setup fresh: %r", temp_dir)
         os.mkdir(temp_dir)
-        os.symlink(image_dump_dir, os.path.join(temp_dir, "images"))
+        os.symlink(location.images, os.path.join(temp_dir, "images"))
         return
 
     # remove (maybe) all stuff inside
@@ -279,24 +293,15 @@ def clean(branch_dir, dump_dir, keep_processed):
             os.remove(path)
 
 
-def main(branch_dir, dump_dir, language, lang_config, imag_config,
+def main(language, lang_config, imag_config,
          nolists, noscrap, noclean, image_type, test, extra_pages):
     """Main entry point."""
-    logger.info("Branch directory: %r", branch_dir)
-    logger.info("Dump directory: %r", dump_dir)
+    logger.info("Branch directory: %r", location.branchdir)
+    logger.info("Dump directory: %r", location.dumpbase)
     logger.info("Generating for language: %r", language)
     logger.info("Language config: %r", lang_config)
     logger.info("Options: nolists=%s noscrap=%s noclean=%s test=%s",
                 nolists, noscrap, noclean, test)
-
-    # images are common, but articles are separated by lang
-    dump_imags_dir = dump_dir
-    dump_lang_dir = os.path.join(dump_dir, language)
-
-    logger.info("Assure directory for articles is there: %r", dump_lang_dir)
-    if not os.path.exists(dump_lang_dir):
-        os.mkdir(dump_lang_dir)
-    os.chdir(dump_lang_dir)
 
     if nolists:
         gendate = load_creation_date()
@@ -304,34 +309,36 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
             logger.error("No article list available. Run at least once without --no-lists")
             return
     else:
-        gendate = get_lists(branch_dir, language, lang_config, test)
+        gendate = get_lists(language, lang_config, test)
 
     if not noscrap:
-        scrap_portals(dump_lang_dir, language, lang_config)
-        scrap_pages(branch_dir, language, dump_lang_dir, test)
+        scrap_portals(language, lang_config)
+        scrap_pages(language, test)
 
     if extra_pages:
-        scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages)
-
-    os.chdir(branch_dir)
+        scrap_extra_pages(language, extra_pages)
 
     if test:
         image_type = 'beta'
     if image_type is None:
         if not noscrap:
             # new articles! do a full clean before, including the "processed" files
-            clean(branch_dir, dump_imags_dir, keep_processed=False)
+            clean(keep_processed=False)
         for image_type in imag_config:
             logger.info("Generating image for type: %r", image_type)
-            clean(branch_dir, dump_imags_dir, keep_processed=True)
-            generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
+            clean(keep_processed=True)
+            generate.main(
+                language, location.langdir, location.branchdir, image_type,
+                lang_config, gendate, verbose=test)
     else:
         logger.info("Generating image for type %r only", image_type)
         if not noclean:
             # keep previous processed if not new scrapped articles and not testing
             keep_processed = noscrap and not test
-            clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
-        generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
+            clean(keep_processed=keep_processed)
+        generate.main(
+            language, location.langdir, location.branchdir, image_type,
+            lang_config, gendate, verbose=test)
 
 
 if __name__ == "__main__":
@@ -364,23 +371,21 @@ if __name__ == "__main__":
         logger.error("--no-clean option is only usable when --image-type was indicated")
         exit()
 
-    branch_dir = os.path.abspath(args.branch_dir)
-    dump_dir = os.path.abspath(args.dump_dir)
+    location = Location(args.dump_dir, args.branch_dir, args.language)
 
     # get the language config
-    _config_fname = os.path.join(branch_dir, 'languages.yaml')
+    _config_fname = os.path.join(location.branchdir, 'languages.yaml')
     with open(_config_fname) as fh:
         _config = yaml.safe_load(fh)
         try:
             lang_config = _config[args.language]
         except KeyError:
-            logger.error("there's no %r in language config file %r",
-                         args.language, _config_fname)
+            logger.error("there's no %r in language config file %r", args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
 
     # get the image type config
-    _config_fname = os.path.join(branch_dir, 'imagtypes.yaml')
+    _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')
     with open(_config_fname) as fh:
         _config = yaml.safe_load(fh)
         try:
@@ -397,21 +402,17 @@ if __name__ == "__main__":
             exit()
 
     # branch dir must exist
-    if not os.path.exists(branch_dir):
+    if not os.path.exists(location.branchdir):
         logger.error("The branch dir doesn't exist!")
         exit()
 
     # fix sys path to branch dir and import the rest of stuff from there
-    sys.path.insert(1, branch_dir)
-    sys.path.insert(1, os.path.join(branch_dir, "utilities"))
+    sys.path.insert(1, location.branchdir)
+    sys.path.insert(1, os.path.join(location.branchdir, "utilities"))
     from src import list_articles_by_namespaces, generate
     from src.scrapping import portals
 
-    # dump dir may not exist, let's just create if it doesn't
-    if not os.path.exists(dump_dir):
-        os.mkdir(dump_dir)
-
-    main(branch_dir, dump_dir, args.language, lang_config, imag_config,
-         nolists=args.no_lists, noscrap=args.no_scrap,
-         noclean=args.no_clean, image_type=args.image_type, test=args.test_mode,
-         extra_pages=args.extra_pages)
+    main(
+        args.language, lang_config, imag_config, nolists=args.no_lists, noscrap=args.no_scrap,
+        noclean=args.no_clean, image_type=args.image_type, test=args.test_mode,
+        extra_pages=args.extra_pages)
