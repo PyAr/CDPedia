@@ -19,9 +19,10 @@
 
 """Download the whole wikipedia."""
 
-from __future__ import with_statement
+from __future__ import with_statement, unicode_literals
 
 import StringIO
+import codecs
 import collections
 import datetime
 import functools
@@ -66,10 +67,10 @@ REVISION_URL = (
     'title=%(title)s&oldid=%(revno)s'
 )
 
-USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
-             'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
+USER_AGENT = b'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.10) '\
+             b'Gecko/20100915 Ubuntu/10.04 (lucid) Firefox/3.6.10'
 
-REQUEST_HEADERS = {'Accept-encoding': 'gzip'}
+REQUEST_HEADERS = {b'Accept-encoding': b'gzip'}
 
 DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename")
 
@@ -81,7 +82,7 @@ class URLAlizer(object):
         self.temp_dir = dest_dir + ".tmp"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
-        self.fh = open(listado_nombres, 'r')
+        self.fh = codecs.open(listado_nombres, 'r', encoding='utf-8')
         self.test_limit = test_limit
 
     def next(self):
@@ -95,7 +96,7 @@ class URLAlizer(object):
                 raise StopIteration
             if line == "page_title":
                 continue
-            basename = line.decode("utf-8").strip()
+            basename = line.strip()
             three_dirs, filename = to3dirs.get_path_file(basename)
             path = os.path.join(self.dest_dir, three_dirs)
             disk_name = os.path.join(path, filename)
@@ -121,11 +122,11 @@ def fetch_html(url):
     retries = 3
     while True:
         try:
-            data = yield client.getPage(url, headers=REQUEST_HEADERS,
+            data = yield client.getPage(url.encode('utf-8'), headers=REQUEST_HEADERS,
                                         timeout=60, agent=USER_AGENT)
             compressedstream = StringIO.StringIO(data)
             gzipper = gzip.GzipFile(fileobj=compressedstream)
-            html = gzipper.read()
+            html = gzipper.read().decode('utf-8')
 
             defer.returnValue(html)
         except Exception as err:
@@ -270,23 +271,15 @@ class WikipediaArticle(object):
 regex = (
     r'(<h1 id="firstHeading" class="firstHeading" '
     r'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
-capturar = re.compile(regex, re.MULTILINE | re.DOTALL).search
-no_ocultas = re.compile('<div id="mw-hidden-catlinks".*?</div>', re.MULTILINE | re.DOTALL)
-no_pp_report = re.compile(r"<!--\s*?NewPP limit report.*?-->", re.MULTILINE | re.DOTALL)
+capture = re.compile(regex, re.MULTILINE | re.DOTALL).search
 
 
 def extract_content(html, url):
-    encontrado = capturar(html)
-    if not encontrado:
+    found = capture(html)
+    if not found:
         # unknown html format
-        raise ValueError("El archivo %s posee un formato desconocido" % url)
-    newhtml = "\n".join(encontrado.groups())
-
-    # algunas limpiezas más
-    newhtml = no_ocultas.sub("", newhtml)
-    newhtml = no_pp_report.sub("", newhtml)
-
-    return newhtml
+        raise ValueError("HTML file from %s has an unknown format" % url)
+    return "\n".join(found.groups())
 
 
 @defer.inlineCallbacks
@@ -311,11 +304,6 @@ def get_html(url, basename):
     if "</html>" not in html:
         # we surely didn't download it all
         logger("Try again (unfinished download): %s", basename)
-        defer.returnValue(False)
-    try:
-        html.decode("utf8")
-    except UnicodeDecodeError:
-        logger("Try again (not utf8): %s", basename)
         defer.returnValue(False)
 
     try:
@@ -374,9 +362,9 @@ def save_htmls(data_urls):
 
     temp_file = get_temp_file(data_urls.temp_dir)
 
-    if u"Categoría" not in data_urls.basename:
+    if "Categoría" not in data_urls.basename:
         # normal case, not Categories or any paginated stuff
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
         defer.returnValue([(temp_file, data_urls.disk_name)])
 
@@ -395,7 +383,7 @@ def save_htmls(data_urls):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
-        temp_file.write(html)
+        temp_file.write(html.encode('utf-8'))
         temp_file.close()
 
         if not prox_url:

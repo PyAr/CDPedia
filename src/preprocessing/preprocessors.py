@@ -34,7 +34,7 @@ other pages. If a processor wants to omit a given page, it must return
 None instead of the score.
 """
 
-from __future__ import print_function
+from __future__ import unicode_literals
 
 import base64
 import codecs
@@ -89,19 +89,17 @@ class ContentExtractor(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
-
         # extract the title
-        node = soup.find('h1')
+        node = wikifile.soup.find('h1')
         if node is None:
-            title = u"<no-title>"
+            title = "<no-title>"
             self.stats['title not found'] += 1
         else:
             title = node.text.strip()
             self.stats['title found'] += 1
 
-        # extract the first parragraph
-        node = soup.find('p')
+        # extract the first paragraph
+        node = wikifile.soup.find('p')
         if node is None:
             safe_text = ''
             self.stats['text not found'] += 1
@@ -169,7 +167,7 @@ class VIPArticles(_Processor):
 
     def __init__(self):
         super(VIPArticles, self).__init__()
-        self.nombre = "VIPArticles"
+        self.name = "VIPArticles"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -187,13 +185,12 @@ class OmitRedirects(_Processor):
 
     def __init__(self):
         super(OmitRedirects, self).__init__()
-        self.nombre = "Redirects"
+        self.name = "Redirects"
         self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, "lxml", from_encoding='utf8')
-        node = soup.find('ul', 'redirectText')
+        node = wikifile.soup.find('ul', 'redirectText')
         if not node:
             # not a redirect, simple file
             self.stats['simplefile'] += 1
@@ -234,43 +231,47 @@ class Peishranc(_Processor):
     def __init__(self):
         super(Peishranc, self).__init__()
         self.name = "Peishranc"
-
-        # Capture href and class attributes of `a` tags in corresponding named groups.
-        self.capture = re.compile(r'<a href="/wiki/(?P<href>[^"#]*).*?'
-                                  r'(?:class="(?P<class>.[^"]*)"|.*?)+>')
+        # discard links not starting with this prefix
+        self.prefix = '/wiki/'
+        self.prefix_length = len(self.prefix)
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
         scores = {}
-        for link in self.capture.finditer(wikifile.html):
-            data = link.groupdict()
+        for a_tag in wikifile.soup.find_all('a', href=True):
 
-            # discard by class and by link start
-            class_ = data['class']
-            if class_ in ('image', 'internal'):
+            # discard by class
+            if any(c in ('image', 'internal') for c in a_tag.get('class', '')):
                 continue
 
+            # discard by href start
+            href = a_tag.get('href')
+            if not href.startswith(self.prefix):
+                continue
+
+            # discard prefix and fragment part
+            link = href[self.prefix_length:].split('#', 1)[0]
+
             # decode and unquote
-            lnk = data['href']
             try:
-                lnk = unquote(lnk).decode('utf8')
+                link = unquote(link.encode('utf-8')).decode('utf8')  # py3: remove encode/decode
             except UnicodeDecodeError:
-                logger.error('unquoting/decoding link failed: %s', repr(lnk))
+                logger.error('unquoting/decoding link failed: %s', repr(link))
                 continue
 
             # "/" are not really stored like that in disk, they are replaced
             # by the SLASH word
-            lnk = lnk.replace("/", "SLASH")
+            link = link.replace("/", "SLASH")
 
-            scores[lnk] = scores.get(lnk, 0) + 1
+            scores[link] = scores.get(link, 0) + 1
 
         # remove "self-praise"
         if wikifile.url in scores:
             del scores[wikifile.url]
 
         # factor score by constant
-        for lnk, score in scores.iteritems():
-            scores[lnk] = score * SCORE_PEISHRANC
+        for link, score in scores.iteritems():
+            scores[link] = score * SCORE_PEISHRANC
 
         return (0, scores.items())
 
@@ -283,7 +284,7 @@ class Length(_Processor):
         self.name = "Length"
 
     def __call__(self, wikifile):
-        length = len(wikifile.html)
+        length = wikifile.original_html_length
         return (length, [])
 
 
@@ -300,44 +301,42 @@ class HTMLCleaner(_Processor):
 
     def __init__(self):
         super(HTMLCleaner, self).__init__()
-        self.nombre = "HTMLCleaner"
+        self.name = "HTMLCleaner"
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        soup = bs4.BeautifulSoup(wikifile.html, features='html.parser', from_encoding='utf8')
-
         # remove text and links of 'not last version'
-        tag = soup.find('div', id='contentSub')
+        tag = wikifile.soup.find('div', id='contentSub')
         if tag is not None:
             tag.clear()
             self.stats['notlastversion'] += 1
 
         # remove edit section
-        sections = soup.find_all('span', class_="mw-editsection")
+        sections = wikifile.soup.find_all('span', class_="mw-editsection")
         self.stats['edit_sections'] += len(sections)
         for tag in sections:
             tag.clear()
 
         # remove ambox (reference needed) section
-        sections = soup.find_all('table', class_="ambox")
+        sections = wikifile.soup.find_all('table', class_="ambox")
         self.stats['ambox'] += len(sections)
         for tag in sections:
             tag.clear()
 
         # remove inline math
-        sections = soup.find_all('span', class_="mwe-math-mathml-inline")
+        sections = wikifile.soup.find_all('span', class_="mwe-math-mathml-inline")
         self.stats['inline_math'] += len(sections)
         for tag in sections:
             tag.clear()
 
         # remove srcset attribute from img tags
-        sections = soup.find_all('img', srcset=True)
+        sections = wikifile.soup.find_all('img', srcset=True)
         self.stats['img_srcset'] += len(sections)
         for tag in sections:
             tag.attrs.pop('srcset')
 
         # remove some links (but keeping their text)
-        for a_tag in soup.find_all('a'):
+        for a_tag in wikifile.soup.find_all('a'):
             try:
                 href = a_tag['href']
             except KeyError:
@@ -351,8 +350,57 @@ class HTMLCleaner(_Processor):
                     a_tag.unwrap()
                     break
 
-        # fix original html and return no score at all
-        wikifile.html = str(soup)
+        # remove hidden subtitle
+        tag = wikifile.soup.find('div', id='siteSub')
+        if tag is not None:
+            tag.extract()
+            self.stats['hidden_subtitle'] += 1
+
+        # remove toc jump link
+        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#mw-head')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove search jump link
+        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#p-search')
+        if tag is not None:
+            tag.extract()
+            self.stats['jump_links'] += 1
+
+        # remove inline alerts (bracketed superscript with italic text)
+        for tag in wikifile.soup.find_all('sup'):
+            children = tag.children
+            try:
+                if next(children) == '[' and next(children).name == 'i':
+                    tag.extract()
+                    self.stats['inline_alerts'] += 1
+            except StopIteration:
+                continue
+
+        # remove printfooter
+        tag = wikifile.soup.find('div', class_='printfooter')
+        if tag is not None:
+            tag.extract()
+            self.stats['print_footer'] += 1
+
+        # remove hidden categories section
+        for tag in wikifile.soup.find_all('div', id='mw-hidden-catlinks'):
+            tag.extract()
+            self.stats['hidden_categories'] += 1
+
+        # remove comments
+        for tag in wikifile.soup(text=True):
+            if isinstance(tag, bs4.Comment):
+                tag.extract()
+                self.stats['comments'] += 1
+
+        # remove mediawiki parsing error red notices
+        for tag in wikifile.soup('span', class_='error'):
+            tag.extract()
+            self.stats['parsing_error_notices'] += 1
+
+        # return no score at all
         return (0, [])
 
 

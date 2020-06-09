@@ -35,6 +35,8 @@ import time
 from collections import Counter
 from os.path import join, abspath, dirname
 
+import bs4
+
 import config
 from src import utiles
 from src.armado import to3dirs
@@ -47,27 +49,29 @@ LOG_SCORES_FINAL = os.path.join(config.DIR_TEMP, 'page_scores_final.txt')
 
 
 class WikiFile(object):
-    """Manage source file of a wiki page."""
+    """Manage the content of a wiki page."""
 
     def __init__(self, cwd, last3dirs, file_name):
         self.relative_path = join(last3dirs, file_name)
         self.url = file_name
         self._filename = join(cwd, file_name)
-        self._html = None
+        self._original_html_length = None
+        self._soup = None
 
-    def get_html(self):
-        """Return file content, load it if not loaded."""
-        if self._html is None:
+    @property
+    def soup(self):
+        """Return html soup of article, load content from file if needed."""
+        if self._soup is None:
             with open(self._filename, 'rb') as fh:
-                self._html = fh.read()
+                self._soup = bs4.BeautifulSoup(fh, features='lxml', from_encoding='utf-8')
 
-        return self._html
+        return self._soup
 
-    def set_html(self, data):
-        """Set html source."""
-        self._html = data
-
-    html = property(get_html, set_html)
+    @property
+    def original_html_length(self):
+        if self._original_html_length is None:
+            self._original_html_length = os.stat(self._filename).st_size
+        return self._original_html_length
 
     def save(self):
         """Save file, create directories that don't exist."""
@@ -78,11 +82,12 @@ class WikiFile(object):
             # dirname exists
             pass
 
+        content = self._soup.encode(encoding='utf-8')
         with open(output, 'wb') as fh:
-            fh.write(self._html)
+            fh.write(content)
 
     def __str__(self):
-        return "<WikiFile: %s>" % self.url.encode("utf8")
+        return '<WikiFile: {}>'.format(self.url).encode('utf-8')  # py3: return unicode
 
 
 class WikiSite(object):
@@ -307,6 +312,7 @@ pages_selector = PagesSelector()
 
 
 def run(root_dir):
+    """Apply preprocessors and save results."""
     if os.path.exists(LOG_SCORES_FINAL):
         logger.info("Skipping the whole processing stage as the final scores log was found.")
         return
@@ -317,6 +323,7 @@ def run(root_dir):
 
 
 def profiled_run(root_dir):
+    """Apply preprocessors and save results while profiling the whole process."""
     # import cProfile
 
     tini = time.time()
