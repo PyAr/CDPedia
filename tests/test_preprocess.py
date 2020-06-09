@@ -70,7 +70,6 @@ class TestWikiFile(object):
         """Test html length."""
         cwd, last3dirs, file_name = article
         wf = wikifile(cwd, last3dirs, file_name)
-        wf.soup  # load content
         length = os.stat(os.path.join(cwd, file_name)).st_size
         assert length == wf.original_html_length
 
