@@ -213,18 +213,12 @@ def _call_scrapper(language, articles_file, test=False):
 
 def scrap_pages(language, test):
     """Get the pages from wikipedia."""
-    articles_dir = location.articles
-    logger.info("Assure articles dir is empty: %r", articles_dir)
-    if os.path.exists(articles_dir):
-        shutil.rmtree(articles_dir)
-    os.mkdir(articles_dir)
-
     all_articles = os.path.join(location.langdir, ART_ALL)
     _call_scrapper(language, all_articles, test)
 
     logger.info("Checking scraped size")
-    total = os.stat(articles_dir).st_size
-    for dirpath, dirnames, filenames in os.walk(articles_dir):
+    total = os.stat(location.articles).st_size
+    for dirpath, dirnames, filenames in os.walk(location.articles):
         for name in itertools.chain(dirnames, filenames):
             size = os.stat(os.path.join(dirpath, name)).st_size
 
