@@ -152,7 +152,8 @@ def save_creation_date(date):
         f.write(generation_date + "\n")
 
 
-def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
+def _call_scrapper(branch_dir, language, dump_lang_dir,
+                   articles_file, test=False, page_limit=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
     assert os.getcwd() == dump_lang_dir
@@ -160,6 +161,8 @@ def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=Fals
     cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
         branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
     if test:
+        if page_limit:
+            TEST_LIMIT_SCRAP = page_limit
         cmd += " " + str(TEST_LIMIT_SCRAP)
     res = os.system(cmd)
     if res != 0:
@@ -168,7 +171,7 @@ def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=Fals
         exit()
 
 
-def scrap_pages(branch_dir, language, dump_lang_dir, test):
+def scrap_pages(branch_dir, language, dump_lang_dir, test, page_limit):
     """Get the pages from wikipedia."""
     articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
     logger.info("Assure articles dir is empty: %r", articles_dir)
@@ -176,7 +179,7 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test)
+    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test, page_limit)
 
     logger.info("Checking scraped size")
     total = os.stat(articles_dir).st_size
@@ -262,7 +265,7 @@ def clean(branch_dir, dump_dir, keep_processed):
 
 
 def main(branch_dir, dump_dir, language, lang_config, imag_config,
-         nolists, noscrap, noclean, image_type, test, extra_pages):
+         nolists, noscrap, noclean, image_type, test, extra_pages, page_limit):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
@@ -293,30 +296,30 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
 
     if not noscrap:
         scrap_portals(dump_lang_dir, language, lang_config)
-        scrap_pages(branch_dir, language, dump_lang_dir, test)
+        scrap_pages(branch_dir, language, dump_lang_dir, test, page_limit)
 
     if extra_pages:
         scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages)
 
     os.chdir(branch_dir)
 
-    if test:
-        image_type = 'beta'
+    if test and not image_type:
+        image_type = ['beta']
     if image_type is None:
-        if not noscrap:
-            # new articles! do a full clean before, including the "processed" files
-            clean(branch_dir, dump_imags_dir, keep_processed=False)
-        for image_type in imag_config:
-            logger.info("Generating image for type: %r", image_type)
-            clean(branch_dir, dump_imags_dir, keep_processed=True)
-            generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
-    else:
-        logger.info("Generating image for type %r only", image_type)
-        if not noclean:
-            # keep previous processed if not new scrapped articles and not testing
-            keep_processed = noscrap and not test
-            clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
+        # new articles! do a full clean before, including the "processed" files
+        keep_processed = False if not noscrap else True
+        clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
+        image_type = 'tarbig'
+        logger.info("Generating image for type: %r", image_type)
         generate.main(language, dump_lang_dir, image_type, lang_config, gendate, verbose=test)
+    else:
+        for image in image_type:
+            logger.info("Generating image for type %r only", image)
+            if not noclean:
+                # keep previous processed if not new scrapped articles and not testing
+                keep_processed = noscrap and not test
+                clean(branch_dir, dump_imags_dir, keep_processed=keep_processed)
+            generate.main(language, dump_lang_dir, image, lang_config, gendate, verbose=test)
 
     save_creation_date(gendate)
 
@@ -332,11 +335,17 @@ if __name__ == "__main__":
                              "generation of an image; need to be paired with "
                              "'--image-type' option")
     parser.add_argument("--test-mode", action='store_true',
-                        help="Work on a few pages only")
-    parser.add_argument("--image-type",
-                        help="Don't clean the temp dir, useful to resume the "
-                             "generation of an image; need to be paired with "
-                             "'--image-type' option")
+                        help="Work on a few pages only "
+                        "(1000 default pages)")
+    parser.add_argument("-p", "--page-limit",
+                        help="Change default limit pages in test mode")
+    parser.add_argument("--image-type", nargs='*',
+                        help="'--image-type <option(s)>' select the standar options "
+                             "to build CDPedia, "
+                             "e.g. '--image-type cd dvd9...' or just an image. "
+                             "'tarbig' default if not set '--image-type'")
+    parser.add_argument("-l", "--image-list", action="store_true",
+                        help="Show images available in the selected language")
     parser.add_argument("branch_dir",
                         help="The project branch to use.")
     parser.add_argument("dump_dir",
@@ -354,6 +363,31 @@ if __name__ == "__main__":
     branch_dir = os.path.abspath(args.branch_dir)
     dump_dir = os.path.abspath(args.dump_dir)
 
+    # get the image type config
+    _config_fname = os.path.join(branch_dir, 'imagtypes.yaml')
+    with open(_config_fname) as fh:
+        _config = yaml.safe_load(fh)
+        try:
+            imag_config = _config[args.language]
+        except KeyError:
+            logger.error("there's no %r in image type config file %r",
+                         args.language, _config_fname)
+            exit()
+    if args.image_list:
+        print('{:10}{:10}{:10}'.format('Image', 'Format', 'Max. pages'))
+        print('=' * 30)
+        for data in sorted(imag_config):
+            print('{:10}{:10}{:10}'.format(data, imag_config[data]['type'],
+                  imag_config[data]['page_limit']))
+        exit()
+    logger.info("Opened succesfully image type config file %r", _config_fname)
+    if args.image_type:
+        for image in args.image_type:
+            if image not in imag_config:
+                logger.error("there's no %r image in the image type config",
+                             image)
+                exit()
+
     # get the language config
     _config_fname = os.path.join(branch_dir, 'languages.yaml')
     with open(_config_fname) as fh:
@@ -365,23 +399,6 @@ if __name__ == "__main__":
                          args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
-
-    # get the image type config
-    _config_fname = os.path.join(branch_dir, 'imagtypes.yaml')
-    with open(_config_fname) as fh:
-        _config = yaml.safe_load(fh)
-        try:
-            imag_config = _config[args.language]
-        except KeyError:
-            logger.error("there's no %r in image type config file %r",
-                         args.language, _config_fname)
-            exit()
-    logger.info("Opened succesfully image type config file %r", _config_fname)
-    if args.image_type:
-        if args.image_type not in imag_config:
-            logger.error("there's no %r image in the image type config",
-                         args.image_type)
-            exit()
 
     # branch dir must exist
     if not os.path.exists(branch_dir):
@@ -402,4 +419,4 @@ if __name__ == "__main__":
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
          noclean=args.no_clean, image_type=args.image_type, test=args.test_mode,
-         extra_pages=args.extra_pages)
+         extra_pages=args.extra_pages, page_limit=args.page_limit)
