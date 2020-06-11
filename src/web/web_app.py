@@ -107,7 +107,7 @@ class CDPedia(object):
         self._tutorial_ready = False
 
     def get_creation_date(self):
-        _path = os.path.join(config.DIR_ASSETS, 'start_date.txt')
+        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'start_date.txt')
         with open(_path, 'rt') as f:
             date = f.read().strip()
         creation_date = datetime.strptime(date, "%Y%m%d")
