@@ -16,15 +16,9 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Busca las imágenes en los htmls que están en el archivo de preprocesados, y
-convierte las URLs de las mismas para siempre apuntar a disco.
+"""Calculate image scaling values."""
 
-Deja en un log las URLs que hay que bajar (todas aquellas que no deberían ya
-venir en el dump).
-"""
-
-from __future__ import with_statement, division
+from __future__ import with_statement, division, unicode_literals
 
 import codecs
 import logging
@@ -33,99 +27,90 @@ import operator
 import config
 from src.preprocessing import preprocess
 
-usage = """Extractor de URLs de imágenes.
-
-Para probar el funcionamiento:
-
-  extrae.py dir3 archivo.html
-"""
-
 
 logger = logging.getLogger("images.calculate")
 
 SCALES = (100, 75, 50, 0)
 
 
-class Escalador(object):
-    """Indica en que escala dejar la imagen."""
+class Scaler(object):
+    """Compute values for image scaling."""
+
     def __init__(self, total_items):
-        # preparamos nuestro generador de límites
+        # prepare limits
         vals = []
         base = 0
         reduction = config.imageconf['image_reduction']
         logger.info("Reduction: %s", reduction)
-        for (porc_cant, escala) in zip(reduction, SCALES):
-            cant = total_items * porc_cant / 100
-            vals.append((cant + base, escala))
-            base += cant
+        for (percentage, scale) in zip(reduction, SCALES):
+            quantity = total_items * percentage / 100
+            vals.append((quantity + base, scale))
+            base += quantity
         logger.info("Scales: %s", vals)
 
-        self.limite = 0
-        self.gen_pares = (x for x in vals)
+        self.limit = 0
+        self.gen_pairs = (x for x in vals)
 
-    def __call__(self, nro):
-        if nro >= self.limite:
-            # pasamos al próximo valor
-            (self.limite, self.escala) = self.gen_pares.next()
-        return self.escala
+    def __call__(self, num):
+        if num >= self.limit:
+            # continue with next values
+            (self.limit, self.scale) = next(self.gen_pairs)
+        return self.scale
 
 
 def run():
     """Calculate the sizes of the images."""
-    # levantamos la relación artículos -> imágenes
-    pag_imagenes = {}
+    # load relation: articles -> images
+    page_images = {}
     dynamics = []
-    with codecs.open(config.LOG_IMAGPROC, "r", "utf-8") as fh:
-        for linea in fh:
-            partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
-            dir3 = partes[0]
-            fname = partes[1]
-            dskurls = partes[2:]
+    with codecs.open(config.LOG_IMAGPROC, "r", encoding="utf-8") as fh:
+        for line in fh:
+            parts = line.strip().split(config.SEPARADOR_COLUMNAS)
+            dir3 = parts[0]
+            fname = parts[1]
+            dskurls = parts[2:]
             if dir3 == config.DYNAMIC:
                 dynamics.extend(dskurls)
             else:
-                pag_imagenes[dir3, fname] = dskurls
+                page_images[dir3, fname] = dskurls
 
-    # hacemos una lista de las páginas, anotando en que posición la
-    # encontramos por primera vez, para luego ordenar por eso (de esta manera,
-    # si una misma imagen está en un artículo importante y en otro que no, la
-    # imagen va a quedar al 100%)
-    imagenes = {}
+    # sort images by the highest priority of the pages in which they are included,
+    # this way images from more important articles will get a better scaling value.
+    images = {}
     preprocessed = preprocess.pages_selector.top_pages
     for posic_archivo, (dir3, fname, _) in enumerate(preprocessed):
-        # sacamos qué imágenes le corresponde a este archivo
-        dskurls = pag_imagenes[(dir3, fname)]
+        # get images i this file
+        dskurls = page_images[(dir3, fname)]
 
-        # para cada imagen (si no estaba de antes), guardamos la posición
-        # del archivo
+        # for each new image, save position of the file (article priority)
         for url in dskurls:
-            if url not in imagenes:
-                imagenes[url] = posic_archivo
+            if url not in images:
+                images[url] = posic_archivo
 
     # incorporate the dynamic images at the very top
     for url in dynamics:
-        imagenes[url] = -1
+        images[url] = -1
 
-    total_imagenes = len(imagenes)
-    imagenes = sorted(imagenes.items(), key=operator.itemgetter(1))
+    total_images = len(images)
+    images = sorted(images.iteritems(), key=operator.itemgetter(1))
 
-    # levantamos la lista de imágenes para a relacionarlas con la weburl
+    # load image list to map disk paths to web addresses
     dskweb = {}
-    with codecs.open(config.LOG_IMAGENES, "r", "utf-8") as fh:
+    with codecs.open(config.LOG_IMAGENES, "r", encoding="utf-8") as fh:
         for linea in fh:
             dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
             dskweb[dsk] = web
 
-    logger.info("Calculating scales for %d images", total_imagenes)
-    escalador = Escalador(total_imagenes)
-    log_reduccion = codecs.open(config.LOG_REDUCCION, "w", "utf8")
-    for i, (dskurl, _) in enumerate(imagenes):
-        escala = escalador(i)
-        if escala == 0:
-            # ya estamos, no más imágenes
+    logger.info("Calculating scales for %d images", total_images)
+    scaler = Scaler(total_images)
+    log_reduccion = codecs.open(config.LOG_REDUCCION, "w", encoding="utf8")
+    for i, (dskurl, _) in enumerate(images):
+        scale = scaler(i)
+        if scale == 0:
+            # done, no more images
             log_reduccion.close()
             return
 
         weburl = dskweb[dskurl]
-        info = (str(int(escala)), dskurl, weburl)
+        info = (str(int(scale)), dskurl, weburl)
         log_reduccion.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
