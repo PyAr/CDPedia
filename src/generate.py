@@ -156,7 +156,15 @@ def generate_libs():
         '--target={}'.format(dest_src),  # put all the resulting files in that specific dir
         '--requirement=requirements.txt',   # the running requirements
     ]
-    subprocess.call(cmd)
+    #subprocess.call(cmd)
+
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    for line in proc.stdout:
+        logger.debug(":: %s", line.rstrip())
+    retcode = proc.wait()
+    if retcode:
+        raise RuntimeError("Pip failed")
 
 
 def clean_dir(path):
