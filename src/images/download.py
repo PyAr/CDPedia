@@ -16,7 +16,9 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement, print_function
+"""Download images."""
+
+from __future__ import with_statement, unicode_literals
 
 import codecs
 import collections
@@ -26,7 +28,8 @@ import urllib2
 
 import config
 
-from src import repartidor, utiles
+from src import distributor, utiles
+
 
 HEADERS = {
     'User-Agent': (
@@ -37,13 +40,13 @@ HEADERS = {
 logger = logging.getLogger("images.download")
 
 
-def _descargar(url, fullpath):
-    # descargamos!
+def _download(url, fullpath):
+    """Download image from url and save it to disk."""
     basedir, _ = os.path.split(fullpath)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
 
-    req = urllib2.Request(url.encode("utf8"), headers=HEADERS)
+    req = urllib2.Request(url.encode('utf-8'), headers=HEADERS)  # py3: don't encode url
     u = urllib2.urlopen(req)
 
     img = u.read()
@@ -51,64 +54,66 @@ def _descargar(url, fullpath):
         fh.write(img)
 
 
-def descargar(data):
+def download(data):
+    """Download image from url, retry on error."""
     url, fullpath = data
-    for i in range(3):
+    retries = 3
+    for i in range(retries):
         try:
-            _descargar(url, fullpath)
-            # todo bien
+            _download(url, fullpath)
+            # download OK
             return None
         except urllib2.HTTPError as err:
-            # error espeso, devolvemos el código
+            # dense error, return code
             return "HTTPError: %d" % (err.code,)
-        except Exception as e:
-            # algo raro, reintentamos
-            print("Uh...", e)
-
-    # demasiados reintentos, devolvemos el último error
-    return str(e)
+        except Exception as err:
+            # weird error, retry
+            logger.debug("Error downloading image, retrying: %s", err)
+            # if enough retries, return last error
+            if i == retries - 1:
+                return str(err)
 
 
 def retrieve():
     """Download the images from the net."""
-    lista_descargar = []
+    download_list = []
 
-    # vemos cuales tuvieron problemas antes
-    log_errores = os.path.join(config.DIR_TEMP, "imagenes_neterror.txt")
-    if os.path.exists(log_errores):
-        with codecs.open(log_errores, "r", "utf8") as fh:
-            imgs_problemas = set(x.strip() for x in fh)
+    # load images that couldn't be downloaded previously
+    log_errors = os.path.join(config.DIR_TEMP, "images_neterror.txt")
+    if os.path.exists(log_errors):
+        with codecs.open(log_errors, "r", encoding="utf8") as fh:
+            imgs_problems = set(x.strip() for x in fh)
     else:
-        imgs_problemas = set()
+        imgs_problems = set()
 
-    for linea in codecs.open(config.LOG_REDUCCION, "r", "utf8"):
-        linea = linea.strip()
-        if not linea:
+    for line in codecs.open(config.LOG_REDUCCION, "r", encoding="utf8"):
+        line = line.strip()
+        if not line:
             continue
 
-        _, arch, url = linea.split(config.SEPARADOR_COLUMNAS)
+        _, arch, url = line.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(config.DIR_TEMP, "images", arch)
 
-        if url not in imgs_problemas and not os.path.exists(fullpath):
-            lista_descargar.append((url, fullpath))
+        if url not in imgs_problems and not os.path.exists(fullpath):
+            download_list.append((url, fullpath))
 
-    tot = len(lista_descargar)
-    p = repartidor.Pool(descargar, 5)
+    tot = len(download_list)
+    p = distributor.Pool(download, 5)
     tl = utiles.TimingLogger(30, logger.debug)
-    errores = collections.Counter()
-    c_ok = 0
-    c_err = 0
-    for i, result in enumerate(p.procesa(lista_descargar), 1):
+    errors = collections.Counter()
+    n_ok = 0
+    n_err = 0
+    for i, result in enumerate(p.process(download_list), 1):
         (url, fullpath), stt = result
         if stt is None:
-            c_ok += 1
+            n_ok += 1
         else:
-            errores[stt] += 1
-            c_err += 1
-            with codecs.open(log_errores, "a", "utf8") as fh:
+            errors[stt] += 1
+            n_err += 1
+            with codecs.open(log_errors, "a", encoding="utf8") as fh:
                 fh.write(url + "\n")
 
-        tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, c_ok, c_err)
+        tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, n_ok, n_err)
 
-    for code, cant in errores.most_common():
-        logger.warning("Had errors: code=%r quant=%d", code, cant)
+    for code, quant in errors.most_common():
+        logger.warning("Had errors: code=%r quant=%d", code, quant)
