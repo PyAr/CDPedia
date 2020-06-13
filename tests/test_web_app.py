@@ -41,8 +41,6 @@ def create_app_client(mocker, tmp_path):
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
     with (tmp_path / 'numbloques.txt').open('wt') as fh:
         fh.write('42\n')
-    with (tmp_path / 'start_date.txt').open('wt') as fh:
-        fh.write('20201122\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
         fh.write('es\n')
     with tarfile.open(str(tmp_path / "tutorial.tar.bz2"), 'w:bz2') as fh:
@@ -51,6 +49,11 @@ def create_app_client(mocker, tmp_path):
     inst_dir.mkdir()
     with (inst_dir / 'ayuda.html').open('wt') as fh:
         fh.write('lot of help\n')
+
+    dynamic_assets = tmp_path / 'dynamic'
+    dynamic_assets.mkdir()
+    with (dynamic_assets / 'start_date.txt').open('wt') as fh:
+        fh.write('20201122\n')
 
     # a bogus index with a couple of items (so it behaves properly for get_random and similar)
     mocker.patch('config.DIR_INDICE', str(tmp_path))
@@ -78,7 +81,6 @@ def test_main_page_destacado(create_app_client):
 
 def test_main_page_portales(create_app_client):
     # fake a portals page (note that DIR_ASSETS is a temp dir created above)
-    os.mkdir(os.path.join(config.DIR_ASSETS, 'dynamic'))
     _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
     test_content = b"this is content to for the test"
     with open(_path, "wb") as fh:
