@@ -139,8 +139,6 @@ def copy_sources():
              path.join(config.DIR_CDBASE, "cdpedia", "src", "armado"))
     copy_dir(path.join("src", "web"),
              path.join(config.DIR_CDBASE, "cdpedia", "src", "web"))
-    copy_dir(path.join("src", "third_party"),
-             path.join(config.DIR_CDBASE, "cdpedia", "src", "third_party"))
 
     # el main va al root
     shutil.copy("cdpedia.py", config.DIR_CDBASE)
@@ -148,6 +146,24 @@ def copy_sources():
     if config.DESTACADOS:
         shutil.copy(config.DESTACADOS,
                     os.path.join(config.DIR_CDBASE, "cdpedia"))
+
+
+def generate_libs():
+    """Generate all needed libs."""
+    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "extlib")
+    cmd = [
+        'pip', 'install',  # base command
+        '--target={}'.format(dest_src),  # put all the resulting files in that specific dir
+        '--requirement=requirements.txt',   # the running requirements
+    ]
+
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    for line in proc.stdout:
+        logger.debug(":: %s", line.rstrip())
+    retcode = proc.wait()
+    if retcode:
+        raise RuntimeError("Pip failed")
 
 
 def clean_dir(path):
@@ -259,9 +275,13 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, version, lang_config, gendate,
+def main(lang, src_info, branch_dir, version, lang_config, gendate,
          verbose=False, desconectado=False, process_articles=True):
     """Generate the CDPedia tarball or iso."""
+    # XXX Facundo 2020-06-05: need to remove this chdir, after checking everything
+    # uses the branch_dir properly (surely when we integrate this helper to cdpetron)
+    os.chdir(branch_dir)
+
     # don't affect the rest of the machine
     make_it_nicer()
 
@@ -344,8 +364,9 @@ def main(lang, src_info, version, lang_config, gendate,
         logger.info("Got %d blocks with %d files and %d redirects",
                     q_blocks, q_files, q_redirs)
 
-    logger.info("Copying the sources")
+    logger.info("Copying the sources and libs")
     copy_sources()
+    generate_libs()
 
     logger.info("Generating the links to blocks and indexes")
     # blocks
@@ -463,4 +484,5 @@ To update an image with the code and assets changes  in this working copy:
         update_mini(direct)
     else:
         gendate = datetime.date.today().strftime("%Y%m%d")
+        branch_dir = os.path.dirname(os.path.abspath(__file__))
         main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)
