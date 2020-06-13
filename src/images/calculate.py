@@ -37,7 +37,7 @@ class Scaler(object):
     """Compute values for image scaling."""
 
     def __init__(self, total_items):
-        # prepare limits
+        # prepare the limits generator
         vals = []
         base = 0
         reduction = config.imageconf['image_reduction']
@@ -78,14 +78,14 @@ def run():
     # this way images from more important articles will get a better scaling value.
     images = {}
     preprocessed = preprocess.pages_selector.top_pages
-    for posic_archivo, (dir3, fname, _) in enumerate(preprocessed):
-        # get images i this file
+    for file_position, (dir3, fname, _) in enumerate(preprocessed):
+        # get the images that correspond to this file
         dskurls = page_images[(dir3, fname)]
 
         # for each new image, save position of the file (article priority)
         for url in dskurls:
             if url not in images:
-                images[url] = posic_archivo
+                images[url] = file_position
 
     # incorporate the dynamic images at the very top
     for url in dynamics:
