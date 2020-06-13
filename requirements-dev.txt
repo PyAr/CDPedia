@@ -1,7 +1,6 @@
 -r requirements.txt
 bs4
 flake8
-jinja2
 pytest
 pytest-mock
 twisted
