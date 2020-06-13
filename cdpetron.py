@@ -152,8 +152,7 @@ def save_creation_date(date):
         f.write(generation_date + "\n")
 
 
-def _call_scrapper(branch_dir, language, dump_lang_dir,
-                   articles_file, test=False, page_limit=False):
+def _call_scrapper(branch_dir, language, dump_lang_dir, articles_file, test=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
     assert os.getcwd() == dump_lang_dir
@@ -161,8 +160,6 @@ def _call_scrapper(branch_dir, language, dump_lang_dir,
     cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
         branch_dir, articles_file, language, DUMP_ARTICLES, namespaces_path)
     if test:
-        if page_limit:
-            TEST_LIMIT_SCRAP = page_limit
         cmd += " " + str(TEST_LIMIT_SCRAP)
     res = os.system(cmd)
     if res != 0:
@@ -171,7 +168,7 @@ def _call_scrapper(branch_dir, language, dump_lang_dir,
         exit()
 
 
-def scrap_pages(branch_dir, language, dump_lang_dir, test, page_limit):
+def scrap_pages(branch_dir, language, dump_lang_dir, test):
     """Get the pages from wikipedia."""
     articles_dir = os.path.join(dump_lang_dir, DUMP_ARTICLES)
     logger.info("Assure articles dir is empty: %r", articles_dir)
@@ -179,7 +176,7 @@ def scrap_pages(branch_dir, language, dump_lang_dir, test, page_limit):
         shutil.rmtree(articles_dir)
     os.mkdir(articles_dir)
 
-    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test, page_limit)
+    _call_scrapper(branch_dir, language, dump_lang_dir, ART_ALL, test)
 
     logger.info("Checking scraped size")
     total = os.stat(articles_dir).st_size
@@ -265,7 +262,7 @@ def clean(branch_dir, dump_dir, keep_processed):
 
 
 def main(branch_dir, dump_dir, language, lang_config, imag_config,
-         nolists, noscrap, noclean, image_type, test, extra_pages, page_limit):
+         nolists, noscrap, noclean, image_type, test, extra_pages):
     """Main entry point."""
     logger.info("Branch directory: %r", branch_dir)
     logger.info("Dump directory: %r", dump_dir)
@@ -296,7 +293,7 @@ def main(branch_dir, dump_dir, language, lang_config, imag_config,
 
     if not noscrap:
         scrap_portals(dump_lang_dir, language, lang_config)
-        scrap_pages(branch_dir, language, dump_lang_dir, test, page_limit)
+        scrap_pages(branch_dir, language, dump_lang_dir, test)
 
     if extra_pages:
         scrap_extra_pages(branch_dir, language, dump_lang_dir, extra_pages)
@@ -416,7 +413,11 @@ if __name__ == "__main__":
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
+    # change page limit in test mode
+    if args.page_limit:
+        TEST_LIMIT_SCRAP = args.page_limit
+
     main(branch_dir, dump_dir, args.language, lang_config, imag_config,
          nolists=args.no_lists, noscrap=args.no_scrap,
          noclean=args.no_clean, image_type=args.image_type, test=args.test_mode,
-         extra_pages=args.extra_pages, page_limit=args.page_limit)
+         extra_pages=args.extra_pages)
