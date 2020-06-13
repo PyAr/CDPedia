@@ -31,7 +31,6 @@ import urllib
 from datetime import datetime
 from mimetypes import guess_type
 
-from src import third_party  # NOQA - Need this to import 3rd_party (werkzeug, jinja2)
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
