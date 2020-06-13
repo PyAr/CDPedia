@@ -16,106 +16,111 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+"""Distribute tasks among a pool of threads."""
 
-import Queue
+from __future__ import unicode_literals
+
+import Queue as queue  # py3: import queue
 import threading
 import time
 
-# cuanto duerme para que el while no mate el procesador
+
+# how much to sleep so that the while loop doesn't kill the processor
 SLEEP = .3
 
 
-class _Trabajador(threading.Thread):
-    """Clase que usa el repartidor internamente.
+class _Worker(threading.Thread):
+    """Class used internally by the distributor.
 
-    Ejecuta una función recibida de afuera.
+    Run a function received from outside.
     """
-    def __init__(self, nro, funcion, colaInput, colaOutput, termine):
-        self.yo = nro
-        self.funcion = funcion
-        self.cinp = colaInput
-        self.cout = colaOutput
-        self.termine = termine
+
+    def __init__(self, num, function, queueInput, queueOutput, finish):
+        self.me = num
+        self.function = function
+        self.qinp = queueInput
+        self.qout = queueOutput
+        self.finish = finish
         threading.Thread.__init__(self)
 
     def run(self):
         while True:
-            info = self.cinp.get()
+            info = self.qinp.get()
             if info == "quit":
                 break
-            res = self.funcion(info)
-            self.termine.set()
-            self.cout.put((info, res))
+            res = self.function(info)
+            self.finish.set()
+            self.qout.put((info, res))
 
 
 class Pool(object):
-    """Arma un pool de hilos para repartir tareas.
+    """Build a pool of threads to distribute tasks.
 
-    @param funcion: funcion a ejecutar
-    @param cant: cantidad de trabajadores a abrir
-    @param logf: funcion para loguear mensajes
+    @param function: function to run
+    @param quant: number of workers to open
+    @param logf: function for logging mesages
     """
-    def __init__(self, funcion, cant, logf=None):
-        self._cantw = cant
+
+    def __init__(self, function, quant, logf=None):
+        self._quantw = quant
         if logf is None:
             self.logf = lambda x: None
         else:
             self.logf = logf
 
-        # lanzamos los n hilos para cada destino
-        self.qEnviar = [Queue.Queue() for x in range(self._cantw)]
-        self.qRecbir = [Queue.Queue() for x in range(self._cantw)]
-        self.eTermin = [threading.Event() for x in range(self._cantw)]
-        for i in range(self._cantw):
-            h = _Trabajador(i, funcion, self.qEnviar[i], self.qRecbir[i], self.eTermin[i])
+        # launch n threads for each destiny
+        self.qSend = [queue.Queue() for _ in range(self._quantw)]
+        self.qReceive = [queue.Queue() for _ in range(self._quantw)]
+        self.eFinish = [threading.Event() for _ in range(self._quantw)]
+        for i in range(self._quantw):
+            h = _Worker(i, function, self.qSend[i], self.qReceive[i], self.eFinish[i])
             h.start()
-        self.logf("Se crearon %d hilos" % (cant,))
+        self.logf("Created {} threads".format(quant))
 
-    def procesa(self, trabajos):
-        """Procesa los trabajos recibidos.
+    def process(self, tasks):
+        """Process received tasks.
 
-        Los desparrama entre los trabajadores, en paralelo, mientras estén
-        libres.  Va entregando los resultados como generador, siempre con el
-        payload al principio.
+        Distribute tasks among workers, in parallel, while they're free.
+        Return results as generator, with payload always at the beginning.
 
-        @param trabajos: todos los trabajos
+        @param tasks: all the tasks to run
         """
 
-        # preparamos
-        encolados = trabajos[:]
-        encolados.reverse()
-        disponibles = [True] * self._cantw
+        # prepare tasks
+        queued = tasks[:]
+        queued.reverse()
+        available = [True] * self._quantw
 
-        # ejecutamos mientras tengamos encolados pendientes o haya un destino
-        # sin terminar
-        while encolados or sum(disponibles) < self._cantw:
-            self.logf("Hay encolados (%d) o estamos esperando algun "
-                      "trabajo (%r)" % (len(encolados), disponibles))
+        # run while there's at least one pending task in the queue
+        # or an unfinished destination
+        while queued or sum(available) < self._quantw:
+            self.logf("There are queued ({}) or unfinished tasks ({!r})"
+                      .format(len(queued), available))
 
-            # si hay algún hilo libre le damos trabajo (si hay)
-            while (encolados and (True in disponibles)):
-                payload = encolados.pop()
-                libre = disponibles.index(True)
-                q = self.qEnviar[libre]
+            # if there's a free thread give it a task (if any)
+            while (queued and (True in available)):
+                payload = queued.pop()
+                free = available.index(True)
+                q = self.qSend[free]
                 q.put(payload)
-                disponibles[libre] = False
-                self.logf("Enviamos %r al hilo %d" % (payload, libre))
+                available[free] = False
+                self.logf("Sent {!r} to thread {}".format(payload, free))
 
-            # revisamos los pendientes, para ver si terminó alguno
-            for i in range(self._cantw):
-                if not self.eTermin[i].isSet():
+            # inspect pending tasks to see if any finished
+            for i in range(self._quantw):
+                if not self.eFinish[i].isSet():
                     continue
 
-                # tenemos un dato de alguno
-                result = self.qRecbir[i].get()
-                self.eTermin[i].clear()
-                self.logf("Recibimos %r del hilo %d" % (result, i))
+                # we have a result
+                result = self.qReceive[i].get()
+                self.eFinish[i].clear()
+                self.logf("Received {!r} from thread {}".format(result, i))
                 yield result
-                disponibles[i] = True
+                available[i] = True
 
-            # dormimos para que el while no me ocupe todo el procesador
+            # sleep a bit so that the while loop doesn't occupy the whole processor
             time.sleep(SLEEP)
 
-        for q in self.qEnviar:
+        for q in self.qSend:
             q.put("quit")
-        self.logf("Se envio quit a todos los hilos")
+        self.logf("quit signal sent to all threads.")
