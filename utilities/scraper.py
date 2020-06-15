@@ -38,6 +38,7 @@ import urllib
 
 from twisted.internet import defer, reactor
 from twisted.web import client, error, http
+from twisted.python import log as twisted_log
 
 import workerpool
 
@@ -467,7 +468,11 @@ def main(nombres, language, dest_dir, namespaces_path, test_limit=None, pool_siz
     pool = workerpool.WorkerPool(size=int(pool_size))
     data_urls = URLAlizer(nombres, dest_dir, language, test_limit)
     board = StatusBoard(language)
-    yield pool.start(board.process, data_urls)
+    d = pool.start(board.process, data_urls)
+    if d.called:
+        # no deferred workers in DeferredList (all returned)
+        logger('No items to download')
+    yield d
     print   # final new line for console aesthetic
 
 
@@ -497,5 +502,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     d = main(*sys.argv[1:])
-    d.addCallback(lambda _: reactor.stop())
+    d.addCallback(lambda _: reactor.callFromThread(reactor.stop))
+    d.addErrback(twisted_log.err)
     reactor.run()
