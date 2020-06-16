@@ -22,7 +22,7 @@ import unittest
 
 import bs4
 
-from src.imagenes.extract import ImageParser
+from src.images.extract import ImageParser
 from .utils import load_fixture
 
 
