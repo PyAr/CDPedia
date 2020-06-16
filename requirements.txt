@@ -1,11 +1,11 @@
 # on construction, so far to just run some tests
 bs4
 flake8
+futures
 jinja2
 pytest
 pytest-mock
 pyyaml
-twisted
 pyopenssl
 lxml
 service_identity
