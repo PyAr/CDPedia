@@ -32,21 +32,21 @@ import traceback
 import uuid  # NOQA: this is needed by pyinstaller
 import webbrowser
 
-# change execution path, so we can access all cdpedia internals (code and
-# libraries)
+# change execution path, so we can access all cdpedia internals (code and libraries); note this
+# is needed for when CDPedia is executed from a different location (e.g.: double click from GUI)
 cdpedia_path = os.path.abspath(__file__)
 os.chdir(os.path.dirname(cdpedia_path))
 
-# fix path if needed
+# fix path if running from disc/tarball (for own code and external libs)
 if os.path.exists("cdpedia"):
     sys.path.append("cdpedia")
+    sys.path.append(os.path.join("cdpedia", "extlib"))
 
 # imports after sys path was fixed
 import config  # NOQA
-from src import third_party  # NOQA: Need this to import thirdparty (werkzeug and jinja2)
 from src.utiles import WatchDog, find_open_port  # NOQA
 from src.web.web_app import create_app  # NOQA
-from werkzeug.serving import ThreadedWSGIServer  # NOQAr
+from werkzeug.serving import ThreadedWSGIServer  # NOQA
 
 
 # We log stdout and stderr if it is the Windows platform,
@@ -112,48 +112,6 @@ def sleep_and_browse():
         print("You need a browser installed in your system to access the CDPedia content.")
         server.shutdown()
         sys.exit(-1)
-
-
-# Python 2.5 version: SocketServer has no shutdown.
-# We copied it from 2.6 version.
-
-if sys.version_info < (2, 6):
-    import select
-    import socket
-
-    ThreadedWSGIServer._is_shut_down = threading.Event()
-    ThreadedWSGIServer._shutdown_request = False
-
-    def serve_forever(self):
-        """Handle one request at a time until shutdown."""
-        self._is_shut_down.clear()
-        try:
-            while not self._shutdown_request:
-                r, w, e = select.select([self], [], [], .5)
-                if self not in r:
-                    continue
-                try:
-                    request, client_address = self.get_request()
-                except socket.error:
-                    continue
-                if not self.verify_request(request, client_address):
-                    continue
-
-                try:
-                    self.process_request(request, client_address)
-                except Exception:
-                    self.handle_error(request, client_address)
-                    self.close_request(request)
-        finally:
-            self._shutdown_request = False
-            self._is_shut_down.set()
-    ThreadedWSGIServer.serve_forever = serve_forever
-
-    def shutdown(self):
-        """Stops the serve_forever loop."""
-        self._shutdown_request = True
-        self._is_shut_down.wait()
-    ThreadedWSGIServer.shutdown = shutdown
 
 
 if __name__ == "__main__":
