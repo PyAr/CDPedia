@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Copyright 2010-2020 CDPedistas (see AUTHORS.txt)
@@ -38,18 +37,19 @@ import urllib2
 
 import concurrent.futures
 
-# import stuff from project's trunk
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from src.armado import to3dirs  # NOQA import after fixing path
+## import stuff from project's trunk
+#sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from src.armado import to3dirs
+#FIXME NOQA import after fixing path
 
-# log all bad stuff
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler("scraper.log")
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s  %(message)s")
-handler.setFormatter(formatter)
+## log all bad stuff
+logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
+#handler = logging.FileHandler("scraper.log")
+#logger.addHandler(handler)
+#logger.setLevel(logging.DEBUG)
+#formatter = logging.Formatter("%(asctime)s  %(message)s")
+#handler.setFormatter(formatter)
 
 WIKI = 'http://%(lang)s.wikipedia.org/'
 
@@ -140,7 +140,6 @@ def fetch_html(url):
     """
     retries = 3
     while True:
-        raise FetchingError("Pumba %s", "wee")
         try:
             req = urllib2.Request(url.encode('utf-8'), headers=REQUEST_HEADERS)
             resp = urllib2.urlopen(req, timeout=60)
@@ -418,44 +417,25 @@ class StatusBoard(object):
             sys.stdout.flush()
 
 
-def main(nombres, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
-    """Main entry point."""
+def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
+    """Main entry point.
+
+    Params:
+    - articles_path: the path to the file with the list of articles to download
+    - language: the language of the Wikipedia to use (e.g.: 'es')
+    - dest_dir: the destination directory to put the downloaded articles (may take tens of GBs)
+    - namespaces_path: the path to a file with the namespace prefixes
+    - test_limit: a limit to how many articles download (optional, defaults to all)
+    - pool_size: how many concurrent downloaders use (optional, defaults to 20)
+    """
+    print("=========== sTAR")
     # fix namespaces in to3dirs module so we can use it in this stage
     to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
 
-    test_limit = int(test_limit) if test_limit else None
-    data_urls = URLAlizer(nombres, dest_dir, language, test_limit)
+    data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
     board = StatusBoard(language)
     with concurrent.futures.ThreadPoolExecutor(max_workers=pool_size) as executor:
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
         list(executor.map(board.process, data_urls))
-
-
-USAGE = """
-Usar: scraper.py <NOMBRES_ARTICULOS> <LANGUAGE> <DEST_DIR> [CONCURRENT]"
-  Descarga la wikipedia escrapeándola.
-
-  NOMBRES_ARTICULOS es un listado de nombres de artículos. Debe ser descargado
-  y descomprimido de:
-  http://download.wikipedia.org/eswiki/latest/eswiki-latest-all-titles-in-ns0.gz
-
-  DEST_DIR es el directorio de destino, donde se guardan los artículos. Puede
-  ocupar unos 40GB o más.
-
-  CONCURRENT es la cantidad de corrutinas que realizan la descarga. Se puede
-  tunear para incrementar velocidad de artículos por segundo. Depende mayormente
-  de la conexión: latencia, ancho de banda, etc. El default es 20.
-
-  Los nombres de los artículos que no pudieron descargarse correctamente se
-  guardan en probar_de_nuevo.txt.
-
-"""
-
-if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print(USAGE)
-        sys.exit(1)
-
-    main(*sys.argv[1:])
