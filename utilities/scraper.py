@@ -140,7 +140,6 @@ def fetch_html(url):
     """
     retries = 3
     while True:
-        raise FetchingError("Pumba %s", "wee")
         try:
             req = urllib2.Request(url.encode('utf-8'), headers=REQUEST_HEADERS)
             resp = urllib2.urlopen(req, timeout=60)
