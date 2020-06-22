@@ -402,8 +402,9 @@ class StatusBoard(object):
             self.ok += 1
 
         speed = self.total / (time.time() - self.init_time)
-        print("\rTotal=%d  ok=%d  bad=%d  speed=%.2f art/s".format(
-            self.total, self.ok, self.bad, speed), flush=True)
+        print("\rTotal={}  ok={}  bad={}  speed={:.2f} art/s".format(
+            self.total, self.ok, self.bad, speed), end='')
+        sys.stdout.flush()  # py3: put this as a parameter of the print function
 
 
 def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
@@ -427,3 +428,4 @@ def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, po
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
         list(executor.map(board.process, data_urls))
+    print()  # this is to get the cursor out of the same line of the progress report above

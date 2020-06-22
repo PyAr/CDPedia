@@ -202,15 +202,6 @@ def _call_scraper(language, articles_file, test=False):
     namespaces_path = os.path.join(location.resources, NAMESPACES)
     limit = TEST_LIMIT_SCRAP if test else None
     scraper.main(articles_file, language, location.articles, namespaces_path, test_limit=limit)
-    #cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-    #    location.branchdir, articles_file, language, location.articles, namespaces_path)
-    #if test:
-    #    cmd += " " + str(TEST_LIMIT_SCRAP)
-    #res = os.system(cmd)
-    #if res != 0:
-    #    logger.error("Bad result code from scraping: %r", res)
-    #    logger.error("Quitting, no point in continue")
-    #    exit()
 
 
 def scrap_pages(language, test):
