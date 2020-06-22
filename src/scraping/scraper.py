@@ -18,7 +18,7 @@
 
 """Download the whole wikipedia."""
 
-from __future__ import with_statement, unicode_literals
+from __future__ import with_statement, unicode_literals, print_function
 
 import StringIO
 import codecs
@@ -37,19 +37,9 @@ import urllib2
 
 import concurrent.futures
 
-## import stuff from project's trunk
-#sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from src.armado import to3dirs
-#FIXME NOQA import after fixing path
 
-## log all bad stuff
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
-#handler = logging.FileHandler("scraper.log")
-#logger.addHandler(handler)
-#logger.setLevel(logging.DEBUG)
-#formatter = logging.Formatter("%(asctime)s  %(message)s")
-#handler.setFormatter(formatter)
 
 WIKI = 'http://%(lang)s.wikipedia.org/'
 
@@ -391,9 +381,9 @@ class StatusBoard(object):
 
     def __init__(self, language):
         self.total = 0
-        self.bien = 0
-        self.mal = 0
-        self.tiempo_inicial = time.time()
+        self.ok = 0
+        self.bad = 0
+        self.init_time = time.time()
         self.language = language
 
     def process(self, data_url):
@@ -401,20 +391,19 @@ class StatusBoard(object):
             fetch(data_url, self.language)
         except ScraperError as err:
             self.total += 1
-            self.mal += 1
+            self.bad += 1
             logger.error(err.message, *err.args)
         except Exception as err:
             self.total += 1
-            self.mal += 1
+            self.bad += 1
             logger.exception("Crashed while processing %r: %r", data_url, err)
         else:
             self.total += 1
-            self.bien += 1
-        finally:
-            velocidad = self.total / (time.time() - self.tiempo_inicial)
-            sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" % (
-                self.total, self.bien, self.mal, velocidad))
-            sys.stdout.flush()
+            self.ok += 1
+
+        speed = self.total / (time.time() - self.init_time)
+        print("\rTotal=%d  ok=%d  bad=%d  speed=%.2f art/s".format(
+            self.total, self.ok, self.bad, speed), flush=True)
 
 
 def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
@@ -428,7 +417,6 @@ def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, po
     - test_limit: a limit to how many articles download (optional, defaults to all)
     - pool_size: how many concurrent downloaders use (optional, defaults to 20)
     """
-    print("=========== sTAR")
     # fix namespaces in to3dirs module so we can use it in this stage
     to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
 
