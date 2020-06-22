@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from src.scrapping import portals
+from src.scraping import portals
 
 
 class ESParsingTests(unittest.TestCase):
