@@ -71,6 +71,25 @@ REQUEST_HEADERS = {
 DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename")
 
 
+class ScraperError(Exception):
+    """Base class for all scraper errors."""
+    def __init__(self, msg, *args):
+        super(Exception, self).__init__(msg)
+        self.args = args
+
+
+class PageHaveNoRevisionsError(ScraperError):
+    """Error to indicate that a page has no history revisions."""
+
+
+class FetchingError(ScraperError):
+    """Error while fetching a web page."""
+
+
+class BadHTMLError(ScraperError):
+    """Error in the HTML format."""
+
+
 class URLAlizer(object):
     def __init__(self, listado_nombres, dest_dir, language, test_limit):
         self.language = language
@@ -113,7 +132,12 @@ class URLAlizer(object):
 
 
 def fetch_html(url):
-    """Fetch an url following redirects."""
+    """Fetch an url following redirects and retrying on some errors.
+
+    It considers HTTP 404 the only one error to not retry. Note that it also retries on non-HTTP
+    errors (for example, after getting information on a 200 response, but failing to uncompress
+    it properly).
+    """
     retries = 3
     while True:
         try:
@@ -122,18 +146,15 @@ def fetch_html(url):
             compressedstream = StringIO.StringIO(resp.read())
             gzipper = gzip.GzipFile(fileobj=compressedstream)
             html = gzipper.read().decode('utf-8')
-
             return html
+
         except Exception as err:
             if isinstance(err, urllib2.HTTPError) and err.code == 404:
-                raise
+                raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
             retries -= 1
             if not retries:
-                raise
-
-
-class PageHaveNoRevisions(Exception):
-    pass
+                raise FetchingError("Giving up retries after %r on url %r", err, url)
+            logger.warning("Retrying fetch html after %r on url %r", err, url)
 
 
 class WikipediaArticleHistoryItem(object):
@@ -201,13 +222,13 @@ class WikipediaArticle(object):
         pageid = pages.keys()[0]
         if pageid == '-1':
             # page deleted / moved / whatever but not now..
-            raise PageHaveNoRevisions(self)
+            raise PageHaveNoRevisionsError("Bad value for pageid")
 
         revisions = pages[pageid].get("revisions")
         if not revisions:
             # None, or there but empty
             # page deleted / moved / whatever but not now..
-            raise PageHaveNoRevisions(self)
+            raise PageHaveNoRevisionsError("No revisions found")
 
         for idx, item in enumerate(revisions):
             yield idx, self.HISTORY_CLASS.FromJSON(item)
@@ -264,43 +285,20 @@ regex = (
 capture = re.compile(regex, re.MULTILINE | re.DOTALL).search
 
 
-def extract_content(html, url):
-    found = capture(html)
-    if not found:
-        # unknown html format
-        raise ValueError("HTML file from %s has an unknown format" % url)
-    return "\n".join(found.groups())
-
-
 def get_html(url, basename):
-    try:
-        html = fetch_html(url)
-    except urllib2.HTTPError as err:
-        if err.code == 404:
-            logger.info("HTML not found (404): %s", basename)
-        else:
-            logger.info("Try again (HTTP error %s): %s", err.code, basename)
-        return
-    except Exception as err:
-        logger.info("Try again (Exception while fetching: %r): %s", err, basename)
-        return
-
-    if not html:
-        logger.info("Got an empty file: %r", url)
+    html = fetch_html(url)
 
     # ok, downloaded the html, let's check that it complies with some rules
     if "</html>" not in html:
-        # we surely didn't download it all
-        logger.info("Try again (unfinished download): %s", basename)
-        return
+        raise BadHTMLError("Broken HTML after downloading {!r}".format(url))
 
-    try:
-        html = extract_content(html, url)
-    except ValueError as e:
-        logger.info("Try again (Exception while extracting content: %r): %s", e, basename)
-        return
+    found = capture(html)
+    if not found:
+        # unknown html format
+        raise BadHTMLError("HTML file from  {!r} has an unknown format".format(url))
+    stripped_html = "\n".join(found.groups())
 
-    return html
+    return stripped_html
 
 
 def obtener_link_200_siguientes(html):
@@ -343,11 +341,6 @@ def save_htmls(data_url):
     If it is a category, process pagination and save all pages.
     """
     html = get_html(str(data_url.url), data_url.basename)
-    # XXX Facundo (2020-06-15): This model of return None if had a problem sucks, need to
-    # dig deeper in get_html and start raising an exception
-    if html is None:
-        return
-
     temp_file = get_temp_file(data_url.temp_dir)
 
     if "Categoría" not in data_url.basename:
@@ -356,12 +349,10 @@ def save_htmls(data_url):
         temp_file.close()
         return [(temp_file, data_url.disk_name)]
 
-    temporales = []
-    # cat!
+    # we have categories
     n = 1
-
+    temporales = []
     while True:
-
         if n == 1:
             temporales.append((temp_file, data_url.disk_name))
         else:
@@ -378,9 +369,6 @@ def save_htmls(data_url):
             return temporales
 
         html = get_html(prox_url.replace('&amp;', '&'), data_url.basename)
-        if html is None:
-            return
-
         temp_file = get_temp_file(data_url.temp_dir)
         n += 1
 
@@ -388,33 +376,15 @@ def save_htmls(data_url):
 def fetch(data_url, language):
     """Fetch a wikipedia page (that can be paginated)."""
     page = WikipediaArticle(language, data_url.url, data_url.basename)
-    try:
-        url = page.search_valid_version()
-    except PageHaveNoRevisions:
-        logger.error("Version not found: %s", data_url.basename)
-        return False
-    except Exception:
-        logger.exception("Error while getting valid version for %r", data_url.url)
-        return False
+    url = page.search_valid_version()
     data_url = data_url._replace(url=url)
 
     # save the htmls with the (maybe changed) url and all the data
     temporales = save_htmls(data_url)
-    if temporales is None:
-        logger.error("Error saving htmls.")
-        return False
 
     # transform temp data into final files
     for temp_file, disk_name in temporales:
-        try:
-            os.rename(temp_file.name, disk_name.encode("utf-8"))
-        except OSError as e:
-            logger.exception(
-                "Try again (Error creating file %r: %r): %s", disk_name, e, data_url.basename)
-            return False
-
-    # return True when it was OK!
-    return True
+        os.rename(temp_file.name, disk_name.encode("utf-8"))
 
 
 class StatusBoard(object):
@@ -428,17 +398,18 @@ class StatusBoard(object):
 
     def process(self, data_url):
         try:
-            ok = fetch(data_url, self.language)
-        except Exception:
+            fetch(data_url, self.language)
+        except ScraperError as err:
             self.total += 1
             self.mal += 1
-            raise
+            logger.error(err.message, *err.args)
+        except Exception as err:
+            self.total += 1
+            self.mal += 1
+            logger.exception("Crashed while processing %r: %r", data_url, err)
         else:
             self.total += 1
-            if ok:
-                self.bien += 1
-            else:
-                self.mal += 1
+            self.bien += 1
         finally:
             velocidad = self.total / (time.time() - self.tiempo_inicial)
             sys.stdout.write("\rTOTAL=%d  BIEN=%d  MAL=%d  vel=%.2f art/s" % (
