@@ -4,6 +4,4 @@ flake8
 futures
 pytest
 pytest-mock
-pyopenssl
 lxml
-service_identity
