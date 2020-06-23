@@ -21,10 +21,8 @@ from __future__ import print_function
 
 import codecs
 import gettext
-import operator
 import os
 import posixpath
-import re
 import tarfile
 import tempfile
 import urllib
@@ -218,39 +216,7 @@ class CDPedia(object):
         start = int(request.args.get("start", 0))
         quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
         id_ = self.searcher.start_search(words)
-        results = self.searcher.get_results(id_, start, quantity)
-
-        CLEAN = re.compile("[(),]")
-
-        # group by link, giving priority to the title of the original articles
-        grouped_results = {}
-        for link, title, ptje, original, text in results:
-            # remove 3 dirs from link and add the proper base url
-            link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
-
-            # convert tokens to lower case
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
-
-            if link in grouped_results:
-                (tit, prv_ptje, tokens, txt) = grouped_results[link]
-                tokens.update(tit_tokens)
-                if original:
-                    # save the info of the original article
-                    tit = title
-                    txt = text
-                grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
-            else:
-                grouped_results[link] = (title, ptje, tit_tokens, text)
-
-        # clean the tokens
-        for link, (tit, ptje, tokens, text) in grouped_results.iteritems():
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
-            tokens.difference_update(tit_tokens)
-
-        # sort the results
-        candidates = ((k,) + tuple(v) for k, v in grouped_results.iteritems())
-        sorted_results = sorted(candidates, key=operator.itemgetter(2),
-                                reverse=True)
+        sorted_results = self.searcher.get_grouped(id_, start, quantity)
 
         return self.render_template('search.html',
                                     search_words=words,
