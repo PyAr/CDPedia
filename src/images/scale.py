@@ -16,7 +16,9 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement, print_function
+"""Reduce images."""
+
+from __future__ import with_statement, unicode_literals
 
 import codecs
 import config
@@ -25,32 +27,34 @@ import os
 import shutil
 import subprocess
 
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger('images.scale')
 
 
 def run(verbose):
+    """Reduce images using precalculated scales."""
     notfound = 0
-    done_ahora = {}
+    done_now = {}
 
-    # leemos las imágenes que procesamos antes
-    done_antes = {}
+    # load already processed images
+    done_before = {}
     if os.path.exists(config.LOG_REDUCDONE):
-        with codecs.open(config.LOG_REDUCDONE, "r", "utf-8") as fh:
-            for linea in fh:
-                partes = linea.strip().split()
-                escala = int(partes[0])
-                dskurl = partes[1]
-                done_antes[dskurl] = escala
+        with codecs.open(config.LOG_REDUCDONE, "r", encoding="utf-8") as fh:
+            for line in fh:
+                parts = line.strip().split()
+                scale = int(parts[0])
+                dskurl = parts[1]
+                done_before[dskurl] = scale
 
     src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
-    # cargamos la escala que va para cada página
-    with codecs.open(config.LOG_REDUCCION, "r", "utf-8") as fh:
-        for linea in fh:
-            partes = linea.strip().split(config.SEPARADOR_COLUMNAS)
-            escl = int(partes[0])
-            dskurl = partes[1]
+    # load image path and its correspondig scale
+    with codecs.open(config.LOG_REDUCCION, "r", encoding="utf-8") as fh:
+        for line in fh:
+            parts = line.strip().split(config.SEPARADOR_COLUMNAS)
+            scale = int(parts[0])
+            dskurl = parts[1]
 
             frompath = os.path.join(src, dskurl)
             topath = os.path.join(dst, dskurl)
@@ -64,46 +68,45 @@ def run(verbose):
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
-            # reglas para no escalar algunas imagenes: math/*, .png, y < 2KB
+            # rules to skip scaling of some images: math/*, .png, y < 2KB
             if dskurl.startswith('math') or dskurl.endswith('.png') or \
                os.stat(frompath).st_size < 2048:
-                # print("Forzando imagen a escala 100 por reglas", repr(dskurl))
-                escl = 100
+                scale = 100
 
-            # vemos si lo que hay que hacer ahora no lo teníamos hecho de antes
-            escl_antes = done_antes.get(dskurl)
-            if escl_antes == escl:
-                done_ahora[dskurl] = escl
+            # check if image scaling was already done
+            scaled_before = done_before.get(dskurl)
+            if scaled_before == scale:
+                done_now[dskurl] = scale
                 continue
 
-            # cambiamos el tamaño si debemos, sino sólo copiamos
+            # change size only if needed, otherwise just make a copy
             if verbose:
-                print("Reescalando a %d%% la imagen %s" % (escl, dskurl.encode("utf8")))
-            if escl == 100:
-                done_ahora[dskurl] = 100
+                logger.debug("Rescaling to %d%% image %s", scale, dskurl)
+            if scale == 100:
+                done_now[dskurl] = 100
                 shutil.copyfile(frompath, topath)
             else:
-                cmd = ['convert', frompath, '-resize', '%d%%' % (escl,), topath]
+                cmd = ['convert', frompath, '-resize', '%d%%' % (scale,), topath]
                 errorcode = subprocess.call(cmd)
                 if not errorcode:
-                    done_ahora[dskurl] = escl
+                    done_now[dskurl] = scale
                 else:
                     logger.warning("Got %d when processing %s", errorcode, frompath)
 
-    # guardamos lo que procesamos ahora
-    with codecs.open(config.LOG_REDUCDONE, "w", "utf-8") as fh:
-        for dskurl, escl in done_ahora.iteritems():
-            fh.write("%3d %s\n" % (escl, dskurl))
+    # save images processed now
+    with codecs.open(config.LOG_REDUCDONE, "w", encoding="utf-8") as fh:
+        for dskurl, scale in done_now.iteritems():
+            fh.write("%3d %s\n" % (scale, dskurl))
 
-    # vemos lo que sobró de la vez pasada y lo borramos
-    for dskurl in (set(done_antes) - set(done_ahora)):
+    # delete extra images from previous processing
+    for dskurl in (set(done_before) - set(done_now)):
         fullpath = os.path.join(dst, dskurl)
         try:
             os.remove(fullpath)
         except OSError as exc:
             logger.error("When erasing %r (got OSError %s)", fullpath, exc)
 
-    # si es verbose ya avisamos una por una
+    # if verbose warn not found images
     if not verbose and notfound:
-        print("  WARNING: No encontramos %d imágenes!" % (notfound,))
+        logger.warning("%d images not found!", notfound)
     return notfound
