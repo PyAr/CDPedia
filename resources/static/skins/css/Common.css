@@ -104,8 +104,8 @@ span.citation, cite {
 
 /* Gráficos transparentes de cabecera */
 .cabecera.default {}
-.media.audio {background:url(http://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Gnome-speakernotes.png/35px-Gnome-speakernotes.png) no-repeat top left}
-.media.video {background:url(http://upload.wikimedia.org/wikipedia/en/thumb/2/20/Tango-video-x-generic.png/35px-Tango-video-x-generic.png) no-repeat top left}
+.media.audio {background:url("/static/skins/css/images/35px-Gnome-speakernotes.png") no-repeat top left}
+.media.video {background:url("/static/skins/css/images/Tango-video-x-generic.png") no-repeat top left}
 
 /* Códigos para tipos especificos de infoboxes */
 .infobox.bordered {
@@ -274,13 +274,13 @@ Note that the classes "geo", "longitude", and "latitude" are not just styles but
 #bodyContent a[href$=".PDF"].external,
 #bodyContent a[href*=".PDF?"].external,
 #bodyContent a[href*=".PDF#"].external {
-    background: url(http://upload.wikimedia.org/wikipedia/commons/2/23/Icons-mini-file_acrobat.gif) center right no-repeat;
+    background: url("/static/skins/css/images/Icons-mini-file_acrobat.gif") center right no-repeat;
     padding-right: 16px;
 }
 
 /* Change the external link icon to an Adobe icon anywhere the PDFlink class */
 span.PDFlink a {
-    background: url("http://upload.wikimedia.org/wikipedia/commons/2/23/Icons-mini-file_acrobat.gif") center right no-repeat;
+    background: url("/static/skins/css/images/Icons-mini-file_acrobat.gif") center right no-repeat;
     padding-right: 17px;
 }
 
@@ -499,7 +499,7 @@ table.col5izq TD:first-child + TD + TD + TD + TD {text-align:left}
 table.col5cen TD:first-child + TD + TD + TD + TD {text-align:center}
 
 /* Put a checker background at the image description page only visible if the image has transparent background */
-#file img {background: url(http://upload.wikimedia.org/wikipedia/commons/5/5d/Checker-16x16.png) repeat}
+#file img {background: url("/static/skins/css/images/Checker-16x16.png") repeat}
 
 /* Disponibilidad para tareas de mantenimiento/Tablas por día/semana */
 
