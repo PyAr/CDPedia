@@ -41,9 +41,6 @@ ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
 NAMESPACES = "namespace_prefixes.txt"
 
-# base url
-WIKI_BASE = 'http://%(language)s.wikipedia.org'
-
 # some limits when running in test mode
 TEST_LIMIT_NAMESPACE = 50
 TEST_LIMIT_SCRAP = 1000
@@ -315,24 +312,15 @@ def main(language, lang_config, imag_config,
     if test and not image_type:
         image_type = ['beta']
     if image_type is None:
-        # new articles! do a full clean before, including the "processed" files
-        keep_processed = False if not noscrap else True
-        image_type = 'tarbig'
-        logger.info("Generating image for type: %r", image_type)
-        clean(keep_processed=keep_processed)
-        generate.main(
-            language, location.langdir, location.branchdir, image_type,
-            lang_config, gendate, verbose=test)
-    else:
-        for image in image_type:
-            logger.info("Generating image for type %r only", image)
-            if not noclean:
-                # keep previous processed if not new scrapped articles and not testing
-                keep_processed = noscrap and not test
-                clean(keep_processed=keep_processed)
-            generate.main(
-                language, location.langdir, location.branchdir, image,
-                lang_config, gendate, verbose=test)
+        image_type = ['tarbig']
+    for image in image_type:
+        logger.info("Generating image for type %r only", image)
+        if not noclean:
+            # keep previous processed if not new scrapped articles and not testing
+            keep_processed = noscrap and not test
+            clean(keep_processed=keep_processed)
+        generate.main(language, location.langdir, location.branchdir, image,
+                      lang_config, gendate, verbose=test)
 
 
 if __name__ == "__main__":
