@@ -16,13 +16,13 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import re
-import urllib
 import os.path
+import re
 import string
+import urllib
 
-from src.armado import to3dirs
 import config
+from src.armado import to3dirs
 
 re_header = re.compile(r'\<h1 id="firstHeading" class="firstHeading"\>([^\<]*)\</h1\>')
 re_title = re.compile('<title>(.*)</title>')
