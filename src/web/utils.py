@@ -33,25 +33,26 @@ re_title = re.compile('<title>(.*)</title>')
 
 
 class TemplateManager(object):
-    '''Maneja los templates en disco.'''
+    """Handle templates from disk."""
 
-    def __init__(self, directorio):
-        self.directorio = directorio
+    def __init__(self, directory):
+        self.directory = directory
         self.cache = {}
 
-    def get_template(self, nombre):
-        if nombre in self.cache:
-            return self.cache[nombre]
+    def get_template(self, name):
+        if name in self.cache:
+            return self.cache[name]
 
-        nomarch = os.path.join(self.directorio, "%s.tpl" % nombre)
-        with codecs.open(nomarch, "rt", encoding='utf-8') as fh:
+        filename = os.path.join(self.directory, "%s.tpl" % name)
+        with codecs.open(filename, "rt", encoding='utf-8') as fh:
             t = string.Template(fh.read())
 
-        self.cache[nombre] = t
+        self.cache[name] = t
         return t
 
 
 def get_title_from_data(data):
+    """Extract title from HTML."""
     if data is None:
         return ""
     for regexp in (re_header, re_title):
