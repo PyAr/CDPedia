@@ -329,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument("--test-mode", action='store_true',
                         help="Work on a few pages only "
                         "(1000 default pages)")
-    parser.add_argument("-p", "--page-limit",
+    parser.add_argument("-p", "--page-limit", type=int,
                         help="Change default limit pages in test mode")
     parser.add_argument("--image-type", nargs='*',
                         help="'--image-type <option(s)>' select the standar options "
