@@ -37,7 +37,6 @@ from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
 
-import bmp
 import config
 import utils
 from destacados import Destacados
@@ -163,8 +162,8 @@ class CDPedia(object):
                 height = int(height)
             except Exception:
                 raise InternalServerError("Error al generar imagen")
-            img = bmp.BogusBitMap(width, height)
-            return Response(img.data, mimetype="img/bmp")
+            img, mimetype = utils.img_fallback(width, height)
+            return Response(img, mimetype=mimetype)
         type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
