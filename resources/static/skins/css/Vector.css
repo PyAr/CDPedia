@@ -63,14 +63,14 @@ div.vectorMenu div {
 
 /* {{tl|Link GA}} */
 #mw-panel div.portal div.body ul li.GA {
-  background: url("http://upload.wikimedia.org/wikipedia/commons/4/42/Monobook-bullet-ga.png") no-repeat 0% 0%;
+  background: url("/static/skins/css/images/Monobook-bullet-ga.png") no-repeat 0% 0%;
   margin-left: -10px;
   padding-left: 10px;
 }
 
 /* {{tl|Link FA}} */
 #mw-panel div.portal div.body ul li.FA {
-  background: url("http://upload.wikimedia.org/wikipedia/commons/d/d4/Monobook-bullet-star.png") no-repeat 0% 0%;
+  background: url("/static/skins/css/images/Monobook-bullet-star.png") no-repeat 0% 0%;
   margin-left: -10px;
   padding-left: 10px;
 }
@@ -90,7 +90,7 @@ td.diff-context, td.diff-addedline, td.diff-deletedline {
 /* Blue instead of yellow padlock for secure links. */
 #bodyContent a.external[href ^="https://"],
 .link-https {
-  background: url("http://upload.wikimedia.org/wikipedia/en/0/00/Lock_icon_blue.gif") center right no-repeat;
+  background: url("/static/skins/css/images/Lock_icon_blue.gif") center right no-repeat;
   padding-right: 16px;
 }
 

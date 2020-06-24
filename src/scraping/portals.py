@@ -16,7 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""The scrapper for the portals."""
+"""The scraper for the portals."""
 
 from __future__ import print_function
 

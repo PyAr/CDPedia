@@ -35,7 +35,7 @@ import config
 from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
-from src.imagenes import extract, download, reducir, calcular
+from src.images import extract, download, scale, calculate
 
 
 # para poder hacer generar.py > log.txt
@@ -335,14 +335,14 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
         logger.info("Avoid processing articles and generating images log")
 
     logger.info("Recalculating the reduction percentages.")
-    calcular.run()
+    calculate.run()
 
     if not desconectado:
         logger.info("Downloading the images from the internet")
         download.retrieve()
 
     logger.info("Reducing the downloaded images")
-    reducir.run(verbose)
+    scale.run(verbose)
 
     logger.info("Putting the reduced images into blocks")
     # agrupamos las imagenes en bloques

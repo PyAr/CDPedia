@@ -193,25 +193,18 @@ def load_creation_date():
     return generation_date
 
 
-def _call_scrapper(language, articles_file, test=False):
+def _call_scraper(language, articles_file, test=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
     namespaces_path = os.path.join(location.resources, NAMESPACES)
-    cmd = "python %s/utilities/scraper.py %s %s %s %s" % (
-        location.branchdir, articles_file, language, location.articles, namespaces_path)
-    if test:
-        cmd += " " + str(TEST_LIMIT_SCRAP)
-    res = os.system(cmd)
-    if res != 0:
-        logger.error("Bad result code from scrapping: %r", res)
-        logger.error("Quitting, no point in continue")
-        exit()
+    limit = TEST_LIMIT_SCRAP if test else None
+    scraper.main(articles_file, language, location.articles, namespaces_path, test_limit=limit)
 
 
 def scrap_pages(language, test):
     """Get the pages from wikipedia."""
     all_articles = os.path.join(location.langdir, ART_ALL)
-    _call_scrapper(language, all_articles, test)
+    _call_scraper(language, all_articles, test)
 
     logger.info("Checking scraped size")
     total = os.stat(location.articles).st_size
@@ -230,7 +223,7 @@ def scrap_pages(language, test):
 def scrap_extra_pages(language, extra_pages):
     """Scrap extra pages defined in a text file."""
     extra_pages_file = os.path.join(location.branchdir, extra_pages)
-    _call_scrapper(language, extra_pages_file)
+    _call_scraper(language, extra_pages_file)
 
 
 def scrap_portals(language, lang_config):
@@ -238,7 +231,7 @@ def scrap_portals(language, lang_config):
     # get the portal url, get out if don't have it
     portal_index_url = lang_config.get('portal_index')
     if portal_index_url is None:
-        logger.info("Not scrapping portals, url not configured.")
+        logger.info("Not scraping portals, url not configured.")
         return
 
     logger.info("Downloading portal index from %r", portal_index_url)
@@ -252,7 +245,7 @@ def scrap_portals(language, lang_config):
     # save it
     with open(os.path.join(location.resources, "portals.html"), 'wb') as fh:
         fh.write(new_html)
-    logger.info("Portal scrapping done")
+    logger.info("Portal scraping done")
 
 
 def clean(keep_processed):
@@ -316,7 +309,7 @@ def main(language, lang_config, imag_config,
     for image in image_type:
         logger.info("Generating image for type %r only", image)
         if not noclean:
-            # keep previous processed if not new scrapped articles and not testing
+            # keep previous processed if not new scraped articles and not testing
             keep_processed = noscrap and not test
             clean(keep_processed=keep_processed)
         generate.main(language, location.langdir, location.branchdir, image,
@@ -406,7 +399,7 @@ if __name__ == "__main__":
     sys.path.insert(1, location.branchdir)
     sys.path.insert(1, os.path.join(location.branchdir, "utilities"))
     from src import list_articles_by_namespaces, generate
-    from src.scrapping import portals
+    from src.scraping import portals, scraper
 
     # change page limit in test mode
     if args.page_limit:
