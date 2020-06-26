@@ -54,9 +54,9 @@ Para generar el archivo de indice hacer:
 PALABRAS = re.compile(r"\w+", re.UNICODE)
 
 
-def normaliza(txt):
-    """Recibe una frase y devuelve sus palabras ya normalizadas."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
+def normalize_words(txt):
+    """Splits a text into words converting and removing non ascii representable letters."""
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("utf-8")
     return txt
 
 
@@ -124,7 +124,7 @@ def filename2palabras(fname):
     """Transforma un filename en sus palabras y título."""
     if fname.endswith(".html"):
         fname = fname[:-5]
-    x = normaliza(fname)
+    x = normalize_words(fname)
     p = x.split("_")
     t = " ".join(p)
     return p, t
@@ -136,7 +136,7 @@ def generar_de_html(dirbase, verbose):
 
     # armamos las redirecciones
     redirs = {}
-    for linea in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
+    for linea in codecs.open(config.LOG_REDIRECTS, "r", encoding="utf-8"):
         orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
 
         # del original, que es el que redirecciona, no tenemos título, así
@@ -148,7 +148,7 @@ def generar_de_html(dirbase, verbose):
     top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
-    with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
+    with codecs.open(config.LOG_TITLES, "r", encoding='utf8') as fh:
         for line in fh:
             arch, titulo, encoded_primtexto = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtexto = base64.b64decode(encoded_primtexto).decode("utf8")
@@ -165,7 +165,7 @@ def generar_de_html(dirbase, verbose):
             # a las palabras del título le damos mucha importancia: 50, más
             # el puntaje original sobre 1000, como desempatador
             ptje = 50 + puntaje // 1000
-            for pal in PALABRAS.findall(normaliza(titulo)):
+            for pal in PALABRAS.findall(normalize_words(titulo)):
                 yield pal, (nomhtml, titulo, ptje, True, primtexto)
 
             # pasamos las palabras de los redirects también que apunten

@@ -18,8 +18,6 @@
 
 """Calculate image scaling values."""
 
-from __future__ import with_statement, division, unicode_literals
-
 import codecs
 import logging
 import operator
@@ -92,7 +90,7 @@ def run():
         images[url] = -1
 
     total_images = len(images)
-    images = sorted(images.iteritems(), key=operator.itemgetter(1))
+    images = sorted(images.items(), key=operator.itemgetter(1))
 
     # load image list to map disk paths to web addresses
     dskweb = {}

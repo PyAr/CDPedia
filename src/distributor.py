@@ -18,9 +18,7 @@
 
 """Distribute tasks among a pool of threads."""
 
-from __future__ import unicode_literals
-
-import Queue as queue  # py3: import queue
+import queue
 import threading
 import time
 
