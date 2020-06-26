@@ -20,8 +20,8 @@
 
 import json
 import logging
-import urllib
-import urllib2
+import urllib.parse
+import urllib.request
 import time
 
 # these is the list of the namespaces we'll get; to get this you can
@@ -69,7 +69,7 @@ def hit_api(**kwords):
     """Call Wikimedia's API and pull the information."""
     url = API_URL % kwords
     logger.debug("Hit %r", url)
-    u = urllib2.urlopen(url)
+    u = urllib.request.urlopen(url)
     data = json.load(u)
     return data
 
@@ -102,7 +102,7 @@ def get_articles(language, test_limit):
             # continue, if needed
             if 'continue' in data:
                 contin = data['continue']['apcontinue']
-                contin = urllib.quote(contin.encode('utf8'))
+                contin = urllib.parse.quote(contin.encode('utf8'))
             else:
                 break
 

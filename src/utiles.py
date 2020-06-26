@@ -56,6 +56,8 @@ class WatchDog(threading.Thread):
 
 def coherent_hash(txt):
     """Devuelve el mismo número en distintas versiones de Py y plataformas."""
+    if isinstance(txt, str):
+        txt = txt.encode("ascii")
     return int(md5(txt).hexdigest()[-6:], 16)
 
 

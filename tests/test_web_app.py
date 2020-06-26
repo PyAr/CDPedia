@@ -16,7 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import unicode_literals
 
 import os
 import tarfile
@@ -123,7 +122,7 @@ def test_wiki_random_article(create_app_client):
     response = client.get("/al_azar")
     assert response.status_code == 302
     assert b"Redirecting..." in response.data
-    assert response.location.startswith(b'http://localhost/wiki/')
+    assert response.location.startswith('http://localhost/wiki/')
 
 
 def test_institucional(create_app_client):
@@ -163,11 +162,11 @@ def test_index_ready(create_app_client):
 
     app.index = FakeIndex()
     response = client.get("/search_index/ready")
-    assert response.data == "false"
+    assert response.data == b"false"
 
     app.index.ready = True
     response = client.get("/search_index/ready")
-    assert response.data == "true"
+    assert response.data == b"true"
 
 
 def test_search_get(create_app_client):
@@ -186,20 +185,21 @@ def test_search_post(create_app_client):
     _, client = create_app_client()
     response = client.post("/search", data={"keywords": "a"})
     assert response.status_code == 302
-    assert b"/search/" in response.location
+    assert "/search/" in response.location
     response = client.post("/search", data={"keywords": "a"}, follow_redirects=True)
     assert response.status_code == 200
 
 
 def test_search_term_url(create_app_client):
     _, client = create_app_client()
-    words = (u"foo", u"bar")
-    response = client.post("/search", data={"keywords": u" ".join(words)})
+    words = ("foo", "bar")
+    response = client.post("/search", data={"keywords": " ".join(words)})
+
     assert response.status_code == 302
-    assert b"/search/%s" % "+".join(words) in response.location
+    assert "/search/%s" % "+".join(words) in response.location
 
     response = client.post(
-        "/search", data={"keywords": u" ".join(words)}, follow_redirects=True)
+        "/search", data={"keywords": " ".join(words)}, follow_redirects=True)
     assert response.status_code == 200
 
 
@@ -224,5 +224,5 @@ def test_on_favicon(create_app_client):
 
 
 def test_get_origin_link(create_app_client):
-    assert utils.get_orig_link(u'Python').endswith(u"/wiki/Python")
-    assert utils.get_orig_link(u'"Love_and_Theft"').endswith(u"/wiki/%22Love_and_Theft%22")
+    assert utils.get_orig_link('Python').endswith("/wiki/Python")
+    assert utils.get_orig_link('"Love_and_Theft"').endswith("/wiki/%22Love_and_Theft%22")

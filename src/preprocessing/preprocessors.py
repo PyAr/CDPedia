@@ -34,7 +34,7 @@ other pages. If a processor wants to omit a given page, it must return
 None instead of the score.
 """
 
-from __future__ import unicode_literals
+
 
 import base64
 import codecs
@@ -42,7 +42,7 @@ import collections
 import logging
 import os
 import re
-from urllib2 import unquote
+from urllib.parse import unquote
 
 import bs4
 
@@ -85,7 +85,7 @@ class ContentExtractor(_Processor):
     def __init__(self):
         super(ContentExtractor, self).__init__()
         self.name = "ContentExtractor"
-        self.output = codecs.open(config.LOG_TITLES, "at", "utf-8")
+        self.output = codecs.open(config.LOG_TITLES, "a", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -107,7 +107,7 @@ class ContentExtractor(_Processor):
             text = node.text.strip()
             if len(text) > self._max_length:
                 text = text[:self._max_length] + "..."
-            safe_text = base64.b64encode(text.encode("utf8"))
+            safe_text = base64.b64encode(text.encode("utf8")).decode('utf-8')
             self.stats['text found'] += 1
 
         # dump to disk
@@ -136,7 +136,7 @@ class VIPDecissor(object):
 
         # some manually curated pages
         if config.DESTACADOS is not None:
-            with codecs.open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
+            with codecs.open(config.DESTACADOS, 'r', encoding='utf8') as fh:
                 for line in fh:
                     viparts.add(line.strip())
 
@@ -147,10 +147,10 @@ class VIPDecissor(object):
         fname = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
         if os.path.exists(fname):
             re_link = re.compile(r'<a.*?href="/wiki/(.*?)">', re.MULTILINE | re.DOTALL)
-            with open(fname, 'rb') as fh:
+            with codecs.open(fname, 'r', encoding='utf-8') as fh:
                 mainpage_portals_content = fh.read()
             for link in re_link.findall(mainpage_portals_content):
-                viparts.add(unquote(link).decode('utf8'))
+                viparts.add(unquote(link))
         logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
@@ -186,7 +186,7 @@ class OmitRedirects(_Processor):
     def __init__(self):
         super(OmitRedirects, self).__init__()
         self.name = "Redirects"
-        self.output = codecs.open(config.LOG_REDIRECTS, "a", "utf-8")
+        self.output = codecs.open(config.LOG_REDIRECTS, "a", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -253,11 +253,7 @@ class Peishranc(_Processor):
             link = href[self.prefix_length:].split('#', 1)[0]
 
             # decode and unquote
-            try:
-                link = unquote(link.encode('utf-8')).decode('utf8')  # py3: remove encode/decode
-            except UnicodeDecodeError:
-                logger.error('unquoting/decoding link failed: %s', repr(link))
-                continue
+            link = unquote(link)
 
             # "/" are not really stored like that in disk, they are replaced
             # by the SLASH word
@@ -270,10 +266,10 @@ class Peishranc(_Processor):
             del scores[wikifile.url]
 
         # factor score by constant
-        for link, score in scores.iteritems():
+        for link, score in scores.items():
             scores[link] = score * SCORE_PEISHRANC
 
-        return (0, scores.items())
+        return (0, list(scores.items()))
 
 
 class Length(_Processor):

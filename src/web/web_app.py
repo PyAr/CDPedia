@@ -17,8 +17,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
 import codecs
 import gettext
 import operator
@@ -27,7 +25,7 @@ import posixpath
 import re
 import tarfile
 import tempfile
-import urllib
+import urllib.parse
 from datetime import datetime
 from mimetypes import guess_type
 
@@ -37,18 +35,18 @@ from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
 
-import bmp
+from . import bmp
 import config
-import utils
-from destacados import Destacados
-from searcher import Searcher
+from . import utils
+from .destacados import Destacados
+from .searcher import Searcher
 from src.armado import cdpindex
-from src.armado.cdpindex import normaliza as normalize_keyword
+from src.armado.cdpindex import normalize_words
 from src.armado import compresor
 from src.armado import to3dirs
-from utils import TemplateManager
+from .utils import TemplateManager
 
-ARTICLES_BASE_URL = u"wiki"
+ARTICLES_BASE_URL = "wiki"
 
 
 class ArticleNotFound(HTTPException):
@@ -107,7 +105,7 @@ class CDPedia(object):
 
     def get_creation_date(self):
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'start_date.txt')
-        with open(_path, 'rt') as f:
+        with codecs.open(_path, 'r', encoding='utf-8') as f:
             date = f.read().strip()
         creation_date = datetime.strptime(date, "%Y%m%d")
         return creation_date
@@ -122,7 +120,7 @@ class CDPedia(object):
 
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
         if os.path.exists(_path):
-            with codecs.open(_path, "rb", encoding='utf8') as fh:
+            with codecs.open(_path, "r", encoding='utf-8') as fh:
                 portals = fh.read()
         else:
             portals = ""
@@ -135,7 +133,7 @@ class CDPedia(object):
         try:
             data = self.art_mngr.get_item(name)
         except Exception as err:
-            raise InternalServerError(u"Error interno al buscar contenido: %s" % err)
+            raise InternalServerError("Error interno al buscar contenido: %s" % err)
 
         if data is None:
             raise ArticleNotFound(name, orig_link)
@@ -152,7 +150,7 @@ class CDPedia(object):
             normpath = posixpath.normpath(name)
             asset_data = self.img_mngr.get_item(normpath)
         except Exception as err:
-            msg = u"Error interno al buscar imagen: %s" % err
+            msg = "Error interno al buscar imagen: %s" % err
             raise InternalServerError(msg)
         if asset_data is None:
             if self.verbose:
@@ -186,7 +184,7 @@ class CDPedia(object):
             raise NotFound()
 
         # all unicode
-        data = codecs.open(asset_file, "rb", "utf8").read()
+        data = codecs.open(asset_file, "r", encoding="utf-8").read()
         title = utils.get_title_from_data(data)
 
         p = self.render_template('institucional.html', title=title, asset=data)
@@ -196,7 +194,7 @@ class CDPedia(object):
     def on_random(self, request):
         link, tit = self.index.get_random()
         link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
-        return redirect(urllib.quote(link.encode("utf-8")))
+        return redirect(urllib.parse.quote(link.encode("utf-8")))
 
     # @ei.espera_indice # TODO
     def on_search(self, request):
@@ -204,16 +202,16 @@ class CDPedia(object):
             return self.render_template('search.html')
         elif request.method == "POST":
             search_string = request.form.get("keywords", '')
-            search_string = urllib.unquote_plus(search_string)
+            search_string = urllib.parse.unquote_plus(search_string)
             if search_string:
-                search_string_norm = normalize_keyword(search_string)
+                search_string_norm = normalize_words(search_string)
                 words = search_string_norm.split()
                 self.searcher.start_search(words)
-                return redirect("/search/%s" % "+".join(words))
+                return redirect("/search/" + "+".join(words))
             return redirect("/")
 
     def on_search_results(self, request, key):
-        search_string_norm = urllib.unquote_plus(normalize_keyword(key))
+        search_string_norm = urllib.parse.unquote_plus(normalize_words(key))
         words = search_string_norm.split()
         start = int(request.args.get("start", 0))
         quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
@@ -243,12 +241,12 @@ class CDPedia(object):
                 grouped_results[link] = (title, ptje, tit_tokens, text)
 
         # clean the tokens
-        for link, (tit, ptje, tokens, text) in grouped_results.iteritems():
+        for link, (tit, ptje, tokens, text) in grouped_results.items():
             tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
         # sort the results
-        candidates = ((k,) + tuple(v) for k, v in grouped_results.iteritems())
+        candidates = ((k,) + tuple(v) for k, v in grouped_results.items())
         sorted_results = sorted(candidates, key=operator.itemgetter(2),
                                 reverse=True)
 
@@ -272,7 +270,7 @@ class CDPedia(object):
         return self.render_template('compressed_asset.html',
                                     server_mode=config.SERVER_MODE,
                                     asset_url=asset,
-                                    asset_name=u"Tutorial de python")
+                                    asset_name="Tutorial de python")
 
     def on_watchdog_update(self, request):
         self.watchdog.update()

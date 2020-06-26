@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
-import StringIO
+import io
 import argparse
 import datetime
 import gzip
@@ -27,7 +25,7 @@ import logging
 import os
 import shutil
 import sys
-import urllib2
+import urllib.request
 from logging.handlers import RotatingFileHandler
 
 import yaml
@@ -125,9 +123,9 @@ def get_lists(language, lang_config, test):
 
     url = URL_LIST % dict(language=language)
     logger.info("Getting list file: %r", url)
-    u = urllib2.urlopen(url)
-    logger.debug("Got headers: %s", u.headers.items())
-    fh = StringIO.StringIO(u.read())
+    u = urllib.request.urlopen(url)
+    logger.debug("Got headers: %s", list(u.headers.items()))
+    fh = io.StringIO(u.read())
     gz = gzip.GzipFile(fileobj=fh)
 
     # walk through lines, easier to count and assure all lines are proper
@@ -245,7 +243,7 @@ def scrap_portals(language, lang_config):
         return
 
     logger.info("Downloading portal index from %r", portal_index_url)
-    u = urllib2.urlopen(portal_index_url)
+    u = urllib.request.urlopen(portal_index_url)
     html = u.read()
     logger.info("Scrapping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
