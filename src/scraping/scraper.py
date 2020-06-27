@@ -319,8 +319,8 @@ def reemplazar_links_paginado(html, n):
 
 
 def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html', prefix='scrap-', dir=temp_dir, delete=False,
-                                       encoding="utf-8")
+    return tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8', suffix='.html',
+                                       prefix='scrap-', dir=temp_dir, delete=False, )
 
 
 def save_htmls(data_url):
