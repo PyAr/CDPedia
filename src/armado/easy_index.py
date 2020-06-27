@@ -21,7 +21,7 @@ import operator
 import os
 import random
 from bz2 import BZ2File as CompressedFile
-from .lru_cache import lru_cache
+from functools import lru_cache
 
 from src import utiles
 from functools import reduce

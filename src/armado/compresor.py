@@ -40,11 +40,12 @@ import struct
 import pickle as pickle
 from os import path
 from bz2 import BZ2File as CompressedFile
+from functools import lru_cache
 import shutil
 
 import config
 from src import utiles
-from .lru_cache import lru_cache
+
 
 # This is the total blocks that are keep open using a LRU cache. This number
 # must be less than the maximum number of files open per process.

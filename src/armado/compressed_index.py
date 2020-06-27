@@ -17,13 +17,12 @@
 import array
 import bisect
 from bz2 import BZ2File as CompressedFile
+from functools import lru_cache
 import pickle
 import operator
 import os
 import random
 import sys
-
-from .lru_cache import lru_cache
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
