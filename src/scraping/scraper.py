@@ -27,10 +27,11 @@ import json
 import logging
 import os
 import re
-import sys
 import tempfile
 import time
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import concurrent.futures
 

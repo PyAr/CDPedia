@@ -276,8 +276,8 @@ class ImageParser(object):
         querystr = '?s=%s-%s' % (img_width, img_height) if img_width and img_height else ''
 
         # Replace the origial src with the local servable path
-        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.parse.quote(dsk_url.encode("latin-1")),
-                                                      querystr)
+        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.parse.quote(
+                                                      dsk_url.encode("latin-1")), querystr)
 
         tag.attrs.pop("data-file-height", None)
         tag.attrs.pop("data-file-width", None)
