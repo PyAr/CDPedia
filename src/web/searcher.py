@@ -17,9 +17,9 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """The Searcher."""
-import queue
 import collections
 import operator
+import queue
 import re
 import threading
 import uuid

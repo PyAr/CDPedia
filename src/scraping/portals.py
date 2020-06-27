@@ -310,4 +310,4 @@ if __name__ == '__main__':
             html_src = fh.read()
 
     items = parse(lang, html_src)
-    print((generate(items)))
+    print(generate(items))
