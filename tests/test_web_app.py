@@ -96,7 +96,7 @@ def test_images_not_found(create_app_client):
     # Test images generated on the fly when the img is not found.
     response = client.get("/images/an/invalid/image/img.png?s=5-5")
     assert response.status_code == 200
-    assert response.headers["Content-type"] == "img/bmp"
+    assert response.headers["Content-type"] == "image/svg+xml; charset=utf-8"
 
     response = client.get("/images/an/invalid/image/img.png")
     assert response.status_code == 500
