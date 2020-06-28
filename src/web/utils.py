@@ -31,6 +31,25 @@ from src.armado import to3dirs
 re_header = re.compile(r'\<h1 id="firstHeading" class="firstHeading"\>([^\<]*)\</h1\>')
 re_title = re.compile('<title>(.*)</title>')
 
+# params for building a fallback SVG image
+svg_mimetype = 'image/svg+xml'
+
+# include text in SVG only if bigger than this
+svg_text_width = 90
+svg_text_height = 30
+
+SVG_IMAGE = """<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">
+  <rect x="0%" y="0%" width="100%" height="100%" style="fill:#eee"/>
+  <rect x="0%" y="0%" width="100%" height="100%" style="fill:none;stroke:#bbb;stroke-width:4"/>
+  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:#bbb;stroke-width:2"/>
+  {text}
+</svg>"""
+
+SVG_TEXT = """<text x="50%" y="50%" text-anchor="middle"
+  dominant-baseline="middle" font-family="sans-serif"
+  style="fill:#888">{}</text>"""
+
 
 class TemplateManager(object):
     """Handle templates from disk."""
@@ -72,26 +91,10 @@ def get_orig_link(path):
 def img_fallback(width, height):
     """Build a fallback image to show when original picture is not available."""
 
-    # minimum dimensions to include text
-    min_width, min_height = 90, 30
-    mimetype = 'image/svg+xml'
-
-    svg = """<?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">
-          <rect x="0%" y="0%" width="100%" height="100%" style="fill:#eee"/>
-          <rect x="0%" y="0%" width="100%" height="100%"
-                style="fill:none;stroke:#bbb;stroke-width:4"/>
-          <line x1="0%" y1="0%" x2="100%" y2="100%"
-                style="stroke:#bbb;stroke-width:2"/>
-          {text}
-        </svg>"""
-
-    txt = """<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-                   font-family="sans-serif" style="fill:#888">{}</text>"""
-
-    if width > min_width and height > min_height:
-        text = txt.format('Sin imágen')  # TODO: _('No image')
+    if width > svg_text_width and height > svg_text_height:
+        text = SVG_TEXT.format('Sin imagen')  # TODO: _('No image')
     else:
         text = ''
-    img = svg.format(width=width, height=height, text=text)
-    return img, mimetype
+    img = SVG_IMAGE.format(width=width, height=height, text=text)
+
+    return img, svg_mimetype
