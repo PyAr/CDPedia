@@ -32,10 +32,8 @@ Formato del bloque:
 """
 
 
-
 import bz2
 import os
-import codecs
 import struct
 import pickle as pickle
 from os import path

@@ -27,10 +27,11 @@ import json
 import logging
 import os
 import re
-import sys
 import tempfile
 import time
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import concurrent.futures
 
@@ -319,8 +320,8 @@ def reemplazar_links_paginado(html, n):
 
 
 def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html', prefix='scrap-', dir=temp_dir, delete=False,
-                                       encoding="utf-8")
+    return tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8', suffix='.html',
+                                       prefix='scrap-', dir=temp_dir, delete=False, )
 
 
 def save_htmls(data_url):

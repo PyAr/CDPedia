@@ -49,17 +49,18 @@ def _get_python_filepaths():
     return python_paths
 
 
-def test_flake8(mocker):
+def test_flake8(capsys):
     # verify all files are nicely styled
     python_filepaths = _get_python_filepaths()
     style_guide = get_style_guide(**FLAKE8_OPTIONS)
-    fake_stdout = mocker.patch('sys.stdout')
     report = style_guide.check_files(python_filepaths)
 
     if report.total_errors != 0:
-        issues = fake_stdout.getvalue().split('\n')
+        captured = capsys.readouterr()
+        issues = captured.out.split('\n')
         msg = "Please fix the following flake8 issues!\n" + "\n".join(issues)
-        pytest.fail(msg, pytrace=False)
+        with capsys.disabled():
+            pytest.fail(msg, pytrace=False)
 
 
 def test_ensure_copyright():

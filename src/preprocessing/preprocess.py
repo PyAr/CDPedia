@@ -25,7 +25,6 @@ the priority for it to be included (or not) in the compilation.
 """
 
 
-
 import codecs
 import logging
 import operator

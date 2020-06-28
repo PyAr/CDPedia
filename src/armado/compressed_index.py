@@ -620,7 +620,8 @@ class Index(object):
             print("\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
-        matrix = TermSimilitudeMatrix(map(operator.itemgetter(0), sitems), progress_callback=progress_cb)
+        matrix = TermSimilitudeMatrix(map(operator.itemgetter(0), sitems),
+                                      progress_callback=progress_cb)
         docsets = FrozenStringList(map(operator.itemgetter(1), sitems))
         del sitems
 
