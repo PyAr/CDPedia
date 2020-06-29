@@ -102,11 +102,11 @@ class WikiSite(object):
         """Process all pages under a root directory."""
         # let's see what was processed from before, and open the log file to keep adding
         if os.path.exists(config.LOG_PREPROCESADO):
-            with codecs.open(config.LOG_PREPROCESADO, "r", "utf8") as fh:
+            with open(config.LOG_PREPROCESADO, "rt", encoding="utf8") as fh:
                 processed_before_set = set(x.strip() for x in fh)
         else:
             processed_before_set = set()
-        processed_before_log = codecs.open(config.LOG_PREPROCESADO, "a", encoding="utf8")
+        processed_before_log = open(config.LOG_PREPROCESADO, "at", encoding="utf8")
 
         # get the total of directories to parse
         logger.info("Getting how many pages under root dir")
@@ -114,7 +114,7 @@ class WikiSite(object):
         logger.info("Quantity of pages to process: %d", total_pages)
 
         # open the scores file to keep adding
-        scores_log = codecs.open(LOG_SCORES_ACCUM, "a", "utf8")
+        scores_log = open(LOG_SCORES_ACCUM, "at", encoding="utf8")
 
         count_processed = count_new_ok = count_new_discarded = count_old_before = 0
         tl = utiles.TimingLogger(30, logger.debug)
@@ -199,7 +199,7 @@ class WikiSite(object):
         # load the score files and compress it
         all_scores = Counter()
         real_pages = set()
-        with codecs.open(LOG_SCORES_ACCUM, "r", "utf8") as fh:
+        with open(LOG_SCORES_ACCUM, "rt", encoding="utf8") as fh:
             for line in fh:
                 page, status, score = line.strip().split(colsep)
                 all_scores[page] += int(score)
@@ -208,14 +208,14 @@ class WikiSite(object):
 
         # load the redirects
         redirects = {}
-        with codecs.open(config.LOG_REDIRECTS, "r", "utf-8") as fh:
+        with open(config.LOG_REDIRECTS, "rt", encoding="utf-8") as fh:
             for line in fh:
                 r_from, r_to = line.strip().split(colsep)
                 redirects[r_from] = r_to
 
         # transfer score
         transferred_scores = Counter()
-        for page, score in list(all_scores.items()):
+        for page, score in all_scores.items():
             if page not in redirects:
                 transferred_scores[page] += score
                 continue
@@ -235,7 +235,7 @@ class WikiSite(object):
 
         # store the scores again, but only for the real pages (there is no point in storing
         # scores for pages that were not included in the dump)
-        with codecs.open(LOG_SCORES_FINAL, "w", encoding="utf8") as fh:
+        with open(LOG_SCORES_FINAL, "wt", encoding="utf8") as fh:
             for page in real_pages:
                 fh.write("{}|{:d}\n".format(page, transferred_scores[page]))
 
@@ -271,7 +271,7 @@ class PagesSelector(object):
         # read the preprocessed file
         all_pages = []
         colsep = config.SEPARADOR_COLUMNAS
-        with codecs.open(LOG_SCORES_FINAL, 'r', encoding='utf8') as fh:
+        with open(LOG_SCORES_FINAL, 'rt', encoding='utf8') as fh:
             for line in fh:
                 page, score = line.strip().split(colsep)
                 dir3, fname = to3dirs.get_path_file(page)
@@ -291,7 +291,7 @@ class PagesSelector(object):
         separator = config.SEPARADOR_COLUMNAS
         if os.path.exists(config.PAG_ELEGIDAS):
             # previous run for this info! same content?
-            with codecs.open(config.PAG_ELEGIDAS, "r", "utf8") as fh:
+            with open(config.PAG_ELEGIDAS, "rt", encoding="utf8") as fh:
                 old_stuff = []
                 for linea in fh:
                     dir3, arch, score = linea.strip().split(separator)
@@ -301,7 +301,7 @@ class PagesSelector(object):
 
         if not self._same_info_through_runs:
             # previous info not there, or different: write to disk
-            with codecs.open(config.PAG_ELEGIDAS, "w", "utf8") as fh:
+            with open(config.PAG_ELEGIDAS, "wt", encoding="utf8") as fh:
                 for dir3, fname, score in self._top_pages:
                     info = (dir3, fname, str(score))
                     fh.write(separator.join(info) + "\n")

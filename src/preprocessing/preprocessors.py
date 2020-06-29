@@ -84,7 +84,7 @@ class ContentExtractor(_Processor):
     def __init__(self):
         super(ContentExtractor, self).__init__()
         self.name = "ContentExtractor"
-        self.output = codecs.open(config.LOG_TITLES, "a", encoding="utf-8")
+        self.output = open(config.LOG_TITLES, "at", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
@@ -135,7 +135,7 @@ class VIPDecissor(object):
 
         # some manually curated pages
         if config.DESTACADOS is not None:
-            with codecs.open(config.DESTACADOS, 'r', encoding='utf8') as fh:
+            with open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
                 for line in fh:
                     viparts.add(line.strip())
 
@@ -146,7 +146,7 @@ class VIPDecissor(object):
         fname = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
         if os.path.exists(fname):
             re_link = re.compile(r'<a.*?href="/wiki/(.*?)">', re.MULTILINE | re.DOTALL)
-            with codecs.open(fname, 'r', encoding='utf-8') as fh:
+            with open(fname, 'rt', encoding='utf-8') as fh:
                 mainpage_portals_content = fh.read()
             for link in re_link.findall(mainpage_portals_content):
                 viparts.add(unquote(link))
@@ -185,7 +185,7 @@ class OmitRedirects(_Processor):
     def __init__(self):
         super(OmitRedirects, self).__init__()
         self.name = "Redirects"
-        self.output = codecs.open(config.LOG_REDIRECTS, "a", encoding="utf-8")
+        self.output = open(config.LOG_REDIRECTS, "at", encoding="utf-8")
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):

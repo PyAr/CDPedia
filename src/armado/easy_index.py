@@ -16,15 +16,14 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import pickle
 import operator
 import os
+import pickle
 import random
 from bz2 import BZ2File as CompressedFile
-from functools import lru_cache
+from functools import lru_cache, reduce
 
 from src import utiles
-from functools import reduce
 
 
 class Index(object):

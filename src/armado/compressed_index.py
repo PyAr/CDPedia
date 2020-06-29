@@ -65,7 +65,6 @@ def delta_decode(docset, ctor=set, append="add", with_reps=False):
     - append is the callable attribute used to add an element into the ctor
     - with_reps is used on unpickle.
     """
-    assert isinstance(docset, bytes)
     doc = 0
     pdoc = -1
     rv = ctor()
@@ -155,8 +154,6 @@ class FrozenStringList:
     @staticmethod
     def unpickle(data):
         rv = FrozenStringList()
-
-        assert isinstance(data[1], bytes)
         rv.index = delta_decode_str(
             data[0], ctor=(lambda: array.array('l')), append='append', with_reps=True
         )
@@ -365,7 +362,6 @@ class Index(object):
         matrix, docsets = pickle.load(fh, encoding='latin-1')
         fh.close()
 
-        assert(all((isinstance(m[0], bytes) for m in matrix)))
         matrix = TermSimilitudeMatrix.unpickle(matrix)
         docsets = FrozenStringList.unpickle(docsets)
 

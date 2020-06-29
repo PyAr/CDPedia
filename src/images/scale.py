@@ -18,6 +18,8 @@
 
 """Reduce images."""
 
+from __future__ import with_statement, unicode_literals
+
 import codecs
 import config
 import logging

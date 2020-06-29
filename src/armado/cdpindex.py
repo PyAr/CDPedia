@@ -16,18 +16,17 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 """
-Biblioteca para armar y leer los índices.
+Library to create and read index.
 
-Se usa desde server.py para consulta, se utiliza directamente
-para crear el índice.
 """
 
 import base64
 import codecs
 import config
+import logging
 import os
 import re
 import shutil
@@ -38,30 +37,20 @@ import unicodedata
 # from .easy_index import Index
 from .compressed_index import Index
 
-usage = """Indice de títulos de la CDPedia
+logger = logging.getLogger(__name__)
 
-Para generar el archivo de indice hacer:
-
-  cdpindex.py fuente destino [max] [dirbase]
-
-    fuente: archivo con los títulos
-    destino: en donde se guardará el índice
-    max: cantidad máxima de títulos a indizar
-    dirbase: de dónde dependen los archivos
-"""
-
-# separamos por palabras
-PALABRAS = re.compile(r"\w+", re.UNICODE)
+# regex used to separate words
+WORDS = re.compile(r"\w+", re.UNICODE)
 
 
 def normalize_words(txt):
-    """Splits a text into words converting and removing non ascii representable letters."""
+    """Separate and normalize every word from a sentence."""
     txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("utf-8")
     return txt
 
 
-def _getPalabrasHTML(arch):
-    # FIXME: esta función es para cuando hagamos fulltext
+def _get_html_words(arch):
+    # FIXME:this will be used on full text search of html
     arch = os.path.abspath(arch)
     cmd = config.CMD_HTML_A_TEXTO % arch
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
@@ -71,13 +60,13 @@ def _getPalabrasHTML(arch):
 
 
 class IndexInterface(threading.Thread):
-    """Procesa toda la info para interfacear con el índice.
+    """Process the information needed to connect with index.
 
-    Lo que guardamos en el índice para cada palabra es:
+    In association with every word will be saved
 
-     - nomhtml: el path al archivo
-     - titulo: del artículo
-     - puntaje: para relativizar la importancia del artículo
+     - namhtml: the path to the file
+     - title: the article's title
+     - score: to weight the relative importance of each article
     """
     def __init__(self, directory):
         super(IndexInterface, self).__init__()
@@ -89,39 +78,39 @@ class IndexInterface(threading.Thread):
         return self.ready.isSet()
 
     def run(self):
-        """Levanta el índice."""
-        self.indice = Index(self.directory)
+        """Starts the index."""
+        self.index = Index(self.directory)
         self.ready.set()
 
-    def listado_palabras(self):
-        """Devuelve las palabras."""
+    def listado_words(self):
+        """Returns the key words."""
         self.ready.wait()
-        return sorted(self.indice.keys())
+        return sorted(self.index.keys())
 
     def listado_valores(self):
-        """Devuelve la info de todos los artículos."""
+        """Returns every article information."""
         self.ready.wait()
-        return sorted(set(x[:2] for x in self.indice.values()))
+        return sorted(set(x[:2] for x in self.index.values()))
 
     def get_random(self):
-        """Devuelve un artículo al azar."""
+        """Returns a random article."""
         self.ready.wait()
-        value = self.indice.random()
+        value = self.index.random()
         return value[:2]
 
     def search(self, words):
-        """Busca palabras completas en el índice."""
+        """Search whole words in the index."""
         self.ready.wait()
-        return self.indice.search(words)
+        return self.index.search(words)
 
     def partial_search(self, words):
-        """Busca palabras parciales en el índice."""
+        """Search partial words inside the index."""
         self.ready.wait()
-        return self.indice.partial_search(words)
+        return self.index.partial_search(words)
 
 
-def filename2palabras(fname):
-    """Transforma un filename en sus palabras y título."""
+def filename2words(fname):
+    """Transforms a filename in the title and words."""
     if fname.endswith(".html"):
         fname = fname[:-5]
     x = normalize_words(fname)
@@ -130,64 +119,64 @@ def filename2palabras(fname):
     return p, t
 
 
-def generar_de_html(dirbase, verbose):
-    # lo importamos acá porque no es necesario en producción
+def generate_from_html(dirbase, verbose):
+    """Creates the index. used to create new versions of cdpedia."""
+    # This isn't needed on the final user, so it is imported here
     from src.preprocessing import preprocess
 
-    # armamos las redirecciones
+    # make redirections
     redirs = {}
-    for linea in codecs.open(config.LOG_REDIRECTS, "r", encoding="utf-8"):
-        orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+    for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
+        orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
-        # del original, que es el que redirecciona, no tenemos título, así
-        # que sacamos las palabras del nombre de archivo mismo... no es lo
-        # mejor, pero es lo que hay...
-        palabras, titulo = filename2palabras(orig)
-        redirs.setdefault(dest, []).append((palabras, titulo))
+        # in the original article, the title is missing
+        # so we use the words founded in the filename
+        # it isn't the optimal solution, but works
+        words, title = filename2words(orig)
+        redirs.setdefault(dest, []).append((words, title))
 
     top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
     with codecs.open(config.LOG_TITLES, "r", encoding='utf8') as fh:
         for line in fh:
-            arch, titulo, encoded_primtexto = line.strip().split(config.SEPARADOR_COLUMNAS)
-            primtexto = base64.b64decode(encoded_primtexto).decode("utf8")
-            titles_texts[arch] = (titulo, primtexto)
+            arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
+            primtext = base64.b64decode(encoded_primtext).decode("utf8")
+            titles_texts[arch] = (title, primtext)
 
     def gen():
-        for dir3, arch, puntaje in top_pages:
-            # info auxiliar
-            nomhtml = os.path.join(dir3, arch)
-            titulo, primtexto = titles_texts[arch]
-            if verbose:
-                print("Agregando al índice [%r]  (%r)" % (titulo, nomhtml))
+        for dir3, arch, score in top_pages:
+            # auxiliar info
+            namhtml = os.path.join(dir3, arch)
+            title, primtext = titles_texts[arch]
+            logger.info("Adding to index: [%r]  (%r)" % (title, namhtml))
 
-            # a las palabras del título le damos mucha importancia: 50, más
-            # el puntaje original sobre 1000, como desempatador
-            ptje = 50 + puntaje // 1000
-            for pal in PALABRAS.findall(normalize_words(titulo)):
-                yield pal, (nomhtml, titulo, ptje, True, primtexto)
+            # give the title's words great score: 50 plus
+            # the original score divided by 1000, to tie-break
+            ptje = 50 + score // 1000
+            for word in WORDS.findall(normalize_words(title)):
+                yield word, (namhtml, title, ptje, True, primtext)
 
-            # pasamos las palabras de los redirects también que apunten
-            # a este html, con el mismo puntaje
+            # pass words to the redirects which points to
+            # this html file, using the same score
             if arch in redirs:
-                for (palabras, titulo) in redirs[arch]:
-                    for pal in palabras:
-                        yield pal, (nomhtml, titulo, ptje, False, "")
+                for (words, title) in redirs[arch]:
+                    for word in words:
+                        yield word, (namhtml, title, ptje, False, "")
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
             # pero será desde los bloques, no desde el html, pero guardamos
             # esto para luego)
             #
-            # # las palabras del texto importan tanto como las veces que están
+            # # las words del texto importan tanto como las veces que están
             # all_words = {}
-            # for pal in PALABRAS.findall(normaliza(palabs_texto)):
-            #     all_words[pal] = all_words.get(pal, 0) + 1
-            # for pal, cant in all_words.items():
-            #     yield pal, (nomhtml, titulo, cant)
+            # for word in WORDS.findall(normalize(palabs_texto)):
+            #     all_words[word] = all_words.get(pal, 0) + 1
+            # for word, cant in all_words.items():
+            #     yield word, (namhtml, title, cant)
 
-    # nos aseguramos que el directorio esté virgen
+    # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
         shutil.rmtree(config.DIR_INDICE)
     os.mkdir(config.DIR_INDICE)

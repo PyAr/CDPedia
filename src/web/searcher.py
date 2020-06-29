@@ -23,12 +23,15 @@ import queue
 import re
 import threading
 import uuid
+from urllib.parse import quote
+
+from src.armado import to3dirs
 
 # just a token to show the End Of Search
 EOS = object()
 
 # regex used in untested code, see get_grouped() below
-LIMPIA = re.compile("[(),]")
+CLEAN = re.compile("[(),]")
 
 
 class Cache(dict):
@@ -144,43 +147,43 @@ class Searcher(object):
                                                        lock, words)
         return prev_results[start:start + quantity]
 
-    def get_grouped(self, search_id, quantity=10):
+    def get_grouped(self, search_id, start=0, quantity=10):
         """Get the results, old fashion grouped.
 
         WARNING: this code is untested, but it's basically the old grouping
         code that used to live in server.py.
         """
-        candidatos = self.get_results(search_id, quantity=quantity)
+        results = self.get_results(search_id, start, quantity)
 
         # -------------- start of old untested code --------------------
 
-        # agrupamos por link, dando prioridad a los títulos de los
-        # artículos originales
-        agrupados = {}
-        for link, titulo, ptje, original, texto in candidatos:
-            # quitamos 3 dirs del link y agregamos "wiki"
-            link = "wiki" + link[5:]
+        # group by link, giving priority to the title of the original articles
+        grouped_results = {}
+        for link, title, ptje, original, text in results:
+            # remove 3 dirs from link and add the proper base url
+            link = "%s/%s" % (u'wiki', to3dirs.from_path(link))
+            link = quote(link)
 
-            # los tokens los ponemos en minúscula porque las mayúscula les
-            # da un efecto todo entrecortado
-            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in titulo.split())
+            # put the tokens in lowercase because
+            # the uppercase gives them a choppy effect
+            tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
 
-            if link in agrupados:
-                (tit, prv_ptje, tokens, txt) = agrupados[link]
+            if link in grouped_results:
+                (tit, prv_ptje, tokens, txt) = grouped_results[link]
                 tokens.update(tit_tokens)
                 if original:
-                    # guardamos la info del artículo original
-                    tit = titulo
-                    txt = texto
-                agrupados[link] = (tit, prv_ptje + ptje, tokens, txt)
+                    # save the info of the original article
+                    tit = title
+                    txt = text
+                grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
             else:
-                agrupados[link] = (titulo, ptje, tit_tokens, texto)
+                grouped_results[link] = (title, ptje, tit_tokens, text)
 
-        # limpiamos los tokens
-        for link, (tit, ptje, tokens, texto) in agrupados.items():
-            tit_tokens = set(LIMPIA.sub("", x.lower()) for x in tit.split())
+        # clean the tokens
+        for link, (tit, ptje, tokens, text) in grouped_results.items():
+            tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
-        # ordenamos la nueva info descendiente y devolvemos todo
-        candidatos = ((k,) + tuple(v) for k, v in agrupados.items())
+        # sort results
+        candidatos = ((k,) + tuple(v) for k, v in grouped_results.items())
         return sorted(candidatos, key=operator.itemgetter(2), reverse=True)

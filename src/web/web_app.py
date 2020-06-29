@@ -19,10 +19,8 @@
 
 import codecs
 import gettext
-import operator
 import os
 import posixpath
-import re
 import tarfile
 import tempfile
 import urllib.parse
@@ -35,7 +33,6 @@ from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.utils import redirect
 from jinja2 import Environment, FileSystemLoader
 
-from . import bmp
 import config
 from . import utils
 from .destacados import Destacados
@@ -106,7 +103,7 @@ class CDPedia(object):
 
     def get_creation_date(self):
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'start_date.txt')
-        with codecs.open(_path, 'r', encoding='utf-8') as f:
+        with open(_path, 'rt', encoding='utf-8') as f:
             date = f.read().strip()
         creation_date = datetime.strptime(date, "%Y%m%d")
         return creation_date
@@ -121,7 +118,7 @@ class CDPedia(object):
 
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
         if os.path.exists(_path):
-            with codecs.open(_path, "r", encoding='utf-8') as fh:
+            with open(_path, "rt", encoding='utf-8') as fh:
                 portals = fh.read()
         else:
             portals = ""
@@ -161,8 +158,8 @@ class CDPedia(object):
                 height = int(height)
             except Exception:
                 raise InternalServerError("Error al generar imagen")
-            img = bmp.BogusBitMap(width, height)
-            return Response(img.data, mimetype="img/bmp")
+            img, mimetype = utils.img_fallback(width, height)
+            return Response(img, mimetype=mimetype)
         type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
@@ -184,7 +181,7 @@ class CDPedia(object):
             raise NotFound()
 
         # all unicode
-        data = codecs.open(asset_file, "r", encoding="utf-8").read()
+        data = open(asset_file, "rt", encoding="utf-8").read()
         title = utils.get_title_from_data(data)
 
         p = self.render_template('institucional.html', title=title, asset=data)
@@ -216,39 +213,7 @@ class CDPedia(object):
         start = int(request.args.get("start", 0))
         quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
         id_ = self.searcher.start_search(words)
-        results = self.searcher.get_results(id_, start, quantity)
-
-        CLEAN = re.compile("[(),]")
-
-        # group by link, giving priority to the title of the original articles
-        grouped_results = {}
-        for link, title, ptje, original, text in results:
-            # remove 3 dirs from link and add the proper base url
-            link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
-
-            # convert tokens to lower case
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
-
-            if link in grouped_results:
-                (tit, prv_ptje, tokens, txt) = grouped_results[link]
-                tokens.update(tit_tokens)
-                if original:
-                    # save the info of the original article
-                    tit = title
-                    txt = text
-                grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
-            else:
-                grouped_results[link] = (title, ptje, tit_tokens, text)
-
-        # clean the tokens
-        for link, (tit, ptje, tokens, text) in grouped_results.items():
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
-            tokens.difference_update(tit_tokens)
-
-        # sort the results
-        candidates = ((k,) + tuple(v) for k, v in grouped_results.items())
-        sorted_results = sorted(candidates, key=operator.itemgetter(2),
-                                reverse=True)
+        sorted_results = self.searcher.get_grouped(id_, start, quantity)
 
         return self.render_template('search.html',
                                     search_words=words,

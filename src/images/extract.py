@@ -142,12 +142,12 @@ class ImageParser(object):
             logger.warning("Special file not found: %r", filepath)
             return
 
-        with codecs.open(filepath, "r", encoding="utf8") as fh:
+        with open(filepath, "rt", encoding="utf8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.chosen_pages)
 
-        with codecs.open(filepath, "w", encoding="utf-8") as fh:
+        with open(filepath, "wt", encoding="utf-8") as fh:
             fh.write(html)
 
         for dsk, web in newimgs:

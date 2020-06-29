@@ -26,6 +26,7 @@ import gzip
 import json
 import logging
 import os
+import queue
 import re
 import tempfile
 import time
@@ -126,7 +127,8 @@ def fetch_html(url):
     errors (for example, after getting information on a 200 response, but failing to uncompress
     it properly).
     """
-    retries = 3
+    # seconds to sleep before each retrial (starting from the end)
+    retries = [5, 1, .3]
     while True:
         try:
             req = urllib.request.Request(url, headers=REQUEST_HEADERS)
@@ -139,10 +141,9 @@ def fetch_html(url):
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
                 raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
-            retries -= 1
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
-            logger.warning("Retrying fetch html after %r on url %r", err, url)
+            time.sleep(retries.pop())
 
 
 class WikipediaArticleHistoryItem(object):
@@ -405,6 +406,14 @@ class StatusBoard(object):
             self.total, self.ok, self.bad, speed), end='', flush=True)
 
 
+class NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
+    """Patch TPE to not consume the source generator all at once."""
+
+    def __init__(self, *args, **kwargs):
+        super(NotGreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
+        self._work_queue = queue.Queue(maxsize=kwargs['max_workers'] * 2)
+
+
 def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
     """Main entry point.
 
@@ -422,7 +431,7 @@ def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, po
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
     board = StatusBoard(language)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=pool_size) as executor:
+    with NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
         list(executor.map(board.process, data_urls))

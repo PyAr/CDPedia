@@ -49,7 +49,7 @@ class Namespaces(object):
 
     def __contains__(self, tocheck):
         if self._namespaces is None:
-            with codecs.open(self.filepath, 'r', encoding='utf8') as fh:
+            with open(self.filepath, 'rt', encoding='utf8') as fh:
                 self._namespaces = set(x.strip() for x in fh)
 
         return tocheck in self._namespaces
