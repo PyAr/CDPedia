@@ -41,9 +41,6 @@ ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
 NAMESPACES = "namespace_prefixes.txt"
 
-# base url
-WIKI_BASE = 'http://%(language)s.wikipedia.org'
-
 # some limits when running in test mode
 TEST_LIMIT_NAMESPACE = 50
 TEST_LIMIT_SCRAP = 1000
@@ -305,27 +302,18 @@ def main(language, lang_config, imag_config,
     if extra_pages:
         scrap_extra_pages(language, extra_pages)
 
-    if test:
-        image_type = 'beta'
+    if test and not image_type:
+        image_type = ['beta']
     if image_type is None:
-        if not noscrap:
-            # new articles! do a full clean before, including the "processed" files
-            clean(keep_processed=False)
-        for image_type in imag_config:
-            logger.info("Generating image for type: %r", image_type)
-            clean(keep_processed=True)
-            generate.main(
-                language, location.langdir, location.branchdir, image_type,
-                lang_config, gendate, verbose=test)
-    else:
-        logger.info("Generating image for type %r only", image_type)
+        image_type = ['tarbig']
+    for image in image_type:
+        logger.info("Generating image for type %r only", image)
         if not noclean:
             # keep previous processed if not new scraped articles and not testing
             keep_processed = noscrap and not test
             clean(keep_processed=keep_processed)
-        generate.main(
-            language, location.langdir, location.branchdir, image_type,
-            lang_config, gendate, verbose=test)
+        generate.main(language, location.langdir, location.branchdir, image,
+                      lang_config, gendate, verbose=test)
 
 
 if __name__ == "__main__":
@@ -339,11 +327,18 @@ if __name__ == "__main__":
                              "generation of an image; need to be paired with "
                              "'--image-type' option")
     parser.add_argument("--test-mode", action='store_true',
-                        help="Work on a few pages only")
+                        help="Work on a few pages only "
+                        "(1000 default pages)")
+    parser.add_argument("-p", "--page-limit", type=int,
+                        help="Change default limit pages in test mode")
     parser.add_argument("--image-type",
-                        help="Don't clean the temp dir, useful to resume the "
-                             "generation of an image; need to be paired with "
-                             "'--image-type' option")
+                        help="'--image-type <option(s)>' select the standar options "
+                             "to build CDPedia, "
+                             "e.g. '--image-type cd,dvd9...'without spaces between image names"
+                             "or just an image. "
+                             "'tarbig' default if not set '--image-type'")
+    parser.add_argument("-l", "--image-list", action="store_true",
+                        help="Show images available in the selected language")
     parser.add_argument("branch_dir",
                         help="The project branch to use.")
     parser.add_argument("dump_dir",
@@ -360,17 +355,6 @@ if __name__ == "__main__":
 
     location = Location(args.dump_dir, args.branch_dir, args.language)
 
-    # get the language config
-    _config_fname = os.path.join(location.branchdir, 'languages.yaml')
-    with open(_config_fname) as fh:
-        _config = yaml.safe_load(fh)
-        try:
-            lang_config = _config[args.language]
-        except KeyError:
-            logger.error("there's no %r in language config file %r", args.language, _config_fname)
-            exit()
-    logger.info("Opened succesfully language config file %r", _config_fname)
-
     # get the image type config
     _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')
     with open(_config_fname) as fh:
@@ -381,12 +365,32 @@ if __name__ == "__main__":
             logger.error("there's no %r in image type config file %r",
                          args.language, _config_fname)
             exit()
+    if args.image_list:
+        print('{:10}{:10}{:10}'.format('Image', 'Format', 'Max. pages'))
+        print('=' * 30)
+        for data in sorted(imag_config):
+            print('{:10}{:10}{:10}'.format(data, imag_config[data]['type'],
+                  imag_config[data]['page_limit']))
+        exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
-        if args.image_type not in imag_config:
-            logger.error("there's no %r image in the image type config",
-                         args.image_type)
+        args.image_type = args.image_type.split(',')
+        for image in args.image_type:
+            if image not in imag_config:
+                logger.error("there's no %r image in the image type config",
+                             image)
+                exit()
+
+        # get the language config
+    _config_fname = os.path.join(location.branchdir, 'languages.yaml')
+    with open(_config_fname) as fh:
+        _config = yaml.safe_load(fh)
+        try:
+            lang_config = _config[args.language]
+        except KeyError:
+            logger.error("there's no %r in language config file %r", args.language, _config_fname)
             exit()
+    logger.info("Opened succesfully language config file %r", _config_fname)
 
     # branch dir must exist
     if not os.path.exists(location.branchdir):
@@ -398,6 +402,10 @@ if __name__ == "__main__":
     sys.path.insert(1, os.path.join(location.branchdir, "utilities"))
     from src import list_articles_by_namespaces, generate
     from src.scraping import portals, scraper
+
+    # change page limit in test mode
+    if args.page_limit:
+        TEST_LIMIT_SCRAP = args.page_limit
 
     main(
         args.language, lang_config, imag_config, nolists=args.no_lists, noscrap=args.no_scrap,
