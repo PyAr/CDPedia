@@ -356,7 +356,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
                     "(not generating index and blocks)")
     else:
         logger.info("Generating the index")
-        result = cdpindex.generar_de_html(articulos, verbose)
+        result = cdpindex.generate_from_html(articulos, verbose)
         logger.info("Got %d files", result)
         logger.info("Generating the articles blocks")
         q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(lang,
