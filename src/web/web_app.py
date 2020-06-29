@@ -40,7 +40,7 @@ import utils
 from destacados import Destacados
 from searcher import Searcher
 from src.armado import cdpindex
-from src.armado.cdpindex import normaliza as normalize_keyword
+from src.armado.cdpindex import normalize as normalize_keyword
 from src.armado import compresor
 from src.armado import to3dirs
 from utils import TemplateManager
