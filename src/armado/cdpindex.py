@@ -45,7 +45,7 @@ WORDS = re.compile(r"\w+", re.UNICODE)
 
 def normalize_words(txt):
     """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("utf-8")
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
     return txt
 
 
