@@ -24,7 +24,6 @@ Library to create and read index.
 """
 
 import base64
-import codecs
 import config
 import logging
 import os
