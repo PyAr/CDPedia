@@ -57,7 +57,7 @@ class Destacados(object):
 
             # destacado roto :|
             if self.verbose:
-                print("WARNING: Artículo destacado no encontrado: %s" % link).encode("utf-8")
+                print("WARNING: Artículo destacado no encontrado: %s" % link)
             self.destacados.remove(link)
         else:
             # no hay destacado
