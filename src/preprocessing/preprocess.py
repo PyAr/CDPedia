@@ -24,8 +24,6 @@ Apply to each page the processors defined in preprocessors, producing
 the priority for it to be included (or not) in the compilation.
 """
 
-
-import codecs
 import logging
 import operator
 import os

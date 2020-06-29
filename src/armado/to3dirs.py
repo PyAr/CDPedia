@@ -27,7 +27,6 @@ Current implementation complies with two needs:
 - that the 3-dirs path can be deduced from a filename (after conversion from a page)
 """
 
-import codecs
 import os
 from urllib.parse import unquote
 

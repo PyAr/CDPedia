@@ -17,7 +17,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import codecs
 import gettext
 import os
 import posixpath

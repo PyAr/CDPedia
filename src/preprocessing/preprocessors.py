@@ -36,7 +36,6 @@ None instead of the score.
 
 
 import base64
-import codecs
 import collections
 import logging
 import os
