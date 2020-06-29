@@ -138,7 +138,7 @@ def generate_from_html(dirbase, verbose):
     top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
-    with codecs.open(config.LOG_TITLES, "r", encoding='utf8') as fh:
+    with open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
         for line in fh:
             arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
