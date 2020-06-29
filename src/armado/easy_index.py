@@ -194,7 +194,7 @@ class Index(object):
             if value in tmp_reverse_id:
                 docid = tmp_reverse_id[value]
             else:
-                docid = str(ids_cnter)
+                docid = str(ids_cnter).encode("ascii")
                 tmp_reverse_id[value] = docid
                 ids_cnter += 1
             ids_shelf[docid] = value
