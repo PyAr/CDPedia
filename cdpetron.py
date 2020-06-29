@@ -331,10 +331,11 @@ if __name__ == "__main__":
                         "(1000 default pages)")
     parser.add_argument("-p", "--page-limit", type=int,
                         help="Change default limit pages in test mode")
-    parser.add_argument("--image-type", nargs='*',
+    parser.add_argument("--image-type",
                         help="'--image-type <option(s)>' select the standar options "
                              "to build CDPedia, "
-                             "e.g. '--image-type cd dvd9...' or just an image. "
+                             "e.g. '--image-type cd,dvd9...'without spaces between image names"
+                             "or just an image. "
                              "'tarbig' default if not set '--image-type'")
     parser.add_argument("-l", "--image-list", action="store_true",
                         help="Show images available in the selected language")
@@ -373,6 +374,7 @@ if __name__ == "__main__":
         exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:
+        args.image_type = args.image_type.split(',')
         for image in args.image_type:
             if image not in imag_config:
                 logger.error("there's no %r image in the image type config",
