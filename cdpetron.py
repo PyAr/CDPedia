@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 #
@@ -26,6 +26,7 @@ import logging
 import os
 import shutil
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from logging.handlers import RotatingFileHandler
@@ -287,20 +288,24 @@ def main(language, lang_config, imag_config,
     logger.info("Options: nolists=%s noscrap=%s noclean=%s test=%s",
                 nolists, noscrap, noclean, test)
 
-    if nolists:
-        gendate = load_creation_date()
-        if gendate is None:
-            logger.error("No article list available. Run at least once without --no-lists")
-            return
-    else:
-        gendate = get_lists(language, lang_config, test)
+    try:
+        if nolists:
+            gendate = load_creation_date()
+            if gendate is None:
+                logger.error("No article list available. Run at least once without --no-lists")
+                return
+        else:
+            gendate = get_lists(language, lang_config, test)
 
-    if not noscrap:
-        scrap_portals(language, lang_config)
-        scrap_pages(language, test)
+        if not noscrap:
+            scrap_portals(language, lang_config)
+            scrap_pages(language, test)
 
-    if extra_pages:
-        scrap_extra_pages(language, extra_pages)
+        if extra_pages:
+            scrap_extra_pages(language, extra_pages)
+    except urllib.error.URLError as err:
+        logger.error("Check if you have internet connection {}".format(err.reason))
+        sys.exit(-1)
 
     if test and not image_type:
         image_type = ['beta']
