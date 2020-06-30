@@ -16,13 +16,11 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import unicode_literals
-
 import codecs
 import os.path
 import re
 import string
-import urllib
+import urllib.parse
 
 import config
 from src.armado import to3dirs
@@ -83,8 +81,8 @@ def get_title_from_data(data):
 
 def get_orig_link(path):
     """Gets the original external link of a path."""
-    orig_link = (config.URL_WIKIPEDIA + "wiki/" + urllib.quote(
-                 to3dirs.to_pagina(path).encode('utf-8')).decode('utf-8'))  # py3: don't enc/dec
+    orig_link = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(
+                 to3dirs.to_pagina(path)))
     return orig_link
 
 

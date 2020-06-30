@@ -14,26 +14,22 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-
-from __future__ import print_function
-
 import array
 import bisect
 from bz2 import BZ2File as CompressedFile
-import cPickle
+from functools import lru_cache
+import pickle
 import operator
 import os
 import random
 import sys
-
-from lru_cache import lru_cache
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
 
 
 def delta_encode(docset, sorted=sorted, with_reps=False):
-    """Compress an array of numbers in a string.
+    """Compress an array of numbers into a bytes object.
 
     - docset is an array of long integers, it contain the begin position
       of every word in the set.
@@ -58,13 +54,13 @@ def delta_encode(docset, sorted=sorted, with_reps=False):
                 rva(b)
                 if not doc:
                     break  # if doc is zero, stop, else add another byte to this entry
-    return rv.tostring()
+    return rv.tobytes()
 
 
 def delta_decode(docset, ctor=set, append="add", with_reps=False):
     """Decode a compressed encoded bucket.
 
-    - docset is a string, representing a byte's array
+    - docset is a bytes object, representing a byte's array
     - ctor is the final container
     - append is the callable attribute used to add an element into the ctor
     - with_reps is used on unpickle.
@@ -75,7 +71,7 @@ def delta_decode(docset, ctor=set, append="add", with_reps=False):
     rva = getattr(rv, append)
     shif = 0
     abucket = array.array('B')
-    abucket.fromstring(docset)
+    abucket.frombytes(docset)
     for b in abucket:
         doc |= (b & 0x7F) << shif
         shif += 7
@@ -103,7 +99,7 @@ class FrozenStringList:
     """
     def __init__(self, iterable=None):
         self.index = array.array('l', [0])
-        self.heap = ""
+        self.heap = b""
         if iterable:
             self.extend(iterable)
 
@@ -120,19 +116,16 @@ class FrozenStringList:
         return len(self.index) - 1
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
-
-    def __str__(self):
-        return str(list(self))
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, list(self))
 
     def append(self, value):
         """Append one term to the frozenlist."""
-        if not isinstance(value, str):
-            raise TypeError("String expected")
+        if not isinstance(value, bytes):
+            raise TypeError("Bytes expected")
 
         self.index.append(len(self.heap) + len(value))
         self.heap += value
@@ -152,8 +145,7 @@ class FrozenStringList:
         for s in iterable:
             pos += len_(s)
             index_a(pos)
-
-        self.heap += ''.join(iterable)
+        self.heap += b''.join(iterable)
 
     def pickle(self):
         encoded_index = delta_encode_str(self.index, sorted=lambda x: x, with_reps=True)
@@ -272,8 +264,8 @@ class TermSimilitudeMatrixBase:
         #
         iterator = iter(
             t[a:a + length]
-            for length in xrange(min(20, len(t)), 0, -1)
-            for a in xrange(len(t) - length + 1)
+            for length in range(min(20, len(t)), 0, -1)
+            for a in range(len(t) - length + 1)
         )
         for tv in iterator:
             try:
@@ -365,7 +357,9 @@ class Index(object):
         #   docsets = FrozenStringList
         keyfilename = os.path.join(directory, "compindex.key.bz2")
         fh = CompressedFile(keyfilename, "rb")
-        matrix, docsets = cPickle.load(fh)
+
+        # TODO: research and document why the encoding here is latin-1
+        matrix, docsets = pickle.load(fh, encoding='latin-1')
         fh.close()
 
         matrix = TermSimilitudeMatrix.unpickle(matrix)
@@ -385,7 +379,7 @@ class Index(object):
         """Return the ids index."""
         fname = os.path.join(self._directory, "compindex-%02d.ids.bz2" % cual)
         fh = CompressedFile(fname, "rb")
-        idx = cPickle.load(fh)
+        idx = pickle.load(fh)
         fh.close()
         return idx
 
@@ -441,7 +435,7 @@ class Index(object):
         """Return a random value."""
         cual = random.randint(0, self.idfiles_count - 1)
         idx = self._get_ids_shelve(cual)
-        return random.choice(idx.values())
+        return random.choice(list(idx.values()))
 
     def __contains__(self, key):
         """Return if the key is in the index or not."""
@@ -534,8 +528,8 @@ class Index(object):
             indexed_counter += 1
 
             # process key
-            if not isinstance(key, basestring):
-                raise TypeError("The key must be string or unicode")
+            if not isinstance(key, str):
+                raise TypeError("The key must be a string")
             if '\n' in key:
                 raise ValueError("Key cannot contain newlines")
 
@@ -572,7 +566,7 @@ class Index(object):
         bucket_bytes = 0
         bucket_entries = 0
         bucket_maxentries = 0
-        for key, docset in key_shelf.iteritems():
+        for key, docset in key_shelf.items():
             key_shelf[key] = delta_encode(docset)
             bucket_entries += len(docset)
             bucket_bytes += len(key_shelf[key])
@@ -609,8 +603,8 @@ class Index(object):
         #   And keeping them joined in memory (FrozenStringList) helps
         #   avoid referencing overhead.
 
-        sitems = sorted((k.encode("utf8"), v) for k, v in key_shelf.iteritems())
-        assert all("\n" not in k for k, v in sitems), "Terms cannot contain newlines"
+        sitems = sorted((k.encode("utf8"), v) for k, v in key_shelf.items())
+        assert all(b"\n" not in k for k, v in sitems), "Terms cannot contain newlines"
 
         # free the big dict... eats up a lot
         del key_shelf
@@ -622,9 +616,8 @@ class Index(object):
             print("\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
-        matrix = TermSimilitudeMatrix(
-            map(operator.itemgetter(0), sitems), progress_callback=progress_cb
-        )
+        matrix = TermSimilitudeMatrix(map(operator.itemgetter(0), sitems),
+                                      progress_callback=progress_cb)
         docsets = FrozenStringList(map(operator.itemgetter(1), sitems))
         del sitems
 
@@ -633,27 +626,27 @@ class Index(object):
 
         keyfilename = os.path.join(directory, "compindex.key.bz2")
         fh = CompressedFile(keyfilename, "wb")
-        cPickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
+        pickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
         print("  Uncompressed keystore bytes", fh.tell())
         fh.close()
 
         fh = open(keyfilename, "rb")
         fh.seek(0, 2)
         print("  Final keystore bytes", fh.tell())
-        print
+        print()
         fh.close()
 
         # split ids_shelf in N dicts of about ~16M pickled data each,
         # this helps get better compression ratios
-        NB = sum(len(cPickle.dumps(item, 2)) for item in ids_shelf.iteritems())
+        NB = sum(len(pickle.dumps(item, 2)) for item in ids_shelf.items())
         print("  Total docstore bytes", NB)
 
         N = int((NB + DOCSTORE_BUCKET_SIZE / 2) // DOCSTORE_BUCKET_SIZE)
         if not N:
             N = 1
         print("  Docstore buckets", N, "(", NB // N, " bytes per bucket)")
-        all_idshelves = [{} for i in xrange(N)]
-        for k, v in ids_shelf.iteritems():
+        all_idshelves = [{} for i in range(N)]
+        for k, v in ids_shelf.items():
             cual = k % N
             all_idshelves[cual][k] = v
 
@@ -664,7 +657,7 @@ class Index(object):
             fname = "compindex-%02d.ids.bz2" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
-            cPickle.dump(shelf, fh, 2)
+            pickle.dump(shelf, fh, 2)
             docucomp += fh.tell()
             fh.close()
 

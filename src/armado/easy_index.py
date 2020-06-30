@@ -16,13 +16,12 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-
-import cPickle
 import operator
 import os
+import pickle
 import random
 from bz2 import BZ2File as CompressedFile
-from lru_cache import lru_cache
+from functools import lru_cache, reduce
 
 from src import utiles
 
@@ -36,7 +35,7 @@ class Index(object):
         # open the key shelve
         keyfilename = os.path.join(directory, "easyindex.key.bz2")
         fh = CompressedFile(keyfilename, "rb")
-        self.key_shelf = cPickle.load(fh)
+        self.key_shelf = pickle.load(fh)
         fh.close()
 
         # see how many id files we have
@@ -51,7 +50,7 @@ class Index(object):
         '''Return the ids index.'''
         fname = os.path.join(self._directory, "easyindex-%03d.ids.bz2" % cual)
         fh = CompressedFile(fname, "rb")
-        idx = cPickle.load(fh)
+        idx = pickle.load(fh)
         fh.close()
         return idx
 
@@ -75,17 +74,17 @@ class Index(object):
 
     def keys(self):
         """Returns an iterator over the stored keys."""
-        return self.key_shelf.iterkeys()
+        return iter(self.key_shelf.keys())
 
     def items(self):
         '''Returns an iterator over the stored items.'''
-        for key, allids in self.key_shelf.iteritems():
+        for key, allids in self.key_shelf.items():
             values = self._get_info_id(allids)
-            yield key, list(values)
+            yield key, sorted(values)
 
     def values(self):
         '''Returns an iterator over the stored values.'''
-        for key, allids in self.key_shelf.iteritems():
+        for key, allids in self.key_shelf.items():
             values = self._get_info_id(allids)
             for v in values:
                 yield v
@@ -94,7 +93,7 @@ class Index(object):
         '''Returns a random value.'''
         cual = random.randint(0, self.idfiles_count - 1)
         idx = self._get_ids_shelve(cual)
-        return random.choice(idx.values())
+        return random.choice(list(idx.values()))
 
     def __contains__(self, key):
         '''Returns if the key is in the index or not.'''
@@ -102,7 +101,7 @@ class Index(object):
 
     def _merge_results(self, results):
         # vemos si tenemos algo más que vacio
-        results = filter(bool, results)
+        results = list(filter(bool, results))
         if not results:
             return []
 
@@ -152,7 +151,7 @@ class Index(object):
             partial_res = [set()]
 
             # search in all the keys, for partial match
-            for key_stored, allids in self.key_shelf.iteritems():
+            for key_stored, allids in self.key_shelf.items():
                 if key_search in key_stored:
                     partial_res.append(allids)
 
@@ -188,14 +187,14 @@ class Index(object):
             indexed_counter += 1
 
             # process key
-            if not isinstance(key, basestring):
+            if not isinstance(key, str):
                 raise TypeError("The key must be string or unicode")
 
             # docid -> info final
             if value in tmp_reverse_id:
                 docid = tmp_reverse_id[value]
             else:
-                docid = str(ids_cnter)
+                docid = str(ids_cnter).encode("ascii")
                 tmp_reverse_id[value] = docid
                 ids_cnter += 1
             ids_shelf[docid] = value
@@ -206,7 +205,7 @@ class Index(object):
         # save key
         keyfilename = os.path.join(directory, "easyindex.key.bz2")
         fh = CompressedFile(keyfilename, "wb")
-        cPickle.dump(key_shelf, fh, 2)
+        pickle.dump(key_shelf, fh, 2)
         fh.close()
 
         # split ids_shelf in N dicts of about ~5k entries
@@ -214,7 +213,7 @@ class Index(object):
         if not N:
             N = 1
         all_idshelves = [{} for i in range(N)]
-        for k, v in ids_shelf.iteritems():
+        for k, v in ids_shelf.items():
             cual = utiles.coherent_hash(k) % N
             all_idshelves[cual][k] = v
 
@@ -223,7 +222,7 @@ class Index(object):
             fname = "easyindex-%03d.ids.bz2" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
-            cPickle.dump(shelf, fh, 2)
+            pickle.dump(shelf, fh, 2)
             fh.close()
 
         return indexed_counter

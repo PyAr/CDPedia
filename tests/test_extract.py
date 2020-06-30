@@ -232,7 +232,7 @@ def test_included_pages_links():
     html, _ = ImageParser.parse_html(original_html, chosen_pages=set())
     soup1 = bs4.BeautifulSoup(html, "lxml")
 
-    html, _ = ImageParser.parse_html(original_html, chosen_pages={u"Wikcionario"})
+    html, _ = ImageParser.parse_html(original_html, chosen_pages={"Wikcionario"})
     soup2 = bs4.BeautifulSoup(html, "lxml")
 
     no_chosen_pages_count = len(soup1.find_all("a", "nopo"))

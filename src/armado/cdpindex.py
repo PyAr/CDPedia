@@ -24,7 +24,6 @@ Library to create and read index.
 """
 
 import base64
-import codecs
 import config
 import logging
 import os
@@ -43,9 +42,9 @@ logger = logging.getLogger(__name__)
 WORDS = re.compile(r"\w+", re.UNICODE)
 
 
-def normalize(txt):
+def normalize_words(txt):
     """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower()
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
     return txt
 
 
@@ -113,7 +112,7 @@ def filename2words(fname):
     """Transforms a filename in the title and words."""
     if fname.endswith(".html"):
         fname = fname[:-5]
-    x = normalize(fname)
+    x = normalize_words(fname)
     p = x.split("_")
     t = " ".join(p)
     return p, t
@@ -126,7 +125,7 @@ def generate_from_html(dirbase, verbose):
 
     # make redirections
     redirs = {}
-    for line in codecs.open(config.LOG_REDIRECTS, "r", "utf-8"):
+    for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
         orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
         # in the original article, the title is missing
@@ -138,7 +137,7 @@ def generate_from_html(dirbase, verbose):
     top_pages = preprocess.pages_selector.top_pages
 
     titles_texts = {}
-    with codecs.open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
+    with open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
         for line in fh:
             arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
@@ -154,7 +153,7 @@ def generate_from_html(dirbase, verbose):
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-            for word in WORDS.findall(normalize(title)):
+            for word in WORDS.findall(normalize_words(title)):
                 yield word, (namhtml, title, ptje, True, primtext)
 
             # pass words to the redirects which points to

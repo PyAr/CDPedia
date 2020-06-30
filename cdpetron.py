@@ -16,18 +16,18 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
-import StringIO
 import argparse
+import codecs
 import datetime
 import gzip
+import io
 import itertools
 import logging
 import os
 import shutil
 import sys
-import urllib2
+import urllib.parse
+import urllib.request
 from logging.handlers import RotatingFileHandler
 
 import yaml
@@ -118,19 +118,19 @@ def get_lists(language, lang_config, test):
     gendate = save_creation_date()
 
     all_articles = os.path.join(location.langdir, ART_ALL)
-    fh_artall = open(all_articles, "wb")
+    fh_artall = open(all_articles, "wt", encoding="utf-8")
 
     url = URL_LIST % dict(language=language)
     logger.info("Getting list file: %r", url)
-    u = urllib2.urlopen(url)
-    logger.debug("Got headers: %s", u.headers.items())
-    fh = StringIO.StringIO(u.read())
+    u = urllib.request.urlopen(url)
+    logger.debug("Got headers: %s", list(u.headers.items()))
+    fh = io.BytesIO(u.read())
     gz = gzip.GzipFile(fileobj=fh)
 
     # walk through lines, easier to count and assure all lines are proper
     # saved into final file, mainly because of last line separator
     q = 0
-    for line in gz:
+    for line in codecs.getreader("utf-8")(gz):
         fh_artall.write(line.strip() + "\n")
         q += 1
     tot = q
@@ -144,21 +144,21 @@ def get_lists(language, lang_config, test):
     prefixes = set()
     for article in list_articles_by_namespaces.get_articles(language, test):
         q += 1
-        fh_artall.write(article.encode('utf8') + "\n")
+        fh_artall.write(article + "\n")
         prefixes.add(article.split(":", 1)[0])
     tot += q
     logger.info("Got %d namespace articles", q)
 
     # save the namespace prefixes
     _path = os.path.join(location.resources, NAMESPACES)
-    with open(_path, 'wb') as fh:
+    with open(_path, 'wt', encoding="utf-8") as fh:
         for prefix in sorted(prefixes):
-            fh.write(prefix.encode("utf8") + "\n")
+            fh.write(prefix + "\n")
 
     q = 0
     for page in lang_config['include']:
         q += 1
-        fh_artall.write(page.encode('utf8') + "\n")
+        fh_artall.write(page + "\n")
     tot += q
     logger.info("Have %d articles to mandatorily include", q)
 
@@ -172,7 +172,7 @@ def save_creation_date():
     """Save the creation date of the CDPedia."""
     generation_date = datetime.date.today().strftime("%Y%m%d")
     _path = os.path.join(location.resources, DATE_FILENAME)
-    with open(_path, 'wb') as f:
+    with open(_path, 'w', encoding="utf-8") as f:
         f.write(generation_date + "\n")
     logger.info("Date of generation saved: %s", generation_date)
     return generation_date
@@ -185,7 +185,7 @@ def load_creation_date():
     """
     _path = os.path.join(location.resources, DATE_FILENAME)
     try:
-        with open(_path, 'rb') as fh:
+        with open(_path, 'r', encoding="utf-8") as fh:
             generation_date = fh.read().strip()
     except IOError:
         return
@@ -235,7 +235,7 @@ def scrap_portals(language, lang_config):
         return
 
     logger.info("Downloading portal index from %r", portal_index_url)
-    u = urllib2.urlopen(portal_index_url)
+    u = urllib.request.urlopen(portal_index_url)
     html = u.read()
     logger.info("Scrapping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
@@ -243,7 +243,7 @@ def scrap_portals(language, lang_config):
     new_html = portals.generate(items)
 
     # save it
-    with open(os.path.join(location.resources, "portals.html"), 'wb') as fh:
+    with open(os.path.join(location.resources, "portals.html"), 'wt', encoding="utf-8") as fh:
         fh.write(new_html)
     logger.info("Portal scraping done")
 
@@ -357,7 +357,7 @@ if __name__ == "__main__":
 
     # get the image type config
     _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')
-    with open(_config_fname) as fh:
+    with open(_config_fname, 'rt', encoding="utf-8") as fh:
         _config = yaml.safe_load(fh)
         try:
             imag_config = _config[args.language]

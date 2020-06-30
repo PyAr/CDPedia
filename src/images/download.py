@@ -18,13 +18,12 @@
 
 """Download images."""
 
-from __future__ import with_statement, unicode_literals
-
 import codecs
 import collections
 import logging
 import os
-import urllib2
+import urllib.request
+import urllib.error
 
 import config
 
@@ -46,8 +45,8 @@ def _download(url, fullpath):
     if not os.path.exists(basedir):
         os.makedirs(basedir)
 
-    req = urllib2.Request(url.encode('utf-8'), headers=HEADERS)  # py3: don't encode url
-    u = urllib2.urlopen(req)
+    req = urllib.request.Request(url, headers=HEADERS)
+    u = urllib.request.urlopen(req)
 
     img = u.read()
     with open(fullpath, "wb") as fh:
@@ -63,7 +62,7 @@ def download(data):
             _download(url, fullpath)
             # download OK
             return None
-        except urllib2.HTTPError as err:
+        except urllib.error.HTTPError as err:
             # dense error, return code
             return "HTTPError: %d" % (err.code,)
         except Exception as err:

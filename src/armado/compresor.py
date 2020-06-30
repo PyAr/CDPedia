@@ -31,21 +31,19 @@ Format of the block:
     - all the articles, smashed one after the other (origin 0 is after the header)
 """
 
-from __future__ import division, unicode_literals
-
 import bz2
-import cPickle as pickle
-import codecs
 import logging
 import os
+import pickle
 import shutil
 import struct
 from bz2 import BZ2File as CompressedFile
+from functools import lru_cache
 from os import path
 
 import config
 from src import utiles
-from lru_cache import lru_cache
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +66,14 @@ class BloqueManager(object):
 
     def __init__(self, verbose=False):
         fname = os.path.join(self.archive_dir, 'numbloques.txt')
-        with codecs.open(fname, 'rt', encoding='ascii') as fh:
+        with open(fname, 'rt', encoding='ascii') as fh:
             self.num_bloques = int(fh.read().strip())
         self.verbose = verbose
 
         # get the language of the blocks, if any
         _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
         if os.path.exists(_lang_fpath):
-            with codecs.open(_lang_fpath, 'rt', encoding='utf8') as fh:
+            with open(_lang_fpath, 'rt', encoding='utf8') as fh:
                 self.language = fh.read().strip()
         else:
             self.language = None
@@ -91,14 +89,14 @@ class BloqueManager(object):
         # save the language of the blocks, if any
         if lang is not None:
             _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
-            with codecs.open(_lang_fpath, 'wt', encoding='utf8') as fh:
+            with open(_lang_fpath, 'wt', encoding='utf8') as fh:
                 fh.write(lang + '\n')
 
     @classmethod
     def guardarNumBloques(self, cant):
         """Save to disk the quantity of blocks."""
         fname = os.path.join(self.archive_dir, 'numbloques.txt')
-        with codecs.open(fname, 'wt', encoding='ascii') as fh:
+        with open(fname, 'wt', encoding='ascii') as fh:
             fh.write(str(cant) + '\n')
 
     @lru_cache(BLOCKS_CACHE_SIZE)  # This LRU is shared between inherited managers
@@ -129,7 +127,7 @@ class Bloque(object):
 
         info = self.header[fileName]
         logger.debug("found: %s", info)
-        if isinstance(info, basestring):
+        if isinstance(info, str):
             # info is a link to the real page, let's go semi-recursive
             logger.debug("redirect!")
             data = self.manager.get_item(info)
@@ -291,7 +289,7 @@ class ArticleManager(BloqueManager):
 
         # build the redirect dict, also separated by blocks to know where to find them
         redirects = {}
-        for linea in codecs.open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
+        for linea in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
             orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
 
             # only keep this redirect if really points to an useful article (discarding any
@@ -322,7 +320,7 @@ class ArticleManager(BloqueManager):
         # check for unicode before decoding, as we may be here twice in
         # the case of articles that are redirects to others (so, let's avoid
         # double decoding!)
-        if article is not None and isinstance(article, str):
+        if article is not None and isinstance(article, bytes):
             article = article.decode("utf-8")
         return article
 

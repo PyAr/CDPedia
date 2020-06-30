@@ -95,7 +95,7 @@ def run(verbose):
 
     # save images processed now
     with codecs.open(config.LOG_REDUCDONE, "w", encoding="utf-8") as fh:
-        for dskurl, scale in done_now.iteritems():
+        for dskurl, scale in done_now.items():
             fh.write("%3d %s\n" % (scale, dskurl))
 
     # delete extra images from previous processing

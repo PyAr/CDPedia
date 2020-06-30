@@ -18,10 +18,7 @@
 
 """Download the whole wikipedia."""
 
-from __future__ import with_statement, unicode_literals, print_function
-
-import Queue
-import StringIO
+import io
 import codecs
 import collections
 import datetime
@@ -29,12 +26,13 @@ import gzip
 import json
 import logging
 import os
+import queue
 import re
-import sys
 import tempfile
 import time
-import urllib
-import urllib2
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import concurrent.futures
 
@@ -91,7 +89,7 @@ class URLAlizer(object):
         self.fh = codecs.open(listado_nombres, 'r', encoding='utf-8')
         self.test_limit = test_limit
 
-    def next(self):
+    def __next__(self):
         while True:
             if self.test_limit is not None:
                 self.test_limit -= 1
@@ -110,7 +108,7 @@ class URLAlizer(object):
                 if not os.path.exists(path.encode('utf-8')):
                     os.makedirs(path.encode('utf-8'))
 
-                quoted_url = urllib.quote(basename.encode('utf-8'))
+                quoted_url = urllib.parse.quote(basename)
                 # Skip wikipedia automatic redirect
                 wiki = WIKI % dict(lang=self.language)
                 url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
@@ -133,15 +131,15 @@ def fetch_html(url):
     retries = [5, 1, .3]
     while True:
         try:
-            req = urllib2.Request(url.encode('utf-8'), headers=REQUEST_HEADERS)
-            resp = urllib2.urlopen(req, timeout=60)
-            compressedstream = StringIO.StringIO(resp.read())
+            req = urllib.request.Request(url, headers=REQUEST_HEADERS)
+            resp = urllib.request.urlopen(req, timeout=60)
+            compressedstream = io.BytesIO(resp.read())
             gzipper = gzip.GzipFile(fileobj=compressedstream)
             html = gzipper.read().decode('utf-8')
             return html
 
         except Exception as err:
-            if isinstance(err, urllib2.HTTPError) and err.code == 404:
+            if isinstance(err, urllib.error.HTTPError) and err.code == 404:
                 raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
@@ -178,12 +176,12 @@ class WikipediaArticle(object):
         self.language = language
         self.url = url
         self.basename = basename
-        self.quoted_basename = urllib.quote(basename.encode('utf-8')).replace(' ', '_')
+        self.quoted_basename = urllib.parse.quote(basename).replace(' ', '_')
         self._history = None
         self.history_size = 6
 
     def __str__(self):
-        return '<wp: %s>' % (self.basename.encode('utf-8'),)
+        return '<wp: %s>' % self.basename
 
     @property
     def history_url(self):
@@ -210,7 +208,7 @@ class WikipediaArticle(object):
     def iter_history_json(self, json_rev_history):
         pages = json_rev_history['query']['pages']
         assert len(pages) == 1
-        pageid = pages.keys()[0]
+        pageid = list(pages.keys())[0]
         if pageid == '-1':
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisionsError("Bad value for pageid")
@@ -323,7 +321,8 @@ def reemplazar_links_paginado(html, n):
 
 
 def get_temp_file(temp_dir):
-    return tempfile.NamedTemporaryFile(suffix='.html', prefix='scrap-', dir=temp_dir, delete=False)
+    return tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8', suffix='.html',
+                                       prefix='scrap-', dir=temp_dir, delete=False, )
 
 
 def save_htmls(data_url):
@@ -336,7 +335,7 @@ def save_htmls(data_url):
 
     if "Categoría" not in data_url.basename:
         # normal case, not Categories or any paginated stuff
-        temp_file.write(html.encode('utf-8'))
+        temp_file.write(html)
         temp_file.close()
         return [(temp_file, data_url.disk_name)]
 
@@ -353,7 +352,7 @@ def save_htmls(data_url):
         prox_url = obtener_link_200_siguientes(html)
 
         html = reemplazar_links_paginado(html, n)
-        temp_file.write(html.encode('utf-8'))
+        temp_file.write(html)
         temp_file.close()
 
         if not prox_url:
@@ -404,8 +403,7 @@ class StatusBoard(object):
 
         speed = self.total / (time.time() - self.init_time)
         print("\rTotal={}  ok={}  bad={}  speed={:.2f} art/s".format(
-            self.total, self.ok, self.bad, speed), end='')
-        sys.stdout.flush()  # py3: put this as a parameter of the print function
+            self.total, self.ok, self.bad, speed), end='', flush=True)
 
 
 class NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -413,7 +411,7 @@ class NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
 
     def __init__(self, *args, **kwargs):
         super(NotGreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
-        self._work_queue = Queue.Queue(maxsize=kwargs['max_workers'] * 2)
+        self._work_queue = queue.Queue(maxsize=kwargs['max_workers'] * 2)
 
 
 def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):

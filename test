@@ -1,1 +1,1 @@
-fades -p python2 -r requirements-dev.txt -x python -m pytest -vs "$@"
+fades -p python3 -r requirements-dev.txt -x python -m pytest -vs "$@"

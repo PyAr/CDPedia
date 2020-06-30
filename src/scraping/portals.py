@@ -18,15 +18,13 @@
 
 """The scraper for the portals."""
 
-from __future__ import print_function
-
 import bs4
 
 PARSED_TITLE_STYLE = (
     "text-align: left; font-family: sans-serif; font-size:130%; "
     "border-bottom: solid 2px #7D80B3; margin-bottom:5px;")
 
-G_MAIN_STRUCT = b"""
+G_MAIN_STRUCT = """
 <div style="{style}">
 {header}
 <br/>
@@ -38,24 +36,24 @@ G_MAIN_STRUCT = b"""
 </div>
 """
 
-G_MAIN_STYLE_FIRST = b"padding-bottom: 0.5em; padding-top: 0.5em;"
+G_MAIN_STYLE_FIRST = "padding-bottom: 0.5em; padding-top: 0.5em;"
 G_MAIN_STYLE_REST = (
-    b"border-top: 1px dotted rgb(192, 136, 254); padding-bottom: 0.5em; padding-top: 0.5em;")
+    "border-top: 1px dotted rgb(192, 136, 254); padding-bottom: 0.5em; padding-top: 0.5em;")
 
-G_TITLE = b"""\
+G_TITLE = """\
     <div class="floatright">
         <img width="30" height="30" src="{image_src}" />
     </div>
     {titles}
 """
 
-G_TIT_FMT_LINKED = b'<b><a href="{url}">{text}</a></b>'
-G_TIT_FMT_NOLINK = b'<b>{text}</b>'
-G_TIT_SEP = b', '
+G_TIT_FMT_LINKED = '<b><a href="{url}">{text}</a></b>'
+G_TIT_FMT_NOLINK = '<b>{text}</b>'
+G_TIT_SEP = ', '
 
-G_ITEM_FMT = b'<a href="{url}">{text}</a>'
-G_ITEM_SEP = b' - '
-G_ITEM_BULL = b'        <li>{item}</li>'
+G_ITEM_FMT = '<a href="{url}">{text}</a>'
+G_ITEM_SEP = ' - '
+G_ITEM_BULL = '        <li>{item}</li>'
 
 
 def _build_titles(titles):
@@ -63,9 +61,9 @@ def _build_titles(titles):
     titles_str = []
     for text, url in titles:
         if url is None:
-            titles_str.append(G_TIT_FMT_NOLINK.format(text=text.encode('utf8')))
+            titles_str.append(G_TIT_FMT_NOLINK.format(text=text))
         else:
-            titles_str.append(G_TIT_FMT_LINKED.format(text=text.encode('utf8'), url=url))
+            titles_str.append(G_TIT_FMT_LINKED.format(text=text, url=url))
     return G_TIT_SEP.join(titles_str)
 
 
@@ -87,12 +85,12 @@ def generate(items):
         # the items
         items = []
         if sub_simples:
-            items.append(G_ITEM_SEP.join(G_ITEM_FMT.format(text=text.encode('utf8'), url=url)
+            items.append(G_ITEM_SEP.join(G_ITEM_FMT.format(text=text, url=url)
                                          for text, url in sub_simples))
         for c_titles, c_items in sub_complexes:
             fmt_titles = _build_titles(c_titles)
             if c_items:
-                fmt_items = G_ITEM_SEP.join(G_ITEM_FMT.format(text=text.encode('utf8'), url=url)
+                fmt_items = G_ITEM_SEP.join(G_ITEM_FMT.format(text=text, url=url)
                                             for text, url in c_items)
                 items.append(": ".join((fmt_titles, fmt_items)))
             else:
@@ -187,7 +185,7 @@ def _es_parser(html):
                         q_titles = len(parts[0].find_all())
                         sub_tit = []
                         for n in parts[1:1 + q_titles]:
-                            if isinstance(n, basestring):
+                            if isinstance(n, str):
                                 sub_tit.append((n, None))
                             else:
                                 sub_tit.append((n.text, n['href']))
@@ -256,7 +254,7 @@ def _pt_parser(html):
         # the items, first the simple ones from the first sub chunk
         sub_chunks = chunkizer(chunk[1:], lambda n: n.name != 'li')
         sub_simples = []
-        for item in sub_chunks.next():
+        for item in next(sub_chunks):
             for _a in item.find_all('a'):
                 k = (_a.text, _a['href'])
                 if k not in sub_simples:
@@ -297,7 +295,7 @@ def parse(language, html):
 
 if __name__ == '__main__':
     # code for manual testing purposes
-    import urllib2
+    import urllib.request
     import sys
     if len(sys.argv) != 3:
         print("To test: portals.py lang url_or_filepath")
@@ -305,7 +303,7 @@ if __name__ == '__main__':
     lang = sys.argv[1]
     src = sys.argv[2]
     if src.startswith("http"):
-        u = urllib2.urlopen(src)
+        u = urllib.request.urlopen(src)
         html_src = u.read()
     else:
         with open(src, 'rb') as fh:

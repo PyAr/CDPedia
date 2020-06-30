@@ -94,7 +94,7 @@ class TestContentExtractor(object):
         assert extractor.stats['text found'] == 1
         extractor.close()
         assert extractor.output.closed
-        with open(config.LOG_TITLES, 'rb') as fh:
+        with open(config.LOG_TITLES, 'r', encoding='utf-8') as fh:
             text_saved_b64 = next(fh).split(config.SEPARADOR_COLUMNAS)[2]
         text_saved = base64.b64decode(text_saved_b64).decode('utf-8')
         assert len(text_saved) <= extractor._max_length + 3  # text + ellipsis

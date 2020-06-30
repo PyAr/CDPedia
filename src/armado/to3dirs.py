@@ -27,11 +27,8 @@ Current implementation complies with two needs:
 - that the 3-dirs path can be deduced from a filename (after conversion from a page)
 """
 
-from __future__ import unicode_literals
-
-import codecs
 import os
-import urllib
+from urllib.parse import unquote
 
 import config
 
@@ -51,7 +48,7 @@ class Namespaces(object):
 
     def __contains__(self, tocheck):
         if self._namespaces is None:
-            with codecs.open(self.filepath, 'rt', encoding='utf8') as fh:
+            with open(self.filepath, 'rt', encoding='utf8') as fh:
                 self._namespaces = set(x.strip() for x in fh)
 
         return tocheck in self._namespaces
@@ -73,7 +70,7 @@ def to_pagina(filename):
 
     s == to_pagina(to_filename(s))
     """
-    return urllib.unquote(filename)
+    return unquote(filename)
 
 
 to_filename = _quote

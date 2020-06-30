@@ -184,7 +184,7 @@ class SearcherTestCase(unittest.TestCase):
         assert not real_search.discarded
 
         # do three more searchs to discard the first one
-        for i in xrange(3):
+        for i in range(3):
             self.searcher.start_search([str(i)])
 
         self.assertTrue(real_search.discarded)
@@ -246,7 +246,7 @@ class CacheTestCase(unittest.TestCase):
         self.cache._discard_func = lambda *a: discarded.extend(a)
 
         # put 4 values, first will be discarded
-        for i in xrange(4):
+        for i in range(4):
             self.cache['key' + str(i)] = 'item' + str(i)
 
         self.assertEqual(discarded, ['item0'])

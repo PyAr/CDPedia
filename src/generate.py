@@ -16,9 +16,8 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import with_statement, print_function
-
 import datetime
+import importlib
 import logging
 import optparse
 import os
@@ -40,7 +39,7 @@ from src.images import extract, download, scale, calculate
 
 # para poder hacer generar.py > log.txt
 if sys.stdout.encoding is None:
-    reload(sys)
+    importlib.reload(sys)
     sys.setdefaultencoding('utf8')
 
 
@@ -300,12 +299,14 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
     try:
         _lang_conf = config.imagtypes[lang]
     except KeyError:
-        print("ERROR: %r is not a valid language! try one of %s" % (lang, config.imagtypes.keys()))
+        available_langs = list(config.imagtypes.keys())
+        print("ERROR: %r is not a valid language! try one of %s" % (lang, available_langs))
         exit()
     try:
         config.imageconf = _lang_conf[version]
     except KeyError:
-        print("ERROR: %r is not a valid version! try one of %s" % (version, _lang_conf.keys()))
+        available_versions = list(_lang_conf.keys())
+        print("ERROR: %r is not a valid version! try one of %s" % (version, available_versions))
         exit()
     config.langconf = lang_config
 
@@ -410,7 +411,7 @@ class CustomRotatingFH(RotatingFileHandler):
 
 
 if __name__ == "__main__":
-    msg = u"""
+    msg = """
 Generate the CDPedia tarball or iso.
 
   generar.py [...options...] <lang> <version> <directory>

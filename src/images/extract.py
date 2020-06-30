@@ -24,14 +24,11 @@ those URLs for them to point to disk.
 Also log the URLs that needs to be downloaded.
 """
 
-from __future__ import with_statement, division, print_function, unicode_literals
-
 import codecs
 import logging
 import os
 import sys
-import urllib
-import urllib2
+import urllib.parse
 
 import bs4
 
@@ -122,19 +119,19 @@ class ImageParser(object):
         separator = config.SEPARADOR_COLUMNAS
         # write the images log
         with codecs.open(config.LOG_IMAGENES, "w", encoding="utf-8") as fh:
-            for k, v in self.to_download.iteritems():
+            for k, v in self.to_download.items():
                 fh.write("%s%s%s\n" % (k, separator, v))
 
         # rewrite list of walked preprocessed files
         with codecs.open(config.LOG_IMAGPROC, "w", encoding="utf-8") as fh:
-            for (dir3, fname), dskurls in self.process_now.iteritems():
+            for (dir3, fname), dskurls in self.process_now.items():
                 if dskurls:
                     dskurls = separator.join(dskurls)
                     line = separator.join((dir3, fname, dskurls))
                 else:
                     line = separator.join((dir3, fname))
                 fh.write(line + "\n")
-            for name, dskurls in self.dynamics.iteritems():
+            for name, dskurls in self.dynamics.items():
                 dskurls = separator.join(dskurls)
                 line = separator.join((config.DYNAMIC, name, dskurls))
                 fh.write(line + "\n")
@@ -145,12 +142,12 @@ class ImageParser(object):
             logger.warning("Special file not found: %r", filepath)
             return
 
-        with codecs.open(filepath, "rt", encoding="utf8") as fh:
+        with open(filepath, "rt", encoding="utf8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.chosen_pages)
 
-        with codecs.open(filepath, "wt", encoding="utf-8") as fh:
+        with open(filepath, "wt", encoding="utf-8") as fh:
             fh.write(html)
 
         for dsk, web in newimgs:
@@ -210,7 +207,7 @@ class ImageParser(object):
         for a_tag in soup.find_all('a'):
             ImageParser.fixlinks(a_tag, chosen_pages)
 
-        html = soup.decode()
+        html = str(soup)
         return html, new_images
 
     @staticmethod
@@ -279,8 +276,8 @@ class ImageParser(object):
         querystr = '?s=%s-%s' % (img_width, img_height) if img_width and img_height else ''
 
         # Replace the origial src with the local servable path
-        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.quote(dsk_url.encode("latin-1")),
-                                                      querystr)
+        tag.attrs['src'] = IMG_URL_PREFIX + "%s%s" % (urllib.parse.quote(
+                                                      dsk_url.encode("latin-1")), querystr)
 
         tag.attrs.pop("data-file-height", None)
         tag.attrs.pop("data-file-width", None)
@@ -307,7 +304,7 @@ class ImageParser(object):
         # this is a classic article link
         if link.startswith(SEPLINK):
             fname = link[len(SEPLINK):]
-            fname = urllib2.unquote(fname)
+            fname = urllib.parse.unquote(fname)
 
             # if it was choosen, leave it as is
             if fname not in choosen_pages:
@@ -367,4 +364,4 @@ if __name__ == "__main__":
     preprocess.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
-    print("\n".join(str(x) for x in pi.to_download.iteritems()))
+    print("\n".join(str(x) for x in pi.to_download.items()))

@@ -49,26 +49,18 @@ def _get_python_filepaths():
     return python_paths
 
 
-class MultiIO(StringIO):
-    """StringIO that accept bytes.
-
-    Really needed to deal with flake8 lib in Python 2. Will go away in Python 3.
-    """
-    def write(self, line):
-        super(MultiIO, self).write(line.decode("utf8"))
-
-
-def test_flake8(mocker):
+def test_flake8(capsys):
     # verify all files are nicely styled
     python_filepaths = _get_python_filepaths()
     style_guide = get_style_guide(**FLAKE8_OPTIONS)
-    fake_stdout = mocker.patch('sys.stdout', new_callable=MultiIO)
     report = style_guide.check_files(python_filepaths)
 
     if report.total_errors != 0:
-        issues = fake_stdout.getvalue().split('\n')
+        captured = capsys.readouterr()
+        issues = captured.out.split('\n')
         msg = "Please fix the following flake8 issues!\n" + "\n".join(issues)
-        pytest.fail(msg, pytrace=False)
+        with capsys.disabled():
+            pytest.fail(msg, pytrace=False)
 
 
 def test_ensure_copyright():
@@ -79,7 +71,7 @@ def test_ensure_copyright():
         if os.stat(filepath).st_size == 0:
             continue
 
-        with open(filepath, "rt", encoding="utf8") as fh:
+        with open(filepath, "r", encoding="utf8") as fh:
             for line in itertools.islice(fh, 5):
                 if regex.match(line):
                     break

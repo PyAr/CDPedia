@@ -71,6 +71,8 @@ def test_two_different_links(peishranc):
         'mmm kkk lll <a href="/wiki/otrapag">Otra pag</a> final\n'
     )
     _, r = peishranc(wikifile)
+    # sort the results by link name
+    r = sorted(r, key=lambda res: res[0])
     should = [
         ('foobar', SCORE_PEISHRANC),
         ('otrapag', SCORE_PEISHRANC),

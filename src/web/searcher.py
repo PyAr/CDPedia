@@ -17,14 +17,13 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """The Searcher."""
-
-import Queue
 import collections
 import operator
+import queue
 import re
 import threading
 import uuid
-from urllib import quote
+from urllib.parse import quote
 
 from src.armado import to3dirs
 
@@ -62,7 +61,7 @@ class Cache(dict):
 class ThreadedSearch(threading.Thread):
     """The real search, in other thread."""
     def __init__(self, index, words):
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.index = index
         self.words = words
         self.discarded = False
@@ -135,7 +134,7 @@ class Searcher(object):
         if lock is not EOS:
             with lock:
                 # we need to get more results from index
-                for _ in xrange(need_to_retrieve):
+                for _ in range(need_to_retrieve):
                     result = search.queue.get()
                     if result is EOS:
                         vals = (search, prev_results, EOS, words)
@@ -163,7 +162,7 @@ class Searcher(object):
         for link, title, ptje, original, text in results:
             # remove 3 dirs from link and add the proper base url
             link = "%s/%s" % (u'wiki', to3dirs.from_path(link))
-            link = quote(link.encode('utf8'))
+            link = quote(link)
 
             # put the tokens in lowercase because
             # the uppercase gives them a choppy effect
@@ -181,10 +180,10 @@ class Searcher(object):
                 grouped_results[link] = (title, ptje, tit_tokens, text)
 
         # clean the tokens
-        for link, (tit, ptje, tokens, text) in grouped_results.iteritems():
+        for link, (tit, ptje, tokens, text) in grouped_results.items():
             tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
             tokens.difference_update(tit_tokens)
 
         # sort results
-        candidatos = ((k,) + tuple(v) for k, v in grouped_results.iteritems())
+        candidatos = ((k,) + tuple(v) for k, v in grouped_results.items())
         return sorted(candidatos, key=operator.itemgetter(2), reverse=True)

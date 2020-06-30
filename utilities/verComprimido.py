@@ -43,7 +43,7 @@ def main(fname, a_extraer):
     archivos = []
     redirects = 0
     for name, info in c.header.items():
-        if isinstance(info, basestring):
+        if isinstance(info, str):
             redirects += 1
         else:
             (seek, size) = info
