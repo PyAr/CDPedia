@@ -350,7 +350,7 @@ class ImageManager(BloqueManager):
         for fileName in fileNames:
             bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append(fileName)
-            logger.debug("  files:", bloqNum, repr(fileName))
+            logger.debug("  files: {0} {1}".format(bloqNum, repr(fileName)))
 
         tot = 0
         for bloqNum, fileNames in bloques.items():
