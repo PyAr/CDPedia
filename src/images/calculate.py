@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2008-2015 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -18,7 +18,6 @@
 
 """Calculate image scaling values."""
 
-import codecs
 import logging
 import operator
 
@@ -61,9 +60,10 @@ def run():
     # load relation: articles -> images
     page_images = {}
     dynamics = []
-    with codecs.open(config.LOG_IMAGPROC, "r", encoding="utf-8") as fh:
+    separator = config.SEPARADOR_COLUMNAS
+    with open(config.LOG_IMAGPROC, "rt", encoding="utf-8") as fh:
         for line in fh:
-            parts = line.strip().split(config.SEPARADOR_COLUMNAS)
+            parts = line.strip().split(separator)
             dir3 = parts[0]
             fname = parts[1]
             dskurls = parts[2:]
@@ -94,9 +94,9 @@ def run():
 
     # load image list to map disk paths to web addresses
     dskweb = {}
-    with codecs.open(config.LOG_IMAGENES, "r", encoding="utf-8") as fh:
-        for linea in fh:
-            dsk, web = linea.strip().split(config.SEPARADOR_COLUMNAS)
+    with open(config.LOG_IMAGENES, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            dsk, web = line.strip().split(separator)
             dskweb[dsk] = web
 
     logger.info("Calculating scales for %d images", total_images)
@@ -111,4 +111,4 @@ def run():
 
         weburl = dskweb[dskurl]
         info = (str(int(scale)), dskurl, weburl)
-        log_reduccion.write(config.SEPARADOR_COLUMNAS.join(info) + "\n")
+        log_reduction.write(separator.join(info) + "\n")

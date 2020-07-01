@@ -20,7 +20,6 @@
 
 from __future__ import with_statement, unicode_literals
 
-import codecs
 import config
 import logging
 import os
@@ -39,7 +38,7 @@ def run(verbose):
     # load already processed images
     done_before = {}
     if os.path.exists(config.LOG_REDUCDONE):
-        with codecs.open(config.LOG_REDUCDONE, "r", encoding="utf-8") as fh:
+        with open(config.LOG_REDUCDONE, "rt", encoding="utf-8") as fh:
             for line in fh:
                 parts = line.strip().split()
                 scale = int(parts[0])
@@ -50,7 +49,7 @@ def run(verbose):
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # load image path and its correspondig scale
-    with codecs.open(config.LOG_REDUCCION, "r", encoding="utf-8") as fh:
+    with open(config.LOG_REDUCCION, "rt", encoding="utf-8") as fh:
         for line in fh:
             parts = line.strip().split(config.SEPARADOR_COLUMNAS)
             scale = int(parts[0])
@@ -94,7 +93,7 @@ def run(verbose):
                     logger.warning("Got %d when processing %s", errorcode, frompath)
 
     # save images processed now
-    with codecs.open(config.LOG_REDUCDONE, "w", encoding="utf-8") as fh:
+    with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
         for dskurl, scale in done_now.items():
             fh.write("%3d %s\n" % (scale, dskurl))
 

@@ -24,7 +24,7 @@ those URLs for them to point to disk.
 Also log the URLs that needs to be downloaded.
 """
 
-import codecs
+
 import logging
 import os
 import sys
@@ -70,7 +70,7 @@ class ImageParser(object):
         same_before = preprocess.pages_selector.same_info_through_runs
         self.processed_before = {}
         if not test and same_before and os.path.exists(config.LOG_IMAGPROC):
-            with codecs.open(config.LOG_IMAGPROC, "r", encoding="utf-8") as fh:
+            with open(config.LOG_IMAGPROC, "rt", encoding="utf-8") as fh:
                 for line in fh:
                     parts = line.strip().split(config.SEPARADOR_COLUMNAS)
                     dir3 = parts[0]
@@ -83,7 +83,7 @@ class ImageParser(object):
         # load information of planned downloads
         self.downloads_planned = {}
         if not test and os.path.exists(config.LOG_IMAGENES):
-            with codecs.open(config.LOG_IMAGENES, "r", encoding="utf-8") as fh:
+            with open(config.LOG_IMAGENES, "rt", encoding="utf-8") as fh:
                 for line in fh:
                     dsk, web = line.strip().split(config.SEPARADOR_COLUMNAS)
                     self.downloads_planned[dsk] = web
@@ -96,14 +96,14 @@ class ImageParser(object):
         sep = config.SEPARADOR_COLUMNAS
         self.chosen_pages = set()
         if not test:
-            with codecs.open(config.PAG_ELEGIDAS, "r", encoding="utf-8") as fh:
+            with open(config.PAG_ELEGIDAS, "rt", encoding="utf-8") as fh:
                 self.chosen_pages = set(x.strip().split(sep)[1] for x in fh)
         logger.debug("Quantity of chosen pages, raw: %d",
                      len(self.chosen_pages))
 
         chpages = self.chosen_pages
         if not test:
-            with codecs.open(config.LOG_REDIRECTS, "r", encoding="utf-8") as fh:
+            with open(config.LOG_REDIRECTS, "rt", encoding="utf-8") as fh:
                 for line in fh:
                     orig, dest = line.strip().split(sep)
                     if dest in chpages:
@@ -118,12 +118,12 @@ class ImageParser(object):
         """Log processed images."""
         separator = config.SEPARADOR_COLUMNAS
         # write the images log
-        with codecs.open(config.LOG_IMAGENES, "w", encoding="utf-8") as fh:
+        with open(config.LOG_IMAGENES, "wt", encoding="utf-8") as fh:
             for k, v in self.to_download.items():
                 fh.write("%s%s%s\n" % (k, separator, v))
 
         # rewrite list of walked preprocessed files
-        with codecs.open(config.LOG_IMAGPROC, "w", encoding="utf-8") as fh:
+        with open(config.LOG_IMAGPROC, "wt", encoding="utf-8") as fh:
             for (dir3, fname), dskurls in self.process_now.items():
                 if dskurls:
                     dskurls = separator.join(dskurls)
@@ -167,7 +167,7 @@ class ImageParser(object):
 
         # read the html from the previous processing step
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
-        with codecs.open(arch, "r", encoding="utf-8") as fh:
+        with open(arch, "rt", encoding="utf-8") as fh:
             html = fh.read()
 
         html, newimgs = self.parse_html(html, self.chosen_pages)
@@ -179,7 +179,7 @@ class ImageParser(object):
                 os.makedirs(destdir)
 
             newpath = os.path.join(destdir, fname)
-            with codecs.open(newpath, "w", encoding="utf-8") as fh:
+            with open(newpath, "wt", encoding="utf-8") as fh:
                 fh.write(html)
 
         # update the images to download
