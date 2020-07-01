@@ -37,9 +37,9 @@ from src import utiles
 from src.preprocessing import preprocess
 
 
-IMG_URL_PREFIX = "/images/"
+IMG_URL_PREFIX = config.IMGAGES_URL_PREFIX
 
-WIKIPEDIA_URL = "https://es.wikipedia.org"
+WIKIPEDIA_URL = "https://{}.wikipedia.org".format(config.LANGUAGE)
 
 # we plainly don't want some images
 IMAGES_TO_REMOVE = [
