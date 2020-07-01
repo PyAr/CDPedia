@@ -34,7 +34,7 @@ import config
 from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
-from src.images import extract, download, scale, calculate
+from src.images import extract, download, scale, calculate, embed
 
 
 # para poder hacer generar.py > log.txt
@@ -344,6 +344,10 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
 
     logger.info("Reducing the downloaded images")
     scale.run(verbose)
+
+    if config.IMAGES_EMBED:
+        logger.info("Embedding selected images")
+        embed.run()
 
     logger.info("Putting the reduced images into blocks")
     # agrupamos las imagenes en bloques
