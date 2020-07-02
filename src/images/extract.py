@@ -52,7 +52,7 @@ SEPLINK = "/wiki/"
 logger = logging.getLogger('images.extract')
 
 
-class ImageParser(object):
+class ImageParser:
     """Extract from HTMLs, fix, and log, the URLs of the images.
 
     The logged URLs are unique (there are a *lot* of duplicated URLs).

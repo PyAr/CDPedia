@@ -37,7 +37,7 @@ def image_is_embeddable(imgpath, imgsize):
     return ext == 'svg' and imgsize < 40960
 
 
-class EmbedImages(object):
+class EmbedImages:
     """Embed images in HTML file."""
 
     media_type = {

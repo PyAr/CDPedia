@@ -31,7 +31,7 @@ logger = logging.getLogger("images.calculate")
 SCALES = (100, 75, 50, 0)
 
 
-class Scaler(object):
+class Scaler:
     """Compute values for image scaling."""
 
     def __init__(self, total_items):
