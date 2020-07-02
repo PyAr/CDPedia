@@ -1,1 +1,1 @@
-fades -p python2 -r requirements.txt cdpedia.py
+fades -r requirements.txt cdpedia.py

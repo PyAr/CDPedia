@@ -1,6 +1,4 @@
-#!/usr/bin/env python2
-
-# -*- coding: utf8 -*-
+#!/usr/bin/env python3
 
 # Copyright 2006-2020 CDPedistas (see AUTHORS.txt)
 #
