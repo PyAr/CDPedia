@@ -17,6 +17,7 @@
 """Embed pre-selected images in HTML source."""
 
 import logging
+import mimetypes
 import os
 from base64 import standard_b64encode
 
@@ -34,19 +35,8 @@ def image_is_embeddable(imgpath, imgsize):
     return ext.lower() == '.svg' and imgsize < 40960
 
 
-class EmbedImages:
+class _EmbedImages:
     """Embed images in HTML file."""
-
-    media_type = {
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'svg': 'image/svg+xml'
-    }
-
-    def __call__(self, htmlpath, images):
-        return self.embed_images(htmlpath, images)
 
     def embed_images(self, htmlpath, images):
         """Embed specified images in HTML source."""
@@ -66,8 +56,6 @@ class EmbedImages:
             kind = os.path.splitext(src)[1].lstrip('.').lower()
             if kind == 'svg':
                 self.embed_inline(node, imgpath)
-            elif kind in ('png', 'gif', 'jpg', 'jpeg'):
-                self.embed_data(node, imgpath, kind)
             else:
                 logger.error('Embed method not found for: %s', imgpath)
 
@@ -88,18 +76,18 @@ class EmbedImages:
             return standard_b64encode(fh.read()).decode('ascii')
 
     def embed_inline(self, node, imgpath):
-        """Embed SVG image directly in HTML tree"""
+        """Embed SVG image directly in HTML tree."""
         svg = self.load_vector(imgpath)
         node.replace_with(svg)
 
-    def embed_data(self, node, imgpath, kind):
+    def embed_data(self, node, imgpath):
         """Embed raster/vector image using data URI scheme."""
         imgdata = self.load_data(imgpath)
-        media_type = self.media_type[kind]
+        media_type = mimetypes.guess_type
         node['src'] = 'data:{};base64,{}'.format(media_type, imgdata)
 
 
-def load_embed_data():
+def _load_embed_data():
     """Load `page -> images_to_embed` relation."""
     # load to-be-embedded image paths
     with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
@@ -122,9 +110,9 @@ def load_embed_data():
 
 def run():
     """Embed pre-selected images into HTML sources."""
-    embed = EmbedImages()
-    page_embeds = load_embed_data()
+    embedder = _EmbedImages()
+    page_embeds = _load_embed_data()
     for (dir3, fname), images in page_embeds.items():
         htmlpath = os.path.join(config.DIR_PAGSLISTAS, dir3, fname)
         logger.debug('Embedding %3d images in %s', len(images), fname)
-        embed(htmlpath, images)
+        embedder.embed_images(htmlpath, images)
