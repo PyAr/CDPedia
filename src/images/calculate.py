@@ -21,6 +21,7 @@
 
 import logging
 import operator
+import os
 
 import config
 from src.preprocessing import preprocess
@@ -59,7 +60,8 @@ class Scaler:
 def image_is_required(url):
     """Decide if an image should be mandatorily included."""
     # always include svg images (mostly equations, highly compressible)
-    return url.endswith('.svg')
+    _, ext = os.path.splitext(url)
+    return ext.lower() == '.svg'
 
 
 def run():

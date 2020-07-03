@@ -30,11 +30,8 @@ logger = logging.getLogger('images.embed')
 
 def image_is_embeddable(imgpath, imgsize):
     """Decide if given image will be embedded in HTML source."""
-    try:
-        ext = os.path.splitext(imgpath)[1].lstrip('.').lower()
-    except IndexError:
-        return False
-    return ext == 'svg' and imgsize < 40960
+    _, ext = os.path.splitext(imgpath)
+    return ext.lower() == '.svg' and imgsize < 40960
 
 
 class EmbedImages:
