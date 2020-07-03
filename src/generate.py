@@ -345,7 +345,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
     logger.info("Reducing the downloaded images")
     scale.run(verbose)
 
-    if config.IMAGES_EMBED:
+    if config.EMBED_IMAGES:
         logger.info("Embedding selected images")
         embed.run()
 

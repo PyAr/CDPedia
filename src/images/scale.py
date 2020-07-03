@@ -36,7 +36,7 @@ def run(verbose):
     """Reduce images using precalculated scales."""
     notfound = 0
     done_now = {}
-    embed_enabled = config.IMAGES_EMBED
+    embed_enabled = config.EMBED_IMAGES
 
     # load already processed images
     done_before = {}
@@ -50,8 +50,8 @@ def run(verbose):
 
     # load paths of embeddable images selected previously
     images_embed = set()
-    if embed_enabled and os.path.exists(config.LOG_IMAGES_EMBED):
-        with open(config.LOG_IMAGES_EMBED, 'rt', encoding='utf-8') as fh:
+    if embed_enabled and os.path.exists(config.LOG_IMAGES_EMBEDDED):
+        with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
             images_embed = set(line.strip() for line in fh)
 
     src = os.path.join(config.DIR_TEMP, "images")
@@ -113,7 +113,7 @@ def run(verbose):
             fh.write("%3d %s\n" % (scale, dskurl))
 
     # save paths of selected images to be embedded
-    with open(config.LOG_IMAGES_EMBED, 'wt', encoding='utf-8') as fh:
+    with open(config.LOG_IMAGES_EMBEDDED, 'wt', encoding='utf-8') as fh:
         for dskurl in images_embed:
             fh.write(dskurl + '\n')
 

@@ -104,20 +104,20 @@ class EmbedImages:
 
 def load_embed_data():
     """Load `page -> images_to_embed` relation."""
-    # load embeddable image paths
-    with open(config.LOG_IMAGES_EMBED, 'rt', encoding='utf-8') as fh:
-        embeddable_images = set(line.strip() for line in fh)
+    # load to-be-embedded image paths
+    with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
+        images_to_embed = set(line.strip() for line in fh)
 
     # find what images must be embedded in each page
     page_embeds = {}
-    prefix = config.IMGAGES_URL_PREFIX
+    prefix = config.IMAGES_URL_PREFIX
     separator = config.SEPARADOR_COLUMNAS
     with open(config.LOG_IMAGPROC, "rt", encoding="utf-8") as fh:
         for line in fh:
             dir3, fname, *page_images = line.strip().split(separator)
             if dir3 == config.DYNAMIC:
                 continue
-            embeds = embeddable_images & set(page_images)
+            embeds = images_to_embed & set(page_images)
             if embeds:
                 page_embeds[(dir3, fname)] = set(prefix + e for e in embeds)
     return page_embeds

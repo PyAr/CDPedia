@@ -109,7 +109,6 @@ PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
 LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
-
 LOG_IMAGENES = DIR_TEMP + "/imagenes.txt"
 LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
 LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
@@ -117,15 +116,15 @@ LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 LOG_TITLES = DIR_TEMP + "/titles.txt"
 
 # prefix for URL of local images
-IMGAGES_URL_PREFIX = "/images/"
+IMAGES_URL_PREFIX = "/images/"
 
 # enable mandatory inclusion of some images in final distribution (e.g. SVG)
 IMAGES_REQUIRED = True
 LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 
 # enable embedding of some images in HTML source (e.g. small SVG)
-IMAGES_EMBED = True
-LOG_IMAGES_EMBED = DIR_TEMP + '/images_embed.txt'
+EMBED_IMAGES = True
+LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'

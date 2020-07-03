@@ -37,7 +37,7 @@ from src import utiles
 from src.preprocessing import preprocess
 
 
-IMG_URL_PREFIX = config.IMGAGES_URL_PREFIX
+IMG_URL_PREFIX = config.IMAGES_URL_PREFIX
 
 WIKIPEDIA_URL = "https://{}.wikipedia.org".format(config.LANGUAGE)
 
