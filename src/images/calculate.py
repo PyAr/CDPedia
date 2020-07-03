@@ -129,12 +129,11 @@ def run():
         scale = scaler(i)
         if scale == 0:
             # done, do not include more images
-            log_reduction.close()
             break
 
         weburl = dskweb[dskurl]
         info = (str(int(scale)), dskurl, weburl)
         log_reduction.write(separator.join(info) + "\n")
 
-    logger.info("Required images selected: %d", len(images_required))
-    logger.info("Optional images selected: %d", i)
+    log_reduction.close()
+    logger.info("Images selected: required=%d optional=%d", len(images_required), i)
