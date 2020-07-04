@@ -96,8 +96,8 @@ def run(verbose):
                     # don't copy image, leave it out of image blocks, it will
                     # be embedded from original location (without any reduction)
                     images_embed.add(dskurl)
-                    continue
-                shutil.copyfile(frompath, topath)
+                else:
+                    shutil.copyfile(frompath, topath)
 
             else:
                 cmd = ['convert', frompath, '-resize', '%d%%' % (scale,), topath]
