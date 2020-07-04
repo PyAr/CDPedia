@@ -19,7 +19,8 @@
 
 import shutil
 import tempfile
-
+import logging
+from pprint import pprint as pp
 import pytest
 
 from src.armado import sqlite_index
@@ -64,11 +65,13 @@ def test_items_nothing(create_index):
     items = list(idx.items())
     assert items == []
 
+
 def test_one_item(create_index):
     """Only one item."""
     idx = create_index([(["ala", "blanca"], "ala blanca", 3)])
     items = list(idx.items())
-    assert items == [(1, "ala blanca", 3)]
+    assert items == [(0, "ala blanca", 3)]
+
 
 def test_several_items(create_index):
     """Several items stored."""
@@ -76,72 +79,92 @@ def test_several_items(create_index):
                         (["conejo", "blanco"], "conejo blanco", 5),
                         ])
     items = sorted(idx.items())
-    assert items == [(1, "ala blanca", 3), (2, "conejo blanco", 5)]
+    assert items == [(0, "ala blanca", 3), (1, "conejo blanco", 5)]
     tokens = sorted(idx.keys())
     assert tokens == ["ala", "blanca", "blanco", "conejo"]
+
 
 def test_search(create_index):
     """Several items stored."""
     idx = create_index([(["ala", "blanca"], "ala blanca", 3),
                         (["conejo", "blanco"], "conejo blanco", 5),
                         ])
-    items = list([a for a in idx.search(["ala"])])
-    assert items == [[("ala blanca", 3)]]
+    res = searchidx(idx, ["ala"])
+    assert res == [("ala blanca", 3)]
+
+
+def test_several_results(caplog, create_index):
+    """Several results for one key stored."""
+    caplog.set_level(logging.INFO)
+    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
+                        (["conejo", "blanco"], "conejo blanco", 5),
+                        (["conejo", "negro"], "conejo negro", 6),
+                        ])
+    # items = [a for a in idx.search(["conejo"])]
+    res = searchidx(idx, ["conejo"])
+    assert res == [("conejo negro", 6), ("conejo blanco", 5)]
+
+def test_several_keys(caplog, create_index):
+    """Several item stored."""
+    caplog.set_level(logging.INFO)
+    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
+                        (["conejo", "blanco"], "conejo blanco", 5),
+                        (["conejo", "negro"], "conejo negro", 6),
+                        ])
+    # items = [a for a in idx.search(["conejo"])]
+    res = searchidx(idx, ["conejo", "negro"])
+    assert res == [("conejo negro", 6)]
+
+def test_word_scores(caplog, create_index):
+    """Test the order in the results."""
+    pg_scores = 9000
+    caplog.set_level(logging.INFO)
+    titles = ["coneja blanca", "gradaciones entre los colores de blanca", "blanca"]
+    info = [(t.split(), t, pg_scores) for t in titles]
+    idx = create_index(info)
+    res = searchidx(idx, ["blanca"])
+    expected = zip(["blanca", "coneja blanca", "gradaciones entre los colores de blanca"], [pg_scores] * 3)
+    expected = [(title, score) for title, score in expected]
+    assert res == expected
+
+def test_many_results(caplog, create_index):
+    """Test with many pages of results."""
+    pg_scores = 9000
+    caplog.set_level(logging.INFO)
+    titles = """blanca ojeda
+        coneja blanca
+        gradaciones entre los colores de blanca
+        conejo blanca
+        caja blanca
+        limpieza de blanca
+        blanca casa
+        es blanca la paloma
+        Blanca gómez
+        recuerdos de blanca
+        blanca"""
+    titles = [s.strip() for s in titles.split("\n")]
+    info = [(t.lower().split(), t, pg_scores) for t in titles]
+    idx = create_index(info)
+    res = searchidx(idx, ["blanca"], debug=False)
+    assert len(res) == len(titles)
+
+def searchidx(idx, keys, debug=False):
+    if debug:
+        data = list(idx._search_asoc_docs(keys))
+        data = list(data)
+        pp(data)
+        founded = idx._search_merge_results(data)
+        founded = list(founded)
+        pp(founded)
+        ordered = idx._search_order_items(founded)
+        ordered = list(ordered)
+        pp(ordered)
+        res = [idx.get_doc(ndoc) for _, ndoc in ordered]
+    else:
+        res = [a for a in idx.search(keys)]
+    return res
 
 '''
-def test_same_keys(create_index):
-    """Two items with the same key."""
-    idx = create_index([("a", 3), ("a", 5)])
-    items = list(idx.items())
-    (item,) = items
-    k, v = item
-    assert k == "a" and sorted(v) == [3, 5]
-
-
-def test_mixed(create_index):
-    """Two items with the same key and something else."""
-    idx = create_index([("a", 3), (u"ñ", 7), ("a", 5)])
-    items = sorted(idx.items())
-    assert items == [("a", [3, 5]), (u"ñ", [7])]
-
-
-# --- Test the .values method.
-
-def test_values_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    values = list(idx.values())
-    assert values == []
-
-
-def test_values_one_item(create_index):
-    """Only one item."""
-    idx = create_index([("a", 3)])
-    values = sorted(idx.values())
-    assert values == [3]
-
-
-def test_values_several_values(create_index):
-    """Several values stored."""
-    idx = create_index([("a", 3), ("b", 5)])
-    values = sorted(idx.values())
-    assert values == [3, 5]
-
-
-def test_values_same_keys(create_index):
-    """Two values with the same key."""
-    idx = create_index([("a", 3), ("a", 5)])
-    values = sorted(idx.values())
-    assert values == [3, 5]
-
-
-def test_values_mixed(create_index):
-    """Two values with the same key and something else."""
-    idx = create_index([(u"ñ", 3), ("b", 7), (u"ñ", 5)])
-    values = sorted(idx.values())
-    assert values == [3, 5, 7]
-
-
 # --- Test the .random method.
 
 def test_random_one_item(create_index):
