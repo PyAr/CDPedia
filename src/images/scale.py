@@ -28,7 +28,6 @@ import subprocess
 
 from src.images.embed import image_is_embeddable
 
-
 logger = logging.getLogger('images.scale')
 
 

@@ -25,7 +25,6 @@ import bs4
 
 import config
 
-
 logger = logging.getLogger('images.embed')
 
 

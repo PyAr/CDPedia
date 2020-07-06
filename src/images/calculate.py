@@ -91,7 +91,6 @@ def run():
     preprocessed = preprocess.pages_selector.top_pages
     for file_position, (dir3, fname, _) in enumerate(preprocessed):
         # get the images that correspond to this file
-
         dskurls = page_images[(dir3, fname)]
 
         for url in dskurls:

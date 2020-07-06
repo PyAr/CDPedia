@@ -18,7 +18,6 @@
 
 """Download images."""
 
-
 import collections
 import logging
 import os
