@@ -124,8 +124,9 @@ def run():
     images_optional = sorted(images_optional.items(), key=operator.itemgetter(1))
 
     scaler = Scaler(len(images_optional))
-    for i, (dskurl, _) in enumerate(images_optional):
-        scale = scaler(i)
+    selected_opt = 0  # number of selected optional images
+    for dskurl, _ in images_optional:
+        scale = scaler(selected_opt)
         if scale == 0:
             # done, do not include more images
             break
@@ -133,6 +134,8 @@ def run():
         weburl = dskweb[dskurl]
         info = (str(int(scale)), dskurl, weburl)
         log_reduction.write(separator.join(info) + "\n")
+        selected_opt += 1
 
     log_reduction.close()
-    logger.info("Images selected: required=%d optional=%d", len(images_required), i)
+    selected_req = len(images_required)
+    logger.info("Images selected: required=%d optional=%d", selected_req, selected_opt)
