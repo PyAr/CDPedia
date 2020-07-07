@@ -34,7 +34,7 @@ def create_index(request):
     def f(info):
         # Create the index with the parametrized engine
         engine = request.param
-        engine.create(tempdir, info)
+        engine.create(tempdir, info, show_progress=False)
 
         # Load the index and give it to use
         index = engine(tempdir)
@@ -68,63 +68,64 @@ def test_items_nothing(create_index):
 
 def test_one_item(create_index):
     """Only one item."""
-    idx = create_index([(["ala", "blanca"], "ala blanca", 3)])
-    items = list(idx.items())
-    assert items == [(0, "ala blanca", 3)]
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",))])
+    values = list(idx.values())
+    assert values == [["ala blanca", 3]]
 
 
 def test_several_items(create_index):
     """Several items stored."""
-    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
-                        (["conejo", "blanco"], "conejo blanco", 5),
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
                         ])
-    items = sorted(idx.items())
-    assert items == [(0, "ala blanca", 3), (1, "conejo blanco", 5)]
+    values = sorted(idx.values())
+    assert values == [["ala blanca", 3], ["conejo blanco", 5]]
+    assert len(values) == len(idx)
     tokens = sorted(idx.keys())
     assert tokens == ["ala", "blanca", "blanco", "conejo"]
 
 
 def test_search(create_index):
     """Several items stored."""
-    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
-                        (["conejo", "blanco"], "conejo blanco", 5),
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
                         ])
     res = searchidx(idx, ["ala"])
-    assert res == [("ala blanca", 3)]
+    assert res == [["ala blanca", 3]]
 
 
 def test_several_results(caplog, create_index):
     """Several results for one key stored."""
     caplog.set_level(logging.INFO)
-    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
-                        (["conejo", "blanco"], "conejo blanco", 5),
-                        (["conejo", "negro"], "conejo negro", 6),
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
+                        (["conejo", "negro"], 6, ("conejo negro",)),
                         ])
     # items = [a for a in idx.search(["conejo"])]
     res = searchidx(idx, ["conejo"])
-    assert res == [("conejo negro", 6), ("conejo blanco", 5)]
+    assert res == [["conejo negro", 6], ["conejo blanco", 5]]
 
 def test_several_keys(caplog, create_index):
     """Several item stored."""
     caplog.set_level(logging.INFO)
-    idx = create_index([(["ala", "blanca"], "ala blanca", 3),
-                        (["conejo", "blanco"], "conejo blanco", 5),
-                        (["conejo", "negro"], "conejo negro", 6),
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
+                        (["conejo", "negro"], 6, ("conejo negro",)),
                         ])
     # items = [a for a in idx.search(["conejo"])]
     res = searchidx(idx, ["conejo", "negro"])
-    assert res == [("conejo negro", 6)]
+    assert res == [["conejo negro", 6]]
 
 def test_word_scores(caplog, create_index):
     """Test the order in the results."""
     pg_scores = 9000
     caplog.set_level(logging.INFO)
     titles = ["coneja blanca", "gradaciones entre los colores de blanca", "blanca"]
-    info = [(t.split(), t, pg_scores) for t in titles]
+    info = [(t.split(), pg_scores, (t,)) for t in titles]
     idx = create_index(info)
     res = searchidx(idx, ["blanca"])
     expected = zip(["blanca", "coneja blanca", "gradaciones entre los colores de blanca"], [pg_scores] * 3)
-    expected = [(title, score) for title, score in expected]
+    expected = [[title, score] for title, score in expected]
     assert res == expected
 
 def test_many_results(caplog, create_index):
@@ -143,42 +144,45 @@ def test_many_results(caplog, create_index):
         recuerdos de blanca
         blanca"""
     titles = [s.strip() for s in titles.split("\n")]
-    info = [(t.lower().split(), t, pg_scores) for t in titles]
+    info = [(t.lower().split(), pg_scores, (t,)) for t in titles]
     idx = create_index(info)
+    assert len(titles) == len(idx)
     res = searchidx(idx, ["blanca"], debug=False)
     assert len(res) == len(titles)
 
 def searchidx(idx, keys, debug=False):
     if debug:
-        data = list(idx._search_asoc_docs(keys))
-        data = list(data)
-        pp(data)
-        founded = idx._search_merge_results(data)
-        founded = list(founded)
-        pp(founded)
-        ordered = idx._search_order_items(founded)
+        cur = idx._search_asoc_docs(keys)
+        cur = list(cur)
+        pp(cur)
+        decoded = idx._search_decode_asoc_docs(cur)
+        decoded = list(decoded)
+        pp(decoded)
+        ordered = idx._search_order_items(decoded)
         ordered = list(ordered)
         pp(ordered)
         res = [idx.get_doc(ndoc) for _, ndoc in ordered]
+        pp(res)
     else:
         res = [a for a in idx.search(keys)]
     return res
 
-'''
 # --- Test the .random method.
 
 def test_random_one_item(create_index):
     """Only one item."""
-    idx = create_index([("a", 3)])
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",))])
     value = idx.random()
-    assert value == 3
+    assert value == ["ala blanca", 3]
 
 
 def test_random_several_values(create_index):
     """Several values stored."""
-    idx = create_index([("a", 3), ("b", 5)])
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
+                        ])
     value = idx.random()
-    assert value in (3, 5)
+    assert value in [["ala blanca", 3],  ["conejo blanco", 5]]
 
 
 # --- Test the "in" functionality.
@@ -191,11 +195,14 @@ def test_infunc_nothing(create_index):
 
 def test_infunc_one_item(create_index):
     """Only one item."""
-    idx = create_index([("a", 3)])
-    assert "a" in idx
-    assert "b" not in idx
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
+                        ])
+    assert "ala" in idx
+    assert "bote" not in idx
 
 
+'''
 def test_infunc_several_values(create_index):
     """Several values stored."""
     idx = create_index([("a", 3), (u"ñ", 5)])

@@ -17,23 +17,81 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import operator
+import array
+import pickle
+import zlib
 import logging
 import os
-from functools import lru_cache
 import random
 import sqlite3
+from functools import lru_cache
 
 from src import utiles
 logger = logging.getLogger(__name__)
 
 MAX_IDX_FIELDS = 8
+PAGE_SIZE = 1024
+page_fn = lambda id: divmod(id, PAGE_SIZE)
+decompress_data = lambda d: pickle.loads(zlib.decompress(d))
 
 
-def _idxtable_fields(mask="?"):
-    mask = mask.replace("?", "%s")
-    replac = ', '.join([mask % field for field in ["docid%02d", "score%02d"]])
-    return ','.join([replac % (d +1, d +1) for d in range(MAX_IDX_FIELDS)])
+
+def delta_encode(docset, sorted=sorted, with_reps=False):
+    """Compress an array of numbers into a bytes object.
+
+    - docset is an array of long integers, it contain the begin position
+      of every word in the set.
+    - sorted is a sorting function, it must be a callable
+    - with_reps is True on search, but false on creation.
+    """
+    pdoc = -1
+    rv = array.array('B')
+    rva = rv.append
+    flag = (0, 0x80)
+    for doc in sorted(docset):
+        if with_reps or doc != pdoc:
+            if not with_reps and doc <= pdoc:
+                # decreasing sequence element escaped by 0 delta entry
+                rva(0)
+                pdoc = -1
+            doc, pdoc = doc - pdoc, doc
+            while True:
+                b = doc & 0x7F  # copies to b the last 7 bits on doc
+                doc >>= 7  # to right 7 bits doc number
+                b |= flag[doc != 0]  # add 0x80 (128, 2^7) if doc is greater
+                rva(b)
+                if not doc:
+                    break  # if doc is zero, stop, else add another byte to this entry
+    return rv.tobytes()
+
+
+def delta_decode(docset, ctor=set, append="add", with_reps=False):
+    """Decode a compressed encoded bucket.
+
+    - docset is a bytes object, representing a byte's array
+    - ctor is the final container
+    - append is the callable attribute used to add an element into the ctor
+    - with_reps is used on unpickle.
+    """
+    doc = 0
+    pdoc = -1
+    rv = ctor()
+    rva = getattr(rv, append)
+    shif = 0
+    abucket = array.array('B')
+    abucket.frombytes(docset)
+    for b in abucket:
+        doc |= (b & 0x7F) << shif
+        shif += 7
+        if not (b & 0x80):
+            if doc == 0 and not with_reps:
+                # 0 delta entry encodes a sequence reset command
+                pdoc = -1
+            else:
+                pdoc += doc
+                rva(pdoc)
+            doc = shif = 0
+    return rv
 
 
 class Index(object):
@@ -47,7 +105,7 @@ class Index(object):
     def _token_ids(self, words):
         """Returns a dict with words and its rowid."""
         prev = ', '.join(["?"] * len(words))
-        sql_prev = f"select rowid, word from tokens where word in ({prev})"
+        sql_prev = f"select tokenid, word from tokens where word in ({prev})"
         in_db = self.db.execute(sql_prev, words)
         in_db = list(in_db.fetchall())
         return {row[1]:row[0] for row in in_db}
@@ -59,56 +117,74 @@ class Index(object):
 
     def items(self):
         '''Returns an iterator over the stored items.'''
-        cur = self.db.execute("SELECT rowid, namhtml, pagescore FROM docs")
-        return cur.fetchall()
+        for key in self.keys():
+            _, dicc = self._search_asoc_docs(key)
+            for docid, score in dicc.items():
+                yield self.get_doc(docid)
 
     def values(self):
         '''Returns an iterator over the stored values.'''
-        pass
+        cur = self.db.execute("SELECT pageid, data FROM docs ORDER BY pageid")
+        for row in cur.fetchall():
+            decomp_data = decompress_data(row[1])
+            for doc in decomp_data:
+                yield doc
+
+    @lru_cache
+    def __len__(self):
+        sql = 'Select pageid, data from docs order by pageid desc limit 1'
+        cur = self.db.execute(sql)
+        row = cur.fetchone()
+        decomp_data = decompress_data(row[1])
+        return row[0] * PAGE_SIZE + len(decomp_data)
 
     def random(self):
         '''Returns a random value.'''
-        pass
+        docid = random.randint(0, len(self) - 1)
+        return self.get_doc(docid)
 
     def __contains__(self, key):
         '''Returns if the key is in the index or not.'''
-        pass
+        cur = self.db.execute("SELECT word FROM tokens where word = ?", (key,))
+        if cur.fetchone():
+            return True
+        return False
 
-    def _merge_results(self, results):
-        pass
+    @lru_cache
+    def _get_page(self, pageid):
+        cur = self.db.execute("SELECT data FROM docs where pageid = ?", (pageid,))
+        row = cur.fetchone()
+        if row:
+            decomp_data = decompress_data(row[0])
+            return decomp_data
+        return None
 
     def get_doc(self, docid):
         '''Returns an iterator over the stored items.'''
-        cur = self.db.execute("SELECT namhtml, pagescore FROM docs where rowid = ?", (docid,))
-        return cur.fetchall()[0]
+        page_id, rel_id = page_fn(docid)
+        data = self._get_page(page_id)
+        if data:
+            return data[docid % PAGE_SIZE]
+        return None
 
     def _search_asoc_docs(self, keys):
         """Returns all asociated docs ids from a word's set."""
         marks = ', '.join(["?"] * len(keys))
-        sql = "select * from asoc_docs "
+        sql = "select word, results, docid, score from tokens"
         sql += f" where word in ({marks})"
-        cur = self.db.execute(sql, keys)
-        for row in cur.fetchall():
-            docsid = zip(row[2::2], row[3::2])
-            dicc = {k: v for k, v in docsid if k is not None and k != 'null'}
+        cur = self.db.execute(sql, tuple(keys))
+        return cur.fetchall()
+
+    def _search_decode_asoc_docs(self, source):
+        for row in source:
+            docsid = delta_decode(row[2])
+            scores = array.array('B')
+            scores.frombytes(row[3])
+            dicc = dict(zip(docsid, scores))
             yield row[0], dicc
 
-    def _search_merge_results(self,source):
-        """Compute the set of results with all identified keys."""
-        prev = None
-        added = None
-        for word, dicc in source:
-            if word != prev:
-                if not added is None:
-                    yield prev, added
-                added = dicc
-                prev = word
-            else:
-                added.update(dicc)
-        yield prev, added
-
     def _search_order_items(self, source):
-        """ Order the resuls by scores."""
+        """Merge & order the resuls by scores."""
         results = {}
         for word, dicc in source:
             if results:
@@ -128,9 +204,9 @@ class Index(object):
         The AND boolean operation is applied to the keys.
         '''
 
-        data = self._search_asoc_docs(keys)
-        founded = self._search_merge_results(data)
-        ordered = self._search_order_items(founded)
+        cur = self._search_asoc_docs(keys)
+        decoded = self._search_decode_asoc_docs(cur)
+        ordered = self._search_order_items(decoded)
         for _, ndoc in ordered:
             yield self.get_doc(ndoc)
 
@@ -142,42 +218,70 @@ class Index(object):
 
         The AND boolean operation is applied to the keys.
         '''
-        pass
+        founded = set()
+        for key in keys:
+            sql = "SELECT word FROM tokens WHERE word LIKE ?"
+            cur = self.db.execute(sql, (f"%%{key}%%",))
+            if cur:
+                founded |= set([r[0] for r in cur if not r[0] in keys])
+        return self.search(founded)
 
     @classmethod
-    def create(cls, directory, source):
+    def create(cls, directory, source, show_progress=True):
         '''Creates the index in the directory.
         The source must give path, page_score, title and
         a list of extracted words from title in an ordered fashion
 
         It must return the quantity of pairs indexed.
         '''
-        class SQLmany():
-            BUFFER_SIZE = 400
-            def __init__(self, name, sql):
-                self.values = []
-                self.name = name
-                dict_stats[name] = 0
+        import pickletools
+        class ManyInserts():
+            def __init__(self, name, sql, buff_size):
                 self.sql = sql
+                self.name = name
+                self.buff_size = buff_size
                 self.count = 0
+                self.buffer = []
 
-            def add_args(self, args):
-                self.values.append(args)
-                self.count += 1
-                logger.debug("Adding to %s: %r" % (self.name, args))
-                if self.count % self.BUFFER_SIZE == 0:
-                    database.executemany(self.sql, self.values)
-                    database.commit()
-                    self.values = []
-                if self.count % 1000 == 0:
+            def append(self, data):
+                self.buffer.append(data)
+                self.count +=1
+                if self.count % self.buff_size == 0:
+                    self.persists()
+                    self.buffer = []
+                if cls.show_progress and self.count % 1000 == 0:
                     print(".", end="", flush=True)
 
             def finish(self):
-                if self.values:
-                    database.executemany(self.sql, self.values)
-                    database.commit()
-                print(self.name, ":", self.count, flush=True)
+                """Finish the process and prints some data."""
+                if self.buffer:
+                    self.persists()
+                if cls.show_progress:
+                    print(self.name, ":", self.count, flush=True)
                 dict_stats[self.name] = self.count
+
+            def persists(self):
+                pass
+
+
+        class Compressed(ManyInserts):
+            """Creates the table of compressed documents information.
+            The groups is PAGE_SIZE lenght, pickled and compressed"""
+            def persists(self):
+                """Compress and commit data to index."""
+                pickdata = pickletools.optimize(pickle.dumps(self.buffer))
+                comp_data = zlib.compress(pickdata, level=9)
+                database.execute(self.sql,
+                                 (page_fn(self.count - 1)[0],
+                                 comp_data))
+                database.commit()
+
+        class SQLmany(ManyInserts):
+            """Execute many INSERTs greatly improves the performance."""
+            def persists(self):
+                """Commit data to index."""
+                database.executemany(self.sql, self.buffer)
+                database.commit()
 
         def show_stats():
             """Finally, show some statistics."""
@@ -186,17 +290,16 @@ class Index(object):
 
         def create_database():
             """Creates de basic structure of new database."""
-            database.execute("PRAGMA JOURNAL_MODE = off") #Not allow transactions until end
-            index_fields = _idxtable_fields("? INTEGER")
-            tables = ["CREATE TABLE tokens (tokenid INTEGER PRIMARY KEY, word TEXT, " +\
-                      "results INTEGER, docid00 INTEGER, score00 INTEGER);",
-                "CREATE TABLE docs (docid INTEGER PRIMARY KEY, namhtml TEXT, pagescore INTEGER);",
-                "CREATE TABLE idxtable (tokenid INTEGER, %s); " % index_fields]
+            tables = ["PRAGMA JOURNAL_MODE = off",
+                      "CREATE TABLE tokens (tokenid INTEGER PRIMARY KEY, word TEXT, " +\
+                      "results INTEGER, docid BLOB, score BLOB);",
+                      "CREATE TABLE docs (pageid INTEGER PRIMARY KEY, data BLOB);"]
             for table in tables:
                 database.execute(table)
-            database.commit()
+                database.commit()
 
         def value_words_by_position(words):
+            """The word's relative importance in sentence."""
             word_scores = {}
             if len(words) <= 1:
                 decrement = 0
@@ -213,69 +316,55 @@ class Index(object):
         def add_docs_keys(source):
             """Add docs and keys registers to db and its rel in memory."""
             idx_dict = {}
-            sql_page = "insert into docs (docid, namhtml, pagescore) values (?, ?, ?)"
-            buffer = SQLmany("Documents", sql_page)
-            for docid, (words, namhtml, page_score) in enumerate(source):
+            sql = "INSERT INTO docs (pageid, data) VALUES (?, ?)"
+            docs_table = Compressed("Documents", sql, PAGE_SIZE)
+            for docid, (words, page_score, data) in enumerate(source):
                 # first insert the new page
-                cursor = database.cursor()
-                buffer.add_args((docid, namhtml, page_score))
+                docs_table.append(list(data) + [page_score])
                 add_words(idx_dict, words, docid, page_score)
-            buffer.finish()
+            docs_table.finish()
             return idx_dict
 
         def add_words(idx_dict, words, docid, page_score):
+            """Stores in a dict the words and its related documents."""
             word_scores = value_words_by_position(words)
             for word, word_score in word_scores.items():
-                item = (max(1, word_score * page_score // 100), docid)
+                item = (docid, max(1, word_score * page_score // 100))
+                cls.max_word_score = max(cls.max_word_score, item[1])
                 if word in idx_dict:
                     idx_dict[word].append(item)
                 else:
                     idx_dict[word] = [item]
 
         def add_tokens_to_db(idx_dict):
-            sql_ins = "insert into tokens (tokenid, word, results, score00, docid00) values (?, ?, ?, ?, ?)"
-            index_fields = _idxtable_fields()
-            sql_add = "insert into idxtable (tokenid, %s) values (%s)"
-            sql_add = sql_add % (index_fields, ','.join(["?"] * (MAX_IDX_FIELDS * 2 + 1) ))
-            buffer_t = SQLmany("Tokens", sql_ins)
-            buffer_r = SQLmany("Relationships", sql_add)
+            """Insert token words in the database."""
+            sql_ins = "insert into tokens (tokenid, word, results, docid, score) values (?, ?, ?, ?, ?)"
+            buffer_t = SQLmany("Tokens", sql_ins, 400)
+            unit = cls.max_word_score / 255
+            norm_score = lambda v: int(v[1] / unit)
+            dict_stats["Indexed"] = 0
             for tokenid, (word, docs_list) in enumerate(idx_dict.items()):
-                docs_list.sort(reverse=True)
-                buffer_t.add_args((tokenid, word, len(docs_list),
-                                   docs_list[0][0], docs_list[0][1]))
-                if len(docs_list) > 1:
-                    add_other_relations(buffer_r, tokenid, docs_list[1:])
+                docs_list.sort()
+                docs = [v[0] for v in docs_list]
+                docs_enc = delta_encode(docs)
+                scores = array.array("B")
+                scores.extend(map(norm_score, docs_list))
+                dict_stats["Indexed"] += len(docs_list)
+                buffer_t.append((tokenid, word, len(docs_list),
+                                   docs_enc, scores.tobytes()))
             buffer_t.finish()
-            buffer_r.finish()
 
-        def add_other_relations(buffer_r, tokenid, asoc_docs):
-            tot_asoc = len(asoc_docs)
-            for n_page in range(0, tot_asoc, MAX_IDX_FIELDS):
-                args = [tokenid]
-                for idx in range(n_page, min(n_page + MAX_IDX_FIELDS, tot_asoc)):
-                    args.extend([asoc_docs[idx][1], asoc_docs[idx][0]])
-                missing = (MAX_IDX_FIELDS * 2 + 1) - len(args)
-                if missing:
-                    args.extend(["null"] * missing)
-                buffer_r.add_args(args)
-
-        def create_idx_querys():
-            index_fields = _idxtable_fields("i.?")
+        def create_indexes():
             queries = ["create index idx_words on tokens (word, results)",
-                       "create index idx_table on idxtable (tokenid)",
                        "vacuum"]
-            view = ["create view asoc_docs as select",
-                    "t.word, t.results, t.docid00, t.score00,",
-                    index_fields,
-                    "from tokens as t left join idxtable as i",
-                    "on i.tokenid = t.tokenid order by results"]
-            queries.append(' '.join(view))
             for sql in queries:
                 database.execute(sql)
-            database.commit()
+                database.commit()
 
+        cls.show_progress = show_progress
         logger.info("Indexing")
         import timeit
+        cls.max_word_score = 0
         initial_time = timeit.default_timer()
         dict_stats = {}
         idx = Index(directory)
@@ -283,6 +372,7 @@ class Index(object):
         create_database()
         idx_dict = add_docs_keys(source)
         add_tokens_to_db(idx_dict)
-        create_idx_querys()
-        logger.info("Total time: %r" % int(timeit.default_timer() - initial_time))
+        create_indexes()
+        dict_stats["Total time"] = int(timeit.default_timer() - initial_time)
         show_stats()
+        return dict_stats["Indexed"]
