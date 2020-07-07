@@ -17,9 +17,7 @@
 """Embed pre-selected images in HTML source."""
 
 import logging
-import mimetypes
 import os
-from base64 import standard_b64encode
 
 import bs4
 
@@ -46,7 +44,8 @@ class _EmbedImages:
 
         # search img tags to embed images
         for node in soup.find_all('img', src=True):
-            src = node.attrs['src'].rsplit('?', 1)[0]
+            # discard query part from URL (and all that follows)
+            src = node.attrs['src'].split('?', 1)[0]
             if src not in images:
                 continue
 
@@ -54,9 +53,9 @@ class _EmbedImages:
             imgpath = config.DIR_TEMP + src  # src starts with `/`
             kind = os.path.splitext(src)[1].lstrip('.').lower()
             if kind == 'svg':
-                self.embed_inline(node, imgpath)
+                self.embed_vector(node, imgpath)
             else:
-                logger.error('Embed method not found for: %s', imgpath)
+                logger.error('Embed method not found for: %r', src)
 
         # dump updated html
         html = soup.encode(encoding='utf-8')
@@ -69,21 +68,10 @@ class _EmbedImages:
             xml = bs4.BeautifulSoup(fh, features='xml', from_encoding='utf-8')
         return xml.find('svg')
 
-    def load_data(self, imgpath):
-        """Read image content from disk, return it base64-encoded."""
-        with open(imgpath, 'rb') as fh:
-            return standard_b64encode(fh.read()).decode('ascii')
-
-    def embed_inline(self, node, imgpath):
+    def embed_vector(self, node, imgpath):
         """Embed SVG image directly in HTML tree."""
         svg = self.load_vector(imgpath)
         node.replace_with(svg)
-
-    def embed_data(self, node, imgpath):
-        """Embed raster/vector image using data URI scheme."""
-        imgdata = self.load_data(imgpath)
-        media_type = mimetypes.guess_type
-        node['src'] = 'data:{};base64,{}'.format(media_type, imgdata)
 
 
 def _load_embed_data():
