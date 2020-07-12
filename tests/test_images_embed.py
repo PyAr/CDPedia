@@ -31,7 +31,7 @@ def svg_image(tmp_path):
     filepath = filedir / 'foo.svg'
     with filepath.open('wt', encoding='utf-8') as fh:
         fh.write(svg)
-    return filepath
+    return str(filepath)
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def html_file(tmp_path):
     filepath = filedir / 'foo'  # no extension
     with filepath.open('wt', encoding='utf-8') as fh:
         fh.write(html)
-    return filepath
+    return str(filepath)
 
 
 @pytest.fixture
