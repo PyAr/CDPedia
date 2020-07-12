@@ -42,6 +42,8 @@ class Scaler:
         reduction = config.imageconf['image_reduction']
         logger.info("Reduction: %s", reduction)
         for (percentage, scale) in zip(reduction, SCALES):
+            if percentage == 0:
+                continue
             quantity = total_items * percentage / 100
             vals.append((quantity + base, scale))
             base += quantity
