@@ -108,7 +108,6 @@ def test_embed_images(html_file, mocker):
     embedder = embed._EmbedImages()
     image = '/images/foo.svg'
     embedder.embed_images(html_file, {image})
-    embedder.embed_vector.assert_called()
     args = embedder.embed_vector.call_args[0]
     assert len(args) == 2
     assert args[1] == config.DIR_TEMP + image
