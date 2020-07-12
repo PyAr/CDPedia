@@ -25,6 +25,50 @@ import pytest
 
 from src.armado import sqlite_index
 
+def decomp(data):
+    docs = [n.strip().split("/") for n in data.split(";")]
+    docs = [[n[0], int(n[1])] for n in docs]
+    return docs
+
+def abrev(result):
+    if isinstance(result[0], list):
+        return [r[1:3] for r in result]
+    else:
+        return result[1:3]
+
+class Dat:
+    fixtures = {}
+
+    @classmethod
+    def add_fixture(cls, key, data):
+        docs = decomp(data)
+        info = [(n[0].lower().split(" "), int(n[1]), (n[0], n[0] )) for n in docs]
+        cls.fixtures[key] = info
+
+    def __init__(self, key):
+        self.name = key
+        self.info = []
+        if key in self.fixtures:
+            self.info = self.fixtures[key]
+
+    def __eq__(self, other):
+        return self.info == other
+
+    def __repr__(self):
+        return f"Fixture {self.name}:{str(self.info)}"
+
+
+def test_auxiliary():
+    Dat.add_fixture("one", "ala blanca/3")
+    assert Dat("one") == [(['ala', 'blanca'], 3, ('ala blanca','ala blanca'))]
+    r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
+         ["A/l/a/Ala", "ala", 8]]
+    s = "ala blanca/3; ala/8"
+    assert abrev(r) == decomp(s)
+
+
+Dat.add_fixture("A", "ala blanca/3")
+Dat.add_fixture("B", "ala blanca/3; conejo blanco/5; conejo negro/6")
 
 @pytest.fixture(params=[sqlite_index.Index])
 def create_index(request):
@@ -68,97 +112,80 @@ def test_items_nothing(create_index):
 
 def test_one_item(create_index):
     """Only one item."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",))])
+    idx = create_index(Dat("A").info)
     values = list(idx.values())
-    assert values == [["ala blanca", 3]]
+    assert abrev(values) == decomp("ala blanca/3")
 
 
 def test_several_items(create_index):
     """Several items stored."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        ])
+    idx = create_index(Dat("B").info)
     values = sorted(idx.values())
-    assert values == [["ala blanca", 3], ["conejo blanco", 5]]
+    assert abrev(values) == decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
     assert len(values) == len(idx)
     tokens = sorted(idx.keys())
-    assert tokens == ["ala", "blanca", "blanco", "conejo"]
+    assert tokens == ["ala", "blanca", "blanco", "conejo", "negro"]
 
 
 def test_search(create_index):
     """Several items stored."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        ])
+    idx = create_index(Dat("B").info)
     res = searchidx(idx, ["ala"])
-    assert res == [["ala blanca", 3]]
+    assert abrev(res) == decomp("ala blanca/3")
 
 
 def test_several_results(caplog, create_index):
     """Several results for one key stored."""
     caplog.set_level(logging.INFO)
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        (["conejo", "negro"], 6, ("conejo negro",)),
-                        ])
+    idx = create_index(Dat("B").info)
     # items = [a for a in idx.search(["conejo"])]
     res = searchidx(idx, ["conejo"])
-    assert res == [["conejo negro", 6], ["conejo blanco", 5]]
+    assert abrev(res) == decomp("conejo negro/6; conejo blanco/5")
 
 def test_several_keys(caplog, create_index):
     """Several item stored."""
     caplog.set_level(logging.INFO)
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        (["conejo", "negro"], 6, ("conejo negro",)),
-                        ])
+    idx = create_index(Dat("B").info)
     # items = [a for a in idx.search(["conejo"])]
     res = searchidx(idx, ["conejo", "negro"])
-    assert res == [["conejo negro", 6]]
+    assert abrev(res) == decomp("conejo negro/6")
 
 def test_word_scores(caplog, create_index):
     """Test the order in the results."""
-    pg_scores = 9000
     caplog.set_level(logging.INFO)
-    titles = ["coneja blanca", "gradaciones entre los colores de blanca", "blanca"]
-    info = [(t.split(), pg_scores, (t,)) for t in titles]
-    idx = create_index(info)
+    data = """coneja blanca/9000;
+              gradaciones entre los colores de blanca/9000;
+              blanca/9000"""
+    Dat.add_fixture("C", data)
+    idx = create_index(Dat("C").info)
     res = searchidx(idx, ["blanca"])
-    expected = zip(["blanca", "coneja blanca", "gradaciones entre los colores de blanca"], [pg_scores] * 3)
-    expected = [[title, score] for title, score in expected]
-    assert res == expected
+    expected = decomp("""blanca/9000; coneja blanca/9000;
+              gradaciones entre los colores de blanca/9000""")
+    assert abrev(res) == expected
 
 def test_many_results(caplog, create_index):
     """Test with many pages of results."""
-    pg_scores = 9000
     caplog.set_level(logging.INFO)
-    titles = """blanca ojeda
-        coneja blanca
-        gradaciones entre los colores de blanca
-        conejo blanca
-        caja blanca
-        limpieza de blanca
-        blanca casa
-        es blanca la paloma
-        Blanca gómez
-        recuerdos de blanca
-        blanca"""
-    titles = [s.strip() for s in titles.split("\n")]
-    info = [(t.lower().split(), pg_scores, (t,)) for t in titles]
-    idx = create_index(info)
-    assert len(titles) == len(idx)
+    data = """blanca ojeda/9000;
+        coneja blanca/9000;
+        gradaciones entre los colores de blanca/9000;
+        conejo blanca/9000;
+        caja blanca/9000;
+        limpieza de blanca/9000;
+        blanca casa/9000;
+        es blanca la paloma/9000;
+        Blanca gómez/9000;
+        recuerdos de blanca/9000;
+        blanca/9000"""
+    Dat.add_fixture("D", data)
+    idx = create_index(Dat("D").info)
+    assert len(Dat("D").info) == len(idx)
     res = searchidx(idx, ["blanca"], debug=False)
-    assert len(res) == len(titles)
+    assert len(res) == len(Dat("D").info)
 
 def searchidx(idx, keys, debug=False):
     if debug:
-        cur = idx._search_asoc_docs(keys)
-        cur = list(cur)
-        pp(cur)
-        decoded = idx._search_decode_asoc_docs(cur)
-        decoded = list(decoded)
-        pp(decoded)
-        ordered = idx._search_order_items(decoded)
+        ordered = idx._search_asoc_docs(keys)
         ordered = list(ordered)
         pp(ordered)
         res = [idx.get_doc(ndoc) for _, ndoc in ordered]
@@ -171,19 +198,16 @@ def searchidx(idx, keys, debug=False):
 
 def test_random_one_item(create_index):
     """Only one item."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",))])
+    idx = create_index(Dat("A").info)
     value = idx.random()
-    assert value == ["ala blanca", 3]
+    assert abrev(value) == decomp("ala blanca/3")[0]
 
 
 def test_random_several_values(create_index):
     """Several values stored."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        ])
+    idx = create_index(Dat("B").info)
     value = idx.random()
-    assert value in [["ala blanca", 3],  ["conejo blanco", 5]]
-
+    assert abrev(value) in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
 
 # --- Test the "in" functionality.
 
@@ -195,84 +219,15 @@ def test_infunc_nothing(create_index):
 
 def test_infunc_one_item(create_index):
     """Only one item."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        ])
+    idx = create_index(Dat("B").info)
     assert "ala" in idx
     assert "bote" not in idx
 
 
-'''
-def test_infunc_several_values(create_index):
-    """Several values stored."""
-    idx = create_index([("a", 3), (u"ñ", 5)])
-    assert "a" in idx
-    assert u"ñ" in idx
-    assert "c" not in idx
-
-
-# --- Test the .search method.
-
-def test_search_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    res = idx.search(["a"])
-    assert list(res) == []
-
-
-def test_search_one_item(create_index):
-    """Only one item."""
-    idx = create_index([("a", 3)])
-    res = idx.search(["a"])
-    assert list(res) == [3]
-    res = idx.search(["b"])
-    assert list(res) == []
-
-
-def test_search_several_values(create_index):
-    """Several values stored."""
-    idx = create_index([("a", 3), ("b", 5)])
-    res = idx.search(["a"])
-    assert list(res) == [3]
-    res = idx.search(["b"])
-    assert list(res) == [5]
-    res = idx.search(["c"])
-    assert list(res) == []
-
-
-def test_search_same_keys(create_index):
-    """Two values with the same key."""
-    idx = create_index([("a", 3), ("a", 5)])
-    res = idx.search(["a"])
-    assert set(res) == {3, 5}
-    res = idx.search(["b"])
-    assert list(res) == []
-
-
-def test_search_mixed(create_index):
-    """Two values with the same key and something else."""
-    idx = create_index([("a", 3), (u"ñ", 7), ("a", 5)])
-    res = idx.search(["a"])
-    assert set(res) == {3, 5}
-    res = idx.search([u"ñ"])
-    assert list(res) == [7]
-    res = idx.search(["c"])
-    assert list(res) == []
-
-
 def test_search_nopartial(create_index):
     """Does not find partial values."""
-    idx = create_index([("aa", 3)])
+    idx = create_index(Dat("A").info)
     res = idx.search(["a"])
-    assert list(res) == []
-
-
-def test_search_and(create_index):
-    """Check that AND is applied."""
-    idx = create_index([("a", 3), ("b", 3), ("a", 5), ("c", 5)])
-    res = idx.search(["a", "b"])
-    assert list(res) == [3]
-    res = idx.search(["b", "c"])
     assert list(res) == []
 
 
@@ -284,39 +239,17 @@ def test_partialsearch_nothing(create_index):
     res = idx.partial_search(["a"])
     assert list(res) == []
 
-
+'''
 def test_partialsearch_prefix(create_index):
     """Match its prefix."""
-    idx = create_index([(u"abñc", 3)])
-    res = idx.partial_search(["ab"])
+    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
+                        (["conejo", "blanco"], 5, ("conejo blanco",)),
+                        (["coneja", "negra"], 6, ("coneja negra",)),
+                        ])
+    res = idx.partial_search(["blanc"])
     assert list(res) == [3]
     res = idx.partial_search(["ad"])
     assert list(res) == []
-
-
-def test_partialsearch_suffix(create_index):
-    """Match its suffix."""
-    idx = create_index([(u"abñd", 3)])
-    res = idx.partial_search([u"ñd"])
-    assert list(res) == [3]
-    res = idx.partial_search(["ad"])
-    assert list(res) == []
-
-
-def test_partialsearch_middle(create_index):
-    """Match in the middle."""
-    idx = create_index([(u"abñd", 3)])
-    res = idx.partial_search([u"bñ"])
-    assert list(res) == [3]
-    res = idx.partial_search(["cb"])
-    assert list(res) == []
-
-
-def test_partialsearch_exact(create_index):
-    """Exact match."""
-    idx = create_index([("abcd", 3)])
-    res = idx.partial_search(["abcd"])
-    assert list(res) == [3]
 
 
 def test_partialsearch_several_values(create_index):
@@ -342,44 +275,4 @@ def test_partialsearch_and(create_index):
     res = idx.partial_search(["a", "o"])
     assert set(res) == {3, 7}
 
-
-# --- Test the .create method in the non-working cases.
-
-def test_create_non_iterable(get_engine):
-    """It must iterate on what receives."""
-    tempdir, engine = get_engine()
-    with pytest.raises(TypeError):
-        engine.create(tempdir, None)
-
-
-def test_create_key_string(get_engine):
-    """Keys can be string."""
-    tempdir, engine = get_engine()
-    engine.create(tempdir, [("aa", 33)])
-
-
-def test_create_key_unicode(get_engine):
-    """Keys can be unicode."""
-    tempdir, engine = get_engine()
-    engine.create(tempdir, [(u"año", 33)])
-
-
-def test_create_key_badtype(get_engine):
-    """Keys must be strings or unicode."""
-    tempdir, engine = get_engine()
-    with pytest.raises(TypeError):
-        engine.create(tempdir, [(1, 3)])
-
-
-def test_create_return_quantity(get_engine):
-    """Must return the quantity indexed."""
-    tempdir, engine = get_engine()
-    q = engine.create(tempdir, [])
-    assert q == 0
-    q = engine.create(tempdir, [("a", 1)])
-    assert q == 1
-    q = engine.create(tempdir, [("a", 1), ("b", 2)])
-    assert q == 2
-    q = engine.create(tempdir, [("a", 1), ("a", 2)])
-    assert q == 2
 '''

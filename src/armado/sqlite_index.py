@@ -18,12 +18,15 @@
 
 
 import array
+from src.armado import to3dirs
+import math
 import pickle
 import zlib
 import logging
 import os
 import random
 import sqlite3
+from collections import Counter
 from functools import lru_cache
 
 from src import utiles
@@ -34,65 +37,164 @@ PAGE_SIZE = 1024
 page_fn = lambda id: divmod(id, PAGE_SIZE)
 decompress_data = lambda d: pickle.loads(zlib.decompress(d))
 
+class DocSet:
+    """Data type to encode, decode & compute documents-id's sets."""
+    def __init__(self, values =None, encoded =None):
+        self._docs_list = {}
+        self.unit = 1
+        if encoded:
+            self.decode(encoded)
+        if values:
+            for item in values:
+                self.append(item[0], item[1])
 
+    def append(self, docid, score):
+        """Append an item to the docs_list."""
+        self._docs_list[docid] = self._docs_list.get(docid, 0) + score
 
-def delta_encode(docset, sorted=sorted, with_reps=False):
-    """Compress an array of numbers into a bytes object.
+    def normalizeValues(self, unit=None):
+        """Divide every doc score to avoid large numbers."""
+        if not unit:
+            unit = max(list(self._docs_list.values())) / 255
+        for k, v in self._docs_list.items():
+            self._docs_list[k] = max(1, min(255,
+                                int(self._docs_list[k] / unit)))
 
-    - docset is an array of long integers, it contain the begin position
-      of every word in the set.
-    - sorted is a sorting function, it must be a callable
-    - with_reps is True on search, but false on creation.
-    """
-    pdoc = -1
-    rv = array.array('B')
-    rva = rv.append
-    flag = (0, 0x80)
-    for doc in sorted(docset):
-        if with_reps or doc != pdoc:
-            if not with_reps and doc <= pdoc:
-                # decreasing sequence element escaped by 0 delta entry
-                rva(0)
-                pdoc = -1
-            doc, pdoc = doc - pdoc, doc
-            while True:
-                b = doc & 0x7F  # copies to b the last 7 bits on doc
-                doc >>= 7  # to right 7 bits doc number
-                b |= flag[doc != 0]  # add 0x80 (128, 2^7) if doc is greater
-                rva(b)
-                if not doc:
-                    break  # if doc is zero, stop, else add another byte to this entry
-    return rv.tobytes()
+    def tolist(self):
+        """Returns a sorted list of docs, by value."""
+        to_list = [(v, k) for k, v in self._docs_list.items()]
+        to_list.sort(reverse=True)
+        return to_list
 
-
-def delta_decode(docset, ctor=set, append="add", with_reps=False):
-    """Decode a compressed encoded bucket.
-
-    - docset is a bytes object, representing a byte's array
-    - ctor is the final container
-    - append is the callable attribute used to add an element into the ctor
-    - with_reps is used on unpickle.
-    """
-    doc = 0
-    pdoc = -1
-    rv = ctor()
-    rva = getattr(rv, append)
-    shif = 0
-    abucket = array.array('B')
-    abucket.frombytes(docset)
-    for b in abucket:
-        doc |= (b & 0x7F) << shif
-        shif += 7
-        if not (b & 0x80):
-            if doc == 0 and not with_reps:
-                # 0 delta entry encodes a sequence reset command
-                pdoc = -1
+    def __iand__(self, other):
+        """Intersect and add value to other docset."""
+        ll = list(self._docs_list.keys())
+        for k in ll:
+            if k in other._docs_list.keys():
+                self._docs_list[k] += other._docs_list[k]
             else:
-                pdoc += doc
-                rva(pdoc)
-            doc = shif = 0
-    return rv
+                del self._docs_list[k]
+        return self
 
+    def __len__(self):
+        return len(self._docs_list)
+
+    def __repr__(self):
+        return repr(self._docs_list)
+
+    def encode(self):
+        """Encode to store compressed inside the database."""
+        def delta_encode(docset, sorted=sorted, with_reps=False):
+            """Compress an array of numbers into a bytes object.
+
+            - docset is an array of long integers, it contain the begin position
+              of every word in the set.
+            - sorted is a sorting function, it must be a callable
+            - with_reps is True on search, but false on creation.
+            """
+            pdoc = -1
+            rv = array.array('B')
+            rva = rv.append
+            flag = (0, 0x80)
+            for doc in sorted(docset):
+                if with_reps or doc != pdoc:
+                    if not with_reps and doc <= pdoc:
+                        # decreasing sequence element escaped by 0 delta entry
+                        rva(0)
+                        pdoc = -1
+                    doc, pdoc = doc - pdoc, doc
+                    while True:
+                        b = doc & 0x7F  # copies to b the last 7 bits on doc
+                        doc >>= 7  # to right 7 bits doc number
+                        b |= flag[doc != 0]  # add 0x80 (128, 2^7) if doc is greater
+                        rva(b)
+                        if not doc:
+                            break  # if doc is zero, stop, else add another byte to this entry
+            return rv.tobytes()
+
+        docs_list = [(k, v) for k, v in self._docs_list.items()]
+        docs_list.sort()
+        docs = [v[0] for v in docs_list]
+        docs_enc = delta_encode(docs)
+        # if any score is greater than 255 or lesser than 1, it won't work
+        scores = array.array("B", [v[1] for v in docs_list])
+        return scores.tobytes() + b"\x00" + docs_enc
+
+    def decode(self, encoded):
+        """Decode a compressed docset."""
+        def delta_decode(docset, ctor=list, append="append", with_reps=False):
+            """Decode a compressed encoded bucket.
+
+            - docset is a bytes object, representing a byte's array
+            - ctor is the final container
+            - append is the callable attribute used to add an element into the ctor
+            - with_reps is used on unpickle.
+            """
+            doc = 0
+            pdoc = -1
+            rv = ctor()
+            rva = getattr(rv, append)
+            shif = 0
+            abucket = array.array('B')
+            abucket.frombytes(docset)
+            for b in abucket:
+                doc |= (b & 0x7F) << shif
+                shif += 7
+                if not (b & 0x80):
+                    if doc == 0 and not with_reps:
+                        # 0 delta entry encodes a sequence reset command
+                        pdoc = -1
+                    else:
+                        pdoc += doc
+                        rva(pdoc)
+                    doc = shif = 0
+            return rv
+
+        limit = encoded.index(b"\x00")
+        docsid = delta_decode(encoded[limit + 1:])
+        scores = array.array('B')
+        scores.frombytes(encoded[:limit])
+        self._docs_list = dict(zip(docsid, scores))
+
+
+class Intersect:
+    """Class to compute de intersection of docsets."""
+    def __init__(self):
+        self.count = None
+
+    def step(self, value):
+        other = DocSet(encoded=value)
+        if not self.count:
+            self.count = other
+        else:
+            self.count &= other
+
+    def finalize(self):
+        self.count.normalizeValues()
+        return self.count.encode()
+
+
+def open_conection(filename):
+    """Conects and register data types and aggregate function."""
+    # Register the adapter
+    adapt_docset = lambda docset: docset.encode()
+    sqlite3.register_adapter(DocSet, adapt_docset)
+
+    # Register the converter
+    convert_docset = lambda s: DocSet(encoded=s)
+    sqlite3.register_converter("docset", convert_docset)
+
+    con = sqlite3.connect(filename, detect_types=sqlite3.PARSE_COLNAMES)
+    con.create_aggregate("myintersect", 1, Intersect)
+    return con
+
+def to_filename(title):
+    """Compute the filename from the title."""
+    tt = title.replace(" ", "_")
+    tt = tt[0].upper() + tt[1:]
+    dir3, arch = to3dirs.get_path_file(tt)
+    expected = os.path.join(dir3, arch)
+    return expected
 
 class Index(object):
     '''Handles the index.'''
@@ -100,15 +202,13 @@ class Index(object):
     def __init__(self, directory):
         self._directory = directory
         keyfilename = os.path.join(directory, "index.sqlite")
-        self.db = sqlite3.connect(keyfilename)
-
-    def _token_ids(self, words):
-        """Returns a dict with words and its rowid."""
-        prev = ', '.join(["?"] * len(words))
-        sql_prev = f"select tokenid, word from tokens where word in ({prev})"
-        in_db = self.db.execute(sql_prev, words)
-        in_db = list(in_db.fetchall())
-        return {row[1]:row[0] for row in in_db}
+        self.db = open_conection(keyfilename)
+        self.db.executescript('''
+            PRAGMA query_only = True;
+            PRAGMA journal_mode = MEMORY;
+            PRAGMA temp_store = MEMORY;
+            PRAGMA synchronous = OFF;
+            ''')
 
     def keys(self):
         """Returns an iterator over the stored keys."""
@@ -132,6 +232,7 @@ class Index(object):
 
     @lru_cache
     def __len__(self):
+        """Compute the total number of docs in compressed pages."""
         sql = 'Select pageid, data from docs order by pageid desc limit 1'
         cur = self.db.execute(sql)
         row = cur.fetchone()
@@ -139,12 +240,12 @@ class Index(object):
         return row[0] * PAGE_SIZE + len(decomp_data)
 
     def random(self):
-        '''Returns a random value.'''
+        """Returns a random value."""
         docid = random.randint(0, len(self) - 1)
         return self.get_doc(docid)
 
     def __contains__(self, key):
-        '''Returns if the key is in the index or not.'''
+        """Returns if the key is in the index or not."""
         cur = self.db.execute("SELECT word FROM tokens where word = ?", (key,))
         if cur.fetchone():
             return True
@@ -164,76 +265,69 @@ class Index(object):
         page_id, rel_id = page_fn(docid)
         data = self._get_page(page_id)
         if data:
-            return data[docid % PAGE_SIZE]
+            row = data[docid % PAGE_SIZE]
+            if not row[0]:
+                row[0] = to_filename(row[1])
+            return row
         return None
 
     def _search_asoc_docs(self, keys):
         """Returns all asociated docs ids from a word's set."""
         marks = ', '.join(["?"] * len(keys))
-        sql = "select word, results, docid, score from tokens"
+        sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
         sql += f" where word in ({marks})"
         cur = self.db.execute(sql, tuple(keys))
-        return cur.fetchall()
-
-    def _search_decode_asoc_docs(self, source):
-        for row in source:
-            docsid = delta_decode(row[2])
-            scores = array.array('B')
-            scores.frombytes(row[3])
-            dicc = dict(zip(docsid, scores))
-            yield row[0], dicc
-
-    def _search_order_items(self, source):
-        """Merge & order the resuls by scores."""
-        results = {}
-        for word, dicc in source:
-            if results:
-                cj = set(results.keys()) & set(dicc.keys())
-                res = {k: results[k] + dicc[k] for k in cj}
-                results = res
-            else:
-                results = dicc
-
-        to_list = [(v, k) for k, v in results.items()]
-        to_list.sort(reverse=True)
-        return to_list
+        results = cur.fetchone()
+        if not results:
+            return []
+        results = results[0]
+        if not results:
+            return []
+        return results.tolist()
 
     def search(self, keys):
-        '''Returns all the values that are found for those keys.
+        """Returns all the values that are found for those keys.
 
         The AND boolean operation is applied to the keys.
-        '''
-
-        cur = self._search_asoc_docs(keys)
-        decoded = self._search_decode_asoc_docs(cur)
-        ordered = self._search_order_items(decoded)
-        for _, ndoc in ordered:
-            yield self.get_doc(ndoc)
+        """
+        ordered = self._search_asoc_docs(keys)
+        for score, ndoc in ordered:
+            dd = self.get_doc(ndoc)
+            dd.append(score)
+            yield dd
 
     def partial_search(self, keys):
-        '''Returns all the values that are found for those partial keys.
+        """Returns all the values that are found for those partial keys.
 
         The received keys are taken as part of the real keys (suffix,
         preffix, or in the middle).
 
         The AND boolean operation is applied to the keys.
-        '''
-        founded = set()
-        for key in keys:
-            sql = "SELECT word FROM tokens WHERE word LIKE ?"
-            cur = self.db.execute(sql, (f"%%{key}%%",))
-            if cur:
-                founded |= set([r[0] for r in cur if not r[0] in keys])
-        return self.search(founded)
+        """
+        cond = [f'word like "%%{k}%%"' for k in keys]
+        sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
+        sql += " where " + "or ".join(cond)
+        cur = self.db.execute(sql)
+        results = cur.fetchone()[0]
+        if not results:
+            return []
+        results = results[0]
+        if not results:
+            return []
+        for score, ndoc in results.tolist():
+            dd = self.get_doc(ndoc)
+            dd.append(score)
+            yield dd
+
 
     @classmethod
     def create(cls, directory, source, show_progress=True):
-        '''Creates the index in the directory.
+        """Creates the index in the directory.
         The source must give path, page_score, title and
         a list of extracted words from title in an ordered fashion
 
         It must return the quantity of pairs indexed.
-        '''
+        """
         import pickletools
         class ManyInserts():
             def __init__(self, name, sql, buff_size):
@@ -266,6 +360,7 @@ class Index(object):
 
         class Compressed(ManyInserts):
             """Creates the table of compressed documents information.
+
             The groups is PAGE_SIZE lenght, pickled and compressed"""
             def persists(self):
                 """Compress and commit data to index."""
@@ -290,13 +385,15 @@ class Index(object):
 
         def create_database():
             """Creates de basic structure of new database."""
-            tables = ["PRAGMA JOURNAL_MODE = off",
-                      "CREATE TABLE tokens (tokenid INTEGER PRIMARY KEY, word TEXT, " +\
-                      "results INTEGER, docid BLOB, score BLOB);",
-                      "CREATE TABLE docs (pageid INTEGER PRIMARY KEY, data BLOB);"]
-            for table in tables:
-                database.execute(table)
-                database.commit()
+            script='''
+                PRAGMA JOURNAL_MODE = off;
+                PRAGMA synchronous = OFF;
+                CREATE TABLE tokens
+                    (tokenid INTEGER PRIMARY KEY, word TEXT,
+                    results INTEGER, docsets BLOB);
+                CREATE TABLE docs (pageid INTEGER PRIMARY KEY, data BLOB);
+                '''
+            database.executescript(script)
 
         def value_words_by_position(words):
             """The word's relative importance in sentence."""
@@ -309,8 +406,7 @@ class Index(object):
                 ratio = 100 // len(words)
             for pos, word in enumerate(words):
                 word_score = ratio * (100 - decrement * (1 + pos))
-                word_scores[word] = word_score // 1000
-            logger.debug("Word scores %r" % word_scores)
+                word_scores[word] = word_score
             return word_scores
 
         def add_docs_keys(source):
@@ -320,7 +416,10 @@ class Index(object):
             docs_table = Compressed("Documents", sql, PAGE_SIZE)
             for docid, (words, page_score, data) in enumerate(source):
                 # first insert the new page
-                docs_table.append(list(data) + [page_score])
+                data = list(data) + [page_score]
+                if data[0] == to_filename(data[1]):
+                    data[0] = None
+                docs_table.append(data)
                 add_words(idx_dict, words, docid, page_score)
             docs_table.finish()
             return idx_dict
@@ -328,51 +427,53 @@ class Index(object):
         def add_words(idx_dict, words, docid, page_score):
             """Stores in a dict the words and its related documents."""
             word_scores = value_words_by_position(words)
+            cls.max_page_score = max(cls.max_page_score, page_score)
             for word, word_score in word_scores.items():
-                item = (docid, max(1, word_score * page_score // 100))
-                cls.max_word_score = max(cls.max_word_score, item[1])
-                if word in idx_dict:
-                    idx_dict[word].append(item)
-                else:
-                    idx_dict[word] = [item]
+                # item_score = max(1, 0.6 * word_score + 0.4 * math.log(page_score))
+                cls.max_word_score = max(cls.max_word_score, word_score)
+                if not word in idx_dict:
+                    idx_dict[word] = DocSet()
+                idx_dict[word].append(docid, word_score)
 
         def add_tokens_to_db(idx_dict):
             """Insert token words in the database."""
-            sql_ins = "insert into tokens (tokenid, word, results, docid, score) values (?, ?, ?, ?, ?)"
+            sql_ins = "insert into tokens (tokenid, word, results, docsets) values (?, ?, ?, ?)"
             buffer_t = SQLmany("Tokens", sql_ins, 400)
+            logger.debug("Max word score: %r" % cls.max_word_score)
             unit = cls.max_word_score / 255
-            norm_score = lambda v: int(v[1] / unit)
-            dict_stats["Indexed"] = 0
+            # dict_stats["Indexed"] = 0
             for tokenid, (word, docs_list) in enumerate(idx_dict.items()):
-                docs_list.sort()
-                docs = [v[0] for v in docs_list]
-                docs_enc = delta_encode(docs)
-                scores = array.array("B")
-                scores.extend(map(norm_score, docs_list))
+                logger.debug("Word: %s %r" % (word, docs_list))
+                docs_list.normalizeValues(unit)
                 dict_stats["Indexed"] += len(docs_list)
-                buffer_t.append((tokenid, word, len(docs_list),
-                                   docs_enc, scores.tobytes()))
+                buffer_t.append((tokenid, word, len(docs_list), docs_list))
             buffer_t.finish()
 
         def create_indexes():
-            queries = ["create index idx_words on tokens (word, results)",
-                       "vacuum"]
-            for sql in queries:
-                database.execute(sql)
-                database.commit()
+            script = '''
+                create index idx_words on tokens (word, results);
+                vacuum;
+                '''
+            database.executescript(script)
 
         cls.show_progress = show_progress
         logger.info("Indexing")
         import timeit
         cls.max_word_score = 0
+        cls.max_page_score = 0
         initial_time = timeit.default_timer()
-        dict_stats = {}
-        idx = Index(directory)
-        database = idx.db
+        dict_stats = Counter()
+        keyfilename = os.path.join(directory, "index.sqlite")
+        database = open_conection(keyfilename)
         create_database()
         idx_dict = add_docs_keys(source)
         add_tokens_to_db(idx_dict)
         create_indexes()
         dict_stats["Total time"] = int(timeit.default_timer() - initial_time)
+        dict_stats["Max word score"] = cls.max_word_score
+        dict_stats["Max page score"] = cls.max_page_score
         show_stats()
         return dict_stats["Indexed"]
+
+
+
