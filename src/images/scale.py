@@ -16,17 +16,17 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""Reduce images."""
+"""Reduce images based on precalculated scale values."""
 
 from __future__ import with_statement, unicode_literals
 
-import codecs
 import config
 import logging
 import os
 import shutil
 import subprocess
 
+from src.images.embed import image_is_embeddable
 
 logger = logging.getLogger('images.scale')
 
@@ -35,22 +35,29 @@ def run(verbose):
     """Reduce images using precalculated scales."""
     notfound = 0
     done_now = {}
+    embed_enabled = config.EMBED_IMAGES
 
     # load already processed images
     done_before = {}
     if os.path.exists(config.LOG_REDUCDONE):
-        with codecs.open(config.LOG_REDUCDONE, "r", encoding="utf-8") as fh:
+        with open(config.LOG_REDUCDONE, "rt", encoding="utf-8") as fh:
             for line in fh:
                 parts = line.strip().split()
                 scale = int(parts[0])
                 dskurl = parts[1]
                 done_before[dskurl] = scale
 
+    # load paths of embeddable images selected previously
+    images_embed = set()
+    if embed_enabled and os.path.exists(config.LOG_IMAGES_EMBEDDED):
+        with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
+            images_embed = set(line.strip() for line in fh)
+
     src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # load image path and its correspondig scale
-    with codecs.open(config.LOG_REDUCCION, "r", encoding="utf-8") as fh:
+    with open(config.LOG_REDUCCION, "rt", encoding="utf-8") as fh:
         for line in fh:
             parts = line.strip().split(config.SEPARADOR_COLUMNAS)
             scale = int(parts[0])
@@ -68,9 +75,9 @@ def run(verbose):
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
-            # rules to skip scaling of some images: math/*, .png, y < 2KB
-            if dskurl.startswith('math') or dskurl.endswith('.png') or \
-               os.stat(frompath).st_size < 2048:
+            # rules to skip scaling of some images: math/*, .png, and < 2KB
+            imgsize = os.stat(frompath).st_size
+            if dskurl.startswith('math') or dskurl.endswith('.png') or imgsize < 2048:
                 scale = 100
 
             # check if image scaling was already done
@@ -84,7 +91,13 @@ def run(verbose):
                 logger.debug("Rescaling to %d%% image %s", scale, dskurl)
             if scale == 100:
                 done_now[dskurl] = 100
-                shutil.copyfile(frompath, topath)
+                if embed_enabled and image_is_embeddable(dskurl, imgsize):
+                    # don't copy image, leave it out of image blocks, it will
+                    # be embedded from original location (without any reduction)
+                    images_embed.add(dskurl)
+                else:
+                    shutil.copyfile(frompath, topath)
+
             else:
                 cmd = ['convert', frompath, '-resize', '%d%%' % (scale,), topath]
                 errorcode = subprocess.call(cmd)
@@ -94,9 +107,14 @@ def run(verbose):
                     logger.warning("Got %d when processing %s", errorcode, frompath)
 
     # save images processed now
-    with codecs.open(config.LOG_REDUCDONE, "w", encoding="utf-8") as fh:
+    with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
         for dskurl, scale in done_now.items():
             fh.write("%3d %s\n" % (scale, dskurl))
+
+    # save paths of selected images to be embedded
+    with open(config.LOG_IMAGES_EMBEDDED, 'wt', encoding='utf-8') as fh:
+        for dskurl in images_embed:
+            fh.write(dskurl + '\n')
 
     # delete extra images from previous processing
     for dskurl in (set(done_before) - set(done_now)):

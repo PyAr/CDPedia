@@ -18,7 +18,6 @@
 
 """Download images."""
 
-import codecs
 import collections
 import logging
 import os
@@ -80,12 +79,12 @@ def retrieve():
     # load images that couldn't be downloaded previously
     log_errors = os.path.join(config.DIR_TEMP, "images_neterror.txt")
     if os.path.exists(log_errors):
-        with codecs.open(log_errors, "r", encoding="utf8") as fh:
+        with open(log_errors, "rt", encoding="utf8") as fh:
             imgs_problems = set(x.strip() for x in fh)
     else:
         imgs_problems = set()
 
-    for line in codecs.open(config.LOG_REDUCCION, "r", encoding="utf8"):
+    for line in open(config.LOG_REDUCCION, "rt", encoding="utf8"):
         line = line.strip()
         if not line:
             continue
@@ -109,7 +108,7 @@ def retrieve():
         else:
             errors[stt] += 1
             n_err += 1
-            with codecs.open(log_errors, "a", encoding="utf8") as fh:
+            with open(log_errors, "at", encoding="utf8") as fh:
                 fh.write(url + "\n")
 
         tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, n_ok, n_err)
