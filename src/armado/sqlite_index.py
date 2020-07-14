@@ -18,28 +18,34 @@
 
 
 import array
-from src.armado import to3dirs
-import math
-import pickle
-import zlib
 import logging
 import os
+import pickle
 import random
 import sqlite3
+import zlib
 from collections import Counter
 from functools import lru_cache
 
-from src import utiles
+from src.armado import to3dirs
+
 logger = logging.getLogger(__name__)
 
 MAX_IDX_FIELDS = 8
 PAGE_SIZE = 1024
-page_fn = lambda id: divmod(id, PAGE_SIZE)
-decompress_data = lambda d: pickle.loads(zlib.decompress(d))
+
+
+def page_fn(id):
+    return divmod(id, PAGE_SIZE)
+
+
+def decompress_data(data):
+    return pickle.loads(zlib.decompress(data))
+
 
 class DocSet:
     """Data type to encode, decode & compute documents-id's sets."""
-    def __init__(self, values =None, encoded =None):
+    def __init__(self, values=None, encoded=None):
         self._docs_list = {}
         self.unit = 1
         if encoded:
@@ -58,12 +64,13 @@ class DocSet:
             return
         if not unit:
             unit = max(list(self._docs_list.values())) / 255
+
             # Cannot raise values, only lower them
             if unit <= 1:
                 return
         for k, v in self._docs_list.items():
             self._docs_list[k] = max(1, min(255,
-                                int(self._docs_list[k] / unit)))
+                                     int(self._docs_list[k] / unit)))
 
     def tolist(self):
         """Returns a sorted list of docs, by value."""
@@ -194,7 +201,6 @@ class Union:
         return self.count.encode()
 
 
-
 class Intersect:
     """Class to compute de intersection of docsets."""
     def __init__(self):
@@ -222,10 +228,12 @@ def open_conection(filename):
     convert_docset = lambda s: DocSet(encoded=s)
     sqlite3.register_converter("docset", convert_docset)
 
-    con = sqlite3.connect(filename, detect_types=sqlite3.PARSE_COLNAMES)
+    con = sqlite3.connect(filename, check_same_thread=False,
+                          detect_types=sqlite3.PARSE_COLNAMES)
     con.create_aggregate("myintersect", 1, Intersect)
     con.create_aggregate("myunion", 1, Union)
     return con
+
 
 def to_filename(title):
     """Compute the filename from the title."""
@@ -234,6 +242,7 @@ def to_filename(title):
     dir3, arch = to3dirs.get_path_file(tt)
     expected = os.path.join(dir3, arch)
     return expected
+
 
 class Index(object):
     '''Handles the index.'''
@@ -329,7 +338,7 @@ class Index(object):
         ordered = self._search_asoc_docs(keys)
         for score, ndoc in ordered.tolist():
             dd = self.get_doc(ndoc)
-            dd.append(score)
+            # dd.append(score)
             yield dd
 
     def _partial_search(self, key):
@@ -360,9 +369,8 @@ class Index(object):
         # assert keys != ["blanc"]
         for score, ndoc in results.tolist():
             dd = self.get_doc(ndoc)
-            dd.append(score)
+            # dd.append(score)
             yield dd
-
 
     @classmethod
     def create(cls, directory, source, show_progress=True):
@@ -372,7 +380,10 @@ class Index(object):
 
         It must return the quantity of pairs indexed.
         """
+        import hashlib
         import pickletools
+        import timeit
+
         class ManyInserts():
             def __init__(self, name, sql, buff_size):
                 self.sql = sql
@@ -383,7 +394,7 @@ class Index(object):
 
             def append(self, data):
                 self.buffer.append(data)
-                self.count +=1
+                self.count += 1
                 if self.count % self.buff_size == 0:
                     self.persists()
                     self.buffer = []
@@ -401,7 +412,6 @@ class Index(object):
             def persists(self):
                 pass
 
-
         class Compressed(ManyInserts):
             """Creates the table of compressed documents information.
 
@@ -412,7 +422,7 @@ class Index(object):
                 comp_data = zlib.compress(pickdata, level=9)
                 database.execute(self.sql,
                                  (page_fn(self.count - 1)[0],
-                                 comp_data))
+                                  comp_data))
                 database.commit()
 
         class SQLmany(ManyInserts):
@@ -425,11 +435,11 @@ class Index(object):
         def show_stats():
             """Finally, show some statistics."""
             for k, v in dict_stats.items():
-                logger.info("{:>15}:{}".format(k,v))
+                logger.info("{:>15}:{}".format(k, v))
 
         def create_database():
             """Creates de basic structure of new database."""
-            script='''
+            script = '''
                 PRAGMA JOURNAL_MODE = off;
                 PRAGMA synchronous = OFF;
                 CREATE TABLE tokens
@@ -468,7 +478,7 @@ class Index(object):
                     data[0] = None
                 # see if the doc is repeated.
                 hash_data = hashlib.sha224(pickle.dumps(data)).digest()
-                if not hash_data in allready_seen:
+                if hash_data not in allready_seen:
                     allready_seen.add(hash_data)
                     data += [page_score]
                     docs_table.append(data)
@@ -487,7 +497,7 @@ class Index(object):
             for word, word_score in word_scores.items():
                 # item_score = max(1, 0.6 * word_score + 0.4 * math.log(page_score))
                 cls.max_word_score = max(cls.max_word_score, word_score)
-                if not word in idx_dict:
+                if word not in idx_dict:
                     idx_dict[word] = DocSet()
                 idx_dict[word].append(docid, word_score)
 
@@ -514,8 +524,6 @@ class Index(object):
 
         cls.show_progress = show_progress
         logger.info("Indexing")
-        import hashlib
-        import timeit
         cls.max_word_score = 0
         cls.max_page_score = 0
         initial_time = timeit.default_timer()
@@ -531,6 +539,3 @@ class Index(object):
         dict_stats["Max page score"] = cls.max_page_score
         show_stats()
         return dict_stats["Indexed"]
-
-
-
