@@ -18,6 +18,7 @@
 
 
 import shutil
+import types
 import tempfile
 import logging
 from pprint import pprint as pp
@@ -26,23 +27,33 @@ import pytest
 from src.armado import sqlite_index
 
 def decomp(data):
+    """To write docset in a compact way.
+
+    Ej: 'my title/2;second title/4'"""
     docs = [n.strip().split("/") for n in data.split(";")]
-    docs = [[n[0], int(n[1])] for n in docs]
+    docs = [(n[0], int(n[1])) for n in docs]
     return docs
 
 def abrev(result):
-    if isinstance(result[0], list):
-        return [r[1:3] for r in result]
-    else:
-        return result[1:3]
+    """Cut auto generated html title in 0 position."""
+    if isinstance(result, types.GeneratorType):
+        result = [r for r in result]
+    if not result:
+        return result
+    if isinstance(result, list):
+        if isinstance(result[0], list):
+            return [tuple(r[1:3]) for r in result]
+        else:
+            return tuple(result[1:3])
 
 class Dat:
+    """Creates data lists to put in the index."""
     fixtures = {}
 
     @classmethod
     def add_fixture(cls, key, data):
         docs = decomp(data)
-        info = [(n[0].lower().split(" "), int(n[1]), (n[0], n[0] )) for n in docs]
+        info = [(n[0].lower().split(" "), n[1], ('', n[0])) for n in docs]
         cls.fixtures[key] = info
 
     def __init__(self, key):
@@ -60,7 +71,7 @@ class Dat:
 
 def test_auxiliary():
     Dat.add_fixture("one", "ala blanca/3")
-    assert Dat("one") == [(['ala', 'blanca'], 3, ('ala blanca','ala blanca'))]
+    assert Dat("one") == [(['ala', 'blanca'], 3, ('','ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
          ["A/l/a/Ala", "ala", 8]]
     s = "ala blanca/3; ala/8"
@@ -69,6 +80,12 @@ def test_auxiliary():
 
 Dat.add_fixture("A", "ala blanca/3")
 Dat.add_fixture("B", "ala blanca/3; conejo blanco/5; conejo negro/6")
+data = """aaa/4;
+        abc/4;
+        bcd/4;
+        abd/4;
+        bbd/4"""
+Dat.add_fixture("E", data)
 
 @pytest.fixture(params=[sqlite_index.Index])
 def create_index(request):
@@ -239,40 +256,38 @@ def test_partialsearch_nothing(create_index):
     res = idx.partial_search(["a"])
     assert list(res) == []
 
-'''
+
 def test_partialsearch_prefix(create_index):
     """Match its prefix."""
-    idx = create_index([(["ala", "blanca"], 3, ("ala blanca",)),
-                        (["conejo", "blanco"], 5, ("conejo blanco",)),
-                        (["coneja", "negra"], 6, ("coneja negra",)),
-                        ])
+    idx = create_index(Dat("B").info)
     res = idx.partial_search(["blanc"])
-    assert list(res) == [3]
-    res = idx.partial_search(["ad"])
+    assert abrev(list(res)) == decomp("conejo blanco/5; ala blanca/3")
+    res = idx.partial_search(["zz"])
     assert list(res) == []
 
 
 def test_partialsearch_several_values(create_index):
     """Several values stored."""
-    idx = create_index([("aa", 3), ("bc", 5), ("dbj", 7), ("ab", 9)])
+    idx = create_index(Dat("E").info)
     res = idx.partial_search(["a"])
-    assert set(res) == {3, 9}
+    assert set(abrev(res)) == set(decomp("aaa/4;abc/4;abd/4"))
     res = idx.partial_search(["b"])
-    assert set(res) == {5, 7, 9}
+    assert set(abrev(res)) == set(decomp("abc/4;abd/4;bcd/4;bbd/4"))
     res = idx.partial_search(["c"])
-    assert list(res) == [5]
+    assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
     res = idx.partial_search(["d"])
-    assert list(res) == [7]
+    assert set(abrev(res)) == set(decomp("bcd/4;abd/4;bbd/4"))
+    res = idx.partial_search(["o"])
+    assert set(abrev(res)) == set()
 
 
 def test_partialsearch_and(create_index):
     """Check that AND is applied."""
-    idx = create_index([("oao", 3), ("bll", 3), ("nga", 5), ("xxc", 5), ("ooa", 7)])
+    idx = create_index(Dat("E").info)
     res = idx.partial_search(["a", "b"])
-    assert list(res) == [3]
+    assert set(abrev(res)) == set(decomp("abc/4;abd/4"))
     res = idx.partial_search(["b", "c"])
-    assert list(res) == []
+    assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
     res = idx.partial_search(["a", "o"])
-    assert set(res) == {3, 7}
+    assert set(abrev(res)) == set()
 
-'''

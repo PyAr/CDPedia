@@ -54,8 +54,13 @@ class DocSet:
 
     def normalizeValues(self, unit=None):
         """Divide every doc score to avoid large numbers."""
+        if not self._docs_list:
+            return
         if not unit:
             unit = max(list(self._docs_list.values())) / 255
+            # Cannot raise values, only lower them
+            if unit <= 1:
+                return
         for k, v in self._docs_list.items():
             self._docs_list[k] = max(1, min(255,
                                 int(self._docs_list[k] / unit)))
@@ -65,6 +70,16 @@ class DocSet:
         to_list = [(v, k) for k, v in self._docs_list.items()]
         to_list.sort(reverse=True)
         return to_list
+
+    def __ior__(self, other):
+        """Union and add value to other docset."""
+        ll = list(other._docs_list.keys())
+        for k in ll:
+            if k in self._docs_list.keys():
+                self._docs_list[k] += other._docs_list[k]
+            else:
+                self._docs_list[k] = other._docs_list[k]
+        return self
 
     def __iand__(self, other):
         """Intersect and add value to other docset."""
@@ -80,7 +95,7 @@ class DocSet:
         return len(self._docs_list)
 
     def __repr__(self):
-        return repr(self._docs_list)
+        return "Docset:" + repr(self._docs_list)
 
     def encode(self):
         """Encode to store compressed inside the database."""
@@ -112,6 +127,8 @@ class DocSet:
                             break  # if doc is zero, stop, else add another byte to this entry
             return rv.tobytes()
 
+        if not self._docs_list:
+            return ""
         docs_list = [(k, v) for k, v in self._docs_list.items()]
         docs_list.sort()
         docs = [v[0] for v in docs_list]
@@ -150,11 +167,32 @@ class DocSet:
                     doc = shif = 0
             return rv
 
-        limit = encoded.index(b"\x00")
-        docsid = delta_decode(encoded[limit + 1:])
-        scores = array.array('B')
-        scores.frombytes(encoded[:limit])
-        self._docs_list = dict(zip(docsid, scores))
+        if not encoded or encoded == b"\x00":
+            self._docs_list = {}
+        else:
+            limit = encoded.index(b"\x00")
+            docsid = delta_decode(encoded[limit + 1:])
+            scores = array.array('B')
+            scores.frombytes(encoded[:limit])
+            self._docs_list = dict(zip(docsid, scores))
+
+
+class Union:
+    """Class to compute de union of docsets."""
+    def __init__(self):
+        self.count = None
+
+    def step(self, value):
+        other = DocSet(encoded=value)
+        if self.count is None:
+            self.count = other
+        else:
+            self.count |= other
+
+    def finalize(self):
+        self.count.normalizeValues()
+        return self.count.encode()
+
 
 
 class Intersect:
@@ -164,7 +202,7 @@ class Intersect:
 
     def step(self, value):
         other = DocSet(encoded=value)
-        if not self.count:
+        if self.count is None:
             self.count = other
         else:
             self.count &= other
@@ -186,6 +224,7 @@ def open_conection(filename):
 
     con = sqlite3.connect(filename, detect_types=sqlite3.PARSE_COLNAMES)
     con.create_aggregate("myintersect", 1, Intersect)
+    con.create_aggregate("myunion", 1, Union)
     return con
 
 def to_filename(title):
@@ -278,12 +317,9 @@ class Index(object):
         sql += f" where word in ({marks})"
         cur = self.db.execute(sql, tuple(keys))
         results = cur.fetchone()
-        if not results:
-            return []
-        results = results[0]
-        if not results:
-            return []
-        return results.tolist()
+        if not results or not results[0]:
+            return DocSet()
+        return results[0]
 
     def search(self, keys):
         """Returns all the values that are found for those keys.
@@ -291,10 +327,21 @@ class Index(object):
         The AND boolean operation is applied to the keys.
         """
         ordered = self._search_asoc_docs(keys)
-        for score, ndoc in ordered:
+        for score, ndoc in ordered.tolist():
             dd = self.get_doc(ndoc)
             dd.append(score)
             yield dd
+
+    def _partial_search(self, key):
+        """Returns all the values of a partial key search."""
+        sql = 'select myunion(docsets) as "inter [docset]" from tokens'
+        sql += f" where word like '%{key}%'"
+        cur = self.db.execute(sql)
+        results = cur.fetchone()
+        # assert keys != ["blanc"]
+        if not results or not results[0]:
+            return DocSet()
+        return results[0]
 
     def partial_search(self, keys):
         """Returns all the values that are found for those partial keys.
@@ -304,16 +351,13 @@ class Index(object):
 
         The AND boolean operation is applied to the keys.
         """
-        cond = [f'word like "%%{k}%%"' for k in keys]
-        sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
-        sql += " where " + "or ".join(cond)
-        cur = self.db.execute(sql)
-        results = cur.fetchone()[0]
-        if not results:
-            return []
-        results = results[0]
-        if not results:
-            return []
+        results = None
+        for key in keys:
+            if results is None:
+                results = self._partial_search(key)
+            else:
+                results &= self._partial_search(key)
+        # assert keys != ["blanc"]
         for score, ndoc in results.tolist():
             dd = self.get_doc(ndoc)
             dd.append(score)
