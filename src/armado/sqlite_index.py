@@ -278,7 +278,7 @@ class Index(object):
             for doc in decomp_data:
                 yield doc
 
-    @lru_cache
+    @lru_cache(2)
     def __len__(self):
         """Compute the total number of docs in compressed pages."""
         sql = 'Select pageid, data from docs order by pageid desc limit 1'
