@@ -290,7 +290,7 @@ class Index(object):
             return True
         return False
 
-    @lru_cache
+    @lru_cache(1000)
     def _get_page(self, pageid):
         cur = self.db.execute("SELECT data FROM docs where pageid = ?", (pageid,))
         row = cur.fetchone()
@@ -300,7 +300,7 @@ class Index(object):
         return None
 
     def get_doc(self, docid):
-        '''Returns an iterator over the stored items.'''
+        '''Returns one stored document item.'''
         page_id, rel_id = page_fn(docid)
         data = self._get_page(page_id)
         if data:
@@ -458,13 +458,25 @@ class Index(object):
             idx_dict = {}
             sql = "INSERT INTO docs (pageid, data) VALUES (?, ?)"
             docs_table = Compressed("Documents", sql, PAGE_SIZE)
-            for docid, (words, page_score, data) in enumerate(source):
+            allready_seen = set()
+            dict_stats["Repeated docs"] = 0
+            docid = 0
+            for words, page_score, data in source:
                 # first insert the new page
-                data = list(data) + [page_score]
+                data = list(data)
                 if data[0] == to_filename(data[1]):
                     data[0] = None
-                docs_table.append(data)
-                add_words(idx_dict, words, docid, page_score)
+                # see if the doc is repeated.
+                hash_data = hashlib.sha224(pickle.dumps(data)).digest()
+                if not hash_data in allready_seen:
+                    allready_seen.add(hash_data)
+                    data += [page_score]
+                    docs_table.append(data)
+                    add_words(idx_dict, words, docid, page_score)
+                    docid += 1
+                else:
+                    dict_stats["Repeated docs"] += 1
+
             docs_table.finish()
             return idx_dict
 
@@ -502,6 +514,7 @@ class Index(object):
 
         cls.show_progress = show_progress
         logger.info("Indexing")
+        import hashlib
         import timeit
         cls.max_word_score = 0
         cls.max_page_score = 0
