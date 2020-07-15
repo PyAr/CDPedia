@@ -421,7 +421,7 @@ class Index(object):
             def persists(self):
                 """Compress and commit data to index."""
                 pickdata = pickletools.optimize(pickle.dumps(self.buffer))
-                comp_data = zlib.compress(pickdata, level=9)
+                comp_data = zlib.compress(pickdata)
                 database.execute(self.sql,
                                  (page_fn(self.count - 1)[0],
                                   comp_data))
