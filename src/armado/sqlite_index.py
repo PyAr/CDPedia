@@ -417,7 +417,7 @@ class Index(object):
         class Compressed(ManyInserts):
             """Creates the table of compressed documents information.
 
-            The groups is PAGE_SIZE lenght, pickled and compressed"""
+            The groups is PAGE_SIZE lenght, pickled and compressed."""
             def persists(self):
                 """Compress and commit data to index."""
                 pickdata = pickletools.optimize(pickle.dumps(self.buffer))
