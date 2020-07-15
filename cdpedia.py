@@ -15,9 +15,9 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
+
 import queue  # NOQA: this is needed by pyinstaller
 import socketserver  # NOQA: this is needed by pyinstaller
-import codecs
 import optparse
 import os
 import platform
@@ -49,7 +49,7 @@ from werkzeug.serving import ThreadedWSGIServer  # NOQA
 if platform.system() == 'Windows' and not os.path.exists('debug'):
     log_filename = os.path.join(os.path.expanduser('~'), 'cdpedia.log')
     try:
-        log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
+        log = open(log_filename, 'wt', encoding='utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
     except Exception:     # If we can't log or show the error because we
@@ -109,6 +109,16 @@ def sleep_and_browse():
         sys.exit(-1)
 
 
+def load_language():
+    """Load language from language file if not set in config."""
+    if config.LANGUAGE is None and os.path.exists(config.LANGUAGE_FILE):
+        with open(config.LANGUAGE_FILE, 'rt', encoding='utf-8') as fh:
+            lang = fh.read().strip()
+        if lang:
+            config.LANGUAGE = lang
+            config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
+
+
 if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.add_option("-v", "--verbose", action="store_true", default=False,
@@ -120,6 +130,8 @@ if __name__ == "__main__":
     parser.add_option("-m", "--host", type="str", dest="hostname",
                       default=config.HOSTNAME)
     (options, args) = parser.parse_args()
+
+    load_language()
 
     sys.excepthook = handle_crash
 

@@ -32,6 +32,8 @@ from logging.handlers import RotatingFileHandler
 
 import yaml
 
+import config
+
 # some constants to download the articles list we need to scrap
 URL_LIST = (
     "http://dumps.wikimedia.org/%(language)swiki/latest/"
@@ -234,10 +236,12 @@ def scrap_extra_pages(language, extra_pages):
 def scrap_portals(language, lang_config):
     """Get the portal index and scrap it."""
     # get the portal url, get out if don't have it
-    portal_index_url = lang_config.get('portal_index')
-    if portal_index_url is None:
-        logger.info("Not scraping portals, url not configured.")
+    portal_index_title = lang_config.get('portal_index')
+    if portal_index_title is None:
+        logger.info("Not scrapping portals, url not configured.")
         return
+
+    portal_index_url = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(portal_index_title))
 
     logger.info("Downloading portal index from %r", portal_index_url)
     u = urllib.request.urlopen(portal_index_url)
@@ -364,6 +368,10 @@ if __name__ == "__main__":
 
     if args.verbose:
         stdout_handler.setLevel(logging.DEBUG)
+
+    # set language config
+    config.LANGUAGE = args.language
+    config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=args.language)
 
     # get the image type config
     _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')
