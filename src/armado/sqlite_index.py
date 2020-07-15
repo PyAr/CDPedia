@@ -325,7 +325,7 @@ class Index(object):
         """Returns all asociated docs ids from a word's set."""
         marks = ', '.join(["?"] * len(keys))
         sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
-        sql += f" where word in ({marks})"
+        sql += " where word in ({})".format(marks)
         cur = self.db.execute(sql, tuple(keys))
         results = cur.fetchone()
         if not results or not results[0]:
@@ -346,7 +346,7 @@ class Index(object):
     def _partial_search(self, key):
         """Returns all the values of a partial key search."""
         sql = 'select myunion(docsets) as "inter [docset]" from tokens'
-        sql += f" where word like '%{key}%'"
+        sql += " where word like '%{}%'".format(key)
         cur = self.db.execute(sql)
         results = cur.fetchone()
         # assert keys != ["blanc"]

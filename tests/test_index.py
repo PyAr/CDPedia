@@ -66,7 +66,7 @@ class Dat:
         return self.info == other
 
     def __repr__(self):
-        return f"Fixture {self.name}:{str(self.info)}"
+        return "Fixture %s: %r" % (self.name, self.info)
 
 
 def test_auxiliary():
