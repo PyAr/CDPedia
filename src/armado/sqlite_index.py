@@ -221,11 +221,13 @@ class Intersect:
 def open_conection(filename):
     """Conects and register data types and aggregate function."""
     # Register the adapter
-    adapt_docset = lambda docset: docset.encode()
+    def adapt_docset(docset):
+        return docset.encode()
     sqlite3.register_adapter(DocSet, adapt_docset)
 
     # Register the converter
-    convert_docset = lambda s: DocSet(encoded=s)
+    def convert_docset(s):
+        return DocSet(encoded=s)
     sqlite3.register_converter("docset", convert_docset)
 
     con = sqlite3.connect(filename, check_same_thread=False,
