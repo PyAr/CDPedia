@@ -100,14 +100,19 @@ class CustomRotatingFH(RotatingFileHandler):
 
 # set up logging
 logger = logging.getLogger()
-handler = logging.StreamHandler()
-logger.addHandler(handler)
-formatter = logging.Formatter("%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
-handler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
+
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.INFO)
+stdout_handler.setFormatter(formatter)
+logger.addHandler(stdout_handler)
+
 handler = CustomRotatingFH("cdpetron.log")
+handler.setLevel(logging.DEBUG)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 logger = logging.getLogger("cdpetron")
 
 
@@ -347,6 +352,8 @@ if __name__ == "__main__":
                         help="The two-letters language name.")
     parser.add_argument("--extra-pages",
                         help="file with extra pages to be included in the image.")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="Show more progress information.")
     args = parser.parse_args()
 
     if args.no_clean and not args.image_type:
@@ -354,6 +361,9 @@ if __name__ == "__main__":
         exit()
 
     location = Location(args.dump_dir, args.branch_dir, args.language)
+
+    if args.verbose:
+        stdout_handler.setLevel(logging.DEBUG)
 
     # get the image type config
     _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')

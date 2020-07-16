@@ -22,11 +22,11 @@ import io
 import codecs
 import collections
 import datetime
+import functools
 import gzip
 import json
 import logging
 import os
-import queue
 import re
 import tempfile
 import time
@@ -34,8 +34,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import concurrent.futures
-
+from src import utiles
 from src.armado import to3dirs
 
 logger = logging.getLogger(__name__)
@@ -62,9 +61,9 @@ DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename"
 
 class ScraperError(Exception):
     """Base class for all scraper errors."""
-    def __init__(self, msg, *args):
-        super(Exception, self).__init__(msg)
-        self.args = args
+    def __init__(self, msg, *msg_args):
+        super().__init__(msg)
+        self.msg_args = msg_args
 
 
 class PageHaveNoRevisionsError(ScraperError):
@@ -363,7 +362,7 @@ def save_htmls(data_url):
         n += 1
 
 
-def fetch(data_url, language):
+def fetch(language, data_url):
     """Fetch a wikipedia page (that can be paginated)."""
     page = WikipediaArticle(language, data_url.url, data_url.basename)
     url = page.search_valid_version()
@@ -375,43 +374,6 @@ def fetch(data_url, language):
     # transform temp data into final files
     for temp_file, disk_name in temporales:
         os.rename(temp_file.name, disk_name.encode("utf-8"))
-
-
-class StatusBoard(object):
-
-    def __init__(self, language):
-        self.total = 0
-        self.ok = 0
-        self.bad = 0
-        self.init_time = time.time()
-        self.language = language
-
-    def process(self, data_url):
-        try:
-            fetch(data_url, self.language)
-        except ScraperError as err:
-            self.total += 1
-            self.bad += 1
-            logger.error(err.message, *err.args)
-        except Exception as err:
-            self.total += 1
-            self.bad += 1
-            logger.exception("Crashed while processing %r: %r", data_url, err)
-        else:
-            self.total += 1
-            self.ok += 1
-
-        speed = self.total / (time.time() - self.init_time)
-        print("\rTotal={}  ok={}  bad={}  speed={:.2f} art/s".format(
-            self.total, self.ok, self.bad, speed), end='', flush=True)
-
-
-class NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
-    """Patch TPE to not consume the source generator all at once."""
-
-    def __init__(self, *args, **kwargs):
-        super(NotGreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
-        self._work_queue = queue.Queue(maxsize=kwargs['max_workers'] * 2)
 
 
 def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
@@ -430,9 +392,5 @@ def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, po
 
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
-    board = StatusBoard(language)
-    with NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
-        # need to cosume the generator, but don't care about the results (board.process always
-        # return None
-        list(executor.map(board.process, data_urls))
-    print()  # this is to get the cursor out of the same line of the progress report above
+    func = functools.partial(fetch, language)
+    utiles.pooled_exec(func, data_urls, pool_size, known_errors=[ScraperError])
