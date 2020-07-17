@@ -15,9 +15,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-import os
-import sys
-sys.path.append(os.path.abspath(os.curdir))
 
 import argparse
 import pathlib
@@ -26,14 +23,15 @@ import logging
 import operator
 import re
 import os
-import shutil
+import sys
 from logging.handlers import RotatingFileHandler
+sys.path.append(os.path.abspath(os.curdir))
 
-import config
-from src.armado import to3dirs
-from src.armado.sqlite_index import Index as IndexSQL
-from src.armado.compressed_index import Index as IndexComp
-from src.armado.cdpindex import filename2words, normalize_words
+import config   # NOQA import after fixing path
+from src.armado import to3dirs  # NOQA import after fixing path
+from src.armado.sqlite_index import Index as IndexSQL  # NOQA import after fixing path
+from src.armado.compressed_index import Index as IndexComp  # NOQA import after fixing path
+from src.armado.cdpindex import filename2words, normalize_words  # NOQA import after fixing path
 
 logger = logging.getLogger()
 handler = logging.StreamHandler()
@@ -51,6 +49,7 @@ WORDS = re.compile(r"\w+", re.UNICODE)
 PATH_TEMP = pathlib.Path("./temp")
 PATH_IDX = pathlib.Path("./idx")
 
+
 def calculate():
     """Calculate the HTMLs with more score and store both lists."""
     all_pages = []
@@ -64,6 +63,7 @@ def calculate():
     # order by score, and get top N
     all_pages.sort(key=operator.itemgetter(2), reverse=True)
     return all_pages
+
 
 def generate_from_html(verbose=True):
     """Creates the index. used to create new versions of cdpedia."""
@@ -136,7 +136,7 @@ def ptjes(source):
     ptjes = {}
     for words, ptje, (namhtml, title, redir, primtext) in source:
         k = ptje // 1000
-        ptjes[k] = ptjes.get(k,0) + 1
+        ptjes[k] = ptjes.get(k, 0) + 1
     print(ptjes)
 
 
@@ -148,14 +148,12 @@ def comp(source):
     for words, ptje, (namhtml, title, ppal, primtext) in source:
         # auxiliar info
         tt = title.replace(" ", "_")
-        # tt = normalize_words(tt)
         tt = tt[0].upper() + tt[1:]
-        #dir3 = '/'.join(tt[:3])
         dir3, arch = to3dirs.get_path_file(tt)
         expected = os.path.join(dir3, arch)
 
         if not ppal:
-            rr +=1
+            rr += 1
         if namhtml != expected:
             if ppal:
                 n += 1
@@ -163,7 +161,6 @@ def comp(source):
             else:
                 r += 1
     print("No armables::", n, "   Redirs diferentes::", r, "  Redirs::", rr)
-
 
 
 if __name__ == "__main__":
@@ -196,9 +193,6 @@ if __name__ == "__main__":
         PATH_IDX.mkdir()
 
     n_pag, genSQL, genComp = generate_from_html()
-    #comp(genSQL())
-    #gen()
-    # ptjes(genSQL())
     if IndexSQL in args.indexes:
         idx = IndexSQL.create(str(PATH_IDX), genSQL())
     if IndexComp in args.indexes:

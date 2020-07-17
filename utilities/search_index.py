@@ -23,8 +23,8 @@ import timeit
 from pprint import pprint as pp
 sys.path.append(os.path.abspath(os.curdir))
 
-from src.armado.sqlite_index import Index as IndexSQL
-from src.armado.compressed_index import Index as IndexComp
+from src.armado.sqlite_index import Index as IndexSQL # NOQA import after fixing path
+from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
 
 
 def show_results(result, verbose):
@@ -39,15 +39,15 @@ def show(title, data, other):
     n = 0
     p = []
     for item in data:
-        if not item in other:
+        if item not in other:
             print("     ", item)
-            n +=1
+            n += 1
         else:
             pos = other.index(item)
             if pos in p:
                 print("repetido:", item)
             p.append(other.index(item))
-    print(title," Total:", n, "   data:", len(data), " other:", len(other))
+    print(title, " Total:", n, "   data:", len(data), " other:", len(other))
     print("-" * 40)
     return n
 
