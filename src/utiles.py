@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -18,11 +16,15 @@
 
 """Some small utilities."""
 
-import time
+import concurrent.futures
+import logging
+import queue
 import socket
 import threading
-
+import time
 from hashlib import md5
+
+logger = logging.getLogger(__name__)
 
 
 class WatchDog(threading.Thread):
@@ -80,7 +82,7 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
             return port
 
 
-class TimingLogger(object):
+class TimingLogger:
     """Log only if more than N seconds passed after last log."""
     def __init__(self, secs_period, log_func):
         self._threshold = time.time() + secs_period
@@ -92,3 +94,58 @@ class TimingLogger(object):
         if time.time() > self._threshold:
             self.log_func(*args, **kwargs)
             self._threshold = time.time() + self.period
+
+
+class _StatusBoard:
+    """Present the progress of the pooled executions."""
+
+    def __init__(self, func, known_errors):
+        self.total = 0
+        self.ok = 0
+        self.bad = 0
+        self.init_time = time.time()
+        self.func = func
+        self.known_errors = known_errors
+
+    def process(self, payload):
+        try:
+            self.func(payload)
+        except Exception as err:
+            self.total += 1
+            self.bad += 1
+            if isinstance(err, self.known_errors):
+                # show the error type, and the error message (which potentially would be
+                # replaced with the msg args)
+                template = "Known error {}: {}".format(err.__class__.__name__, err)
+                logger.debug(template, *err.msg_args)
+            else:
+                logger.exception("Crashed while processing %r: %r", payload, err)
+        else:
+            self.total += 1
+            self.ok += 1
+
+        speed = self.total / (time.time() - self.init_time)
+        print("Total={}  ok={}  bad={}  speed={:.2f} art/s\r".format(
+            self.total, self.ok, self.bad, speed), end='', flush=True)
+
+
+class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
+    """Patch TPE to not consume the source generator all at once."""
+
+    def __init__(self, *args, **kwargs):
+        super(_NotGreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
+        self._work_queue = queue.Queue(maxsize=kwargs['max_workers'] * 2)
+
+
+def pooled_exec(func, payloads, pool_size, known_errors=()):
+    """Call func on each of the payloads, in a thread pool of indicated size.
+
+    Present the progress nicely, counting also if function ended properly or not (if
+    the error is known, log it in debug, else present the crash).
+    """
+    board = _StatusBoard(func, tuple(known_errors))
+    with _NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
+        # need to cosume the generator, but don't care about the results (board.process always
+        # return None
+        list(executor.map(board.process, payloads))
+    print()  # this is to get the cursor out of the same line of the progress report above
