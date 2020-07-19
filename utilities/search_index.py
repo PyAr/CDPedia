@@ -29,7 +29,8 @@ from src.armado.compressed_index import Index as IndexComp # NOQA import after f
 
 def show_results(result, verbose):
     res = list(result)
-    print("Resultados:", len(res), "Time: ", timeit.default_timer() - initial_time)
+    delta_time = timeit.default_timer() - initial_time
+    print("Results:", len(res), "  Time: ", 60 * delta_time)
     if args.verbose:
         pp(res)
     return [tuple(r[0:2]) for r in res]
@@ -54,9 +55,9 @@ def show(title, data, other):
 
 if __name__ == "__main__":
     PATH_IDX = "./idx"
-    help = f"""Search some words and compare results in different indexes.
+    help = """Search some words and compare results in different indexes.
 
-    Uses {PATH_IDX} as path to index."""
+    Uses {} as path to index.""".format(PATH_IDX)
 
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('keys', metavar='word', type=str, nargs='+',
@@ -85,7 +86,8 @@ if __name__ == "__main__":
         initial_time = timeit.default_timer()
         idx = Index(PATH_IDX)
         print(repr(Index))
-        print("Open Time: ", timeit.default_timer() - initial_time)
+        delta_time = timeit.default_timer() - initial_time
+        print("Open Time: ", delta_time * 60)
         if args.complete:
             initial_time = timeit.default_timer()
             res = idx.search(args.keys)

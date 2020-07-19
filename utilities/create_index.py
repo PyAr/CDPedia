@@ -165,10 +165,10 @@ def comp(source):
 
 if __name__ == "__main__":
     # main()
-    help = f"""Creates index files.
+    help = """Creates index files.
 
-    Default path is '{PATH_IDX}' for index files,
-    and '{PATH_TEMP}' for the scrapped files to index."""
+    Default path is '{}' for index files,
+    and '{}' for the scrapped files to index.""".format(PATH_IDX, PATH_TEMP)
 
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('-c', '--comp', dest='indexes', action='append_const',
@@ -184,11 +184,11 @@ if __name__ == "__main__":
             sqlitepath = PATH_IDX.joinpath("index.sqlite")
             if sqlitepath.exists():
                 sqlitepath.unlink()
-                print(f"Database index {str(sqlitepath)} was removed")
+                print("Database index %s was removed" % sqlitepath)
         if IndexComp in args.indexes:
             for file in PATH_IDX.glob("comp*"):
                 file.unlink()
-                print(f"Database index {str(file)} was removed")
+                print("Database index %s was removed" % file)
     else:
         PATH_IDX.mkdir()
 
