@@ -51,7 +51,7 @@ a.nopo {
 a[href*="://"], a[href^="//"] {
     border-bottom: 1px dashed blue !important;
     text-decoration: none;
-} /*Hack para agarrar todos los enlaces externos.*/
+} /*Hack to mark all external links*/
 
 div#searchBody {
     border: 1px solid #AAA;
