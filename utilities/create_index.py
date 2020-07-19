@@ -172,9 +172,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('-c', '--comp', dest='indexes', action='append_const',
-                        const=IndexComp, help="construct compressed index")
+                        const=IndexComp, help="Construct compressed index")
     parser.add_argument('-s', '--sql', dest='indexes', action='append_const',
-                        const=IndexSQL, help="construct sqlite index")
+                        const=IndexSQL, help="Construct sqlite index")
     args = parser.parse_args()
     if not args.indexes:
         print("No index selected!")
