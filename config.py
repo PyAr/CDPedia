@@ -39,12 +39,15 @@ SERVER_MODE = False
 EDICION_ESPECIAL = None
 # EDICION_ESPECIAL = "educar"
 
-# Language of CDPedia, to be set at init time
+# Language of CDPedia.
+# Value will be set dynamically at init time (don't set it here).
 LANGUAGE = None
 
-# Location of online static files, depends on LANGUAGE
-# Must contain the final slash
+# Location of online static files, depends on LANGUAGE.
+# Value will be set dynamically at init time (don't set it here).
 URL_WIKIPEDIA = None
+
+# Template for setting URL_WIKPEDIA param, must contain the final slash.
 URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
