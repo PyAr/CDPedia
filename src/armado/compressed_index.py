@@ -16,13 +16,13 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 import array
 import bisect
-from lzma import LZMAFile as CompressedFile
-from functools import lru_cache
-import pickle
 import operator
 import os
+import pickle
 import random
 import sys
+from functools import lru_cache
+from lzma import LZMAFile as CompressedFile
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20

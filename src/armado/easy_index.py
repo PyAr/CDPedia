@@ -20,8 +20,8 @@ import operator
 import os
 import pickle
 import random
-from lzma import LZMAFile as CompressedFile
 from functools import lru_cache, reduce
+from lzma import LZMAFile as CompressedFile
 
 from src import utiles
 

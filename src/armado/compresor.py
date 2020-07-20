@@ -37,8 +37,8 @@ import os
 import pickle
 import shutil
 import struct
-from lzma import LZMAFile as CompressedFile
 from functools import lru_cache
+from lzma import LZMAFile as CompressedFile
 from os import path
 
 import config
