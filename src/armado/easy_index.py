@@ -20,8 +20,8 @@ import operator
 import os
 import pickle
 import random
-from bz2 import BZ2File as CompressedFile
 from functools import lru_cache, reduce
+from lzma import LZMAFile as CompressedFile
 
 from src import utiles
 
@@ -33,7 +33,7 @@ class Index(object):
         self._directory = directory
 
         # open the key shelve
-        keyfilename = os.path.join(directory, "easyindex.key.bz2")
+        keyfilename = os.path.join(directory, "easyindex.key.xz")
         fh = CompressedFile(keyfilename, "rb")
         self.key_shelf = pickle.load(fh)
         fh.close()
@@ -41,14 +41,14 @@ class Index(object):
         # see how many id files we have
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("easyindex-") and fn.endswith(".ids.bz2"):
+            if fn.startswith("easyindex-") and fn.endswith(".ids.xz"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
 
     @lru_cache(20)
     def _get_ids_shelve(self, cual):
         '''Return the ids index.'''
-        fname = os.path.join(self._directory, "easyindex-%03d.ids.bz2" % cual)
+        fname = os.path.join(self._directory, "easyindex-%03d.ids.xz" % cual)
         fh = CompressedFile(fname, "rb")
         idx = pickle.load(fh)
         fh.close()
@@ -203,7 +203,7 @@ class Index(object):
             key_shelf.setdefault(key, set()).add(docid)
 
         # save key
-        keyfilename = os.path.join(directory, "easyindex.key.bz2")
+        keyfilename = os.path.join(directory, "easyindex.key.xz")
         fh = CompressedFile(keyfilename, "wb")
         pickle.dump(key_shelf, fh, 2)
         fh.close()
@@ -219,7 +219,7 @@ class Index(object):
 
         # save dict where corresponds
         for cual, shelf in enumerate(all_idshelves):
-            fname = "easyindex-%03d.ids.bz2" % cual
+            fname = "easyindex-%03d.ids.xz" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
             pickle.dump(shelf, fh, 2)
