@@ -223,9 +223,9 @@ class CDPedia(object):
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
-            if not os.path.exists(tmpdir):
+            if not os.path.exists(os.path.join(tmpdir, 'tutorial')):
                 tar = tarfile.open(
-                    os.path.join(config.DIR_ASSETS, "tutorial.tar.bz2"), mode="r:bz2")
+                    os.path.join(config.DIR_ASSETS, "tutorial.tar.xz"), mode="r:xz")
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True

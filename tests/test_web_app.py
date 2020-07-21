@@ -44,7 +44,7 @@ def create_app_client(mocker, tmp_path):
         fh.write('42\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
         fh.write('es\n')
-    with tarfile.open(str(tmp_path / "tutorial.tar.bz2"), 'w:bz2') as fh:
+    with tarfile.open(str(tmp_path / "tutorial.tar.xz"), 'w:xz') as fh:
         fh.addfile(tarfile.TarInfo(name="testtuto"))
     inst_dir = tmp_path / 'institucional'
     inst_dir.mkdir()

@@ -53,7 +53,7 @@ URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
 ASSETS = ["static"]
-COMPRESSED_ASSETS = ['tutorial.tar.bz2']
+COMPRESSED_ASSETS = ['tutorial.tar.xz']
 ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images", "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
