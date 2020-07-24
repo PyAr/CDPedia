@@ -23,8 +23,6 @@ import random
 from bz2 import BZ2File as CompressedFile
 from functools import lru_cache, reduce
 
-from src import utiles
-
 
 class Index(object):
     '''Handles the index.'''
@@ -63,7 +61,8 @@ class Index(object):
         # group the id per file
         cuales = {}
         for i in allids:
-            cual = utiles.coherent_hash(i) % self.idfiles_count
+            # cual = utiles.coherent_hash(i) % self.idfiles_count
+            cual = i % self.idfiles_count
             cuales.setdefault(cual, []).append(i)
 
         # get the info for each file
@@ -84,10 +83,15 @@ class Index(object):
 
     def values(self):
         '''Returns an iterator over the stored values.'''
+        res = set()
         for key, allids in self.key_shelf.items():
-            values = self._get_info_id(allids)
-            for v in values:
-                yield v
+            res |= set(allids)
+        values = self._get_info_id(res)
+        for v in values:
+            yield v
+
+    def __len__(self):
+        return self.idfiles_count
 
     def random(self):
         '''Returns a random value.'''
@@ -168,7 +172,7 @@ class Index(object):
         return allvals
 
     @classmethod
-    def create(cls, directory, source):
+    def create(cls, directory, source, show_progress=True):
         '''Creates the index in the directory.
 
         The "source" generates pairs (key, value) to store in the index.  The
@@ -183,24 +187,34 @@ class Index(object):
         indexed_counter = 0
 
         # fill them
-        for key, value in source:
-            indexed_counter += 1
-
-            # process key
-            if not isinstance(key, str):
-                raise TypeError("The key must be string or unicode")
+        for keys, ptje, data in source:
+            checkme = all([isinstance(keys, list),
+                          isinstance(ptje, int),
+                          isinstance(data, tuple)])
+            if not checkme:
+                raise TypeError("The keys and value must be lists, ptje must be integer")
+            if not all([isinstance(k, str) for k in keys]):
+                raise TypeError("The keys must be a strings")
+            if any([('\n' in k) for k in keys]):
+                raise ValueError("Keys cannot contain newlines")
+            indexed_counter += len(keys)
+            value = list(data) + [ptje]
 
             # docid -> info final
-            if value in tmp_reverse_id:
-                docid = tmp_reverse_id[value]
+            # don't add to tmp_reverse_id or ids_shelf if the value is repeated
+            hash_title = data.__hash__()
+            if hash_title in tmp_reverse_id:
+                docid = tmp_reverse_id[hash_title]
             else:
-                docid = str(ids_cnter).encode("ascii")
-                tmp_reverse_id[value] = docid
+                docid = ids_cnter
+                tmp_reverse_id[hash_title] = docid
                 ids_cnter += 1
+
             ids_shelf[docid] = value
 
             # keys -> docid
-            key_shelf.setdefault(key, set()).add(docid)
+            for key in keys:
+                key_shelf.setdefault(key, set()).add(docid)
 
         # save key
         keyfilename = os.path.join(directory, "easyindex.key.bz2")
@@ -214,7 +228,8 @@ class Index(object):
             N = 1
         all_idshelves = [{} for i in range(N)]
         for k, v in ids_shelf.items():
-            cual = utiles.coherent_hash(k) % N
+            # cual = utiles.coherent_hash(k) % N
+            cual = k % N
             all_idshelves[cual][k] = v
 
         # save dict where corresponds

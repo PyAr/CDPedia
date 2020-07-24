@@ -196,4 +196,4 @@ if __name__ == "__main__":
     if IndexSQL in args.indexes:
         idx = IndexSQL.create(str(PATH_IDX), genSQL())
     if IndexComp in args.indexes:
-        idx = IndexComp.create(str(PATH_IDX), genComp())
+        idx = IndexComp.create(str(PATH_IDX), genSQL())

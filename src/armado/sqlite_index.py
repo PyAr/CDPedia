@@ -1,6 +1,4 @@
-# -*- coding: utf8 -*-
-
-# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -23,8 +21,8 @@ import os
 import pickle
 import random
 import sqlite3
-import zlib
-from collections import Counter
+import zlib as best_compressor  # zlib is faster, lzma has better ratio.
+from collections import defaultdict
 from functools import lru_cache
 
 from src.armado import to3dirs
@@ -35,12 +33,8 @@ MAX_IDX_FIELDS = 8
 PAGE_SIZE = 1024
 
 
-def page_fn(id):
-    return divmod(id, PAGE_SIZE)
-
-
 def decompress_data(data):
-    return pickle.loads(zlib.decompress(data))
+    return pickle.loads(best_compressor.decompress(data))
 
 
 class DocSet:
@@ -51,26 +45,25 @@ class DocSet:
         if encoded:
             self.decode(encoded)
         if values:
-            for item in values:
-                self.append(item[0], item[1])
+            for (docid, score) in values:
+                self.append(docid, score)
 
     def append(self, docid, score):
         """Append an item to the docs_list."""
         self._docs_list[docid] = self._docs_list.get(docid, 0) + score
 
-    def normalizeValues(self, unit=None):
+    def normalize_values(self, unit=None):
         """Divide every doc score to avoid large numbers."""
         if not self._docs_list:
             return
         if not unit:
             unit = max(list(self._docs_list.values())) / 255
-
-            # Cannot raise values, only lower them
-            if unit <= 1:
-                return
+        # Cannot raise values, only lower them
+        if unit >= 1:
+            for k, v in self._docs_list.items():
+                self._docs_list[k] = int(v / unit)
         for k, v in self._docs_list.items():
-            self._docs_list[k] = max(1, min(255,
-                                     int(self._docs_list[k] / unit)))
+            self._docs_list[k] = max(1, min(255, v))
 
     def tolist(self):
         """Returns a sorted list of docs, by value."""
@@ -80,22 +73,14 @@ class DocSet:
 
     def __ior__(self, other):
         """Union and add value to other docset."""
-        ll = list(other._docs_list.keys())
-        for k in ll:
-            if k in self._docs_list.keys():
-                self._docs_list[k] += other._docs_list[k]
-            else:
-                self._docs_list[k] = other._docs_list[k]
+        for key, value in other._docs_list.items():
+            self._docs_list[key] = self._docs_list.get(key, 0) + value
         return self
 
     def __iand__(self, other):
         """Intersect and add value to other docset."""
-        ll = list(self._docs_list.keys())
-        for k in ll:
-            if k in other._docs_list.keys():
-                self._docs_list[k] += other._docs_list[k]
-            else:
-                del self._docs_list[k]
+        common = set(self._docs_list) & set(other._docs_list)
+        self._docs_list = {k: self._docs_list[k] + other._docs_list[k] for k in common}
         return self
 
     def __len__(self):
@@ -197,7 +182,7 @@ class Union:
             self.count |= other
 
     def finalize(self):
-        self.count.normalizeValues()
+        self.count.normalize_values()
         return self.count.encode()
 
 
@@ -214,12 +199,12 @@ class Intersect:
             self.count &= other
 
     def finalize(self):
-        self.count.normalizeValues()
+        self.count.normalize_values()
         return self.count.encode()
 
 
-def open_conection(filename):
-    """Conects and register data types and aggregate function."""
+def open_connection(filename):
+    """Connect and register data types and aggregate function."""
     # Register the adapter
     def adapt_docset(docset):
         return docset.encode()
@@ -247,12 +232,12 @@ def to_filename(title):
 
 
 class Index(object):
-    '''Handles the index.'''
+    """Handle the index."""
 
     def __init__(self, directory):
         self._directory = directory
         keyfilename = os.path.join(directory, "index.sqlite")
-        self.db = open_conection(keyfilename)
+        self.db = open_connection(keyfilename)
         self.db.executescript('''
             PRAGMA query_only = True;
             PRAGMA journal_mode = MEMORY;
@@ -268,9 +253,8 @@ class Index(object):
     def items(self):
         '''Returns an iterator over the stored items.'''
         for key in self.keys():
-            _, dicc = self._search_asoc_docs(key)
-            for docid, score in dicc.items():
-                yield self.get_doc(docid)
+            docset = self._search_asoc_docs(key)
+            yield key, docset
 
     def values(self):
         '''Returns an iterator over the stored values.'''
@@ -280,7 +264,7 @@ class Index(object):
             for doc in decomp_data:
                 yield doc
 
-    @lru_cache(2)
+    @lru_cache(1)
     def __len__(self):
         """Compute the total number of docs in compressed pages."""
         sql = 'Select pageid, data from docs order by pageid desc limit 1'
@@ -312,17 +296,21 @@ class Index(object):
 
     def get_doc(self, docid):
         '''Returns one stored document item.'''
-        page_id, rel_id = page_fn(docid)
+        page_id, rel_position = divmod(docid, PAGE_SIZE)
         data = self._get_page(page_id)
-        if data:
-            row = data[docid % PAGE_SIZE]
-            if not row[0]:
-                row[0] = to_filename(row[1])
-            return row
-        return None
+        if not data:
+            return None
+        row = data[rel_position]
+        # if the html filename is marked as computable
+        # do it and store in position 0.
+        if row[0] is None:
+            row[0] = to_filename(row[1])
+        return row
 
     def _search_asoc_docs(self, keys):
         """Returns all asociated docs ids from a word's set."""
+        if not keys:
+            return DocSet()
         marks = ', '.join(["?"] * len(keys))
         sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
         sql += " where word in ({})".format(marks)
@@ -337,11 +325,10 @@ class Index(object):
 
         The AND boolean operation is applied to the keys.
         """
-        ordered = self._search_asoc_docs(keys)
-        for score, ndoc in ordered.tolist():
-            dd = self.get_doc(ndoc)
-            # dd.append(score)
-            yield dd
+        docset = self._search_asoc_docs(keys)
+        for score, ndoc in docset.tolist():
+            doc_data = self.get_doc(ndoc)
+            yield doc_data
 
     def _partial_search(self, key):
         """Returns all the values of a partial key search."""
@@ -349,7 +336,6 @@ class Index(object):
         sql += " where word like '%{}%'".format(key)
         cur = self.db.execute(sql)
         results = cur.fetchone()
-        # assert keys != ["blanc"]
         if not results or not results[0]:
             return DocSet()
         return results[0]
@@ -362,17 +348,15 @@ class Index(object):
 
         The AND boolean operation is applied to the keys.
         """
-        results = None
-        for key in keys:
-            if results is None:
-                results = self._partial_search(key)
-            else:
-                results &= self._partial_search(key)
+        if not keys:
+            return None
+        results = self._partial_search(keys[0])
+        for key in keys[1:]:
+            results &= self._partial_search(key)
         # assert keys != ["blanc"]
         for score, ndoc in results.tolist():
-            dd = self.get_doc(ndoc)
-            # dd.append(score)
-            yield dd
+            doc_data = self.get_doc(ndoc)
+            yield doc_data
 
     @classmethod
     def create(cls, directory, source, show_progress=True):
@@ -382,72 +366,65 @@ class Index(object):
 
         It must return the quantity of pairs indexed.
         """
-        import hashlib
         import pickletools
         import timeit
 
-        class ManyInserts():
-            def __init__(self, name, sql, buff_size):
+        class SQLmany:
+            """Execute many INSERTs greatly improves the performance."""
+            def __init__(self, name, sql):
                 self.sql = sql
                 self.name = name
-                self.buff_size = buff_size
                 self.count = 0
                 self.buffer = []
 
             def append(self, data):
+                """Append one data set to persist on db."""
                 self.buffer.append(data)
                 self.count += 1
-                if self.count % self.buff_size == 0:
-                    self.persists()
+                if self.count % PAGE_SIZE == 0:
+                    self.persist()
                     self.buffer = []
                 if cls.show_progress and self.count % 1000 == 0:
                     print(".", end="", flush=True)
+                return self.count - 1
 
             def finish(self):
                 """Finish the process and prints some data."""
                 if self.buffer:
-                    self.persists()
+                    self.persist()
                 if cls.show_progress:
                     print(self.name, ":", self.count, flush=True)
                 dict_stats[self.name] = self.count
 
-            def persists(self):
-                pass
-
-        class Compressed(ManyInserts):
-            """Creates the table of compressed documents information.
-
-            The groups is PAGE_SIZE lenght, pickled and compressed."""
-            def persists(self):
-                """Compress and commit data to index."""
-                pickdata = pickletools.optimize(pickle.dumps(self.buffer))
-                comp_data = zlib.compress(pickdata)
-                database.execute(self.sql,
-                                 (page_fn(self.count - 1)[0],
-                                  comp_data))
-                database.commit()
-
-        class SQLmany(ManyInserts):
-            """Execute many INSERTs greatly improves the performance."""
-            def persists(self):
+            def persist(self):
                 """Commit data to index."""
                 database.executemany(self.sql, self.buffer)
                 database.commit()
 
-        def show_stats():
-            """Finally, show some statistics."""
-            for k, v in dict_stats.items():
-                logger.info("{:>15}:{}".format(k, v))
+        class Compressed(SQLmany):
+            """Creates the table of compressed documents information.
+
+            The groups is PAGE_SIZE lenght, pickled and compressed."""
+            def persist(self):
+                """Compress and commit data to index."""
+                pickdata = pickletools.optimize(pickle.dumps(self.buffer))
+                comp_data = best_compressor.compress(pickdata)
+                page_id = (self.count - 1) // PAGE_SIZE
+                database.execute(self.sql, (page_id, comp_data))
+                database.commit()
 
         def create_database():
             """Creates de basic structure of new database."""
             script = '''
-                PRAGMA JOURNAL_MODE = off;
+                PRAGMA journal_mode = OFF;
                 PRAGMA synchronous = OFF;
                 CREATE TABLE tokens
-                    (tokenid INTEGER PRIMARY KEY, word TEXT,
-                    results INTEGER, docsets BLOB);
-                CREATE TABLE docs (pageid INTEGER PRIMARY KEY, data BLOB);
+                    (word TEXT,
+                    results INTEGER,
+                    docsets BLOB);
+                CREATE TABLE docs
+                    (pageid INTEGER PRIMARY KEY,
+                    data BLOB);
                 '''
             database.executescript(script)
 
@@ -467,25 +444,26 @@ class Index(object):
 
         def add_docs_keys(source):
             """Add docs and keys registers to db and its rel in memory."""
-            idx_dict = {}
+            idx_dict = defaultdict(DocSet)
             sql = "INSERT INTO docs (pageid, data) VALUES (?, ?)"
-            docs_table = Compressed("Documents", sql, PAGE_SIZE)
+            docs_table = Compressed("Documents", sql)
             allready_seen = set()
             dict_stats["Repeated docs"] = 0
-            docid = 0
             for words, page_score, data in source:
                 # first insert the new page
                 data = list(data)
+                # see if html file name can be deduced
+                # from the title. Mark using None
                 if data[0] == to_filename(data[1]):
                     data[0] = None
                 # see if the doc is repeated.
-                hash_data = hashlib.sha224(pickle.dumps(data)).digest()
+                # the 1 position stores title, so use it.
+                hash_data = data[1].__hash__()
                 if hash_data not in allready_seen:
                     allready_seen.add(hash_data)
                     data += [page_score]
-                    docs_table.append(data)
+                    docid = docs_table.append(data)
                     add_words(idx_dict, words, docid, page_score)
-                    docid += 1
                 else:
                     dict_stats["Repeated docs"] += 1
 
@@ -499,23 +477,20 @@ class Index(object):
             for word, word_score in word_scores.items():
                 # item_score = max(1, 0.6 * word_score + 0.4 * math.log(page_score))
                 cls.max_word_score = max(cls.max_word_score, word_score)
-                if word not in idx_dict:
-                    idx_dict[word] = DocSet()
                 idx_dict[word].append(docid, word_score)
 
         def add_tokens_to_db(idx_dict):
             """Insert token words in the database."""
-            sql_ins = "insert into tokens (tokenid, word, results, docsets) values (?, ?, ?, ?)"
-            buffer_t = SQLmany("Tokens", sql_ins, 400)
+            sql_ins = "insert into tokens (word, results, docsets) values (?, ?, ?)"
+            token_store = SQLmany("Tokens", sql_ins)
             logger.debug("Max word score: %r" % cls.max_word_score)
             unit = cls.max_word_score / 255
-            # dict_stats["Indexed"] = 0
-            for tokenid, (word, docs_list) in enumerate(idx_dict.items()):
+            for word, docs_list in idx_dict.items():
                 logger.debug("Word: %s %r" % (word, docs_list))
-                docs_list.normalizeValues(unit)
+                docs_list.normalize_values(unit)
                 dict_stats["Indexed"] += len(docs_list)
-                buffer_t.append((tokenid, word, len(docs_list), docs_list))
-            buffer_t.finish()
+                token_store.append((word, len(docs_list), docs_list))
+            token_store.finish()
 
         def create_indexes():
             script = '''
@@ -529,9 +504,9 @@ class Index(object):
         cls.max_word_score = 0
         cls.max_page_score = 0
         initial_time = timeit.default_timer()
-        dict_stats = Counter()
+        dict_stats = defaultdict(int)
         keyfilename = os.path.join(directory, "index.sqlite")
-        database = open_conection(keyfilename)
+        database = open_connection(keyfilename)
         create_database()
         idx_dict = add_docs_keys(source)
         add_tokens_to_db(idx_dict)
@@ -539,5 +514,7 @@ class Index(object):
         dict_stats["Total time"] = int(timeit.default_timer() - initial_time)
         dict_stats["Max word score"] = cls.max_word_score
         dict_stats["Max page score"] = cls.max_page_score
-        show_stats()
+        # Finally, show some statistics.
+        for k, v in dict_stats.items():
+            logger.info("{:>15}:{}".format(k, v))
         return dict_stats["Indexed"]

@@ -1,6 +1,4 @@
-# -*- coding: utf8 -*-
-
-# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -25,6 +23,8 @@ from pprint import pprint as pp
 import pytest
 
 from src.armado import sqlite_index
+from src.armado import easy_index
+from src.armado import compressed_index
 
 def decomp(data):
     """To write docset in a compact way.
@@ -87,7 +87,7 @@ data = """aaa/4;
         bbd/4"""
 Dat.add_fixture("E", data)
 
-@pytest.fixture(params=[sqlite_index.Index])
+@pytest.fixture(params=[sqlite_index.Index, compressed_index.Index, easy_index.Index])
 def create_index(request):
     """Create an index with given info in a temp dir, load it and return built index."""
     tempdir = tempfile.mkdtemp()
@@ -139,8 +139,7 @@ def test_several_items(create_index):
     idx = create_index(Dat("B").info)
     values = sorted(idx.values())
     assert abrev(values) == decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
-    assert len(values) == len(idx)
-    tokens = sorted(idx.keys())
+    tokens = sorted([str(k) for k in idx.keys()])
     assert tokens == ["ala", "blanca", "blanco", "conejo", "negro"]
 
 
@@ -157,7 +156,7 @@ def test_several_results(caplog, create_index):
     idx = create_index(Dat("B").info)
     # items = [a for a in idx.search(["conejo"])]
     res = searchidx(idx, ["conejo"])
-    assert abrev(res) == decomp("conejo negro/6; conejo blanco/5")
+    assert set(abrev(res)) == set(decomp("conejo negro/6; conejo blanco/5"))
 
 def test_several_keys(caplog, create_index):
     """Several item stored."""
@@ -175,6 +174,9 @@ def test_word_scores(caplog, create_index):
               blanca/9000"""
     Dat.add_fixture("C", data)
     idx = create_index(Dat("C").info)
+    if not isinstance(idx, sqlite_index.Index):
+        # cannot test this on other indexes
+        return
     res = searchidx(idx, ["blanca"])
     expected = decomp("""blanca/9000; coneja blanca/9000;
               gradaciones entre los colores de blanca/9000""")
@@ -196,12 +198,12 @@ def test_many_results(caplog, create_index):
         blanca/9000"""
     Dat.add_fixture("D", data)
     idx = create_index(Dat("D").info)
-    assert len(Dat("D").info) == len(idx)
+    assert len(Dat("D").info) == len([v for v in idx.values()])
     res = searchidx(idx, ["blanca"], debug=False)
     assert len(res) == len(Dat("D").info)
 
 def searchidx(idx, keys, debug=False):
-    if debug:
+    if debug and isinstance(idx, sqlite_index.Index):
         ordered = idx._search_asoc_docs(keys)
         ordered = list(ordered)
         pp(ordered)
@@ -261,7 +263,7 @@ def test_partialsearch_prefix(create_index):
     """Match its prefix."""
     idx = create_index(Dat("B").info)
     res = idx.partial_search(["blanc"])
-    assert abrev(list(res)) == decomp("conejo blanco/5; ala blanca/3")
+    assert set(abrev(list(res))) == set(decomp("conejo blanco/5; ala blanca/3"))
     res = idx.partial_search(["zz"])
     assert list(res) == []
 
