@@ -88,7 +88,7 @@ def generate_from_html(verbose=True):
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
             titles_texts[arch] = (title, primtext)
 
-    def genSQL():
+    def gen():
         """Source generator to SQLite index."""
         for dir3, arch, score in top_pages:
             # auxiliar info
@@ -107,28 +107,7 @@ def generate_from_html(verbose=True):
                 for (words, title) in redirs[arch]:
                     yield words, ptje, (namhtml, title, False, "")
 
-    def genComp():
-        """Source generator to compressed index."""
-        for dir3, arch, score in top_pages:
-            # auxiliar info
-            namhtml = os.path.join(dir3, arch)
-            title, primtext = titles_texts[arch]
-            logger.debug("Adding to index: [%r]  (%r)" % (title, namhtml))
-
-            # give the title's words great score: 50 plus
-            # the original score divided by 1000, to tie-break
-            ptje = 50 + score // 1000
-            for word in WORDS.findall(normalize_words(title)):
-                yield word, (namhtml, title, ptje, True, primtext)
-
-            # pass words to the redirects which points to
-            # this html file, using the same score
-            if arch in redirs:
-                for (words, title) in redirs[arch]:
-                    for word in words:
-                        yield word, (namhtml, title, ptje, False, "")
-
-    return len(top_pages), genSQL, genComp
+    return len(top_pages), gen
 
 
 def ptjes(source):
@@ -192,8 +171,8 @@ if __name__ == "__main__":
     else:
         PATH_IDX.mkdir()
 
-    n_pag, genSQL, genComp = generate_from_html()
+    n_pag, gen = generate_from_html()
     if IndexSQL in args.indexes:
-        idx = IndexSQL.create(str(PATH_IDX), genSQL())
+        idx = IndexSQL.create(str(PATH_IDX), gen())
     if IndexComp in args.indexes:
-        idx = IndexComp.create(str(PATH_IDX), genSQL())
+        idx = IndexComp.create(str(PATH_IDX), gen())

@@ -28,9 +28,11 @@ from src.armado.compressed_index import Index as IndexComp # NOQA import after f
 
 
 def show_results(result, verbose):
+    first_res_time = initial_time - timeit.default_timer()
     res = list(result)
     delta_time = timeit.default_timer() - initial_time
-    print("Results:", len(res), "  Time: ", 60 * delta_time)
+    print("Results:", len(res), "  Time: ", 60 * delta_time,
+          "  First Result:", 60 * first_res_time)
     if args.verbose:
         pp(res)
     return [tuple(r[0:2]) for r in res]

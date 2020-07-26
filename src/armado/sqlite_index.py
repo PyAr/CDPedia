@@ -21,6 +21,7 @@ import os
 import pickle
 import random
 import sqlite3
+import hashlib
 import zlib as best_compressor  # zlib is faster, lzma has better ratio.
 from collections import defaultdict
 from functools import lru_cache
@@ -39,14 +40,10 @@ def decompress_data(data):
 
 class DocSet:
     """Data type to encode, decode & compute documents-id's sets."""
-    def __init__(self, values=None, encoded=None):
+    def __init__(self, encoded=None):
         self._docs_list = {}
-        self.unit = 1
         if encoded:
-            self.decode(encoded)
-        if values:
-            for (docid, score) in values:
-                self.append(docid, score)
+            self._docs_list = DocSet.decode(encoded)
 
     def append(self, docid, score):
         """Append an item to the docs_list."""
@@ -89,118 +86,78 @@ class DocSet:
     def __repr__(self):
         return "Docset:" + repr(self._docs_list)
 
+    @staticmethod
+    def delta_encode(ordered):
+        """Compress an array of numbers into a bytes object."""
+        result = array.array('B')
+        add_to_result = result.append
+
+        prev_doc = 0
+        for doc in ordered:
+            doc, prev_doc = doc - prev_doc, doc
+            while True:
+                b = doc & 0x7F
+                doc >>= 7
+                if doc:
+                    # the number is not exhausted yet,
+                    # store these 7b with the flag and continue
+                    add_to_result(b | 0x80)
+                else:
+                    # we're done, store the remaining bits
+                    add_to_result(b)
+                    break
+
+        return result.tobytes()
+
+    @staticmethod
+    def delta_decode(ordered):
+        """Decode a compressed encoded bucket.
+
+        - ordered is a bytes object, representing a byte's array
+        - ctor is the final container
+        - append is the callable attribute used to add an element into the ctor
+        """
+        result = []
+        add_to_result = result.append
+
+        prev_doc = doc = shift = 0
+
+        for b in ordered:
+            doc |= (b & 0x7F) << shift
+            shift += 7
+
+            if not (b & 0x80):
+                # the sequence ended
+                prev_doc += doc
+                add_to_result(prev_doc)
+                doc = shift = 0
+
+        return result
+
     def encode(self):
         """Encode to store compressed inside the database."""
-        def delta_encode(docset, sorted=sorted, with_reps=False):
-            """Compress an array of numbers into a bytes object.
-
-            - docset is an array of long integers, it contain the begin position
-              of every word in the set.
-            - sorted is a sorting function, it must be a callable
-            - with_reps is True on search, but false on creation.
-            """
-            pdoc = -1
-            rv = array.array('B')
-            rva = rv.append
-            flag = (0, 0x80)
-            for doc in sorted(docset):
-                if with_reps or doc != pdoc:
-                    if not with_reps and doc <= pdoc:
-                        # decreasing sequence element escaped by 0 delta entry
-                        rva(0)
-                        pdoc = -1
-                    doc, pdoc = doc - pdoc, doc
-                    while True:
-                        b = doc & 0x7F  # copies to b the last 7 bits on doc
-                        doc >>= 7  # to right 7 bits doc number
-                        b |= flag[doc != 0]  # add 0x80 (128, 2^7) if doc is greater
-                        rva(b)
-                        if not doc:
-                            break  # if doc is zero, stop, else add another byte to this entry
-            return rv.tobytes()
-
         if not self._docs_list:
             return ""
         docs_list = [(k, v) for k, v in self._docs_list.items()]
         docs_list.sort()
         docs = [v[0] for v in docs_list]
-        docs_enc = delta_encode(docs)
+        docs_enc = DocSet.delta_encode(docs)
         # if any score is greater than 255 or lesser than 1, it won't work
         scores = array.array("B", [v[1] for v in docs_list])
         return scores.tobytes() + b"\x00" + docs_enc
 
-    def decode(self, encoded):
+    @staticmethod
+    def decode(encoded):
         """Decode a compressed docset."""
-        def delta_decode(docset, ctor=list, append="append", with_reps=False):
-            """Decode a compressed encoded bucket.
-
-            - docset is a bytes object, representing a byte's array
-            - ctor is the final container
-            - append is the callable attribute used to add an element into the ctor
-            - with_reps is used on unpickle.
-            """
-            doc = 0
-            pdoc = -1
-            rv = ctor()
-            rva = getattr(rv, append)
-            shif = 0
-            abucket = array.array('B')
-            abucket.frombytes(docset)
-            for b in abucket:
-                doc |= (b & 0x7F) << shif
-                shif += 7
-                if not (b & 0x80):
-                    if doc == 0 and not with_reps:
-                        # 0 delta entry encodes a sequence reset command
-                        pdoc = -1
-                    else:
-                        pdoc += doc
-                        rva(pdoc)
-                    doc = shif = 0
-            return rv
-
         if not encoded or encoded == b"\x00":
-            self._docs_list = {}
+            docs_list = {}
         else:
             limit = encoded.index(b"\x00")
-            docsid = delta_decode(encoded[limit + 1:])
+            docsid = DocSet.delta_decode(encoded[limit + 1:])
             scores = array.array('B')
             scores.frombytes(encoded[:limit])
-            self._docs_list = dict(zip(docsid, scores))
-
-
-class Union:
-    """Class to compute de union of docsets."""
-    def __init__(self):
-        self.count = None
-
-    def step(self, value):
-        other = DocSet(encoded=value)
-        if self.count is None:
-            self.count = other
-        else:
-            self.count |= other
-
-    def finalize(self):
-        self.count.normalize_values()
-        return self.count.encode()
-
-
-class Intersect:
-    """Class to compute de intersection of docsets."""
-    def __init__(self):
-        self.count = None
-
-    def step(self, value):
-        other = DocSet(encoded=value)
-        if self.count is None:
-            self.count = other
-        else:
-            self.count &= other
-
-    def finalize(self):
-        self.count.normalize_values()
-        return self.count.encode()
+            docs_list = dict(zip(docsid, scores))
+        return docs_list
 
 
 def open_connection(filename):
@@ -217,15 +174,19 @@ def open_connection(filename):
 
     con = sqlite3.connect(filename, check_same_thread=False,
                           detect_types=sqlite3.PARSE_COLNAMES)
-    con.create_aggregate("myintersect", 1, Intersect)
-    con.create_aggregate("myunion", 1, Union)
     return con
 
 
 def to_filename(title):
     """Compute the filename from the title."""
+    if not title:
+        return title
     tt = title.replace(" ", "_")
-    tt = tt[0].upper() + tt[1:]
+    if len(tt) >= 2:
+        tt = tt[0].upper() + tt[1:]
+    elif len(tt) == 1:
+        tt = tt[0].upper()
+
     dir3, arch = to3dirs.get_path_file(tt)
     expected = os.path.join(dir3, arch)
     return expected
@@ -312,13 +273,16 @@ class Index(object):
         if not keys:
             return DocSet()
         marks = ', '.join(["?"] * len(keys))
-        sql = 'select myintersect(docsets) as "inter [docset]" from tokens'
+        sql = "select docsets as 'ds [docset]' from tokens"
         sql += " where word in ({})".format(marks)
         cur = self.db.execute(sql, tuple(keys))
-        results = cur.fetchone()
-        if not results or not results[0]:
+        row = cur.fetchone()
+        if not row:
             return DocSet()
-        return results[0]
+        results = row[0]
+        for row in cur.fetchall():
+            results &= row[0]
+        return results
 
     def search(self, keys):
         """Returns all the values that are found for those keys.
@@ -332,13 +296,16 @@ class Index(object):
 
     def _partial_search(self, key):
         """Returns all the values of a partial key search."""
-        sql = 'select myunion(docsets) as "inter [docset]" from tokens'
+        sql = 'select docsets as "ds [docset]" from tokens'
         sql += " where word like '%{}%'".format(key)
         cur = self.db.execute(sql)
-        results = cur.fetchone()
-        if not results or not results[0]:
+        row = cur.fetchone()
+        if not row:
             return DocSet()
-        return results[0]
+        results = row[0]
+        for row in cur.fetchall():
+            results |= row[0]
+        return results
 
     def partial_search(self, keys):
         """Returns all the values that are found for those partial keys.
@@ -451,20 +418,22 @@ class Index(object):
             dict_stats["Repeated docs"] = 0
             for words, page_score, data in source:
                 # first insert the new page
-                data = list(data)
-                # see if html file name can be deduced
-                # from the title. Mark using None
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
                 # see if the doc is repeated.
                 # the 1 position stores title, so use it.
-                hash_data = data[1].__hash__()
+                # hash_data = (data[1].__hash__(), data.__hash__())
+                hash_data = hashlib.sha224(pickle.dumps(data)).digest()
                 if hash_data not in allready_seen:
                     allready_seen.add(hash_data)
+                    data = list(data)
+                    # see if html file name can be deduced
+                    # from the title. Mark using None
+                    if data[0] == to_filename(data[1]):
+                        data[0] = None
                     data += [page_score]
                     docid = docs_table.append(data)
                     add_words(idx_dict, words, docid, page_score)
                 else:
+                    print("!", end="")
                     dict_stats["Repeated docs"] += 1
 
             docs_table.finish()
