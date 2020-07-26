@@ -169,7 +169,6 @@ class ImageParser:
         arch = os.path.join(config.DIR_PREPROCESADO, dir3, fname)
         with open(arch, "rt", encoding="utf-8") as fh:
             html = fh.read()
-            html = html[12:-14]
 
         html, newimgs = self.parse_html(html, self.chosen_pages)
 
@@ -181,7 +180,7 @@ class ImageParser:
 
             newpath = os.path.join(destdir, fname)
             with open(newpath, "wt", encoding="utf-8") as fh:
-                fh.write(html)
+                fh.write(html[12:-14])
 
         # update the images to download
         for dsk, web in newimgs:
