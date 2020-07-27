@@ -238,7 +238,7 @@ def scrap_portals(language, lang_config):
     # get the portal url, get out if don't have it
     portal_index_title = lang_config.get('portal_index')
     if portal_index_title is None:
-        logger.info("Not scrapping portals, url not configured.")
+        logger.info("Not scraping portals, url not configured.")
         return
 
     portal_index_url = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(portal_index_title))
@@ -246,7 +246,7 @@ def scrap_portals(language, lang_config):
     logger.info("Downloading portal index from %r", portal_index_url)
     u = urllib.request.urlopen(portal_index_url)
     html = u.read()
-    logger.info("Scrapping portals page of lenght %d", len(html))
+    logger.info("Scraping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
     logger.info("Generating portals html with %d items", len(items))
     new_html = portals.generate(items)
