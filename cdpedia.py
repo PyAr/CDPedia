@@ -110,13 +110,17 @@ def sleep_and_browse():
 
 
 def load_language():
-    """Load language from language file if not set in config."""
+    """Load language from language file if not set in config.
+
+    Only needed when running cdpedia from project root. In this case, language
+    is dynamically loaded from the temp files of the last generated cdpedia.
+    In final cdpedia images, config.LANGUAGE is already set to the correct value.
+    """
     if config.LANGUAGE is None and os.path.exists(config.LANGUAGE_FILE):
         with open(config.LANGUAGE_FILE, 'rt', encoding='utf-8') as fh:
             lang = fh.read().strip()
-        if lang:
-            config.LANGUAGE = lang
-            config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
+        config.LANGUAGE = lang
+        config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
 
 
 if __name__ == "__main__":
