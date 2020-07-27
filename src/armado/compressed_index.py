@@ -16,13 +16,13 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 import array
 import bisect
-from bz2 import BZ2File as CompressedFile
-from functools import lru_cache
-import pickle
 import operator
 import os
+import pickle
 import random
 import sys
+from functools import lru_cache
+from lzma import LZMAFile as CompressedFile
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
@@ -355,7 +355,7 @@ class Index(object):
         #   ( matrix, docsets )
         #   matrix = TermSimilitudeMatrix
         #   docsets = FrozenStringList
-        keyfilename = os.path.join(directory, "compindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.xz")
         fh = CompressedFile(keyfilename, "rb")
 
         # TODO: research and document why the encoding here is latin-1
@@ -370,14 +370,14 @@ class Index(object):
         # see how many id files we have
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("compindex-") and fn.endswith(".ids.bz2"):
+            if fn.startswith("compindex-") and fn.endswith(".ids.xz"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
 
     @lru_cache(DOCSTORE_CACHE_SIZE)
     def _get_ids_shelve(self, cual):
         """Return the ids index."""
-        fname = os.path.join(self._directory, "compindex-%02d.ids.bz2" % cual)
+        fname = os.path.join(self._directory, "compindex-%02d.ids.xz" % cual)
         fh = CompressedFile(fname, "rb")
         idx = pickle.load(fh)
         fh.close()
@@ -624,7 +624,7 @@ class Index(object):
         print("done")
         print(" Saving:")
 
-        keyfilename = os.path.join(directory, "compindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.xz")
         fh = CompressedFile(keyfilename, "wb")
         pickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
         print("  Uncompressed keystore bytes", fh.tell())
@@ -654,7 +654,7 @@ class Index(object):
         docucomp = 0
         doccomp = 0
         for cual, shelf in enumerate(all_idshelves):
-            fname = "compindex-%02d.ids.bz2" % cual
+            fname = "compindex-%02d.ids.xz" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
             pickle.dump(shelf, fh, 2)
