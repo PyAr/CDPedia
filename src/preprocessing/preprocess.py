@@ -79,6 +79,9 @@ class WikiFile(object):
             # dirname exists
             pass
 
+        # keep only body content
+        self._soup.html.unwrap()
+        self._soup.body.unwrap()
         content = self._soup.encode(encoding='utf-8')
         with open(output, 'wb') as fh:
             fh.write(content)

@@ -180,7 +180,7 @@ class ImageParser:
 
             newpath = os.path.join(destdir, fname)
             with open(newpath, "wt", encoding="utf-8") as fh:
-                fh.write(html[12:-14])
+                fh.write(html)
 
         # update the images to download
         for dsk, web in newimgs:
@@ -207,6 +207,9 @@ class ImageParser:
         for a_tag in soup.find_all('a'):
             ImageParser.fixlinks(a_tag, chosen_pages)
 
+        # keep only body content
+        soup.html.unwrap()
+        soup.body.unwrap()
         html = str(soup)
         return html, new_images
 
