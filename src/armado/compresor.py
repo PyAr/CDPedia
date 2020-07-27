@@ -63,7 +63,6 @@ class BloqueManager(object):
     archive_extension = ".hdp"  # extension of the blocks handled by this class
     archive_class = None  # class to be used for the blcoks
     items_per_block = 0  # quantity of items per block
-    language_file = None  # file to save blocks language
 
     def __init__(self, verbose=False):
         fname = os.path.join(self.archive_dir, 'numbloques.txt')
@@ -81,7 +80,7 @@ class BloqueManager(object):
 
         # save the language of the blocks, if any
         if lang is not None:
-            with open(self.language_file, 'wt', encoding='utf8') as fh:
+            with open(config.LANGUAGE_FILE, 'wt', encoding='utf8') as fh:
                 fh.write(lang + '\n')
 
     @classmethod
@@ -256,7 +255,6 @@ class ArticleManager(BloqueManager):
     archive_extension = ".cdp"
     archive_class = Comprimido
     items_per_block = config.ARTICLES_PER_BLOCK
-    language_file = config.LANGUAGE_FILE
 
     @classmethod
     def generar_bloques(self, lang, verbose):
@@ -323,7 +321,6 @@ class ImageManager(BloqueManager):
     archive_extension = ".cdi"
     archive_class = BloqueImagenes
     items_per_block = config.IMAGES_PER_BLOCK
-    language_file = config.LANGUAGE_FILE
 
     @classmethod
     def generar_bloques(self, verbose):
