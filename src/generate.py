@@ -197,7 +197,6 @@ def gen_run_config():
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
-    f.write('LANGUAGE_FILE = "%s"\n' % config.LANGUAGE_FILE)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
     f.write('DIR_BLOQUES = os.path.join("cdpedia", "bloques")\n')
     f.write('DIR_ASSETS = os.path.join("cdpedia", "assets")\n')
