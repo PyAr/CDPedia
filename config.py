@@ -39,10 +39,16 @@ SERVER_MODE = False
 EDICION_ESPECIAL = None
 # EDICION_ESPECIAL = "educar"
 
-# Ubicación de los archivos estáticos online
-# Debe tener la barra al final
-URL_WIKIPEDIA = "http://es.wikipedia.org/"
-LANGUAGE = "es"
+# Language of CDPedia.
+# Value will be set dynamically at init time (don't set it here).
+LANGUAGE = None
+
+# Location of online static files, depends on LANGUAGE.
+# Value will be set dynamically at init time (don't set it here).
+URL_WIKIPEDIA = None
+
+# Template for setting URL_WIKPEDIA param, must contain the final slash.
+URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
@@ -105,6 +111,9 @@ DIR_SOURCE_ASSETS = "resources"
 
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
+
+# Generation language will be saved in this file
+LANGUAGE_FILE = os.path.join(DIR_BLOQUES, 'language.txt')
 
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"

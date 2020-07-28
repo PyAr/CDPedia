@@ -20,12 +20,12 @@
 import os
 import tarfile
 
-from src.armado import cdpindex
-from src.web import web_app, utils
-import config
-
 from werkzeug.test import Client
 from werkzeug.wrappers import Response
+
+import config
+from src.armado import cdpindex
+from src.web import web_app, utils
 
 import pytest
 
@@ -36,6 +36,8 @@ def create_app_client(mocker, tmp_path):
 
     # fix config and write some setup files
     mocker.patch('config.DIR_ASSETS', str(tmp_path))
+    mocker.patch('config.LANGUAGE', 'es')
+    mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
     with (tmp_path / 'numbloques.txt').open('wt') as fh:

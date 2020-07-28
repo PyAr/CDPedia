@@ -70,14 +70,6 @@ class BloqueManager(object):
             self.num_bloques = int(fh.read().strip())
         self.verbose = verbose
 
-        # get the language of the blocks, if any
-        _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
-        if os.path.exists(_lang_fpath):
-            with open(_lang_fpath, 'rt', encoding='utf8') as fh:
-                self.language = fh.read().strip()
-        else:
-            self.language = None
-
     @classmethod
     def _prep_archive_dir(self, lang=None):
         """Prepare the directory for the archive."""
@@ -88,8 +80,7 @@ class BloqueManager(object):
 
         # save the language of the blocks, if any
         if lang is not None:
-            _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
-            with open(_lang_fpath, 'wt', encoding='utf8') as fh:
+            with open(config.LANGUAGE_FILE, 'wt', encoding='utf8') as fh:
                 fh.write(lang + '\n')
 
     @classmethod

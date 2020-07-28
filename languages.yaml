@@ -15,7 +15,7 @@ es:
         "Wikipedia:Derechos_de_autor",
         "Wikipedia:Portal",
     ]
-    portal_index: http://es.wikipedia.org/wiki/Portal:Portada
+    portal_index: Portal:Portada
 
 ay:
     include: [
@@ -24,6 +24,14 @@ ay:
     ]
 
 pt:
-    include: [       # FIXME: fill this
+    include: [
+        "Wikipédia:Sobre_a_Wikipédia",
+        "Wikipédia:Aviso_geral",
+        "Wikipédia:Aviso_de_risco",
+        "Wikipédia:Aviso_médico",
+        "Wikipédia:Aviso_legal",
+        "Wikipédia:Aviso_de_conteúdo",
+        "Wikipédia:Direitos_de_autor",
+        "Wikipédia:Portal",
     ]
-    portal_index: http://pt.wikipedia.org/wiki/Portal:%C3%8Dndice
+    portal_index: Portal:Índice
