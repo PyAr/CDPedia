@@ -18,15 +18,15 @@
 
 """Download images."""
 
-import collections
 import logging
 import os
 import urllib.request
 import urllib.error
+import time
 
 import config
 
-from src import distributor, utiles
+from src import utiles
 
 
 HEADERS = {
@@ -36,6 +36,10 @@ HEADERS = {
 }
 
 logger = logging.getLogger("images.download")
+
+
+class FetchingError(Exception):
+    """Error while fetching an image."""
 
 
 def _download(url, fullpath):
@@ -55,21 +59,21 @@ def _download(url, fullpath):
 def download(data):
     """Download image from url, retry on error."""
     url, fullpath = data
-    retries = 3
-    for i in range(retries):
+
+    # seconds to sleep before each retrial (starting from the end)
+    retries = [5, 1, .3]
+
+    while True:
         try:
             _download(url, fullpath)
             # download OK
-            return None
-        except urllib.error.HTTPError as err:
-            # dense error, return code
-            return "HTTPError: %d" % (err.code,)
+            return
         except Exception as err:
-            # weird error, retry
-            logger.debug("Error downloading image, retrying: %s", err)
-            # if enough retries, return last error
-            if i == retries - 1:
-                return str(err)
+            if isinstance(err, urllib.error.HTTPError) and err.code == 404:
+                raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
+            if not retries:
+                raise FetchingError("Giving up retries after %r on url %r", err, url)
+            time.sleep(retries.pop())
 
 
 def retrieve():
@@ -95,23 +99,4 @@ def retrieve():
         if url not in imgs_problems and not os.path.exists(fullpath):
             download_list.append((url, fullpath))
 
-    tot = len(download_list)
-    p = distributor.Pool(download, 5)
-    tl = utiles.TimingLogger(30, logger.debug)
-    errors = collections.Counter()
-    n_ok = 0
-    n_err = 0
-    for i, result in enumerate(p.process(download_list), 1):
-        (url, fullpath), stt = result
-        if stt is None:
-            n_ok += 1
-        else:
-            errors[stt] += 1
-            n_err += 1
-            with open(log_errors, "at", encoding="utf8") as fh:
-                fh.write(url + "\n")
-
-        tl.log("Downloaded image %d/%d (ok=%d, err=%d)", i, tot, n_ok, n_err)
-
-    for code, quant in errors.most_common():
-        logger.warning("Had errors: code=%r quant=%d", code, quant)
+    utiles.pooled_exec(download, download_list, pool_size=5, known_errors=[FetchingError])
