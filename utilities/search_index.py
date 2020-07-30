@@ -20,21 +20,34 @@ import os
 import sys
 import argparse
 import timeit
-from pprint import pprint as pp
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index as IndexSQL # NOQA import after fixing path
-from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
+from src.armado.sqlite_index import Index as IndexComp # NOQA import after fixing path
+# from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
+
+PAGE = 40
 
 
 def show_results(result, verbose):
-    first_res_time = initial_time - timeit.default_timer()
-    res = list(result)
-    delta_time = timeit.default_timer() - initial_time
-    print("Results:", len(res), "  Time: ", 60 * delta_time,
-          "  First Result:", 60 * first_res_time)
-    if args.verbose:
-        pp(res)
+    res = []
+    stats = {}
+    first_res_time = 0
+    for row in result:
+        res.append(row)
+        if args.verbose:
+            # pp(row)
+            print(len(res), row[1])
+        if len(res) == 1:
+            first_res_time = timeit.default_timer() - initial_time
+            stats["First Result"] = first_res_time
+        if len(res) == PAGE:
+            first_res_time = timeit.default_timer() - initial_time
+            stats["First %d Result" % PAGE] = first_res_time
+    stats["Time"] = timeit.default_timer() - initial_time
+    stats["Results"] = len(res)
+    for k, v in stats.items():
+        print("{:>25}:{}".format(k, v))
     return [tuple(r[0:2]) for r in res]
 
 
@@ -84,20 +97,24 @@ if __name__ == "__main__":
         args.partial = True
     res_part = [0] * 2
     res_comp = [0] * 2
+    # print(args)
+    args.indexes = [IndexSQL]
     for nro, Index in enumerate(args.indexes):
         initial_time = timeit.default_timer()
         idx = Index(PATH_IDX)
         print(repr(Index))
         delta_time = timeit.default_timer() - initial_time
-        print("Open Time: ", delta_time * 60)
+        print("Open Time: ", delta_time * 100)
         if args.complete:
             initial_time = timeit.default_timer()
             res = idx.search(args.keys)
             res_comp[nro] = show_results(res, args.verbose)
+        """
         if args.partial:
             initial_time = timeit.default_timer()
             res = idx.partial_search(args.keys)
             res_part[nro] = show_results(res, args.verbose)
+        """
 
     if args.diff:
         show("Complete word: in sql not in comp", res_comp[0], res_comp[1])

@@ -246,7 +246,7 @@ def test_infunc_one_item(create_index):
 def test_search_nopartial(create_index):
     """Does not find partial values."""
     idx = create_index(Dat("A").info)
-    res = idx.search(["a"])
+    res = idx.search(["w"])
     assert list(res) == []
 
 

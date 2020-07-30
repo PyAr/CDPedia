@@ -23,6 +23,7 @@ import pickle
 import re
 import os
 import sys
+from collections import defaultdict
 from logging.handlers import RotatingFileHandler
 from bz2 import BZ2File as CompressedFile
 sys.path.append(os.path.abspath(os.curdir))
@@ -70,11 +71,25 @@ def cycle():
     for fname in walk():
         idx = decomp(fname)
         # print(fname, len(idx))
-        print("!", end="")
+        print("!", end="", flush=True)
         for n_doc, value in idx.items():
             html, title, ptje, redir, primtext = value
             words = list(WORDS.findall(normalize_words(title)))
             yield words, ptje, (html, title, redir, primtext)
+
+
+def media_words():
+    words_lenght = defaultdict(int)
+    with open("long_titles.txt", "w") as fh:
+        for words, ptje, data in cycle():
+            lenght = len(words)
+            words_lenght[lenght] += 1
+            if lenght > 15:
+                fh.write(' '.join(words) + "\n")
+    keys = list(words_lenght.keys())
+    keys.sort()
+    for k in keys:
+        print(k, words_lenght[k])
 
 
 def test_cycle():
@@ -85,7 +100,7 @@ def test_cycle():
             break
 
 
-if __name__ == "__main__":
+def main():
     help = """Creates a new sqlite index from the compressed index information.
 
     Sqlite index path: '%s'    Legacy compressed index path: '%s'""" % (PATH_IDX, PATH_COMP)
@@ -94,4 +109,9 @@ if __name__ == "__main__":
     if sqlitepath.exists():
         sqlitepath.unlink()
         print("Database index %s was removed" % sqlitepath)
-    idx_dest = IndexSQL.create(str(PATH_IDX), cycle())
+    IndexSQL.create(str(PATH_IDX), cycle())
+
+
+if __name__ == "__main__":
+    # media_words()
+    main()
