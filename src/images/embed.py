@@ -59,6 +59,9 @@ class _EmbedImages:
 
         # dump updated html
         html = soup.encode(encoding='utf-8')
+        # keep only body content
+        soup.html.unwrap()
+        soup.body.unwrap()
         with open(htmlpath, 'wb') as fh:
             fh.write(html)
 
