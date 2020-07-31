@@ -196,6 +196,7 @@ def gen_run_config():
     f.write('DEBUG_DESTACADOS = %s\n' % repr(config.DEBUG_DESTACADOS))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
+    f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
     f.write('DIR_BLOQUES = os.path.join("cdpedia", "bloques")\n')
     f.write('DIR_ASSETS = os.path.join("cdpedia", "assets")\n')
@@ -293,6 +294,11 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
                 "Please install it (download, python2 setup.py build, python2 setup.py install) "
                 "from here:  http://taniquetil.com.ar/facundo/SuffixTree-0.7.1-8bit.tar.bz2"
             )
+
+    # set language in config
+    if config.LANGUAGE is None:
+        config.LANGUAGE = lang
+        config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
 
     # validate lang and versions, and fix config with selected data
     logger.info("Fixing config for lang=%r version=%r", lang, version)
