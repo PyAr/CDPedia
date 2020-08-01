@@ -157,8 +157,11 @@ class CDPedia(object):
                 height = int(height)
             except Exception:
                 raise InternalServerError("Error al generar imagen")
-            img, mimetype = utils.img_fallback(width, height)
-            return Response(img, mimetype=mimetype)
+            # image not included, return fallback picture of same dimensions
+            show_text = width > 90 and height > 30
+            img_template = self.jinja_env.get_template('no_image.svg')
+            img = img_template.render(width=width, height=height, show_text=show_text)
+            return Response(img, mimetype='image/svg+xml')
         type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
