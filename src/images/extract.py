@@ -207,6 +207,9 @@ class ImageParser:
         for a_tag in soup.find_all('a'):
             ImageParser.fixlinks(a_tag, chosen_pages)
 
+        # keep only body content
+        soup.html.unwrap()
+        soup.body.unwrap()
         html = str(soup)
         return html, new_images
 
