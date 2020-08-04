@@ -248,6 +248,9 @@ def scrap_portals(language, lang_config):
     html = u.read()
     logger.info("Scraping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
+    if not items:
+        logger.info("Main page will be empty, no portal items to add")
+        return
     logger.info("Generating portals html with %d items", len(items))
     new_html = portals.generate(items)
 
