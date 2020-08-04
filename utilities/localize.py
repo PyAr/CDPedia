@@ -87,7 +87,6 @@ class _LocaleManager:
 
     def compile(self):
         """Create .mo file from .po file for current language."""
-        # output = os.path.join(self.locale_dir, self.lang, 'LC_MESSAGES', 'core.mo')
         os.makedirs(os.path.dirname(self.mo_file), exist_ok=True)
         self._run('compile', '-l', self.lang, '-i', self.po_file, '-o', self.mo_file)
 
