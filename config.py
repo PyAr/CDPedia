@@ -50,6 +50,10 @@ URL_WIKIPEDIA = None
 # Template for setting URL_WIKPEDIA param, must contain the final slash.
 URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
 
+# Localization of CDPedia interface
+# Value will be set dynamically at init time (don't set it here).
+LOCALE = None
+
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
 ASSETS = ["static"]
@@ -123,6 +127,7 @@ LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
 LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
 LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 LOG_TITLES = DIR_TEMP + "/titles.txt"
+LOG_LOCALE = DIR_TEMP + "/locale.txt"
 
 # prefix for URL of local images
 IMAGES_URL_PREFIX = "/images/"

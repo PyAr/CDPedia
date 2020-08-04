@@ -72,7 +72,8 @@ class CDPedia(object):
         self.jinja_env.globals["date"] = self.get_creation_date()
         self.jinja_env.globals["version"] = config.VERSION
         self.jinja_env.globals["language"] = config.LANGUAGE
-        translations = gettext.translation("core", 'locale', [config.LANGUAGE])
+        # translation config set as environment variable at init time
+        translations = gettext.translation("core", 'locale')
         self.jinja_env.install_gettext_translations(translations)
 
         self.template_manager = TemplateManager(template_path)
