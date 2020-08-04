@@ -140,6 +140,11 @@ LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 EMBED_IMAGES = True
 LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 
+# Validate translation before generating a CDPedia in the specified language.
+# Interrupt process if validation fails. In test mode, show validation result
+# but don't interrupt process.
+VALIDATE_TRANSLATION = True
+
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'
 
