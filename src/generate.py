@@ -324,7 +324,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
     logger.info("Copying the assets and locale files")
     copy_assets(src_info, config.DIR_ASSETS)
     shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
-    set_locale(lang_config.get('second_language'), log=True)
+    set_locale(lang_config.get('second_language'), record=True)
 
     articulos = path.join(src_info, "articles")
     if process_articles:

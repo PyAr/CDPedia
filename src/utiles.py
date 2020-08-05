@@ -154,15 +154,16 @@ def pooled_exec(func, payloads, pool_size, known_errors=()):
     print()  # this is to get the cursor out of the same line of the progress report above
 
 
-def set_locale(second_language=None, log=False):
+def set_locale(second_language=None, record=False):
     """Set localization environment for gettext."""
     if config.LOCALE is not None:
         # running cdpedia from image
         os.environ['LANGUAGE'] = config.LOCALE
         return
 
-    if log:
-        # running cdpetron from project dir
+    # running from project root directory
+    if record:
+        # running cdpetron, set locale and save it to file
         if config.LANGUAGE:
             os.environ['LANGUAGE'] = config.LANGUAGE
             if second_language:
@@ -170,6 +171,6 @@ def set_locale(second_language=None, log=False):
             with open(config.LOG_LOCALE, 'wt', encoding='utf-8') as fh:
                 fh.write(os.environ['LANGUAGE'])
     else:
-        # running cdpedia from project dir
+        # running cdpedia, load locale from file
         with open(config.LOG_LOCALE, 'rt') as fh:
             os.environ['LANGUAGE'] = fh.read()
