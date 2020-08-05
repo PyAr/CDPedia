@@ -321,7 +321,7 @@ def main(language, lang_config, imag_config,
             logger.error("No .mo file for chosen language, generation interrupted")
             return
         if tr_complete and tr_updated:
-            logger.info('Tranlation to `%s` complete and up to date', language)
+            logger.info("Translation to '%s' complete and up to date", language)
         else:
             logger.warning('Bad translation: complete=%s updated=%s', tr_complete, tr_updated)
             if not test and not tr_updated:
