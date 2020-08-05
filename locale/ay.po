@@ -1,11 +1,11 @@
 # Aymar translations for Cdpedia.
-# Copyright 2014 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 # This file is distributed under the same license as the CDPedia project.
 # Facundo Batista <facundo@taniquetil.com.ar>, 2014.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: CDPedia 0.9\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2020-08-03 23:33-0300\n"
 "PO-Revision-Date: 2014-06-14 12:11-0300\n"
