@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CDPedia 0.9\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-08-03 23:33-0300\n"
+"POT-Creation-Date: 2020-08-05 22:12-0300\n"
 "PO-Revision-Date: 2020-07-16 01:07-0300\n"
 "Last-Translator: Federico Zuccolo <fazuccolo@gmail.com>\n"
 "Language: fr\n"
@@ -173,6 +173,10 @@ msgstr "Article labellisé"
 #: src/web/templates/main_page.html:24
 msgid "Read more..."
 msgstr "Lire la suite..."
+
+#: src/web/templates/no_image.svg:8
+msgid "No image"
+msgstr "Sans image"
 
 #: src/web/templates/search.html:5
 msgid "Results of the search for"

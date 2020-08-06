@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CDPedia 0.9\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-08-03 23:33-0300\n"
+"POT-Creation-Date: 2020-08-05 22:13-0300\n"
 "PO-Revision-Date: 2020-07-19 02:40-0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt\n"
@@ -152,6 +152,10 @@ msgstr ""
 
 #: src/web/templates/main_page.html:24
 msgid "Read more..."
+msgstr ""
+
+#: src/web/templates/no_image.svg:8
+msgid "No image"
 msgstr ""
 
 #: src/web/templates/search.html:5
