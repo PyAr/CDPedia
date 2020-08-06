@@ -1,18 +1,18 @@
-# Spanish translations for CDPedia.
-# Copyright (C) 2014-2020 CDPedistas (see AUTHORS.txt)
+# French translations for CDPedia.
+# Copyright (C) 2020 CDPedistas (see AUTHORS.txt)
 # This file is distributed under the same license as the CDPedia project.
-# Facundo Batista <facundo@taniquetil.com.ar>, 2014.
+# Federico Zuccolo <fazuccolo@gmail.com>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: CDPedia 0.9\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2020-08-05 22:12-0300\n"
-"PO-Revision-Date: 2014-06-14 12:11-0300\n"
-"Last-Translator: Facundo Batista <facundo@taniquetil.com.ar>\n"
-"Language: es\n"
-"Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"PO-Revision-Date: 2020-07-16 01:07-0300\n"
+"Last-Translator: Federico Zuccolo <fazuccolo@gmail.com>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,60 +20,60 @@ msgstr ""
 
 #: src/web/translations.py:20
 msgid "January"
-msgstr "Enero"
+msgstr "Janvier"
 
 #: src/web/translations.py:21
 msgid "February"
-msgstr "Febrero"
+msgstr "Février"
 
 #: src/web/translations.py:22
 msgid "March"
-msgstr "Marzo"
+msgstr "Mars"
 
 #: src/web/translations.py:23
 msgid "April"
-msgstr "Abril"
+msgstr "Avril"
 
 #: src/web/translations.py:24
 msgid "May"
-msgstr "Mayo"
+msgstr "Mai"
 
 #: src/web/translations.py:25
 msgid "June"
-msgstr "Junio"
+msgstr "Juin"
 
 #: src/web/translations.py:26
 msgid "July"
-msgstr "Julio"
+msgstr "Juillet"
 
 #: src/web/translations.py:27
 msgid "August"
-msgstr "Agosto"
+msgstr "Août"
 
 #: src/web/translations.py:28
 msgid "September"
-msgstr "Septiembre"
+msgstr "Septembre"
 
 #: src/web/translations.py:29
 msgid "October"
-msgstr "Octubre"
+msgstr "Octobre"
 
 #: src/web/translations.py:30
 msgid "November"
-msgstr "Noviembre"
+msgstr "Novembre"
 
 #: src/web/translations.py:31
 msgid "December"
-msgstr "Diciembre"
+msgstr "Décembre"
 
 #: src/web/templates/404.html:2
 msgid "Article not found"
-msgstr "Artículo no encontrado"
+msgstr "Article introuvable"
 
 #: src/web/templates/404.html:4
 #, python-format
 msgid "The article %s couldn't be included in the disk."
-msgstr "El artículo %s no pudo incluirse en el disco "
+msgstr "L'article %s n'a ​​pas pu être inclus dans le disque."
 
 #: src/web/templates/404.html:6
 #, python-format
@@ -81,16 +81,16 @@ msgid ""
 "You can access it in Wikipedia in <a class=\"external\" href=\"%s\">this "
 "external link</a>."
 msgstr ""
-"Puede accederlo en Wikipedia en <a class=\"external\" href=\"%s\">este "
-"enlace externo</a>."
+"Vous pouvez y accéder sur Wikipédia via <a class=\"external\" "
+"href=\"%s\">ce lien externe</a>."
 
 #: src/web/templates/500.html:2
 msgid "Error"
-msgstr "Error"
+msgstr "Erreur"
 
 #: src/web/templates/500.html:4
 msgid "There was a problem"
-msgstr "Hubo un problema"
+msgstr "Il y a eu un problème"
 
 #: src/web/templates/article.html:9
 #, python-format
@@ -98,9 +98,8 @@ msgid ""
 "If you have an Internet connection, you can visit the article's <a "
 "class=\"external\" href=\"%s\">updated original page</a>."
 msgstr ""
-"Si tenés conexión a Internet, podés visitar la <a "
-"class=\"external\"href=\"%s\">página original y actualizada</a> de éste "
-"artículo."
+"Si vous avez une connection Internet, vous pouvez accéder à la <a "
+"class=\"external\" href=\"%s\">page à jour de l'article original</a>."
 
 #: src/web/templates/cdpedia_base.html:61
 msgid ""
@@ -109,18 +108,19 @@ msgid ""
 "in Python! Here you have the <a href=\"/tutorial\" "
 "target=\"_blank\">tutorial</a>."
 msgstr ""
-"<a href=\"/institucional/cdpedia.html\">CDPedia</a> es un proyecto de <a "
-"href=\"/institucional/pyar.html\">Python Argentina</a>. ¡Aprendé a "
-"programar en Python! Acá tenés el <a href=\"/tutorial\" "
-"target=\"_blank\">tutorial</a>."
+"<a href=\"/institucional/cdpedia.html\">CDPedia</a> c'est un projet de <a"
+" href=\"/institucional/pyar.html\">Python Argentina</a>. Apprenez à "
+"programmer en Python! Vouz avez ici le <a href=\"/tutorial\" "
+"target=\"_blank\">tutoriel</a>."
 
 #: src/web/templates/cdpedia_base.html:64
 msgid ""
 "Articles and images are shown here without any processing more than the "
 "strictly necessary for the correct user navigation."
 msgstr ""
-"Los artículos e imágenes son mostrados aquí sin ningún procesamiento más "
-"que el estrictamente necesario para la correcta navegación del usuario."
+"Les articles et les images sont montrées ici sans aucune edition autre "
+"que celle strictement nécessaire pour la correcte navigation de "
+"l'utilisateur."
 
 #: src/web/templates/cdpedia_base.html:67
 #, python-format
@@ -128,8 +128,8 @@ msgid ""
 "All the content from the articles come from the <a "
 "href=\"http://%s.wikipedia.org/\">Wikipedia online site</a>."
 msgstr ""
-"Todos los contenidos de los artículos provienen del <a "
-"href=\"http://%s.wikipedia.org/\">sitio online de Wikipedia</a>."
+"Tout le contenu des articles provient de le <a "
+"href=\"http://%s.wikipedia.org/\">site de Wikipédia en ligne</a>."
 
 #: src/web/templates/cdpedia_base.html:72
 msgid ""
@@ -141,58 +141,58 @@ msgid ""
 "href=\"/institucional/wikimedia.html\">Wikimedia Foundation, Inc.</a>, a "
 "non-profit organization."
 msgstr ""
-"El texto está disponible bajo la <a href=/institucional/cc-by-"
-"sa.html>Licencia Creative Commons Atribución Compartir Igual 3.0</a>; "
-"podrían ser aplicables cláusulas adicionales. Lee en esta página los <a "
-"href=\"/institucional/Términos_de_Uso.htm\">términos de uso</a> para más "
-"información. Wikipedia® es una marca registrada de la organización sin "
-"fines de lucro <a href=\"/institucional/wikimedia.html\">Wikimedia "
-"Foundation, Inc.</a>"
+"Les textes sont disponibles sous <a href=/institucional/cc-by-"
+"sa.html>licence Creative Commons attribution, partage dans les mêmes "
+"conditions</a>;d'autres conditions peuvent s'appliquer. Voyez les <a "
+"href=\"/institucional/Términos_de_Uso.htm\">conditions d'utilisation</a> "
+"pour plus de détails. Wikipedia® est une marque déposée de la <a "
+"href=\"/institucional/wikimedia.html\">Wikimedia Foundation, Inc.</a>, "
+"organisation de bienfaisance."
 
 #: src/web/templates/cdpedia_base.html:75
 msgid "About Wikipedia"
-msgstr "Acerca de Wikipedia"
+msgstr "À propos de Wikipédia"
 
 #: src/web/templates/cdpedia_base.html:78
 msgid "Disclaimers"
-msgstr "Aviso legal"
+msgstr "Avertissements"
 
 #: src/web/templates/layout.html:5
 msgid "CDPedia, the Offline Wikipedia"
-msgstr "CDPedia, la Wikipedia offline"
+msgstr "CDPedia, le Wikipédia hors-ligne"
 
 #: src/web/templates/main_page.html:3
 msgid "Welcome to the <a href=\"/institucional/cdpedia.html\">CDPedia</a>!"
-msgstr "Bienvenido a la <a href=\"/institucional/cdpedia.html\">CDPedia</a>!"
+msgstr "Bienvenue sur le <a href=\"/institucional/cdpedia.html\">CDPedia</a>!"
 
 #: src/web/templates/main_page.html:12 src/web/templates/main_page.html:15
 #: src/web/templates/main_page.html:16
 msgid "Featured article"
-msgstr "Artículo destacado"
+msgstr "Article labellisé"
 
 #: src/web/templates/main_page.html:24
 msgid "Read more..."
-msgstr "Leer más..."
+msgstr "Lire la suite..."
 
 #: src/web/templates/no_image.svg:8
 msgid "No image"
-msgstr "Sin imagen"
+msgstr "Sans image"
 
 #: src/web/templates/search.html:5
 msgid "Results of the search for"
-msgstr "Resultados de buscar"
+msgstr "Résultats de la recherche pour"
 
 #: src/web/templates/search.html:11
 msgid "Prev"
-msgstr "Previo"
+msgstr "Précédent"
 
 #: src/web/templates/search.html:13
 msgid "Results"
-msgstr "Resultados"
+msgstr "Résultats"
 
 #: src/web/templates/search.html:14
 msgid "Next"
-msgstr "Siguiente"
+msgstr "Suivant"
 
 #: src/web/templates/search.html:17
 msgid ""
@@ -200,43 +200,44 @@ msgid ""
 "        <a href=\"?quantity=100\">100</a> or <a "
 "href=\"?quantity=500\">500</a> results."
 msgstr ""
-"Mostrar <a href=\"?quantity=20\">20</a>, <a href=\"?quantity=50\">50</a>,"
-" <a href=\"?quantity=100\">100</a> o <a href=\"?quantity=500\">500</a> "
-"resultados."
+"Afficher <a href=\"?quantity=20\">20</a>, <a "
+"href=\"?quantity=50\">50</a>,\n"
+"        <a href=\"?quantity=100\">100</a> ou <a "
+"href=\"?quantity=500\">500</a> résultats."
 
 #: src/web/templates/sidebar.html:4 src/web/templates/sidebar.html:9
 msgid "Homepage"
-msgstr "Portada"
+msgstr "Page d'accueil"
 
 #: src/web/templates/sidebar.html:10
 msgid "Random article"
-msgstr "Artículo al azar"
+msgstr "Article au hasard"
 
 #: src/web/templates/sidebar.html:11
 msgid "Wikipedia in the Web"
-msgstr "Wikipedia en la Web"
+msgstr "Wikipédia sur le Web"
 
 #: src/web/templates/sidebar.html:12
 msgid "Help"
-msgstr "Ayuda"
+msgstr "Aide"
 
 #: src/web/templates/sidebar.html:16 src/web/templates/sidebar.html:21
 msgid "Search"
-msgstr "Buscar"
+msgstr "Rechercher"
 
 #: src/web/templates/sidebar.html:20
 msgid "Search articles with this text"
-msgstr "Busca artículos con este texto"
+msgstr "Recherche des articles avec ce texte"
 
 #: src/web/templates/sidebar.html:27
 msgid "Presented by"
-msgstr "Presentada por"
+msgstr "Présenté par"
 
 #: src/web/templates/sidebar.html:37
 msgid "Version"
-msgstr "Versión"
+msgstr "Version"
 
 #: src/web/templates/sidebar.html:39
 msgid "Generated on"
-msgstr "Generada en"
+msgstr "Généré en"
 

@@ -62,3 +62,25 @@ ay:
         windows: True
         page_limit: 5000000   # very big number, we want them all!
         image_reduction: [100, 0, 0, 0]
+
+    beta:
+        type: tarball
+        windows: True
+        page_limit: 8000
+        image_reduction: [5, 5, 10, 80]
+
+# Portuguese
+pt:
+    beta:
+        type: tarball
+        windows: True
+        page_limit: 8000
+        image_reduction: [5, 5, 10, 80]
+
+# French
+fr:
+    beta:
+        type: tarball
+        windows: True
+        page_limit: 8000
+        image_reduction: [5, 5, 10, 80]

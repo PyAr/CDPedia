@@ -2,7 +2,8 @@
 #
 # These are:
 #  - include: some specific pages that *must* be included
-#  - portal_index: the URL of the main "portals" index
+#  - portal_index: the title of the main "portals" index (optional)
+#  - second_language: alternative language for missing translations (optional)
 
 es:
     include: [
@@ -22,6 +23,8 @@ ay:
         "Wikipidiya:Acerca_de",
         "Wikipidiya:Limitación_general_de_responsabilidad",
     ]
+    portal_index: Nayriri_uñstawi
+    second_language: es
 
 pt:
     include: [
@@ -35,3 +38,16 @@ pt:
         "Wikipédia:Portal",
     ]
     portal_index: Portal:Índice
+
+fr:
+    include: [
+        "Wikipédia:À_propos_de_Wikipédia",
+        "Wikipédia:Avertissements_généraux",
+        "Wikipédia:Mise_en_garde_sur_le_risque",
+        "Wikipédia:Mise_en_garde_médicale",
+        "Wikipédia:Mise_en_garde_juridique",
+        "Wikipédia:Mise_en_garde_sur_le_contenu",
+        "Wikipédia:Droit_d'auteur",
+        "Wikipédia:Liste_des_portails",
+    ]
+    portal_index: Portail:Accueil

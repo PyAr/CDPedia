@@ -1,14 +1,14 @@
-# Translations template for PROJECT.
-# Copyright (C) 2020 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
+# Translations template for CDPedia.
+# Copyright (C) 2020 CDPedistas (see AUTHORS.txt)
+# This file is distributed under the same license as the CDPedia project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: CDPedia VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-05-01 16:29-0300\n"
+"POT-Creation-Date: 2020-08-05 22:13-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,51 +17,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.8.0\n"
 
-#: src/web/translations.py:3
+#: src/web/translations.py:20
 msgid "January"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:21
 msgid "February"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:22
 msgid "March"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:23
 msgid "April"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:24
 msgid "May"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:25
 msgid "June"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:26
 msgid "July"
 msgstr ""
 
-#: src/web/translations.py:3
+#: src/web/translations.py:27
 msgid "August"
 msgstr ""
 
-#: src/web/translations.py:4
+#: src/web/translations.py:28
 msgid "September"
 msgstr ""
 
-#: src/web/translations.py:4
+#: src/web/translations.py:29
 msgid "October"
 msgstr ""
 
-#: src/web/translations.py:4
+#: src/web/translations.py:30
 msgid "November"
 msgstr ""
 
-#: src/web/translations.py:4
+#: src/web/translations.py:31
 msgid "December"
 msgstr ""
 
@@ -89,14 +89,14 @@ msgstr ""
 msgid "There was a problem"
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:59
+#: src/web/templates/article.html:9
 #, python-format
 msgid ""
 "If you have an Internet connection, you can visit the article's <a "
 "class=\"external\" href=\"%s\">updated original page</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:62
+#: src/web/templates/cdpedia_base.html:61
 msgid ""
 "<a href=\"/institucional/cdpedia.html\">CDPedia</a> is a project of <a "
 "href=\"/institucional/pyar.html\">Python Argentina</a>. Learn to program "
@@ -104,20 +104,20 @@ msgid ""
 "target=\"_blank\">tutorial</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:65
+#: src/web/templates/cdpedia_base.html:64
 msgid ""
 "Articles and images are shown here without any processing more than the "
 "strictly necessary for the correct user navigation."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:68
+#: src/web/templates/cdpedia_base.html:67
 #, python-format
 msgid ""
 "All the content from the articles come from the <a "
 "href=\"http://%s.wikipedia.org/\">Wikipedia online site</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:73
+#: src/web/templates/cdpedia_base.html:72
 msgid ""
 "The text is released under the <a href=/institucional/cc-by-sa.html"
 ">Attribution-ShareAlike Creative Commons License</a>; additional terms "
@@ -128,11 +128,11 @@ msgid ""
 "non-profit organization."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:76
+#: src/web/templates/cdpedia_base.html:75
 msgid "About Wikipedia"
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:79
+#: src/web/templates/cdpedia_base.html:78
 msgid "Disclaimers"
 msgstr ""
 
@@ -151,6 +151,10 @@ msgstr ""
 
 #: src/web/templates/main_page.html:24
 msgid "Read more..."
+msgstr ""
+
+#: src/web/templates/no_image.svg:8
+msgid "No image"
 msgstr ""
 
 #: src/web/templates/search.html:5
@@ -181,38 +185,34 @@ msgid "Homepage"
 msgstr ""
 
 #: src/web/templates/sidebar.html:10
-msgid "Wikipedia in the Web"
-msgstr ""
-
-#: src/web/templates/sidebar.html:11
-msgid "Help"
-msgstr ""
-
-#: src/web/templates/sidebar.html:15 src/web/templates/sidebar.html:20
-msgid "Search"
-msgstr ""
-
-#: src/web/templates/sidebar.html:19
-msgid "Search articles with this text"
-msgstr ""
-
-#: src/web/templates/sidebar.html:24
-msgid "Suprise"
-msgstr ""
-
-#: src/web/templates/sidebar.html:27
 msgid "Random article"
 msgstr ""
 
-#: src/web/templates/sidebar.html:31
+#: src/web/templates/sidebar.html:11
+msgid "Wikipedia in the Web"
+msgstr ""
+
+#: src/web/templates/sidebar.html:12
+msgid "Help"
+msgstr ""
+
+#: src/web/templates/sidebar.html:16 src/web/templates/sidebar.html:21
+msgid "Search"
+msgstr ""
+
+#: src/web/templates/sidebar.html:20
+msgid "Search articles with this text"
+msgstr ""
+
+#: src/web/templates/sidebar.html:27
 msgid "Presented by"
 msgstr ""
 
-#: src/web/templates/sidebar.html:40
+#: src/web/templates/sidebar.html:37
 msgid "Version"
 msgstr ""
 
-#: src/web/templates/sidebar.html:42
+#: src/web/templates/sidebar.html:39
 msgid "Generated on"
 msgstr ""
 
