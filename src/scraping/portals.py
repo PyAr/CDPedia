@@ -289,7 +289,9 @@ _parsers = {
 
 def parse(language, html):
     """Generic entry point for all parsers."""
-    p = _parsers[language]
+    p = _parsers.get(language)
+    if not p:
+        return None
     return p(html)
 
 

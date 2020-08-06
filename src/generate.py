@@ -35,6 +35,7 @@ from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.images import extract, download, scale, calculate, embed
+from src.utiles import set_locale
 
 
 # para poder hacer generar.py > log.txt
@@ -198,6 +199,7 @@ def gen_run_config():
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
+    f.write('LOCALE = "%s"\n' % os.environ['LANGUAGE'])
     f.write('DIR_BLOQUES = os.path.join("cdpedia", "bloques")\n')
     f.write('DIR_ASSETS = os.path.join("cdpedia", "assets")\n')
     f.write('DIR_INDICE = os.path.join("cdpedia", "indice")\n')
@@ -322,6 +324,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
     logger.info("Copying the assets and locale files")
     copy_assets(src_info, config.DIR_ASSETS)
     shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
+    set_locale(lang_config.get('second_language'), record=True)
 
     articulos = path.join(src_info, "articles")
     if process_articles:

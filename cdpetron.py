@@ -33,6 +33,7 @@ from logging.handlers import RotatingFileHandler
 import yaml
 
 import config
+from utilities import localize
 
 # some constants to download the articles list we need to scrap
 URL_LIST = (
@@ -248,6 +249,9 @@ def scrap_portals(language, lang_config):
     html = u.read()
     logger.info("Scraping portals page of lenght %d", len(html))
     items = portals.parse(language, html)
+    if not items:
+        logger.info("Main page will be empty, no portal items to add")
+        return
     logger.info("Generating portals html with %d items", len(items))
     new_html = portals.generate(items)
 
@@ -310,6 +314,20 @@ def main(language, lang_config, imag_config,
 
     if extra_pages:
         scrap_extra_pages(language, extra_pages)
+
+    if config.VALIDATE_TRANSLATION:
+        tr_updated, tr_complete, tr_compiled = localize.translation_status(language)
+        if not tr_compiled:
+            logger.error("No .mo file for chosen language, generation interrupted")
+            return
+        if tr_complete and tr_updated:
+            logger.info("Translation to '%s' complete and up to date", language)
+        else:
+            logger.warning('Bad translation: complete=%s updated=%s', tr_complete, tr_updated)
+            if not test and not tr_updated:
+                # outdated translation may cause cdpedia run time errors
+                logger.error('Language validation failed, generation interrupted')
+                return
 
     if test and not image_type:
         image_type = ['beta']
@@ -399,7 +417,7 @@ if __name__ == "__main__":
                              image)
                 exit()
 
-        # get the language config
+    # get the language config
     _config_fname = os.path.join(location.branchdir, 'languages.yaml')
     with open(_config_fname) as fh:
         _config = yaml.safe_load(fh)
