@@ -1,0 +1,32 @@
+Generate cdpedia.exe for Windows autorun
+========================================
+
+The first step must be completed on Linux, the rest on Windows.
+
+- Build a CDPedia image in test mode.
+
+- Copy and extract the image to a Windows directory, e.g. `path\to\cdpedia_image\`.
+
+- Install latest stable python 3.7 (32 bit).
+  pyinstaller doesn't support python 3.8
+  see https://github.com/pyinstaller/pyinstaller/issues/4311
+  
+- Clone or get a copy of the CDPedia project.
+
+- Create a virtualenv specifying python 3.7 (32 bit) as target interpreter:
+  `virtualenv --python=path\to\python37_x86\python.exe venv_exe`
+
+- Activate virtualenv and install dependencies: `pywin32` and `pyinstaller`
+
+- From project dir, run `python utilities\make_autorun.py path\to\cdpedia_image`
+  This creates a new cdpedia.exe in image dir that is also copied to project dir
+
+- Run updated cdpedia.exe from image dir to test it
+
+- If it's OK, commit the updated cdpedia.exe to the project and push.
+
+- Done, the CDPedia test image is no longer needed.
+
+
+Note: tested and working OK using python 3.7.8 32-bit virtualenv with
+pytinstaller 4.0 in a Win10-x64 host.
