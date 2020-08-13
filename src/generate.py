@@ -1,5 +1,3 @@
-# -- encoding: utf-8 --
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -181,7 +179,7 @@ def build_iso(dest):
                      "-J", config.DIR_CDBASE])
 
 
-def gen_run_config():
+def gen_run_config(lang_config):
     """Generate the config file used on the final user computer."""
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
     f.write('import os\n\n')
@@ -190,7 +188,7 @@ def gen_run_config():
     f.write('EDICION_ESPECIAL = %s\n' % repr(config.EDICION_ESPECIAL))
     f.write('HOSTNAME = "%s"\n' % config.HOSTNAME)
     f.write('PORT = %d\n' % config.PORT)
-    f.write('INDEX = "%s"\n' % config.INDEX)
+    f.write('PORTAL_PAGE = "%s"\n' % lang_config['portal_index'])
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('ALL_ASSETS = %s\n' % config.ALL_ASSETS)
     f.write('DESTACADOS = os.path.join("cdpedia", "%s")\n' % config.DESTACADOS)
@@ -400,7 +398,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
         copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
 
     logger.info("Generating runtime config")
-    gen_run_config()
+    gen_run_config(lang_config)
 
     base_dest_name = "cdpedia-%s-%s-%s-%s" % (lang, config.VERSION, gendate, version)
     if config.imageconf["type"] == "iso":
