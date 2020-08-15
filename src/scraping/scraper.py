@@ -139,7 +139,7 @@ def fetch_html(url):
 
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
-                raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
+                raise FetchingError("Failed with HTTPError 404 on url %r", url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
