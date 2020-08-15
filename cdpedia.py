@@ -39,7 +39,7 @@ if os.path.exists("cdpedia"):
 
 # imports after sys path was fixed
 import config  # NOQA
-from src.utiles import WatchDog, find_open_port  # NOQA
+from src.utiles import WatchDog, find_open_port, set_locale  # NOQA
 from src.web.web_app import create_app  # NOQA
 from werkzeug.serving import ThreadedWSGIServer  # NOQA
 
@@ -136,6 +136,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     load_language()
+    set_locale()
 
     sys.excepthook = handle_crash
 

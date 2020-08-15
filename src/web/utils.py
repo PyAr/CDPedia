@@ -16,7 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import codecs
 import os.path
 import re
 import string
@@ -25,28 +24,8 @@ import urllib.parse
 import config
 from src.armado import to3dirs
 
-
 re_header = re.compile(r'\<h1 id="firstHeading" class="firstHeading"\>([^\<]*)\</h1\>')
 re_title = re.compile('<title>(.*)</title>')
-
-# params for building a fallback SVG image
-svg_mimetype = 'image/svg+xml'
-
-# include text in SVG only if bigger than this
-svg_text_width = 90
-svg_text_height = 30
-
-SVG_IMAGE = """<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">
-  <rect x="0%" y="0%" width="100%" height="100%" style="fill:#eee"/>
-  <rect x="0%" y="0%" width="100%" height="100%" style="fill:none;stroke:#bbb;stroke-width:4"/>
-  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:#bbb;stroke-width:2"/>
-  {text}
-</svg>"""
-
-SVG_TEXT = """<text x="50%" y="50%" text-anchor="middle"
-  dominant-baseline="middle" font-family="sans-serif"
-  style="fill:#888">{}</text>"""
 
 
 class TemplateManager(object):
@@ -61,7 +40,7 @@ class TemplateManager(object):
             return self.cache[name]
 
         filename = os.path.join(self.directory, "%s.tpl" % name)
-        with codecs.open(filename, "rt", encoding='utf-8') as fh:
+        with open(filename, "rt", encoding='utf-8') as fh:
             t = string.Template(fh.read())
 
         self.cache[name] = t
@@ -84,15 +63,3 @@ def get_orig_link(path):
     orig_link = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(
                  to3dirs.to_pagina(path)))
     return orig_link
-
-
-def img_fallback(width, height):
-    """Build a fallback image to show when original picture is not available."""
-
-    if width > svg_text_width and height > svg_text_height:
-        text = SVG_TEXT.format('Sin imagen')  # TODO: _('No image')
-    else:
-        text = ''
-    img = SVG_IMAGE.format(width=width, height=height, text=text)
-
-    return img, svg_mimetype

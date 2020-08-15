@@ -40,6 +40,7 @@ def create_app_client(mocker, tmp_path):
     mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
+    mocker.patch.dict('os.environ', {'LANGUAGE': 'es'})
     with (tmp_path / 'numbloques.txt').open('wt') as fh:
         fh.write('42\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
