@@ -40,6 +40,9 @@ logger = logging.getLogger("images.download")
 
 class FetchingError(Exception):
     """Error while fetching an image."""
+    def __init__(self, msg, *msg_args):
+        super().__init__(msg)
+        self.msg_args = msg_args
 
 
 def _download(url, fullpath):
@@ -70,7 +73,7 @@ def download(data):
             return
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
-                raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
+                raise FetchingError("Failed with HTTPError 404 on url %r", url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
