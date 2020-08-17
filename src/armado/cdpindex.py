@@ -153,15 +153,14 @@ def generate_from_html(dirbase, verbose):
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-            for word in WORDS.findall(normalize_words(title)):
-                yield word, (namhtml, title, ptje, True, primtext)
+            words = WORDS.findall(normalize_words(title))
+            yield words, ptje, (namhtml, title, True, primtext)
 
             # pass words to the redirects which points to
             # this html file, using the same score
             if arch in redirs:
                 for (words, title) in redirs[arch]:
-                    for word in words:
-                        yield word, (namhtml, title, ptje, False, "")
+                    yield words, ptje, (namhtml, title, False, "")
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
