@@ -2,7 +2,7 @@
 README
 ======
 
-This directory contains instructions and necesary files to:
+This directory contains instructions and necessary files to:
 
 1. Embed python in CDPedia image to allow its use on Windows without a python installation.
 2. Make CDPedia start automatically when inserting the CD/DVD, if autorun is enabled.
@@ -11,9 +11,9 @@ This directory contains instructions and necesary files to:
 Embedding python
 ================
 
-Download latest python embedable `.zip` distribution:
+Download the latest python embeddable `.zip` distribution:
 
-    cd resources/autrun.win
+    cd resources/autorun.win
     wget https://www.python.org/ftp/python/3.8.5/python-3.8.5-embed-win32.zip
 
 When generating a CDPedia release, the contents of this archive will be extracted to the
@@ -35,7 +35,7 @@ https://support.microsoft.com/en-us/help/3118401/update-for-universal-c-runtime-
 Autorun
 =======
 
-Include a file with special name ``autorun.inf`` in CD/DVD root to tell Windows what
+Include a file with special name `autorun.inf` in CD/DVD root to tell Windows what
 command to run and what icon to show when disk is inserted.
 
 
