@@ -142,8 +142,7 @@ def copy_sources():
     shutil.copy("cdpedia.py", config.DIR_CDBASE)
 
     if config.DESTACADOS:
-        shutil.copy(config.DESTACADOS,
-                    os.path.join(config.DIR_CDBASE, "cdpedia"))
+        shutil.copy(config.DESTACADOS, os.path.join(config.DIR_CDBASE, "cdpedia"))
 
 
 def generate_libs():
@@ -181,6 +180,7 @@ def build_iso(dest):
 
 def gen_run_config(lang_config):
     """Generate the config file used on the final user computer."""
+    featured = os.path.join("cdpedia", config.DESTACADOS) if config.DESTACADOS else None
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
     f.write('import os\n\n')
     f.write('VERSION = %s\n' % repr(config.VERSION))
@@ -191,8 +191,7 @@ def gen_run_config(lang_config):
     f.write('PORTAL_PAGE = "%s"\n' % lang_config['portal_index'])
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('ALL_ASSETS = %s\n' % config.ALL_ASSETS)
-    f.write('DESTACADOS = os.path.join("cdpedia", "%s")\n' % config.DESTACADOS)
-    f.write('DEBUG_DESTACADOS = %s\n' % repr(config.DEBUG_DESTACADOS))
+    f.write('DESTACADOS = {}\n'.format(featured))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
