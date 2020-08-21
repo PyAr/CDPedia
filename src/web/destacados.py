@@ -33,8 +33,11 @@ class Destacados(object):
         self.debug = debug
         self.verbose = verbose
 
-        with open(config.DESTACADOS, "rt", encoding="utf-8") as destacados:
-            self.destacados = [x.strip() for x in destacados]
+        if config.DESTACADOS is not None:
+            with open(config.DESTACADOS, "rt", encoding="utf-8") as destacados:
+                self.destacados = [x.strip() for x in destacados]
+        else:
+            self.destacados = []
 
         self._iter = itertools.cycle(self.destacados)
 
