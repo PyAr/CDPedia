@@ -29,11 +29,16 @@ import sys
 import urllib.parse
 import urllib.request
 from logging.handlers import RotatingFileHandler
+from tempfile import NamedTemporaryFile
 
+import bs4
 import yaml
 
 import config
 from utilities import localize
+from src.armado import to3dirs
+from src.preprocessing import preprocessors
+
 
 # some constants to download the articles list we need to scrap
 URL_LIST = (
@@ -43,6 +48,7 @@ URL_LIST = (
 ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
 NAMESPACES = "namespace_prefixes.txt"
+PORTAL_PAGES = 'portal_pages.txt'
 
 # some limits when running in test mode
 TEST_LIMIT_NAMESPACE = 50
@@ -234,7 +240,7 @@ def scrap_extra_pages(language, extra_pages):
     _call_scraper(language, extra_pages_file)
 
 
-def scrap_portals(language, lang_config):
+def scrap_portal(language, lang_config):
     """Get the portal index and scrap it."""
     # get the portal url, get out if don't have it
     portal_index_title = lang_config.get('portal_index')
@@ -242,22 +248,29 @@ def scrap_portals(language, lang_config):
         logger.info("Not scraping portals, url not configured.")
         return
 
-    portal_index_url = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(portal_index_title))
+    logger.info("Scraping portal main page %s", portal_index_title)
+    with NamedTemporaryFile('wt', encoding='utf8', dir='/tmp/', prefix='cdpedia-') as tf:
+        tf.write(portal_index_title + '\n')
+        tf.flush()
+        _call_scraper(language, tf.name)
 
-    logger.info("Downloading portal index from %r", portal_index_url)
-    u = urllib.request.urlopen(portal_index_url)
-    html = u.read()
-    logger.info("Scraping portals page of lenght %d", len(html))
-    items = portals.parse(language, html)
-    if not items:
-        logger.info("Main page will be empty, no portal items to add")
-        return
-    logger.info("Generating portals html with %d items", len(items))
-    new_html = portals.generate(items)
+    dir3, quoted_page = to3dirs.get_path_file(portal_index_title)
+    portal_filepath = os.path.join(location.articles, dir3, quoted_page)
 
-    # save it
-    with open(os.path.join(location.resources, "portals.html"), 'wt', encoding="utf-8") as fh:
-        fh.write(new_html)
+    logger.info("Parsing portal page")
+    with open(portal_filepath, 'rt', encoding='utf8') as fh:
+        soup = bs4.BeautifulSoup(fh, features="html.parser")
+
+    cnt = 0
+    _path = os.path.join(location.resources, PORTAL_PAGES)
+    with open(_path, 'wt', encoding='utf8') as fh:
+        for page in preprocessors.extract_pages(soup):
+            cnt += 1
+            fh.write(page + '\n')
+
+    logger.info("Scraping portal sub pages (total=%d)", cnt)
+    _call_scraper(language, _path)
+
     logger.info("Portal scraping done")
 
 
@@ -309,7 +322,7 @@ def main(language, lang_config, imag_config,
         gendate = get_lists(language, lang_config, test)
 
     if not noscrap:
-        scrap_portals(language, lang_config)
+        scrap_portal(language, lang_config)
         scrap_pages(language, test)
 
     if extra_pages:
@@ -413,8 +426,7 @@ if __name__ == "__main__":
         args.image_type = args.image_type.split(',')
         for image in args.image_type:
             if image not in imag_config:
-                logger.error("there's no %r image in the image type config",
-                             image)
+                logger.error("there's no %r image in the image type config", image)
                 exit()
 
     # get the language config
@@ -437,7 +449,7 @@ if __name__ == "__main__":
     sys.path.insert(1, location.branchdir)
     sys.path.insert(1, os.path.join(location.branchdir, "utilities"))
     from src import list_articles_by_namespaces, generate
-    from src.scraping import portals, scraper
+    from src.scraping import scraper
 
     # change page limit in test mode
     if args.page_limit:
