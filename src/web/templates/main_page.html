@@ -2,11 +2,8 @@
 {% block content %}
 <h1 class="firstHeading">{{ gettext('Welcome to the <a href="/institucional/cdpedia.html">CDPedia</a>!') }}</h1>
 
-{% if destacado %}
+{% if featured  %}
 <div id="articulo-destacado">
-  <table>
-  <tr>
-  <td style="display:block">
   <table style="padding: 2px; width: 100%; vertical-align:top; background:#ffffff">
   <tr><th>
           <div style="float:right; margin:2px 2px 0px 0px"><img alt="{{ gettext('Featured article') }}" src="/static/misc/Wikibar2.png" width="100" height="22" /></div>
@@ -26,13 +23,7 @@
   </td>
   </tr>
   </table>
-  </td>
-    {{portals}}
-  </tr>
-  </table>
 </div>
-{% else %}
-  {{portals}}
 {% endif %}
 
 {% endblock %}

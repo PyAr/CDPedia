@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
-
 # Copyright 2017-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -23,13 +20,17 @@ from __future__ import unicode_literals
 
 import base64
 import codecs
-import os
-
-import bs4
 
 import config
-from src.preprocessing.preprocessors import (ContentExtractor, VIPDecissor,
-    VIPArticles, Length, OmitRedirects, HTMLCleaner, SCORE_VIP)
+from src.preprocessing.preprocessors import (
+    ContentExtractor,
+    VIPDecissor,
+    VIPArticles,
+    Length,
+    OmitRedirects,
+    HTMLCleaner,
+    SCORE_VIP,
+)
 from .utils import load_test_article, FakeWikiFile
 
 import pytest
@@ -51,7 +52,10 @@ def article_2():
 def dummy_vip_decissor(mocker):
     """Dummy VIP decissor."""
     target = 'src.preprocessing.preprocessors.vip_decissor'
-    vip_decissor = lambda title: title.startswith('A')
+
+    def vip_decissor(title):
+        return title.startswith('A')
+
     mocker.patch(target, vip_decissor)
 
 
@@ -61,7 +65,7 @@ class TestContentExtractor(object):
     @pytest.fixture
     def extractor(self, mocker, tmp_path):
         """Create a test ContentExtractor."""
-        mocker.patch('config.LOG_TITLES', str(tmp_path /'titles.txt'))
+        mocker.patch('config.LOG_TITLES', str(tmp_path / 'titles.txt'))
         return ContentExtractor()
 
     def test_output_open_close(self, extractor):
@@ -123,7 +127,8 @@ class TestVIPDecissor(object):
 
         # VIP articles from languages.yaml
         include = 'Wikipedia:Portal', 'Wikipedia:Acerca_de'
-        mocker.patch('config.langconf', {'include': include}, create=True)
+        langconf = {'include': include, 'portal_index': 'Portal:MainPortal'}
+        mocker.patch('config.langconf', langconf, create=True)
 
         # VIP articles from  featured.txt
         featured = 'Big_bang', 'Río_de_la_Plata', 'Neutrón'
@@ -132,17 +137,12 @@ class TestVIPDecissor(object):
             fh.write('\n'.join(featured))
 
         # VIP articles from main portals page
-        portals = 'Portal:Derecho', 'Portal:Economía', 'Portal:Educación'
-        portals_html = """<html><body>
-            <a class="nopo" href="/wiki/Portal:Derecho">Derecho</a>
-            <a class="nopo" href="/wiki/Portal:Econom%C3%ADa">Economía</a>
-            <a class="nopo" href="/wiki/Portal:Educaci%C3%B3n">Educación</a>
-            </body></html>
-            """
+        portals = ['Portal:Derecho', 'Portal:Economía', 'Portal:Educación']
         dir_portals = tmp_path / 'dynamic'
         dir_portals.mkdir()
-        with (dir_portals / 'portals.html').open('w', encoding='utf-8') as fh:
-            fh.write(portals_html)
+        with (dir_portals / 'portal_pages.txt').open('wt', encoding='utf-8') as fh:
+            for portal in portals:
+                fh.write(portal + '\n')
 
         return dict(include=include, featured=featured, portals=portals)
 
@@ -224,7 +224,7 @@ class TestOmitRedirects(object):
 
     def test_save(self, normal_redirect, omit_redirects):
         """Test saved results."""
-        result = omit_redirects(normal_redirect)
+        omit_redirects(normal_redirect)
         omit_redirects.close()
         expected_line = 'Telegram.org' + config.SEPARADOR_COLUMNAS + 'Telegram' + '\n'
         with codecs.open(config.LOG_REDIRECTS, 'r', encoding='utf-8') as fh:
@@ -391,11 +391,9 @@ class TestHTMLCleaner(object):
 
     def test_remove_parsing_errors(self, cleaner):
         """Test removal of wikipedia parsing error notices."""
-        html = ('<p>Foo<span class="error mw-ext-cite-error" lang="es">'
-               'Spam Spam</span> bar</p>')
+        html = ('<p>Foo<span class="error mw-ext-cite-error" lang="es">Spam Spam</span> bar</p>')
         html_fixed = '<p>Foo bar</p>'
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
         assert result == (0, [])
         assert html_fixed in wikifile.get_html()
-
