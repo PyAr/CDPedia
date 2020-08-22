@@ -142,14 +142,13 @@ def generate_from_html(dirbase, verbose):
             arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
             titles_texts[arch] = (title, primtext)
-    allready_seen = {}
+    already_seen = set()
 
-    def check_allready_seen(data):
+    def check_already_seen(data):
         """Check for duplicated index entries. Crash if founded."""
-        hash_data = hash(data)
-        if hash_data in allready_seen:
-            raise KeyError("Duplicated document in: %r" % allready_seen[hash_data])
-        allready_seen[hash_data] = data
+        if data in already_seen:
+            raise KeyError("Duplicated document in: {}".format(data))
+        already_seen.add(data)
 
     def gen():
         for dir3, arch, score in top_pages:
@@ -163,7 +162,7 @@ def generate_from_html(dirbase, verbose):
             ptje = 50 + score // 1000
 
             data = (namhtml, title, ptje, True, primtext)
-            check_allready_seen(data)
+            check_already_seen(data)
             for word in WORDS.findall(normalize_words(title)):
                 yield word, data
 
@@ -172,7 +171,7 @@ def generate_from_html(dirbase, verbose):
             if arch in redirs:
                 for (words, title) in redirs[arch]:
                     data = (namhtml, title, ptje, False, "")
-                    check_allready_seen(data)
+                    check_already_seen(data)
                     for word in words:
                         yield word, data
 
