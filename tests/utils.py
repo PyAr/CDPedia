@@ -14,8 +14,6 @@
 #
 # For further info, check  http://code.google.com/p/cdpedia/
 
-from __future__ import unicode_literals
-
 import codecs
 import os
 
@@ -49,4 +47,3 @@ def load_test_article(name):
     html = load_fixture(name)
     wikifile = FakeWikiFile(html)
     return html, wikifile
-

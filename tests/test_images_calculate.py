@@ -68,7 +68,7 @@ def test_scaler(image_config):
     images = 100  # keep it simple
     s = calculate.SCALES
     p = config.imageconf['image_reduction']
-    expect = [x for i in range(len(s)) for x in [s[i]]*p[i]] 
+    expect = [x for i in range(len(s)) for x in [s[i]] * p[i]]
     scaler = calculate.Scaler(images)
     result = [scaler(i) for i in range(images)]
     assert expect == result
