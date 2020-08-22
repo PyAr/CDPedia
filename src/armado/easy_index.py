@@ -61,7 +61,6 @@ class Index(object):
         # group the id per file
         cuales = {}
         for i in allids:
-            # cual = utiles.coherent_hash(i) % self.idfiles_count
             cual = i % self.idfiles_count
             cuales.setdefault(cual, []).append(i)
 
@@ -228,7 +227,6 @@ class Index(object):
             N = 1
         all_idshelves = [{} for i in range(N)]
         for k, v in ids_shelf.items():
-            # cual = utiles.coherent_hash(k) % N
             cual = k % N
             all_idshelves[cual][k] = v
 
