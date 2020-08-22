@@ -395,8 +395,8 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
     if config.imageconf["windows"]:
         logger.info("Copying Windows stuff")
         copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
-        # official embeddable python distribution for win32
-        py_win_zip = "resources/autorun.win/python-3.8.5-embed-win32.zip"
+        # unpack embeddable python distribution for win32
+        py_win_zip = "resources/autorun.win/python-win32.zip"
         py_win_dst = os.path.join(config.DIR_CDBASE, 'python')
         with zipfile.ZipFile(py_win_zip, 'r') as zh:
             zh.extractall(py_win_dst)
