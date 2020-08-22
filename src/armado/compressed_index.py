@@ -502,7 +502,7 @@ class Index(object):
         return self._get_info_id(results)
 
     @classmethod
-    def create(cls, directory, source, show_progress=True):
+    def create(cls, directory, source):
         """Create the index in the directory.
 
         The "source" generates pairs (key, value) to store in the index.  The
@@ -516,37 +516,29 @@ class Index(object):
         key_shelf = {}
         # ids counter
         ids_cnter = 0
-        # dict, keys are the values (tuples) and values are the ids
-        tmp_reverse_id = {}
         #  indexed entries's counter
         indexed_counter = 0
 
         # fill them
         # key are words extracted from titles, redirects
-        # value are tuples (nomhtml, titulo, ptje, its_a_title, primtexto)
-        for keys, ptje, data in source:
+        # value are tuples (nomhtml, titulo, score, its_a_title, primtexto)
+        for keys, score, data in source:
             checkme = all([isinstance(keys, list),
-                          isinstance(ptje, int),
+                          isinstance(score, int),
                           isinstance(data, tuple)])
             if not checkme:
-                raise TypeError("The keys and value must be lists, ptje must be integer")
+                raise TypeError("The keys and value must be lists, score must be integer")
             if not all([isinstance(k, str) for k in keys]):
                 raise TypeError("The keys must be a strings")
             if any([('\n' in k) for k in keys]):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
-            value = list(data) + [ptje]
+            value = list(data) + [score]
 
             # docid -> info final
-            # don't add to tmp_reverse_id or ids_shelf if the value is repeated
-            hash_title = data.__hash__()
-            if hash_title in tmp_reverse_id:
-                docid = tmp_reverse_id[hash_title]
-            else:
-                docid = ids_cnter
-                tmp_reverse_id[hash_title] = docid
-                ids_shelf[docid] = value
-                ids_cnter += 1
+            docid = ids_cnter
+            ids_shelf[docid] = value
+            ids_cnter += 1
 
             for key in keys:
                 # keys -> docid
@@ -564,11 +556,6 @@ class Index(object):
                     bucket = key_shelf[key] = array.array('l')
                 bucket.append(docid)
 
-        import pprint
-        print('\nkey_shelf:')
-        pprint.pprint(key_shelf)
-        print('\nids_shelf:')
-        pprint.pprint(ids_shelf)
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
         print(" Delta-encoding index buckets...")
