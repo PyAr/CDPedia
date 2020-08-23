@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -17,10 +15,6 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """Tests for Peishranc preprocessor."""
-
-from __future__ import unicode_literals
-
-import bs4
 
 from src.preprocessing.preprocessors import Peishranc, SCORE_PEISHRANC
 from .utils import FakeWikiFile
@@ -148,4 +142,3 @@ def test_no_link(peishranc):
     v, r = peishranc(wikifile)
     assert v == 0
     assert r == []
-
