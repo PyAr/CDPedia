@@ -128,7 +128,7 @@ class _StatusBoard:
             self.ok += 1
 
         speed = self.total / (time.time() - self.init_time)
-        print("Total={}  ok={}  bad={}  speed={:.2f} art/s\r".format(
+        print("Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
             self.total, self.ok, self.bad, speed), end='', flush=True)
 
 
