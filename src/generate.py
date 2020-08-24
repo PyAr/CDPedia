@@ -274,13 +274,9 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, branch_dir, version, lang_config, gendate,
+def main(lang, src_info, version, lang_config, gendate,
          verbose=False, desconectado=False, process_articles=True):
     """Generate the CDPedia tarball or iso."""
-    # XXX Facundo 2020-06-05: need to remove this chdir, after checking everything
-    # uses the branch_dir properly (surely when we integrate this helper to cdpetron)
-    os.chdir(branch_dir)
-
     # don't affect the rest of the machine
     make_it_nicer()
 
@@ -495,5 +491,4 @@ To update an image with the code and assets changes  in this working copy:
         update_mini(direct)
     else:
         gendate = datetime.date.today().strftime("%Y%m%d")
-        branch_dir = os.path.dirname(os.path.abspath(__file__))
         main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)
