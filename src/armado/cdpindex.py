@@ -132,7 +132,8 @@ def generate_from_html(dirbase, verbose):
         # so we use the words founded in the filename
         # it isn't the optimal solution, but works
         words, title = filename2words(orig)
-        redirs.setdefault(dest, []).append((words, title))
+        # use a set for redirects to avoid duplicated titles after normalization
+        redirs.setdefault(dest, set()).add((tuple(words), title))
 
     top_pages = preprocess.pages_selector.top_pages
 
