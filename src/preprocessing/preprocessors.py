@@ -194,7 +194,13 @@ class OmitRedirects(_Processor):
 
         # store the redirect in corresponding file
         self.stats['redirect'] += 1
-        url_redirect = node.text
+        # extract target from href not from text
+        url_redirect = node.find('a').attrs['href']
+        # remove path prefix
+        if url_redirect.startswith('/wiki/'):
+            url_redirect = url_redirect[6:]
+        url_redirect = unquote(url_redirect)
+
         sep_col = config.SEPARADOR_COLUMNAS
         line = wikifile.url + sep_col + url_redirect + "\n"
         self.output.write(line)
