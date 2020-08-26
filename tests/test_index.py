@@ -38,8 +38,7 @@ def decomp(data):
 
 def abrev(result):
     """Cut auto generated html title in 0 position."""
-    if isinstance(result, types.GeneratorType):
-        result = list(result)
+    result = list(result)
     if not result:
         return result
     return [tuple(r[1:3]) for r in result]
@@ -79,11 +78,13 @@ def test_auxiliary():
 
 DataSet.add_fixture("A", "ala blanca/3")
 DataSet.add_fixture("B", "ala blanca/3; conejo blanco/5; conejo negro/6")
-data = """aaa/4;
+data = """\
+        aaa/4;
         abc/4;
         bcd/4;
         abd/4;
-        bbd/4"""
+        bbd/4
+    """
 DataSet.add_fixture("E", data)
 
 @pytest.fixture(params=[compressed_index.Index, easy_index.Index])
@@ -170,7 +171,8 @@ def test_several_keys(caplog, create_index):
 def test_many_results(caplog, create_index):
     """Test with many pages of results."""
     caplog.set_level(logging.INFO)
-    data = """blanca ojeda/9000;
+    data = """\
+        blanca ojeda/9000;
         coneja blanca/9000;
         gradaciones entre los colores de blanca/9000;
         conejo blanca/9000;
@@ -180,7 +182,8 @@ def test_many_results(caplog, create_index):
         es blanca la paloma/9000;
         Blanca gómez/9000;
         recuerdos de blanca/9000;
-        blanca/9000"""
+        blanca/9000
+    """
     DataSet.add_fixture("D", data)
     idx = create_index(DataSet("D").info)
     assert len(DataSet("D").info) == len([v for v in idx.values()])
@@ -249,7 +252,7 @@ def test_partialsearch_prefix(create_index):
     """Match its prefix."""
     idx = create_index(DataSet("B").info)
     res = idx.partial_search(["blanc"])
-    assert set(abrev(list(res))) == set(decomp("conejo blanco/5; ala blanca/3"))
+    assert set(abrev(res)) == set(decomp("conejo blanco/5; ala blanca/3"))
     res = idx.partial_search(["zz"])
     assert list(res) == []
 

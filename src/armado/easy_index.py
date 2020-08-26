@@ -182,7 +182,6 @@ class Index(object):
         ids_shelf = {}
         key_shelf = {}
         ids_cnter = 0
-        tmp_reverse_id = {}
         indexed_counter = 0
 
         # fill them
@@ -201,13 +200,8 @@ class Index(object):
 
             # docid -> info final
             # don't add to tmp_reverse_id or ids_shelf if the value is repeated
-            hash_title = data.__hash__()
-            if hash_title in tmp_reverse_id:
-                docid = tmp_reverse_id[hash_title]
-            else:
-                docid = ids_cnter
-                tmp_reverse_id[hash_title] = docid
-                ids_cnter += 1
+            docid = ids_cnter
+            ids_cnter += 1
 
             ids_shelf[docid] = value
 
