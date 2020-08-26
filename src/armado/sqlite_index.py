@@ -16,13 +16,23 @@
 
 
 import array
+import logging
 import os
+import pickle
+import random
 import sqlite3
 from collections import defaultdict
+from functools import lru_cache
+import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
 
 PAGE_SIZE = 512
+logger = logging.getLogger(__name__)
+
+
+def decompress_data(data):
+    return pickle.loads(best_compressor.decompress(data))
 
 
 class DocSet:
@@ -154,3 +164,244 @@ def to_filename(title):
     dir3, arch = to3dirs.get_path_file(tt)
     expected = os.path.join(dir3, arch)
     return expected
+
+
+class Index:
+    """Handle the index."""
+
+    def __init__(self, directory):
+        self._directory = directory
+        keyfilename = os.path.join(directory, "index.sqlite")
+        self.db = open_connection(keyfilename)
+        self.db.executescript('''
+            PRAGMA query_only = True;
+            PRAGMA journal_mode = MEMORY;
+            PRAGMA temp_store = MEMORY;
+            PRAGMA synchronous = OFF;
+            ''')
+
+    def keys(self):
+        """Returns an iterator over the stored keys."""
+        cur = self.db.execute("SELECT word FROM tokens")
+        return [row[0] for row in cur.fetchall()]
+
+    def items(self):
+        """Returns an iterator over the stored items."""
+        sql = "select word, docsets as 'ds [docset]' from tokens"
+        cur = self.db.execute(sql)
+        for row in cur.fetchall():
+            yield row[0], row[1]
+
+    def values(self):
+        """Returns an iterator over the stored values."""
+        cur = self.db.execute("SELECT pageid, data FROM docs ORDER BY pageid")
+        for row in cur.fetchall():
+            decomp_data = decompress_data(row[1])
+            for doc in decomp_data:
+                yield doc
+
+    @lru_cache(1)
+    def __len__(self):
+        """Compute the total number of docs in compressed pages."""
+        sql = "Select pageid, data from docs order by pageid desc limit 1"
+        cur = self.db.execute(sql)
+        row = cur.fetchone()
+        decomp_data = decompress_data(row[1])
+        return row[0] * PAGE_SIZE + len(decomp_data)
+
+    def random(self):
+        """Returns a random value."""
+        docid = random.randint(0, len(self) - 1)
+        return self.get_doc(docid)
+
+    def __contains__(self, key):
+        """Returns if the key is in the index or not."""
+        cur = self.db.execute("SELECT word FROM tokens where word = ?", (key,))
+        if cur.fetchone():
+            return True
+        return False
+
+    @lru_cache(1000)
+    def _get_page(self, pageid):
+        cur = self.db.execute("SELECT data FROM docs where pageid = ?", (pageid,))
+        row = cur.fetchone()
+        if row:
+            decomp_data = decompress_data(row[0])
+            return decomp_data
+        return None
+
+    def get_doc(self, docid):
+        '''Returns one stored document item.'''
+        page_id, rel_position = divmod(docid, PAGE_SIZE)
+        data = self._get_page(page_id)
+        if not data:
+            return None
+        row = data[rel_position]
+        # if the html filename is marked as computable
+        # do it and store in position 0.
+        if row[0] is None:
+            row[0] = to_filename(row[1])
+        return row
+
+    @classmethod
+    def create(cls, directory, source, show_progress=True):
+        """Creates the index in the directory.
+        The source must give path, page_score, title and
+        a list of extracted words from title in an ordered fashion
+
+        It must return the quantity of pairs indexed.
+        """
+        import pickletools
+        import timeit
+
+        class SQLmany:
+            """Execute many INSERTs greatly improves the performance."""
+            def __init__(self, name, sql):
+                self.sql = sql
+                self.name = name
+                self.count = 0
+                self.buffer = []
+
+            def append(self, data):
+                """Append one data set to persist on db."""
+                self.buffer.append(data)
+                self.count += 1
+                if self.count % PAGE_SIZE == 0:
+                    self.persist()
+                    self.buffer = []
+                if cls.show_progress and self.count % 1000 == 0:
+                    print(self.name[0].lower(), end="", flush=True)
+                return self.count - 1
+
+            def finish(self):
+                """Finish the process and prints some data."""
+                if self.buffer:
+                    self.persist()
+                if cls.show_progress:
+                    print(self.name, ":", self.count, flush=True)
+                dict_stats[self.name] = self.count
+
+            def persist(self):
+                """Commit data to index."""
+                database.executemany(self.sql, self.buffer)
+                database.commit()
+
+        class Compressed(SQLmany):
+            """Creates the table of compressed documents information.
+
+            The groups is PAGE_SIZE lenght, pickled and compressed."""
+            def persist(self):
+                """Compress and commit data to index."""
+                docs_data = []
+                lenghts = array.array("B")
+                for lenght, data in self.buffer:
+                    lenghts.append(lenght)
+                    docs_data.append(data)
+                pickdata = pickletools.optimize(pickle.dumps(docs_data))
+                comp_data = best_compressor.compress(pickdata)
+                page_id = (self.count - 1) // PAGE_SIZE
+                database.execute(self.sql, (page_id, lenghts.tobytes(), comp_data))
+                database.commit()
+
+        def create_database():
+            """Creates de basic structure of new database."""
+            script = """
+                PRAGMA journal_mode = OFF;
+                PRAGMA synchronous = OFF;
+                CREATE TABLE tokens
+                    (word TEXT,
+                    docsets BLOB);
+                CREATE TABLE docs
+                    (pageid INTEGER PRIMARY KEY,
+                    lengths BLOB,
+                    data BLOB);
+                CREATE TABLE temp_docs
+                    (page_score NUMERIC, data BLOB);
+                """
+
+            database.executescript(script)
+
+        def create_temp_ordered(source):
+            """Dump every doc data in a temp table to order it."""
+            sql = "INSERT INTO temp_docs (page_score, data) VALUES (?, ?)"
+            docs_table = SQLmany("Unsorted", sql)
+            allready_seen = set()
+            dict_stats["Repeated docs"] = 0
+            for words, page_score, data in source:
+                hash_data = (data[1].__hash__(), data.__hash__())
+                if hash_data not in allready_seen:
+                    allready_seen.add(hash_data)
+                    data = list(data)
+                    # see if html file name can be deduced
+                    # from the title. Mark using None
+                    if data[0] == to_filename(data[1]):
+                        data[0] = None
+                    docs_table.append((page_score, pickle.dumps([words, data])))
+                else:
+                    dict_stats["Repeated docs"] += 1
+            docs_table.finish()
+            database.execute("create index idx_temp on temp_docs (page_score);")
+
+        def ordered_source():
+            """Loop through all docs stored in database in page_score order."""
+            sql = "SELECT page_score, data from temp_docs order by page_score desc"
+            cur = database.cursor()
+            cur.execute(sql)
+            for row in cur.fetchall():
+                page_score = row[0]
+                words, data = pickle.loads(row[1])
+                yield words, page_score, data
+
+        def add_docs_keys(source):
+            """Add docs and keys registers to db and its rel in memory."""
+            idx_dict = defaultdict(DocSet)
+            sql = "INSERT INTO docs (pageid, lengths, data) VALUES (?, ?, ?)"
+            docs_table = Compressed("Documents", sql)
+            for words, page_score, data in source:
+                data.append(page_score)
+                docid = docs_table.append((len(words), data))
+                add_words(idx_dict, words, docid)
+
+            docs_table.finish()
+            return idx_dict
+
+        def add_words(idx_dict, words, docid):
+            """Stores in a dict the words and its related documents."""
+            for idx, word in enumerate(words):
+                # item_score = max(1, 0.6 * word_sccores
+                idx_dict[word].append(docid, idx + 1)
+
+        def add_tokens_to_db(idx_dict):
+            """Insert token words in the database."""
+            sql_ins = "insert into tokens (word, docsets) values (?, ?)"
+            token_store = SQLmany("Tokens", sql_ins)
+            for word, docs_list in idx_dict.items():
+                logger.debug("Word: %s %r" % (word, docs_list))
+                dict_stats["Indexed"] += len(docs_list)
+                token_store.append((word, docs_list))
+            token_store.finish()
+
+        def create_indexes():
+            script = '''
+                create index idx_words on tokens (word);
+                drop table temp_docs;
+                vacuum;
+                '''
+            database.executescript(script)
+
+        cls.show_progress = show_progress
+        logger.info("Indexing")
+        initial_time = timeit.default_timer()
+        dict_stats = defaultdict(int)
+        keyfilename = os.path.join(directory, "index.sqlite")
+        database = open_connection(keyfilename)
+        create_database()
+        create_temp_ordered(source)
+        idx_dict = add_docs_keys(ordered_source())
+        add_tokens_to_db(idx_dict)
+        create_indexes()
+        dict_stats["Total time"] = int(timeit.default_timer() - initial_time)
+        # Finally, show some statistics.
+        for k, v in dict_stats.items():
+            logger.info("{:>20}:{}".format(k, v))
+        return dict_stats["Indexed"]
