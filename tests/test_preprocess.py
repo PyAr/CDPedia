@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2013-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -17,8 +15,6 @@
 # For further info, check  http://code.google.com/p/cdpedia/
 
 """Tests for the 'preprocess' module."""
-
-from __future__ import unicode_literals
 
 import codecs
 import logging
@@ -103,6 +99,13 @@ class TestWikiSite(object):
         mocker.patch('config.DIR_PREPROCESADO', str(tmp_path / 'prepr'))
         mocker.patch('config.langconf', create=True)
         mocker.patch(target + 'WikiFile', preprocess.WikiFile)
+
+        # set up the portal pages in a custom dir_assets
+        mocker.patch('config.DIR_ASSETS', str(tmp_path))
+        portals_file = tmp_path / 'dynamic' / 'portal_pages.txt'
+        portals_file.parent.mkdir(exist_ok=True)
+        portals_file.touch()
+
         return preprocess.WikiSite
 
     @pytest.fixture
@@ -119,7 +122,9 @@ class TestWikiSite(object):
                 fh.write(content)
 
         # compute expected scores
-        _join = lambda *args: config.SEPARADOR_COLUMNAS.join(str(a) for a in args)
+        def _join(*args):
+            return config.SEPARADOR_COLUMNAS.join(str(a) for a in args)
+
         ln = len(content)
         real = [_join(t, 'R', ln) for t in titles]
         n_extra = len(titles) - 1
@@ -177,7 +182,7 @@ class TestWikiSite(object):
 
     def test_processed_before(self, articles, wikisite):
         """Don't process titles logged as processed."""
-        root, titles , _ = articles
+        root, titles, _ = articles
         with codecs.open(config.LOG_PREPROCESADO, 'w', encoding='utf-8') as fh:
             fh.write('ham\n')
         ws = wikisite(root)
@@ -326,4 +331,3 @@ class TestRun(object):
         mocker.patch('src.preprocessing.preprocess.WikiSite', m)
         preprocess.run('foo')
         m.assert_has_calls((mocker.call().process(), mocker.call().commit()))
-
