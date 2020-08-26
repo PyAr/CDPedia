@@ -18,8 +18,6 @@
 import shutil
 import types
 import tempfile
-import logging
-from pprint import pprint as pp
 import pytest
 
 from src.armado import easy_index
@@ -71,7 +69,7 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    assert DataSet("one") == [(['ala', 'blanca'], 3, ('','ala blanca'))]
+    assert DataSet("one") == [(['ala', 'blanca'], 3, ('', 'ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
          ["A/l/a/Ala", "ala", 8]]
     s = "ala blanca/3; ala/8"
@@ -86,6 +84,7 @@ data = """aaa/4;
         abd/4;
         bbd/4"""
 DataSet.add_fixture("E", data)
+
 
 @pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
 def create_index(request):
@@ -120,6 +119,7 @@ def get_engine(request):
 
 # --- Test the .items method.
 
+
 def test_items_nothing(create_index):
     """Nothing in the index."""
     idx = create_index([])
@@ -144,6 +144,7 @@ def test_several_items(create_index):
 
 # --- Test the .random method.
 
+
 def test_random_one_item(create_index):
     """Only one item."""
     idx = create_index(DataSet("A").info)
@@ -159,6 +160,7 @@ def test_random_several_values(create_index):
 
 # --- Test the "in" functionality.
 
+
 def test_infunc_nothing(create_index):
     """Nothing in the index."""
     idx = create_index([])
@@ -170,4 +172,3 @@ def test_infunc_one_item(create_index):
     idx = create_index(DataSet("B").info)
     assert "ala" in idx
     assert "bote" not in idx
-
