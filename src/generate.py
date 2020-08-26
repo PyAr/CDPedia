@@ -1,5 +1,3 @@
-# -- encoding: utf-8 --
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -144,8 +142,7 @@ def copy_sources():
     shutil.copy("cdpedia.py", config.DIR_CDBASE)
 
     if config.DESTACADOS:
-        shutil.copy(config.DESTACADOS,
-                    os.path.join(config.DIR_CDBASE, "cdpedia"))
+        shutil.copy(config.DESTACADOS, os.path.join(config.DIR_CDBASE, "cdpedia"))
 
 
 def generate_libs():
@@ -181,8 +178,9 @@ def build_iso(dest):
                      "-J", config.DIR_CDBASE])
 
 
-def gen_run_config():
+def gen_run_config(lang_config):
     """Generate the config file used on the final user computer."""
+    featured = os.path.join("cdpedia", config.DESTACADOS) if config.DESTACADOS else None
     f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
     f.write('import os\n\n')
     f.write('VERSION = %s\n' % repr(config.VERSION))
@@ -190,11 +188,10 @@ def gen_run_config():
     f.write('EDICION_ESPECIAL = %s\n' % repr(config.EDICION_ESPECIAL))
     f.write('HOSTNAME = "%s"\n' % config.HOSTNAME)
     f.write('PORT = %d\n' % config.PORT)
-    f.write('INDEX = "%s"\n' % config.INDEX)
+    f.write('PORTAL_PAGE = "%s"\n' % lang_config['portal_index'])
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('ALL_ASSETS = %s\n' % config.ALL_ASSETS)
-    f.write('DESTACADOS = os.path.join("cdpedia", "%s")\n' % config.DESTACADOS)
-    f.write('DEBUG_DESTACADOS = %s\n' % repr(config.DEBUG_DESTACADOS))
+    f.write('DESTACADOS = {}\n'.format(featured))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
@@ -277,13 +274,9 @@ def update_mini(image_path):
     copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
-def main(lang, src_info, branch_dir, version, lang_config, gendate,
+def main(lang, src_info, version, lang_config, gendate,
          verbose=False, desconectado=False, process_articles=True):
     """Generate the CDPedia tarball or iso."""
-    # XXX Facundo 2020-06-05: need to remove this chdir, after checking everything
-    # uses the branch_dir properly (surely when we integrate this helper to cdpetron)
-    os.chdir(branch_dir)
-
     # don't affect the rest of the machine
     make_it_nicer()
 
@@ -400,7 +393,7 @@ def main(lang, src_info, branch_dir, version, lang_config, gendate,
         copy_dir("resources/autorun.win/cdroot", config.DIR_CDBASE)
 
     logger.info("Generating runtime config")
-    gen_run_config()
+    gen_run_config(lang_config)
 
     base_dest_name = "cdpedia-%s-%s-%s-%s" % (lang, config.VERSION, gendate, version)
     if config.imageconf["type"] == "iso":
@@ -498,5 +491,4 @@ To update an image with the code and assets changes  in this working copy:
         update_mini(direct)
     else:
         gendate = datetime.date.today().strftime("%Y%m%d")
-        branch_dir = os.path.dirname(os.path.abspath(__file__))
         main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)

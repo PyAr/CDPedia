@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -16,33 +14,20 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function, unicode_literals
-
 import itertools
 import os
 import re
 from codecs import open
-from io import StringIO
 
 import pytest
 from flake8.api.legacy import get_style_guide
-
-FLAKE8_OPTIONS = {'max_line_length': 99, 'select': ['E', 'W', 'F', 'C', 'N']}
 
 
 def _get_python_filepaths():
     """Helper to retrieve paths of Python files."""
     python_paths = ['cdpedia.py', 'config.py', 'cdpetron.py']
-    for root in ['src', 'utilities']:
+    for root in ['src', 'utilities', 'tests']:
         for dirpath, dirnames, filenames in os.walk(root):
-
-            # Ignore third party code, at least until we appropiate them; related
-            # issue: https://github.com/PyAr/CDPedia/issues/193 .
-            if 'third_party' in dirnames:
-                dirnames.remove('third_party')
-            if 'bmp.py' in filenames:
-                filenames.remove('bmp.py')
-
             for filename in filenames:
                 if filename.endswith(".py"):
                     python_paths.append(os.path.join(dirpath, filename))
@@ -52,7 +37,7 @@ def _get_python_filepaths():
 def test_flake8(capsys):
     # verify all files are nicely styled
     python_filepaths = _get_python_filepaths()
-    style_guide = get_style_guide(**FLAKE8_OPTIONS)
+    style_guide = get_style_guide()
     report = style_guide.check_files(python_filepaths)
 
     if report.total_errors != 0:

@@ -122,6 +122,12 @@ def load_language():
         config.LANGUAGE = lang
         config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
 
+        import yaml  # imported here as not needed in production
+        with open('languages.yaml') as fh:
+            _config = yaml.safe_load(fh)
+        lang_config = _config[lang]
+        config.PORTAL_PAGE = lang_config['portal_index']
+
 
 if __name__ == "__main__":
     parser = optparse.OptionParser()

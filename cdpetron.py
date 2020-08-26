@@ -29,11 +29,18 @@ import sys
 import urllib.parse
 import urllib.request
 from logging.handlers import RotatingFileHandler
+from tempfile import NamedTemporaryFile
 
+import bs4
 import yaml
 
 import config
 from utilities import localize
+from src import list_articles_by_namespaces, generate
+from src.armado import to3dirs
+from src.preprocessing import preprocessors
+from src.scraping import scraper
+
 
 # some constants to download the articles list we need to scrap
 URL_LIST = (
@@ -43,6 +50,7 @@ URL_LIST = (
 ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
 NAMESPACES = "namespace_prefixes.txt"
+PORTAL_PAGES = 'portal_pages.txt'
 
 # some limits when running in test mode
 TEST_LIMIT_NAMESPACE = 50
@@ -71,16 +79,15 @@ class Location(object):
     IMAGES = "images"
     RESOURCES = 'resources'
 
-    def __init__(self, dumpdir, branchdir, language):
+    def __init__(self, dumpdir, language):
         self.dumpbase = os.path.abspath(dumpdir)
-        self.branchdir = os.path.abspath(branchdir)
 
         self.langdir = os.path.join(self.dumpbase, language)
         self.articles = os.path.join(self.langdir, self.ARTICLES)
         self.resources = os.path.join(self.langdir, self.RESOURCES)
         self.images = os.path.join(self.dumpbase, self.IMAGES)  # language agnostic
 
-        # (maybe) create all the above directories (except branchdir); note they are ordered!
+        # (maybe) create all the above directories; note they are ordered!
         to_create = [
             self.dumpbase,
             self.langdir,
@@ -228,13 +235,7 @@ def scrap_pages(language, test):
     logger.info("Total size of scraped articles: %d MB", total // 1024 ** 2)
 
 
-def scrap_extra_pages(language, extra_pages):
-    """Scrap extra pages defined in a text file."""
-    extra_pages_file = os.path.join(location.branchdir, extra_pages)
-    _call_scraper(language, extra_pages_file)
-
-
-def scrap_portals(language, lang_config):
+def scrap_portal(language, lang_config):
     """Get the portal index and scrap it."""
     # get the portal url, get out if don't have it
     portal_index_title = lang_config.get('portal_index')
@@ -242,22 +243,29 @@ def scrap_portals(language, lang_config):
         logger.info("Not scraping portals, url not configured.")
         return
 
-    portal_index_url = (config.URL_WIKIPEDIA + "wiki/" + urllib.parse.quote(portal_index_title))
+    logger.info("Scraping portal main page %s", portal_index_title)
+    with NamedTemporaryFile('wt', encoding='utf8', dir='/tmp/', prefix='cdpedia-') as tf:
+        tf.write(portal_index_title + '\n')
+        tf.flush()
+        _call_scraper(language, tf.name)
 
-    logger.info("Downloading portal index from %r", portal_index_url)
-    u = urllib.request.urlopen(portal_index_url)
-    html = u.read()
-    logger.info("Scraping portals page of lenght %d", len(html))
-    items = portals.parse(language, html)
-    if not items:
-        logger.info("Main page will be empty, no portal items to add")
-        return
-    logger.info("Generating portals html with %d items", len(items))
-    new_html = portals.generate(items)
+    dir3, quoted_page = to3dirs.get_path_file(portal_index_title)
+    portal_filepath = os.path.join(location.articles, dir3, quoted_page)
 
-    # save it
-    with open(os.path.join(location.resources, "portals.html"), 'wt', encoding="utf-8") as fh:
-        fh.write(new_html)
+    logger.info("Parsing portal page")
+    with open(portal_filepath, 'rt', encoding='utf8') as fh:
+        soup = bs4.BeautifulSoup(fh, features="html.parser")
+
+    cnt = 0
+    _path = os.path.join(location.resources, PORTAL_PAGES)
+    with open(_path, 'wt', encoding='utf8') as fh:
+        for page in preprocessors.extract_pages(soup):
+            cnt += 1
+            fh.write(page + '\n')
+
+    logger.info("Scraping portal sub pages (total=%d)", cnt)
+    _call_scraper(language, _path)
+
     logger.info("Portal scraping done")
 
 
@@ -267,7 +275,7 @@ def clean(keep_processed):
     # images (clean it first if already there). Note that 'temp' and
     # 'images' are hardcoded here, as this is what expects
     # the generation part)
-    temp_dir = os.path.join(location.branchdir, "temp")
+    temp_dir = "temp"
     if not os.path.exists(temp_dir):
         # start it fresh
         logger.info("Temp dir setup fresh: %r", temp_dir)
@@ -293,7 +301,6 @@ def clean(keep_processed):
 def main(language, lang_config, imag_config,
          nolists, noscrap, noclean, image_type, test, extra_pages):
     """Main entry point."""
-    logger.info("Branch directory: %r", location.branchdir)
     logger.info("Dump directory: %r", location.dumpbase)
     logger.info("Generating for language: %r", language)
     logger.info("Language config: %r", lang_config)
@@ -309,11 +316,11 @@ def main(language, lang_config, imag_config,
         gendate = get_lists(language, lang_config, test)
 
     if not noscrap:
-        scrap_portals(language, lang_config)
+        scrap_portal(language, lang_config)
         scrap_pages(language, test)
 
     if extra_pages:
-        scrap_extra_pages(language, extra_pages)
+        _call_scraper(language, extra_pages)
 
     if config.VALIDATE_TRANSLATION:
         tr_updated, tr_complete, tr_compiled = localize.translation_status(language)
@@ -339,8 +346,7 @@ def main(language, lang_config, imag_config,
             # keep previous processed if not new scraped articles and not testing
             keep_processed = noscrap and not test
             clean(keep_processed=keep_processed)
-        generate.main(language, location.langdir, location.branchdir, image,
-                      lang_config, gendate, verbose=test)
+        generate.main(language, location.langdir, image, lang_config, gendate, verbose=test)
 
 
 if __name__ == "__main__":
@@ -366,8 +372,6 @@ if __name__ == "__main__":
                              "'tarbig' default if not set '--image-type'")
     parser.add_argument("-l", "--image-list", action="store_true",
                         help="Show images available in the selected language")
-    parser.add_argument("branch_dir",
-                        help="The project branch to use.")
     parser.add_argument("dump_dir",
                         help="A directory to store all articles and images.")
     parser.add_argument("language",
@@ -382,7 +386,7 @@ if __name__ == "__main__":
         logger.error("--no-clean option is only usable when --image-type was indicated")
         exit()
 
-    location = Location(args.dump_dir, args.branch_dir, args.language)
+    location = Location(args.dump_dir, args.language)
 
     if args.verbose:
         stdout_handler.setLevel(logging.DEBUG)
@@ -392,7 +396,7 @@ if __name__ == "__main__":
     config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=args.language)
 
     # get the image type config
-    _config_fname = os.path.join(location.branchdir, 'imagtypes.yaml')
+    _config_fname = 'imagtypes.yaml'
     with open(_config_fname, 'rt', encoding="utf-8") as fh:
         _config = yaml.safe_load(fh)
         try:
@@ -413,12 +417,11 @@ if __name__ == "__main__":
         args.image_type = args.image_type.split(',')
         for image in args.image_type:
             if image not in imag_config:
-                logger.error("there's no %r image in the image type config",
-                             image)
+                logger.error("there's no %r image in the image type config", image)
                 exit()
 
     # get the language config
-    _config_fname = os.path.join(location.branchdir, 'languages.yaml')
+    _config_fname = 'languages.yaml'
     with open(_config_fname) as fh:
         _config = yaml.safe_load(fh)
         try:
@@ -427,17 +430,6 @@ if __name__ == "__main__":
             logger.error("there's no %r in language config file %r", args.language, _config_fname)
             exit()
     logger.info("Opened succesfully language config file %r", _config_fname)
-
-    # branch dir must exist
-    if not os.path.exists(location.branchdir):
-        logger.error("The branch dir doesn't exist!")
-        exit()
-
-    # fix sys path to branch dir and import the rest of stuff from there
-    sys.path.insert(1, location.branchdir)
-    sys.path.insert(1, os.path.join(location.branchdir, "utilities"))
-    from src import list_articles_by_namespaces, generate
-    from src.scraping import portals, scraper
 
     # change page limit in test mode
     if args.page_limit:
