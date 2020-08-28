@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -423,13 +421,15 @@ class Index(object):
     def values(self):
         """Return an iterator over the stored values."""
         doc_lookup = self._get_info_id
+        res = set()
         for i, docset in enumerate(self.docsets):
-            values = doc_lookup(delta_decode(docset))
-            for v in values:
-                yield v
+            res |= delta_decode(docset)
+        values = doc_lookup(res)
+        for v in values:
+            yield v
 
     def keys(self):
-        return self.matrix.terms
+        return [k.decode("utf8") for k in self.matrix.terms]
 
     def random(self):
         """Return a random value."""
@@ -516,47 +516,45 @@ class Index(object):
         key_shelf = {}
         # ids counter
         ids_cnter = 0
-        # dict, keys are the values (tuples) and values are the ids
-        tmp_reverse_id = {}
         #  indexed entries's counter
         indexed_counter = 0
 
         # fill them
         # key are words extracted from titles, redirects
-        # value are tuples (nomhtml, titulo, ptje, its_a_title, primtexto)
-        for key, value in source:
-            indexed_counter += 1
-
-            # process key
-            if not isinstance(key, str):
-                raise TypeError("The key must be a string")
-            if '\n' in key:
-                raise ValueError("Key cannot contain newlines")
+        # value are tuples (nomhtml, titulo, score, its_a_title, primtexto)
+        for keys, score, data in source:
+            checkme = all([isinstance(keys, list),
+                          isinstance(score, int),
+                          isinstance(data, tuple)])
+            if not checkme:
+                raise TypeError("The keys and value must be lists, score must be integer")
+            if not all([isinstance(k, str) for k in keys]):
+                raise TypeError("The keys must be a strings")
+            if any([('\n' in k) for k in keys]):
+                raise ValueError("Keys cannot contain newlines")
+            indexed_counter += len(keys)
+            value = list(data) + [score]
 
             # docid -> info final
-            # don't add to tmp_reverse_id or ids_shelf if the value is repeated
-            if value in tmp_reverse_id:
-                docid = tmp_reverse_id[value]
-            else:
-                docid = ids_cnter
-                tmp_reverse_id[value] = docid
-                ids_shelf[docid] = value
-                ids_cnter += 1
+            docid = ids_cnter
+            ids_shelf[docid] = value
+            ids_cnter += 1
 
-            # keys -> docid
-            # if the key (word) is new, create a new bucket (array)
-            # every bucket has the ids of the index entries
-            if key in key_shelf:
-                bucket = key_shelf[key]
-            else:
-                # Lets use array, it's more compact in memory, and given that it
-                # should be easy for the caller to remove most repetitions,
-                # it should only get very little overhead
-                #
-                # NOTE: right now, at most one repetition per property is sent
-                # by cdpindex.py
-                bucket = key_shelf[key] = array.array('l')
-            bucket.append(docid)
+            for key in keys:
+                # keys -> docid
+                # if the key (word) is new, create a new bucket (array)
+                # every bucket has the ids of the index entries
+                if key in key_shelf:
+                    bucket = key_shelf[key]
+                else:
+                    # Lets use array, it's more compact in memory, and given that it
+                    # should be easy for the caller to remove most repetitions,
+                    # it should only get very little overhead
+                    #
+                    # NOTE: right now, at most one repetition per property is sent
+                    # by cdpindex.py
+                    bucket = key_shelf[key] = array.array('l')
+                bucket.append(docid)
 
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
