@@ -130,7 +130,7 @@ def test_items_nothing(create_index):
 def test_one_item(create_index):
     """Only one item."""
     idx = create_index(DataSet("A").info)
-    values = list(idx.values())
+    values = idx.values()
     assert abrev(values) == decomp("ala blanca/3")
 
 
