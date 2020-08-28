@@ -161,7 +161,6 @@ def generate_from_html(dirbase, verbose):
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
             for word in WORDS.findall(normalize_words(title)):
