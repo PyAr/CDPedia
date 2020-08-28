@@ -19,6 +19,7 @@
 
 import os
 import tarfile
+from unittest.mock import patch
 
 from werkzeug.test import Client
 from werkzeug.wrappers import Response
@@ -37,6 +38,7 @@ def create_app_client(mocker, tmp_path):
     # fix config and write some setup files
     mocker.patch('config.DIR_ASSETS', str(tmp_path))
     mocker.patch('config.LANGUAGE', 'es')
+    mocker.patch('config.PORTAL_PAGE', 'Portal:Portal')
     mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
@@ -67,30 +69,24 @@ def create_app_client(mocker, tmp_path):
     return lambda: (app, client)
 
 
-def test_main_page(create_app_client):
+def test_main_page_portal(create_app_client):
     app, client = create_app_client()
+
+    def fake_get_item(name):
+        assert name == "Portal:Portal"
+        return "Fake article"
+
+    app.art_mngr.get_item = fake_get_item
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Bienvenido" in response.data
+    assert b"Fake article" in response.data
 
 
-def test_main_page_destacado(create_app_client):
+def test_main_page_featured(create_app_client):
     app, client = create_app_client()
-    response = client.get("/")
-    if len(app.featured_mngr.destacados) > 0:
-        assert "Artículo destacado".encode("utf-8") in response.data
-
-
-def test_main_page_portales(create_app_client):
-    # fake a portals page (note that DIR_ASSETS is a temp dir created above)
-    _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-    test_content = b"this is content to for the test"
-    with open(_path, "wb") as fh:
-        fh.write(test_content)
-
-    _, client = create_app_client()
-    response = client.get("/")
-    assert test_content in response.data
+    with patch.object(app.featured_mngr, 'get_destacado', lambda: ('link', 'title', 'paragraphs')):
+        response = client.get("/")
+    assert "Artículo destacado".encode("utf-8") in response.data
 
 
 def test_images_not_found(create_app_client):

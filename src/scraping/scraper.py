@@ -139,7 +139,7 @@ def fetch_html(url):
 
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
-                raise FetchingError("Failed with HTTPError 404 on url %r", err, url)
+                raise FetchingError("Failed with HTTPError 404 on url %r", url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
@@ -205,9 +205,12 @@ class WikipediaArticle(object):
         return self._history
 
     def iter_history_json(self, json_rev_history):
-        pages = json_rev_history['query']['pages']
+        pages = json_rev_history['query'].get('pages')
+        if pages is None:
+            raise PageHaveNoRevisionsError("Page without history")
+
         assert len(pages) == 1
-        pageid = list(pages.keys())[0]
+        (pageid,) = pages.keys()
         if pageid == '-1':
             # page deleted / moved / whatever but not now..
             raise PageHaveNoRevisionsError("Bad value for pageid")
@@ -240,7 +243,7 @@ class WikipediaArticle(object):
         self.acceptance_delta = datetime.timedelta(acceptance_days)
         idx, hist = self.iterate_history()
         if idx != 0:
-            logger.info("Possible vandalism (idx=%d) in %r", idx, self.basename)
+            logger.debug("Possible vandalism (idx=%d) in %r", idx, self.basename)
         return self.get_revision_url(hist.page_rev_id)
 
     def iterate_history(self):
