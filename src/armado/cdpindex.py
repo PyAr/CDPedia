@@ -142,6 +142,13 @@ def generate_from_html(dirbase, verbose):
             arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
             titles_texts[arch] = (title, primtext)
+    already_seen = set()
+
+    def check_already_seen(data):
+        """Check for duplicated index entries. Crash if founded."""
+        if data in already_seen:
+            raise KeyError("Duplicated document in: {}".format(data))
+        already_seen.add(data)
 
     def gen():
         for dir3, arch, score in top_pages:
@@ -153,15 +160,19 @@ def generate_from_html(dirbase, verbose):
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
+            data = (namhtml, title, ptje, True, primtext)
+            check_already_seen(data)
             for word in WORDS.findall(normalize_words(title)):
-                yield word, (namhtml, title, ptje, True, primtext)
+                yield word, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             if arch in redirs:
                 for (words, title) in redirs[arch]:
+                    data = (namhtml, title, ptje, False, "")
+                    check_already_seen(data)
                     for word in words:
-                        yield word, (namhtml, title, ptje, False, "")
+                        yield word, data
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf8 -*-
 
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
@@ -54,7 +53,7 @@ class ArticleNotFound(HTTPException):
         self.original_link = original_link
 
 
-class CDPedia(object):
+class CDPedia:
 
     def __init__(self, watchdog=None, verbose=False, search_cache_size=100):
         self.search_cache_size = search_cache_size
@@ -109,21 +108,13 @@ class CDPedia(object):
 
     def on_main_page(self, request):
         featured_data = self.featured_mngr.get_destacado()
-        featured = None
-        if featured_data is not None:
-            link, title, first_paragraphs = featured_data
-            featured = {"link": link, "title": title,
-                        "first_paragraphs": first_paragraphs}
-
-        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-        if os.path.exists(_path):
-            with open(_path, "rt", encoding='utf-8') as fh:
-                portals = fh.read()
+        if featured_data is None:
+            portal_name = config.PORTAL_PAGE
+            return self.on_article(request, portal_name)
         else:
-            portals = ""
-
-        return self.render_template(
-            'main_page.html', title="Portada", featured=featured, portals=portals)
+            link, title, first_paragraphs = featured_data
+            featured = {"link": link, "title": title, "first_paragraphs": first_paragraphs}
+            return self.render_template('main_page.html', title="Portada", featured=featured)
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
