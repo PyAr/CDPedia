@@ -1,0 +1,21 @@
+Para medir los tiempos utilicé el script adjunto. Antes de cada ejecución borré la caché del disco con este comando:
+
+`sh -c 'echo 3 > /proc/sys/vm/drop_caches'`
+
+Hay que contar un dump de imágenes "originales" en el directorio pil_vs_imagemagick.
+
+
+Los resultados obtenidos, fueron siempre similares a estos:
+
+Reducir todas las imágenes al 50%:
+time with pil: 311.54207707999996
+14895 images
+time with convert: 4179.169679172
+14895 images
+
+
+Reducir todas la imágenes al 75%:
+time with pil: 560.402946037999754
+14895 images
+time with convert: 4810.96007842100016
+14895 images
