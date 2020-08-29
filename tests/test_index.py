@@ -16,10 +16,8 @@
 
 
 import shutil
-import types
 import tempfile
 import logging
-from pprint import pprint as pp
 import pytest
 
 from src.armado import easy_index
@@ -38,8 +36,7 @@ def decomp(data):
 
 def abrev(result):
     """Cut auto generated html title in 0 position."""
-    if isinstance(result, types.GeneratorType):
-        result = list(result)
+    result = list(result)
     if not result:
         return result
     return [tuple(r[1:3]) for r in result]
@@ -70,7 +67,7 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    assert DataSet("one") == [(['ala', 'blanca'], 3, ('','ala blanca'))]
+    assert DataSet("one") == [(['ala', 'blanca'], 3, ('', 'ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
          ["A/l/a/Ala", "ala", 8]]
     s = "ala blanca/3; ala/8"
@@ -79,12 +76,15 @@ def test_auxiliary():
 
 DataSet.add_fixture("A", "ala blanca/3")
 DataSet.add_fixture("B", "ala blanca/3; conejo blanco/5; conejo negro/6")
-data = """aaa/4;
+data = """\
+        aaa/4;
         abc/4;
         bcd/4;
         abd/4;
-        bbd/4"""
+        bbd/4
+    """
 DataSet.add_fixture("E", data)
+
 
 @pytest.fixture(params=[compressed_index.Index, easy_index.Index])
 def create_index(request):
@@ -119,6 +119,7 @@ def get_engine(request):
 
 # --- Test the .items method.
 
+
 def test_items_nothing(create_index):
     """Nothing in the index."""
     idx = create_index([])
@@ -129,7 +130,7 @@ def test_items_nothing(create_index):
 def test_one_item(create_index):
     """Only one item."""
     idx = create_index(DataSet("A").info)
-    values = list(idx.values())
+    values = idx.values()
     assert abrev(values) == decomp("ala blanca/3")
 
 
@@ -170,7 +171,8 @@ def test_several_keys(caplog, create_index):
 def test_many_results(caplog, create_index):
     """Test with many pages of results."""
     caplog.set_level(logging.INFO)
-    data = """blanca ojeda/9000;
+    data = """\
+        blanca ojeda/9000;
         coneja blanca/9000;
         gradaciones entre los colores de blanca/9000;
         conejo blanca/9000;
@@ -180,7 +182,8 @@ def test_many_results(caplog, create_index):
         es blanca la paloma/9000;
         Blanca gómez/9000;
         recuerdos de blanca/9000;
-        blanca/9000"""
+        blanca/9000
+    """
     DataSet.add_fixture("D", data)
     idx = create_index(DataSet("D").info)
     assert len(DataSet("D").info) == len([v for v in idx.values()])
@@ -189,17 +192,11 @@ def test_many_results(caplog, create_index):
 
 
 def searchidx(idx, keys, debug=False):
-    if debug and isinstance(idx, sqlite_index.Index):
-        ordered = idx._search_asoc_docs(keys)
-        ordered = list(ordered)
-        pp(ordered)
-        res = [idx.get_doc(ndoc) for _, ndoc in ordered]
-        pp(res)
-    else:
-        res = [a for a in idx.search(keys)]
+    res = list(idx.search(keys))
     return res
 
 # --- Test the .random method.
+
 
 def test_random_one_item(create_index):
     """Only one item."""
@@ -215,6 +212,7 @@ def test_random_several_values(create_index):
     assert value[0] in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
 
 # --- Test the "in" functionality.
+
 
 def test_infunc_nothing(create_index):
     """Nothing in the index."""
@@ -238,6 +236,7 @@ def test_search_nopartial(create_index):
 
 # --- Test the .partial_search method.
 
+
 def test_partialsearch_nothing(create_index):
     """Nothing in the index."""
     idx = create_index([])
@@ -249,7 +248,7 @@ def test_partialsearch_prefix(create_index):
     """Match its prefix."""
     idx = create_index(DataSet("B").info)
     res = idx.partial_search(["blanc"])
-    assert set(abrev(list(res))) == set(decomp("conejo blanco/5; ala blanca/3"))
+    assert set(abrev(res)) == set(decomp("conejo blanco/5; ala blanca/3"))
     res = idx.partial_search(["zz"])
     assert list(res) == []
 
@@ -278,4 +277,3 @@ def test_partialsearch_and(create_index):
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
     res = idx.partial_search(["a", "o"])
     assert set(abrev(res)) == set()
-

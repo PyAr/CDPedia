@@ -56,7 +56,7 @@ def run(verbose):
     src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
-    # load image path and its correspondig scale
+    # load image path and its corresponding scale
     with open(config.LOG_REDUCCION, "rt", encoding="utf-8") as fh:
         for line in fh:
             parts = line.strip().split(config.SEPARADOR_COLUMNAS)

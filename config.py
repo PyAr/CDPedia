@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -47,6 +45,9 @@ LANGUAGE = None
 # Value will be set dynamically at init time (don't set it here).
 URL_WIKIPEDIA = None
 
+# portals page (will be set in the production config)
+PORTAL_PAGE = None
+
 # Template for setting URL_WIKPEDIA param, must contain the final slash.
 URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
 
@@ -62,13 +63,10 @@ ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images", "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 
-# Primera página que se abrirá en el browser.
-INDEX = "index.html"
-
 # PATH del archivo que contiene los artículos destacados de donde se
 # seleccionará el que se muestra en la página principal
 # Si no hay destacados debe ser None
-DESTACADOS = 'destacados.txt'
+DESTACADOS = None
 
 # Para revisar la página inicial de CDPedia con cada artículo destacado se
 # debe poner esta variable en True y cada vez que se cargué la página inicial
