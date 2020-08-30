@@ -15,46 +15,77 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
+import pytest
+
 from src.armado import sqlite_index
 
-
-# --- Test the DocSet class
 
 def test_delta_encode_decode():
     """Test encoding and decoding something."""
     values = [1, 4, 7, 12, 34, 56, 72, 76, 80, 83]
-    dc = sqlite_index.DocSet()
-    encoded = dc.delta_encode(values)
-    assert values == dc.delta_decode(encoded)
+    docset = sqlite_index.DocSet()
+    encoded = docset.delta_encode(values)
+    assert values == docset.delta_decode(encoded)
+
+# --- Test the DocSet class
+
+
+def test_repr_docset():
+    """Test creating a DocSet."""
+    docset = sqlite_index.DocSet()
+    data = {123: 12, 234: 1, 56: 5, 432: 9}
+    for k, v in data.items():
+        docset.append(k, v)
+    descript = str(docset)
+    assert descript.index("len=") == len('<Docset: ')
+    data = dict(list((k, k + 5) for k in range(1, 150)))
+    docset2 = sqlite_index.DocSet()
+    for k, v in data.items():
+        docset2.append(k, v)
+        docset2.append(k, v + 1)
+    descript = str(docset2)
+    assert descript.endswith("...>")
+    assert len(descript.split(":")) - len(descript.split("|")) <= 2
 
 
 def test_create_doc_set():
     """Test creating a DocSet."""
-    dc = sqlite_index.DocSet()
+    docset = sqlite_index.DocSet()
     data = {123: 12, 234: 1, 56: 5, 432: 9}
     for k, v in data.items():
-        dc.append(k, v)
-    assert len(data) == len(dc)
+        docset.append(k, v)
+    assert len(data) == len(docset)
+
+
+def test_invalid_docset():
+    """Test creating an invalid DocSet."""
+    docset = sqlite_index.DocSet()
+    data = {0: 0, 123: 12, 234: 1, 56: 5, 432: 9}
+    for k, v in data.items():
+        docset.append(k, v)
+    with pytest.raises(ValueError) as _:
+        docset.encode()
 
 
 def test_encode_decode_docset():
     """Test encode & decode a DocSet."""
-    dc = sqlite_index.DocSet()
+    docset = sqlite_index.DocSet()
     data = {123: 12, 234: 1, 56: 5, 432: 9}
     for k, v in data.items():
-        dc.append(k, v)
-    encoded = dc.encode()
-    dc2 = sqlite_index.DocSet(encoded=encoded)
-    assert dc == dc2
+        docset.append(k, v)
+        docset.append(k, v * 2)
+    encoded = docset.encode()
+    docset2 = sqlite_index.DocSet.decode(encoded)
+    assert docset == docset2
 
 
 def test_empty_docsets():
     """Test encode & decode an empty DocSet."""
-    dc = sqlite_index.DocSet()
-    encoded = dc.encode()
-    dc2 = sqlite_index.DocSet(encoded=encoded)
-    assert dc == dc2
-    assert len(dc) == 0
+    docset = sqlite_index.DocSet()
+    encoded = docset.encode()
+    docset2 = sqlite_index.DocSet.decode(encoded)
+    assert docset == docset2
+    assert len(docset) == 0
 
 # ----- Test the sqlite database using DocSet type
 
@@ -64,11 +95,11 @@ def test_database():
     con = sqlite_index.open_connection(":memory:")
     sql = "CREATE TABLE DocSets (docset BLOB);"
     con.executescript(sql)
-    dc = sqlite_index.DocSet()
+    docset = sqlite_index.DocSet()
     data = {123: 12, 234: 1, 56: 5, 432: 9}
     for k, v in data.items():
-        dc.append(k, v)
-    encoded = dc.encode()
+        docset.append(k, v)
+    encoded = docset.encode()
     sql = "INSERT INTO DocSets (docset) VALUES (?);"
     con.execute(sql, [encoded, ])
     con.commit()
@@ -77,8 +108,8 @@ def test_database():
     cur.execute(sql)
     res = [row[0] for row in cur.fetchall()]
     assert len(res) == 1
-    dc2 = sqlite_index.DocSet(encoded=res[0])
-    assert dc == dc2
+    docset2 = sqlite_index.DocSet.decode(res[0])
+    assert docset == docset2
 
 # ----- Test convert title to filename
 
@@ -88,3 +119,11 @@ def test_to_filename():
     title = "one tiny special title"
     filename = sqlite_index.to_filename(title)
     assert filename == r"O/n/e/One_tiny_special_title"
+
+
+def test_to_filename_other():
+    expected = [("ab", 'A/b/_/Ab'), ("ac\\dc", 'A/c/\\/Ac\\dc'),
+                ("ñ}ùẃŷ⅝¡⅛°ḧ", 'Ñ/}/ù/Ñ}ùẃŷ⅝¡⅛°ḧ'), ('', '')]
+    for title, result in expected:
+        filename = sqlite_index.to_filename(title)
+        assert filename == result

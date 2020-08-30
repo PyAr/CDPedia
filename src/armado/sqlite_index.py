@@ -27,10 +27,8 @@ PAGE_SIZE = 512
 
 class DocSet:
     """Data type to encode, decode & compute documents-id's sets."""
-    def __init__(self, encoded=None):
+    def __init__(self):
         self._docs_list = defaultdict(list)
-        if encoded:
-            self._docs_list = DocSet.decode(encoded)
 
     def append(self, docid, position):
         """Append an item to the docs_list."""
@@ -40,7 +38,12 @@ class DocSet:
         return len(self._docs_list)
 
     def __repr__(self):
-        return "Docset:" + repr(self._docs_list)
+        value = repr(self._docs_list).replace("[", "").replace("],", "|").replace("]})", "}")
+        curly = value.index("{")
+        value = value[curly:curly + 75]
+        if not value.endswith("}"):
+            value += " ..."
+        return "<Docset: len={} {}>".format(len(self._docs_list), value)
 
     def __eq__(self, other):
         return self._docs_list == other._docs_list
@@ -99,29 +102,32 @@ class DocSet:
             return ""
         docs_list = []
         for key, values in self._docs_list.items():
-            docs_list.extend([(key, value) for value in values])
+            docs_list.extend((key, value) for value in values)
         docs_list.sort()
         docs = [v[0] for v in docs_list]
         docs_enc = DocSet.delta_encode(docs)
         # if any score is greater than 255 or lesser than 1, it won't work
-        scores = [v[1] for v in docs_list]
-        scores = array.array("B", scores)
-        return scores.tobytes() + b"\x00" + docs_enc
+        position = [v[1] for v in docs_list]
+        if not all(position):
+            raise ValueError("Positions can't be zero.")
+        position = array.array("B", position)
+        return position.tobytes() + b"\x00" + docs_enc
 
-    @staticmethod
-    def decode(encoded):
+    @classmethod
+    def decode(cls, encoded):
         """Decode a compressed docset."""
+        docset = cls()
         if not encoded or encoded == b"\x00":
-            docs_list = {}
+            docset._docs_list = {}
         else:
             limit = encoded.index(b"\x00")
-            docsid = DocSet.delta_decode(encoded[limit + 1:])
-            scores = array.array('B')
-            scores.frombytes(encoded[:limit])
-            docs_list = defaultdict(list)
-            for docid, score in zip(docsid, scores):
-                docs_list[docid].append(score)
-        return docs_list
+            docsid = cls.delta_decode(encoded[limit + 1:])
+            positions = array.array('B')
+            positions.frombytes(encoded[:limit])
+            docset._docs_list = defaultdict(list)
+            for docid, position in zip(docsid, positions):
+                docset._docs_list[docid].append(position)
+        return docset
 
 
 def open_connection(filename):
@@ -133,11 +139,10 @@ def open_connection(filename):
 
     # Register the converter
     def convert_docset(s):
-        return DocSet(encoded=s)
+        return DocSet.decode(s)
     sqlite3.register_converter("docset", convert_docset)
 
-    con = sqlite3.connect(filename, check_same_thread=False,
-                          detect_types=sqlite3.PARSE_COLNAMES)
+    con = sqlite3.connect(filename, check_same_thread=False, detect_types=sqlite3.PARSE_COLNAMES)
     return con
 
 
