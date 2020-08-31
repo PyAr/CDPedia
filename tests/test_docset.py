@@ -114,16 +114,18 @@ def test_database():
 # ----- Test convert title to filename
 
 
-def test_to_filename():
+@pytest.mark.parametrize('title, filename', (
+    ("one tiny special title", r"O/n/e/One_tiny_special_title"),
+    ("ab", 'A/b/_/Ab'),
+    ("ac\\dc", 'A/c/\\/Ac\\dc'),
+    ("ñ}ùẃŷ⅝¡⅛°ḧ", 'Ñ/}/ù/Ñ}ùẃŷ⅝¡⅛°ḧ'),
+))
+def test_to_filename(title, filename):
     """Test to filename."""
-    title = "one tiny special title"
-    filename = sqlite_index.to_filename(title)
-    assert filename == r"O/n/e/One_tiny_special_title"
+    assert filename == sqlite_index.to_filename(title)
 
 
-def test_to_filename_other():
-    expected = [("ab", 'A/b/_/Ab'), ("ac\\dc", 'A/c/\\/Ac\\dc'),
-                ("ñ}ùẃŷ⅝¡⅛°ḧ", 'Ñ/}/ù/Ñ}ùẃŷ⅝¡⅛°ḧ'), ('', '')]
-    for title, result in expected:
-        filename = sqlite_index.to_filename(title)
-        assert filename == result
+def test_to_empty_title():
+    """Test to filename w/empty title error."""
+    with pytest.raises(ValueError):
+        sqlite_index.to_filename('')
