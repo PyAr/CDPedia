@@ -24,11 +24,34 @@ import config
 import logging
 import os
 import shutil
-import subprocess
+from PIL import Image
 
 from src.images.embed import image_is_embeddable
 
 logger = logging.getLogger('images.scale')
+
+
+def scale_image(frompath, topath, scale_factor):
+    """
+    Reduces the size of an image by the scale_factor using the PIL library.
+    """
+    scale_ratio = scale_factor / 100  # since scale_factor is in percentage
+    try:
+        img = Image.open(frompath)
+    except IOError:
+        logger.warning("Couldn't read image at %s" % frompath)
+        return -1
+
+    # pull out the original dimensions and calculate resized dimensions
+    width, height = img.size
+    resize_tuple = (int(width * scale_ratio), int(height * scale_ratio))
+
+    # resize and save at new destination
+    output_image = img.resize(resize_tuple)
+    output_image.save(topath)
+    logger.info("Success! Resized image saved at %s" % topath)
+
+    return 0
 
 
 def run(verbose):
@@ -99,12 +122,11 @@ def run(verbose):
                     shutil.copyfile(frompath, topath)
 
             else:
-                cmd = ['convert', frompath, '-resize', '%d%%' % (scale,), topath]
-                errorcode = subprocess.call(cmd)
-                if not errorcode:
+                status = scale_image(frompath=frompath, topath=topath, scale_factor=scale)
+                if not status:
                     done_now[dskurl] = scale
                 else:
-                    logger.warning("Got %d when processing %s", errorcode, frompath)
+                    logger.warning("Got %d when processing %s", status, frompath)
 
     # save images processed now
     with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
