@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -16,8 +14,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function, unicode_literals
-
 """
 Library to create and read index.
 
@@ -32,6 +28,7 @@ import shutil
 import subprocess
 import threading
 import unicodedata
+from collections import defaultdict
 
 # from .easy_index import Index
 from .compressed_index import Index
@@ -124,7 +121,8 @@ def generate_from_html(dirbase, verbose):
     from src.preprocessing import preprocess
 
     # make redirections
-    redirs = {}
+    # use a set to avoid duplicated titles after normalization
+    redirs = defaultdict(set)
     for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
         orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
@@ -132,7 +130,7 @@ def generate_from_html(dirbase, verbose):
         # so we use the words founded in the filename
         # it isn't the optimal solution, but works
         words, title = filename2words(orig)
-        redirs.setdefault(dest, []).append((words, title))
+        redirs[dest].add((tuple(words), title))
 
     top_pages = preprocess.pages_selector.top_pages
 
@@ -171,19 +169,7 @@ def generate_from_html(dirbase, verbose):
                 for (words, title) in redirs[arch]:
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    yield words, ptje, data
-
-            # FIXME: las siguientes lineas son en caso de que la generación
-            # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
-            # pero será desde los bloques, no desde el html, pero guardamos
-            # esto para luego)
-            #
-            # # las words del texto importan tanto como las veces que están
-            # all_words = {}
-            # for word in WORDS.findall(normalize(palabs_texto)):
-            #     all_words[word] = all_words.get(pal, 0) + 1
-            # for word, cant in all_words.items():
-            #     yield word, (namhtml, title, cant)
+                    yield list(words), ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
