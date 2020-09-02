@@ -32,6 +32,7 @@ import shutil
 import subprocess
 import threading
 import unicodedata
+from collections import defaultdict
 
 # from .easy_index import Index
 from .compressed_index import Index
@@ -124,7 +125,8 @@ def generate_from_html(dirbase, verbose):
     from src.preprocessing import preprocess
 
     # make redirections
-    redirs = {}
+    # use a set to avoid duplicated titles after normalization
+    redirs = defaultdict(set)
     for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
         orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
@@ -132,8 +134,7 @@ def generate_from_html(dirbase, verbose):
         # so we use the words founded in the filename
         # it isn't the optimal solution, but works
         words, title = filename2words(orig)
-        # use a set for redirects to avoid duplicated titles after normalization
-        redirs.setdefault(dest, set()).add((tuple(words), title))
+        redirs[dest].add((tuple(words), title))
 
     top_pages = preprocess.pages_selector.top_pages
 
