@@ -164,8 +164,8 @@ def generate_from_html(dirbase, verbose):
             ptje = 50 + score // 1000
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
-            for word in WORDS.findall(normalize_words(title)):
-                yield word, data
+            words = WORDS.findall(normalize_words(title))
+            yield words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
@@ -173,8 +173,7 @@ def generate_from_html(dirbase, verbose):
                 for (words, title) in redirs[arch]:
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    for word in words:
-                        yield word, data
+                    yield words, ptje, data
 
             # FIXME: las siguientes lineas son en caso de que la generación
             # fuese fulltext, pero no lo es (habrá fulltext en algún momento,

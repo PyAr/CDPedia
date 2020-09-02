@@ -359,17 +359,11 @@ class HTMLCleaner(_Processor):
             tag.extract()
             self.stats['hidden_subtitle'] += 1
 
-        # remove toc jump link
-        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#mw-head')
-        if tag is not None:
-            tag.extract()
-            self.stats['jump_links'] += 1
-
-        # remove search jump link
-        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#p-search')
-        if tag is not None:
-            tag.extract()
-            self.stats['jump_links'] += 1
+        # remove jump links shown at start of article
+        for a_tag in wikifile.soup.find_all('a', class_='mw-jump-link', href=True):
+            if a_tag['href'] in ('#p-search', '#mw-head', '#searchInput', '#mw-sidebar-button'):
+                a_tag.extract()
+                self.stats['jump_links'] += 1
 
         # remove inline alerts (bracketed superscript with italic text)
         for tag in wikifile.soup.find_all('sup'):
