@@ -169,7 +169,7 @@ def generate_from_html(dirbase, verbose):
                 for (words, title) in redirs[arch]:
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    yield words, ptje, data
+                    yield list(words), ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
