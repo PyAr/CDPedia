@@ -117,7 +117,6 @@ class DocSet:
     def decode(cls, encoded):
         """Decode a compressed docset."""
         docset = cls()
-        docset._docs_list = {}
         if len(encoded) > 1:
             limit = encoded.index(b"\x00")
             docsid = cls.delta_decode(encoded[limit + 1:])
@@ -147,13 +146,13 @@ def open_connection(filename):
 
 def to_filename(title):
     """Compute the filename from the title."""
-    if len(title) == 0:
-        raise ValueError("Title must have at least one character")
     tt = title.replace(" ", "_")
     if len(tt) >= 2:
         tt = tt[0].upper() + tt[1:]
     elif len(tt) == 1:
         tt = tt[0].upper()
+    else:
+        raise ValueError("Title must have at least one character")
 
     dir3, arch = to3dirs.get_path_file(tt)
     expected = os.path.join(dir3, arch)
