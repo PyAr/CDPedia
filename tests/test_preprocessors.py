@@ -30,6 +30,7 @@ from src.preprocessing.preprocessors import (
     OmitRedirects,
     HTMLCleaner,
     SCORE_VIP,
+    extract_pages,
 )
 from .utils import load_test_article, FakeWikiFile
 
@@ -222,6 +223,16 @@ class TestOmitRedirects(object):
         assert result == (0, [])
         assert omit_redirects.stats['simplefile'] == 1
 
+    def test_redirect_url(self, omit_redirects):
+        """Redirect URL should be extracted from href attribute of link."""
+        html = '<ul class="redirectText"><li><a href="/wiki/Foo_Bar">Foo Bar</a></li></ul>'
+        wikifile = FakeWikiFile(html, url='url')
+        omit_redirects(wikifile)
+        omit_redirects.close()
+        expected_line = 'url|Foo_Bar\n'
+        with open(config.LOG_REDIRECTS, 'rt', encoding='utf-8') as fh:
+            assert expected_line == next(fh)
+
     def test_save(self, normal_redirect, omit_redirects):
         """Test saved results."""
         omit_redirects(normal_redirect)
@@ -397,3 +408,52 @@ class TestHTMLCleaner(object):
         result = cleaner(wikifile)
         assert result == (0, [])
         assert html_fixed in wikifile.get_html()
+
+
+class TestExtractPages:
+    """Tests for the extract_pages function."""
+
+    def test_extract_link(self):
+        """Normal links to wiki pages must be extracted."""
+        html = '<a href="/wiki/N%C3%BAmero_natural" title="Número natural">número natural</a>'
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert list(links) == ['Número_natural']
+
+    def test_extract_portal_link_normal(self):
+        """Links to portal pages must be extracted."""
+        html = ('<a href="/wiki/Portal:Exploraci%C3%B3n_espacial" '
+                'title="Portal:Exploración espacial">Exploración espacial</a>')
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert list(links) == ['Portal:Exploración_espacial']
+
+    def test_extract_portal_link_redirect(self):
+        """Redirection links to portal pages must be extracted."""
+        html = ('<a href="/wiki/Portal:Astron%C3%A1utica" class="mw-redirect" '
+                'title="Portal:Astronáutica">Astronáutica</a>')
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert list(links) == ['Portal:Astronáutica']
+
+    def test_skip_by_class(self):
+        """Don't extract links of some class."""
+        html = ('<a href="/wiki/foo" class="image"><img src="url" /></a>'
+                '<a class="internal" href="/wiki/foo" title="foo">foo</a>')
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert len(list(links)) == 0
+
+    def test_skip_non_wiki_urls(self):
+        """Don't extract links without a '/wiki/' prefix."""
+        html = '<a href="/nowiki/foo">foo</a>'
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert list(links) == []
+
+    def test_remove_link_fragment(self):
+        """Remove fragment from page URL."""
+        html = '<a href="/wiki/foo#bar">foobar</a>'
+        wikifile = FakeWikiFile(html)
+        links = extract_pages(wikifile.soup)
+        assert list(links) == ['foo']
