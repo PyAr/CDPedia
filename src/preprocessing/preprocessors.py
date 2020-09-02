@@ -197,8 +197,8 @@ class OmitRedirects(_Processor):
         # extract target from href not from text
         url_redirect = node.find('a').attrs['href']
         # remove path prefix
-        if url_redirect.startswith('/wiki/'):
-            url_redirect = url_redirect[6:]
+        if url_redirect.startswith(PAGES_PREFIX):
+            url_redirect = url_redirect[len(PAGES_PREFIX):]
         url_redirect = unquote(url_redirect)
 
         sep_col = config.SEPARADOR_COLUMNAS
