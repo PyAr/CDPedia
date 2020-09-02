@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -15,8 +13,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-
-from __future__ import print_function, unicode_literals
 
 """
 Library to create and read index.
@@ -174,18 +170,6 @@ def generate_from_html(dirbase, verbose):
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
                     yield words, ptje, data
-
-            # FIXME: las siguientes lineas son en caso de que la generación
-            # fuese fulltext, pero no lo es (habrá fulltext en algún momento,
-            # pero será desde los bloques, no desde el html, pero guardamos
-            # esto para luego)
-            #
-            # # las words del texto importan tanto como las veces que están
-            # all_words = {}
-            # for word in WORDS.findall(normalize(palabs_texto)):
-            #     all_words[word] = all_words.get(pal, 0) + 1
-            # for word, cant in all_words.items():
-            #     yield word, (namhtml, title, cant)
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):

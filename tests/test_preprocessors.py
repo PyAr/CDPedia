@@ -16,8 +16,6 @@
 
 """Tests for the src.preprocessing.preprocessors module."""
 
-from __future__ import unicode_literals
-
 import base64
 import codecs
 
@@ -60,7 +58,7 @@ def dummy_vip_decissor(mocker):
     mocker.patch(target, vip_decissor)
 
 
-class TestContentExtractor(object):
+class TestContentExtractor:
     """Tests for ContentExtractor preprocessor."""
 
     @pytest.fixture
@@ -118,7 +116,7 @@ class TestContentExtractor(object):
             assert expected_line == next(fh)
 
 
-class TestVIPDecissor(object):
+class TestVIPDecissor:
     """Tests for VIPDecissor."""
 
     @pytest.fixture
@@ -170,7 +168,7 @@ class TestVIPDecissor(object):
         assert vip_decissor(vips['portals'][2])
 
 
-class TestVIPArticles(object):
+class TestVIPArticles:
     """Tests for VIPArticles preprocessor."""
 
     @pytest.fixture
@@ -193,7 +191,7 @@ class TestVIPArticles(object):
         assert viparticles.stats['normal'] == 1
 
 
-class TestOmitRedirects(object):
+class TestOmitRedirects:
     """Tests for OmitRedirects preprocessor."""
 
     @pytest.fixture
@@ -254,7 +252,7 @@ class TestOmitRedirects(object):
         assert omit_redirects.stats['redirect'] == 1
 
 
-class TestLength(object):
+class TestLength:
     """Tests for Length preprocessor."""
 
     @pytest.fixture
@@ -270,7 +268,7 @@ class TestLength(object):
         assert score == len(html)
 
 
-class TestHTMLCleaner(object):
+class TestHTMLCleaner:
     """Tests for HTMLCleaner preprocessor."""
 
     @pytest.fixture
@@ -402,7 +400,7 @@ class TestHTMLCleaner(object):
 
     def test_remove_parsing_errors(self, cleaner):
         """Test removal of wikipedia parsing error notices."""
-        html = ('<p>Foo<span class="error mw-ext-cite-error" lang="es">Spam Spam</span> bar</p>')
+        html = '<p>Foo<span class="error mw-ext-cite-error" lang="es">Spam Spam</span> bar</p>'
         html_fixed = '<p>Foo bar</p>'
         wikifile = FakeWikiFile(html)
         result = cleaner(wikifile)
