@@ -75,8 +75,8 @@ def _create_result_dir():
 
 
 def _write_results(data, name='results.txt'):
-    with open(f'Pages_out/{name}', 'a', encoding='utf-8') as r:
-        if os.stat(f'Pages_out/{name}').st_size == 0:
+    with open('Pages_out/{}'.format(name), 'a', encoding='utf-8') as r:
+        if os.stat('Pages_out/{}'.format(name)).st_size == 0:
             title = ' Status  Reason      Url_base\n\n'
             r.write(title)
         r.write('{:^9}{:<12}{}\n'.format(*data))
@@ -94,7 +94,8 @@ def _worker():
         else:
             outside += 1
         stack.task_done()
-        print(f'Testing pages in CDPedia {inside} ·:|:· In Parallel Universe {outside}\r', end='')
+        print('Testing pages in CDPedia {0} ·:|:· In Parallel Universe {1}\r'
+              .format(inside, outside), end='')
 
 
 def _main(file_=None):
