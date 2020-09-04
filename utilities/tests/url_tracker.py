@@ -16,18 +16,14 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import queue
 import os
 import shutil
 import sys
-import threading
 import urllib.request as request
 import urllib.parse as parse
 import urllib.error as error
 
-
 LOCAL_HOST = 'http://127.0.0.1:8000'
-stack = queue.Queue()
 
 
 class _Track:
@@ -82,10 +78,14 @@ def _write_results(data, name='results.txt'):
         r.write('{:^9}{:<12}{}\n'.format(*data))
 
 
-def _worker():
+def _main(file_=None):
+    _clean_dir()
+    _create_result_dir()
+    select = 'pag_elegidas.txt' if not file_ else file_
+    urls = _urls_to_verify(select)
+    print('Pages in this CDPedia version', len(urls))
     inside, outside = 0, 0
-    while True:
-        url = stack.get()
+    for url in urls:
         url_quote = parse.quote(url, safe='/:')
         tags = _Track(url_quote)
         result = tags.verify_web()
@@ -93,21 +93,8 @@ def _worker():
             inside += 1
         else:
             outside += 1
-        stack.task_done()
         print('Testing pages in CDPedia {0} ·:|:· In Parallel Universe {1}\r'
               .format(inside, outside), end='')
-
-
-def _main(file_=None):
-    _clean_dir()
-    _create_result_dir()
-    select = 'pag_elegidas.txt' if not file_ else file_
-    threading.Thread(target=_worker, daemon=True).start()
-    urls = _urls_to_verify(select)
-    print('Pages in this CDPedia version', len(urls))
-    for url in urls:
-        stack.put(url)
-    stack.join()
     if not os.path.isfile('Pages_out/results.txt'):
         print('\nCongrats!! All pages are included in CDPedia')
     else:
