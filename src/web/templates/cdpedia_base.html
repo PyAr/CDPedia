@@ -29,20 +29,14 @@
   <iframe src="/watchdog/update" style="width:1px;height:1px;display:none;"></iframe>
   <!-- /WatchDog iframe -->
   {% endif %}
-  <div id="content">
+
+  <div id="content" class="mw-body" role="main">
     <a id="top"></a>
-    <div id="mw-js-message" style="display:none;"></div>
-    <!-- sitenotice -->
-    <div id="siteNotice"><!-- centralNotice loads here --></div>
-    <!-- /sitenotice -->
     {% block content %}
     {% endblock %}
     </div>
-    <!-- /bodyContent -->
   </div>
-  <!-- /content -->
   {% include "sidebar.html" %}
-  <!-- footer -->
   <div id="footer">
     <ul id="f-info-cdpedia">
       {% block footer_pre %}
@@ -80,8 +74,6 @@
         </a>
       </li>
     </ul>
-  </div><!-- #footer -->
-  <!-- fixalpha -->
+  </div>
   <script type="text/javascript"> if ( window.isMSIE55 ) fixalpha(); </script>
-  <!-- /fixalpha -->
 {% endblock %}

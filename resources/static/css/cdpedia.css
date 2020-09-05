@@ -72,8 +72,8 @@ input#searchInput, input#searchInput:focus {
 
 button#searchButton {
     border: 0;
-    background: white;
     padding: .1em;
+    position: static;
 }
 
 
