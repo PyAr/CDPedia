@@ -14,13 +14,13 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 import array
 import bisect
-from bz2 import BZ2File as CompressedFile
-from functools import lru_cache
-import pickle
 import operator
 import os
+import pickle
 import random
 import sys
+from functools import lru_cache
+from lzma import LZMAFile as CompressedFile
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
@@ -353,7 +353,7 @@ class Index(object):
         #   ( matrix, docsets )
         #   matrix = TermSimilitudeMatrix
         #   docsets = FrozenStringList
-        keyfilename = os.path.join(directory, "compindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.xz")
         fh = CompressedFile(keyfilename, "rb")
 
         # TODO: research and document why the encoding here is latin-1
@@ -368,14 +368,14 @@ class Index(object):
         # see how many id files we have
         filenames = []
         for fn in os.listdir(directory):
-            if fn.startswith("compindex-") and fn.endswith(".ids.bz2"):
+            if fn.startswith("compindex-") and fn.endswith(".ids.xz"):
                 filenames.append(fn)
         self.idfiles_count = len(filenames)
 
     @lru_cache(DOCSTORE_CACHE_SIZE)
     def _get_ids_shelve(self, cual):
         """Return the ids index."""
-        fname = os.path.join(self._directory, "compindex-%02d.ids.bz2" % cual)
+        fname = os.path.join(self._directory, "compindex-%02d.ids.xz" % cual)
         fh = CompressedFile(fname, "rb")
         idx = pickle.load(fh)
         fh.close()
@@ -516,37 +516,29 @@ class Index(object):
         key_shelf = {}
         # ids counter
         ids_cnter = 0
-        # dict, keys are the values (tuples) and values are the ids
-        tmp_reverse_id = {}
         #  indexed entries's counter
         indexed_counter = 0
 
         # fill them
         # key are words extracted from titles, redirects
-        # value are tuples (nomhtml, titulo, ptje, its_a_title, primtexto)
-        for keys, ptje, data in source:
+        # value are tuples (nomhtml, titulo, score, its_a_title, primtexto)
+        for keys, score, data in source:
             checkme = all([isinstance(keys, list),
-                          isinstance(ptje, int),
+                          isinstance(score, int),
                           isinstance(data, tuple)])
             if not checkme:
-                raise TypeError("The keys and value must be lists, ptje must be integer")
+                raise TypeError("The keys and value must be lists, score must be integer")
             if not all([isinstance(k, str) for k in keys]):
                 raise TypeError("The keys must be a strings")
             if any([('\n' in k) for k in keys]):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
-            value = list(data) + [ptje]
+            value = list(data) + [score]
 
             # docid -> info final
-            # don't add to tmp_reverse_id or ids_shelf if the value is repeated
-            hash_title = data.__hash__()
-            if hash_title in tmp_reverse_id:
-                docid = tmp_reverse_id[hash_title]
-            else:
-                docid = ids_cnter
-                tmp_reverse_id[hash_title] = docid
-                ids_shelf[docid] = value
-                ids_cnter += 1
+            docid = ids_cnter
+            ids_shelf[docid] = value
+            ids_cnter += 1
 
             for key in keys:
                 # keys -> docid
@@ -564,11 +556,6 @@ class Index(object):
                     bucket = key_shelf[key] = array.array('l')
                 bucket.append(docid)
 
-        import pprint
-        print('\nkey_shelf:')
-        pprint.pprint(key_shelf)
-        print('\nids_shelf:')
-        pprint.pprint(ids_shelf)
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
         print(" Delta-encoding index buckets...")
@@ -635,7 +622,7 @@ class Index(object):
         print("done")
         print(" Saving:")
 
-        keyfilename = os.path.join(directory, "compindex.key.bz2")
+        keyfilename = os.path.join(directory, "compindex.key.xz")
         fh = CompressedFile(keyfilename, "wb")
         pickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
         print("  Uncompressed keystore bytes", fh.tell())
@@ -665,7 +652,7 @@ class Index(object):
         docucomp = 0
         doccomp = 0
         for cual, shelf in enumerate(all_idshelves):
-            fname = "compindex-%02d.ids.bz2" % cual
+            fname = "compindex-%02d.ids.xz" % cual
             idsfilename = os.path.join(directory, fname)
             fh = CompressedFile(idsfilename, "wb")
             pickle.dump(shelf, fh, 2)

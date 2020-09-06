@@ -48,10 +48,10 @@ a.nopo {
     text-decoration:none; color: red;
 }
 
-a.external {
-    border-bottom: 1px dashed blue;
-    text-decoration:none;
-}
+a[href*="://"], a[href^="//"] {
+    border-bottom: 1px dashed blue !important;
+    text-decoration: none;
+} /*Hack to mark all external links*/
 
 div#searchBody {
     border: 1px solid #AAA;

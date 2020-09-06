@@ -31,14 +31,14 @@ Format of the block:
     - all the articles, smashed one after the other (origin 0 is after the header)
 """
 
-import bz2
 import logging
+import lzma
 import os
 import pickle
 import shutil
 import struct
-from bz2 import BZ2File as CompressedFile
 from functools import lru_cache
+from lzma import LZMAFile as CompressedFile
 from os import path
 
 import config
@@ -70,14 +70,6 @@ class BloqueManager(object):
             self.num_bloques = int(fh.read().strip())
         self.verbose = verbose
 
-        # get the language of the blocks, if any
-        _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
-        if os.path.exists(_lang_fpath):
-            with open(_lang_fpath, 'rt', encoding='utf8') as fh:
-                self.language = fh.read().strip()
-        else:
-            self.language = None
-
     @classmethod
     def _prep_archive_dir(self, lang=None):
         """Prepare the directory for the archive."""
@@ -88,8 +80,7 @@ class BloqueManager(object):
 
         # save the language of the blocks, if any
         if lang is not None:
-            _lang_fpath = os.path.join(self.archive_dir, 'language.txt')
-            with open(_lang_fpath, 'wt', encoding='utf8') as fh:
+            with open(config.LANGUAGE_FILE, 'wt', encoding='utf8') as fh:
                 fh.write(lang + '\n')
 
     @classmethod
@@ -147,14 +138,14 @@ class Bloque(object):
 class BloqueImagenes(Bloque):
     """A block of images.
 
-    Here the header is compressed with bz2, but the header size and the images are not.
+    Here the header is compressed with lzma, but the header size and the images are not.
     """
     def __init__(self, fname, verbose=False, manager=None):
         if os.path.exists(fname):
             self.fh = open(fname, "rb")
             self.header_size = struct.unpack("<l", self.fh.read(4))[0]
             header_bytes = self.fh.read(self.header_size)
-            self.header = pickle.loads(bz2.decompress(header_bytes))
+            self.header = pickle.loads(lzma.decompress(header_bytes))
         else:
             # no need to define self.fh or self.header_size because will never be
             # used, as no item will be found in the empty header
@@ -178,7 +169,7 @@ class BloqueImagenes(Bloque):
             header[fileName] = (seek, size)
             seek += size
 
-        headerBytes = bz2.compress(pickle.dumps(header))
+        headerBytes = lzma.compress(pickle.dumps(header))
         logger.debug(
             "  files: %d   total seek: %d   header length: %d",
             len(fileNames), seek, len(headerBytes))

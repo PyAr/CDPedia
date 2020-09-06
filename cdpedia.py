@@ -15,9 +15,9 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
+
 import queue  # NOQA: this is needed by pyinstaller
 import socketserver  # NOQA: this is needed by pyinstaller
-import codecs
 import optparse
 import os
 import platform
@@ -39,7 +39,7 @@ if os.path.exists("cdpedia"):
 
 # imports after sys path was fixed
 import config  # NOQA
-from src.utiles import WatchDog, find_open_port  # NOQA
+from src.utiles import WatchDog, find_open_port, set_locale  # NOQA
 from src.web.web_app import create_app  # NOQA
 from werkzeug.serving import ThreadedWSGIServer  # NOQA
 
@@ -49,7 +49,7 @@ from werkzeug.serving import ThreadedWSGIServer  # NOQA
 if platform.system() == 'Windows' and not os.path.exists('debug'):
     log_filename = os.path.join(os.path.expanduser('~'), 'cdpedia.log')
     try:
-        log = codecs.open(log_filename, 'w', 'utf8', errors='replace')
+        log = open(log_filename, 'wt', encoding='utf8', errors='replace')
         sys.stdout = log
         sys.stderr = log
     except Exception:     # If we can't log or show the error because we
@@ -109,6 +109,26 @@ def sleep_and_browse():
         sys.exit(-1)
 
 
+def load_language():
+    """Load language from language file if not set in config.
+
+    Only needed when running cdpedia from project root. In this case, language
+    is dynamically loaded from the temp files of the last generated cdpedia.
+    In final cdpedia images, config.LANGUAGE is already set to the correct value.
+    """
+    if config.LANGUAGE is None and os.path.exists(config.LANGUAGE_FILE):
+        with open(config.LANGUAGE_FILE, 'rt', encoding='utf-8') as fh:
+            lang = fh.read().strip()
+        config.LANGUAGE = lang
+        config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
+
+        import yaml  # imported here as not needed in production
+        with open('languages.yaml') as fh:
+            _config = yaml.safe_load(fh)
+        lang_config = _config[lang]
+        config.PORTAL_PAGE = lang_config['portal_index']
+
+
 if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.add_option("-v", "--verbose", action="store_true", default=False,
@@ -120,6 +140,9 @@ if __name__ == "__main__":
     parser.add_option("-m", "--host", type="str", dest="hostname",
                       default=config.HOSTNAME)
     (options, args) = parser.parse_args()
+
+    load_language()
+    set_locale()
 
     sys.excepthook = handle_crash
 

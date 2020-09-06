@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -39,26 +37,36 @@ SERVER_MODE = False
 EDICION_ESPECIAL = None
 # EDICION_ESPECIAL = "educar"
 
-# Ubicación de los archivos estáticos online
-# Debe tener la barra al final
-URL_WIKIPEDIA = "http://es.wikipedia.org/"
-LANGUAGE = "es"
+# Language of CDPedia.
+# Value will be set dynamically at init time (don't set it here).
+LANGUAGE = None
+
+# Location of online static files, depends on LANGUAGE.
+# Value will be set dynamically at init time (don't set it here).
+URL_WIKIPEDIA = None
+
+# portals page (will be set in the production config)
+PORTAL_PAGE = None
+
+# Template for setting URL_WIKPEDIA param, must contain the final slash.
+URL_WIKIPEDIA_TPL = "http://{lang}.wikipedia.org/"
+
+# Localization of CDPedia interface
+# Value will be set dynamically at init time (don't set it here).
+LOCALE = None
 
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
 ASSETS = ["static"]
-COMPRESSED_ASSETS = ['tutorial.tar.bz2']
+COMPRESSED_ASSETS = ['tutorial.tar.xz']
 ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images", "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 
-# Primera página que se abrirá en el browser.
-INDEX = "index.html"
-
 # PATH del archivo que contiene los artículos destacados de donde se
 # seleccionará el que se muestra en la página principal
 # Si no hay destacados debe ser None
-DESTACADOS = 'destacados.txt'
+DESTACADOS = None
 
 # Para revisar la página inicial de CDPedia con cada artículo destacado se
 # debe poner esta variable en True y cada vez que se cargué la página inicial
@@ -106,6 +114,9 @@ DIR_SOURCE_ASSETS = "resources"
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 
+# Generation language will be saved in this file
+LANGUAGE_FILE = os.path.join(DIR_BLOQUES, 'language.txt')
+
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
 LOG_PREPROCESADO = DIR_TEMP + "/preprocesado.txt"
@@ -114,6 +125,7 @@ LOG_IMAGPROC = DIR_TEMP + "/imag_proc.txt"
 LOG_REDUCCION = DIR_TEMP + "/reduccion.txt"
 LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 LOG_TITLES = DIR_TEMP + "/titles.txt"
+LOG_LOCALE = DIR_TEMP + "/locale.txt"
 
 # prefix for URL of local images
 IMAGES_URL_PREFIX = "/images/"
@@ -125,6 +137,11 @@ LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 # enable embedding of some images in HTML source (e.g. small SVG)
 EMBED_IMAGES = True
 LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
+
+# Validate translation before generating a CDPedia in the specified language.
+# Interrupt process if validation fails. In test mode, show validation result
+# but don't interrupt process.
+VALIDATE_TRANSLATION = True
 
 # Formato general de los logs:
 SEPARADOR_COLUMNAS = '|'

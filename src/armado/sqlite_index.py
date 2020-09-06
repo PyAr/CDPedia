@@ -21,15 +21,14 @@ import os
 import pickle
 import random
 import sqlite3
-import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 from collections import defaultdict
 from functools import lru_cache
+import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
 
 logger = logging.getLogger(__name__)
 
-MAX_IDX_FIELDS = 8
 PAGE_SIZE = 512
 
 
@@ -39,20 +38,26 @@ def decompress_data(data):
 
 class DocSet:
     """Data type to encode, decode & compute documents-id's sets."""
-    def __init__(self, encoded=None):
+    def __init__(self):
         self._docs_list = defaultdict(list)
-        if encoded:
-            self._docs_list = DocSet.decode(encoded)
 
-    def append(self, docid, score):
+    def append(self, docid, position):
         """Append an item to the docs_list."""
-        self._docs_list[docid].append(score)
+        self._docs_list[docid].append(position)
 
     def __len__(self):
         return len(self._docs_list)
 
     def __repr__(self):
-        return "Docset:" + repr(self._docs_list)
+        value = repr(self._docs_list).replace("[", "").replace("],", "|").replace("]})", "}")
+        curly = value.index("{")
+        value = value[curly:curly + 75]
+        if not value.endswith("}"):
+            value += " ..."
+        return "<Docset: len={} {}>".format(len(self._docs_list), value)
+
+    def __eq__(self, other):
+        return self._docs_list == other._docs_list
 
     @staticmethod
     def delta_encode(ordered):
@@ -108,29 +113,30 @@ class DocSet:
             return ""
         docs_list = []
         for key, values in self._docs_list.items():
-            docs_list.extend([(key, value) for value in values])
+            docs_list.extend((key, value) for value in values)
         docs_list.sort()
         docs = [v[0] for v in docs_list]
         docs_enc = DocSet.delta_encode(docs)
         # if any score is greater than 255 or lesser than 1, it won't work
-        scores = [v[1] for v in docs_list]
-        scores = array.array("B", scores)
-        return scores.tobytes() + b"\x00" + docs_enc
+        position = [v[1] for v in docs_list]
+        if not all(position):
+            raise ValueError("Positions can't be zero.")
+        position = array.array("B", position)
+        return position.tobytes() + b"\x00" + docs_enc
 
-    @staticmethod
-    def decode(encoded):
+    @classmethod
+    def decode(cls, encoded):
         """Decode a compressed docset."""
-        if not encoded or encoded == b"\x00":
-            docs_list = {}
-        else:
+        docset = cls()
+        if len(encoded) > 1:
             limit = encoded.index(b"\x00")
-            docsid = DocSet.delta_decode(encoded[limit + 1:])
-            scores = array.array('B')
-            scores.frombytes(encoded[:limit])
-            docs_list = defaultdict(list)
-            for docid, score in zip(docsid, scores):
-                docs_list[docid].append(score)
-        return docs_list
+            docsid = cls.delta_decode(encoded[limit + 1:])
+            positions = array.array('B')
+            positions.frombytes(encoded[:limit])
+            docset._docs_list = defaultdict(list)
+            for docid, position in zip(docsid, positions):
+                docset._docs_list[docid].append(position)
+        return docset
 
 
 def open_connection(filename):
@@ -142,23 +148,22 @@ def open_connection(filename):
 
     # Register the converter
     def convert_docset(s):
-        return DocSet(encoded=s)
+        return DocSet.decode(s)
     sqlite3.register_converter("docset", convert_docset)
 
-    con = sqlite3.connect(filename, check_same_thread=False,
-                          detect_types=sqlite3.PARSE_COLNAMES)
+    con = sqlite3.connect(filename, check_same_thread=False, detect_types=sqlite3.PARSE_COLNAMES)
     return con
 
 
 def to_filename(title):
     """Compute the filename from the title."""
-    if not title:
-        return title
     tt = title.replace(" ", "_")
     if len(tt) >= 2:
         tt = tt[0].upper() + tt[1:]
     elif len(tt) == 1:
         tt = tt[0].upper()
+    else:
+        raise ValueError("Title must have at least one character")
 
     dir3, arch = to3dirs.get_path_file(tt)
     expected = os.path.join(dir3, arch)

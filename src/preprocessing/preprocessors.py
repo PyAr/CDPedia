@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf8 -*-
 
 # Copyright 2006-2020 CDPedistas (see AUTHORS.txt)
 #
@@ -34,12 +33,10 @@ other pages. If a processor wants to omit a given page, it must return
 None instead of the score.
 """
 
-
 import base64
 import collections
 import logging
 import os
-import re
 from urllib.parse import unquote
 
 import bs4
@@ -49,10 +46,13 @@ import config
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
 
+# prefix used for pages
+PAGES_PREFIX = '/wiki/'
+
 logger = logging.getLogger(__name__)
 
 
-class _Processor(object):
+class _Processor:
     """Generic processor, don't use directly, thoght to be subclassed."""
 
     def __init__(self):
@@ -118,7 +118,7 @@ class ContentExtractor(_Processor):
         self.output.close()
 
 
-class VIPDecissor(object):
+class VIPDecissor:
     """Hold those VIP articles that must be included."""
 
     def __init__(self):
@@ -141,14 +141,12 @@ class VIPDecissor(object):
         # must include according to the config
         viparts.update(config.langconf['include'])
 
-        # those portals articles from the front-page portal
-        fname = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-        if os.path.exists(fname):
-            re_link = re.compile(r'<a.*?href="/wiki/(.*?)">', re.MULTILINE | re.DOTALL)
-            with open(fname, 'rt', encoding='utf-8') as fh:
-                mainpage_portals_content = fh.read()
-            for link in re_link.findall(mainpage_portals_content):
-                viparts.add(unquote(link))
+        # portal articles from the front-page portal, itself included
+        viparts.add(config.langconf['portal_index'])
+        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portal_pages.txt')
+        with open(_path, 'rt', encoding='utf-8') as fh:
+            viparts.update(line.strip() for line in fh)
+
         logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
@@ -196,7 +194,13 @@ class OmitRedirects(_Processor):
 
         # store the redirect in corresponding file
         self.stats['redirect'] += 1
-        url_redirect = node.text
+        # extract target from href not from text
+        url_redirect = node.find('a').attrs['href']
+        # remove path prefix
+        if url_redirect.startswith(PAGES_PREFIX):
+            url_redirect = url_redirect[len(PAGES_PREFIX):]
+        url_redirect = unquote(url_redirect)
+
         sep_col = config.SEPARADOR_COLUMNAS
         line = wikifile.url + sep_col + url_redirect + "\n"
         self.output.write(line)
@@ -216,6 +220,34 @@ class OmitRedirects(_Processor):
         self.output.close()
 
 
+def extract_pages(soup):
+    """Extract the link to pages from a soup."""
+    prefix_length = len(PAGES_PREFIX)
+
+    for a_tag in soup.find_all('a', href=True):
+
+        # discard by class
+        if any(c in ('image', 'internal') for c in a_tag.get('class', '')):
+            continue
+
+        # discard by href start
+        href = a_tag.get('href')
+        if not href.startswith(PAGES_PREFIX):
+            continue
+
+        # discard prefix and fragment part
+        link = href[prefix_length:].split('#', 1)[0]
+
+        # unquote
+        link = unquote(link)
+
+        # "/" are not really stored like that in disk, they are replaced
+        # by the SLASH word
+        link = link.replace("/", "SLASH")
+
+        yield link
+
+
 class Peishranc(_Processor):
     """Calculate the peishranc.
 
@@ -229,34 +261,11 @@ class Peishranc(_Processor):
     def __init__(self):
         super(Peishranc, self).__init__()
         self.name = "Peishranc"
-        # discard links not starting with this prefix
-        self.prefix = '/wiki/'
-        self.prefix_length = len(self.prefix)
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
         scores = {}
-        for a_tag in wikifile.soup.find_all('a', href=True):
-
-            # discard by class
-            if any(c in ('image', 'internal') for c in a_tag.get('class', '')):
-                continue
-
-            # discard by href start
-            href = a_tag.get('href')
-            if not href.startswith(self.prefix):
-                continue
-
-            # discard prefix and fragment part
-            link = href[self.prefix_length:].split('#', 1)[0]
-
-            # decode and unquote
-            link = unquote(link)
-
-            # "/" are not really stored like that in disk, they are replaced
-            # by the SLASH word
-            link = link.replace("/", "SLASH")
-
+        for link in extract_pages(wikifile.soup):
             scores[link] = scores.get(link, 0) + 1
 
         # remove "self-praise"
@@ -350,17 +359,11 @@ class HTMLCleaner(_Processor):
             tag.extract()
             self.stats['hidden_subtitle'] += 1
 
-        # remove toc jump link
-        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#mw-head')
-        if tag is not None:
-            tag.extract()
-            self.stats['jump_links'] += 1
-
-        # remove search jump link
-        tag = wikifile.soup.find('a', class_='mw-jump-link', href='#p-search')
-        if tag is not None:
-            tag.extract()
-            self.stats['jump_links'] += 1
+        # remove jump links shown at start of article
+        for a_tag in wikifile.soup.find_all('a', class_='mw-jump-link', href=True):
+            if a_tag['href'] in ('#p-search', '#mw-head', '#searchInput', '#mw-sidebar-button'):
+                a_tag.extract()
+                self.stats['jump_links'] += 1
 
         # remove inline alerts (bracketed superscript with italic text)
         for tag in wikifile.soup.find_all('sup'):

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf8 -*-
 
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
@@ -54,7 +53,7 @@ class ArticleNotFound(HTTPException):
         self.original_link = original_link
 
 
-class CDPedia(object):
+class CDPedia:
 
     def __init__(self, watchdog=None, verbose=False, search_cache_size=100):
         self.search_cache_size = search_cache_size
@@ -71,9 +70,9 @@ class CDPedia(object):
         self.jinja_env.globals["watchdog"] = True if watchdog else False
         self.jinja_env.globals["date"] = self.get_creation_date()
         self.jinja_env.globals["version"] = config.VERSION
-        self.jinja_env.globals["language"] = self.art_mngr.language
-        translations = gettext.translation(
-            "core", 'locale', [self.art_mngr.language])
+        self.jinja_env.globals["language"] = config.LANGUAGE
+        # translation config set as environment variable at init time
+        translations = gettext.translation("core", 'locale')
         self.jinja_env.install_gettext_translations(translations)
 
         self.template_manager = TemplateManager(template_path)
@@ -109,21 +108,13 @@ class CDPedia(object):
 
     def on_main_page(self, request):
         featured_data = self.featured_mngr.get_destacado()
-        featured = None
-        if featured_data is not None:
-            link, title, first_paragraphs = featured_data
-            featured = {"link": link, "title": title,
-                        "first_paragraphs": first_paragraphs}
-
-        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-        if os.path.exists(_path):
-            with open(_path, "rt", encoding='utf-8') as fh:
-                portals = fh.read()
+        if featured_data is None:
+            portal_name = config.PORTAL_PAGE
+            return self.on_article(request, portal_name)
         else:
-            portals = ""
-
-        return self.render_template(
-            'main_page.html', title="Portada", featured=featured, portals=portals)
+            link, title, first_paragraphs = featured_data
+            featured = {"link": link, "title": title, "first_paragraphs": first_paragraphs}
+            return self.render_template('main_page.html', title="Portada", featured=featured)
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
@@ -157,8 +148,11 @@ class CDPedia(object):
                 height = int(height)
             except Exception:
                 raise InternalServerError("Error al generar imagen")
-            img, mimetype = utils.img_fallback(width, height)
-            return Response(img, mimetype=mimetype)
+            # image not included, return fallback picture of same dimensions
+            show_text = width > 90 and height > 30
+            img_template = self.jinja_env.get_template('no_image.svg')
+            img = img_template.render(width=width, height=height, show_text=show_text)
+            return Response(img, mimetype='image/svg+xml')
         type_ = guess_type(name)[0]
         return Response(asset_data, mimetype=type_)
 
@@ -224,9 +218,9 @@ class CDPedia(object):
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
-            if not os.path.exists(tmpdir):
+            if not os.path.exists(os.path.join(tmpdir, 'tutorial')):
                 tar = tarfile.open(
-                    os.path.join(config.DIR_ASSETS, "tutorial.tar.bz2"), mode="r:bz2")
+                    os.path.join(config.DIR_ASSETS, "tutorial.tar.xz"), mode="r:xz")
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True

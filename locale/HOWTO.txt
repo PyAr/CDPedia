@@ -30,3 +30,14 @@ Then, for every language, do (in the example, I'm doing it for 'es'):
        example for 'es':
 
         msgfmt es.po --output-file=es/LC_MESSAGES/core.mo
+
+
+Alternative method
+------------------
+
+Use the `utilities/localize.py` script that uses the Babel python package.
+E.g. for adding/updating translations for spanish language:
+
+    0. Run `python localize.py es` to add/update messages
+    1. Fill missing translations in `es.po` file
+    2. Run `python localize.py es` again (if `es.po` changed)

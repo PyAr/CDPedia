@@ -118,6 +118,7 @@ class ReplaceImageParserTestCase(unittest.TestCase):
         should_dsk = 'math/9/6/3/963fb8b00ffd99f327c476f0865a9cfe.png'
         self._check(url, should_web, should_dsk)
 
+    @unittest.mock.patch('src.images.extract.WIKIPEDIA_URL', 'https://es.wikipedia.org')
     def test_replace_extensions(self):
         url = "/w/extensions/ImageMap/desc-20.png"
         should_web = "https://es.wikipedia.org/w/extensions/ImageMap/desc-20.png"

@@ -19,13 +19,14 @@
 
 import os
 import tarfile
-
-from src.armado import cdpindex
-from src.web import web_app, utils
-import config
+from unittest.mock import patch
 
 from werkzeug.test import Client
 from werkzeug.wrappers import Response
+
+import config
+from src.armado import cdpindex
+from src.web import web_app, utils
 
 import pytest
 
@@ -36,13 +37,17 @@ def create_app_client(mocker, tmp_path):
 
     # fix config and write some setup files
     mocker.patch('config.DIR_ASSETS', str(tmp_path))
+    mocker.patch('config.LANGUAGE', 'es')
+    mocker.patch('config.PORTAL_PAGE', 'Portal:Portal')
+    mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
+    mocker.patch.dict('os.environ', {'LANGUAGE': 'es'})
     with (tmp_path / 'numbloques.txt').open('wt') as fh:
         fh.write('42\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
         fh.write('es\n')
-    with tarfile.open(str(tmp_path / "tutorial.tar.bz2"), 'w:bz2') as fh:
+    with tarfile.open(str(tmp_path / "tutorial.tar.xz"), 'w:xz') as fh:
         fh.addfile(tarfile.TarInfo(name="testtuto"))
     inst_dir = tmp_path / 'institucional'
     inst_dir.mkdir()
@@ -56,7 +61,8 @@ def create_app_client(mocker, tmp_path):
 
     # a bogus index with a couple of items (so it behaves properly for get_random and similar)
     mocker.patch('config.DIR_INDICE', str(tmp_path))
-    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1')), (['key2'], 8, ('p/a/g/page2', 'Page2'))]
+    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1')),
+                    (['key2'], 8, ('p/a/g/page2', 'Page2'))]
     cdpindex.Index.create(str(tmp_path), fake_content)
 
     app = web_app.create_app(watchdog=None, with_static=False)
@@ -64,30 +70,24 @@ def create_app_client(mocker, tmp_path):
     return lambda: (app, client)
 
 
-def test_main_page(create_app_client):
+def test_main_page_portal(create_app_client):
     app, client = create_app_client()
+
+    def fake_get_item(name):
+        assert name == "Portal:Portal"
+        return "Fake article"
+
+    app.art_mngr.get_item = fake_get_item
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Bienvenido" in response.data
+    assert b"Fake article" in response.data
 
 
-def test_main_page_destacado(create_app_client):
+def test_main_page_featured(create_app_client):
     app, client = create_app_client()
-    response = client.get("/")
-    if len(app.featured_mngr.destacados) > 0:
-        assert "Artículo destacado".encode("utf-8") in response.data
-
-
-def test_main_page_portales(create_app_client):
-    # fake a portals page (note that DIR_ASSETS is a temp dir created above)
-    _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html')
-    test_content = b"this is content to for the test"
-    with open(_path, "wb") as fh:
-        fh.write(test_content)
-
-    _, client = create_app_client()
-    response = client.get("/")
-    assert test_content in response.data
+    with patch.object(app.featured_mngr, 'get_destacado', lambda: ('link', 'title', 'paragraphs')):
+        response = client.get("/")
+    assert "Artículo destacado".encode("utf-8") in response.data
 
 
 def test_images_not_found(create_app_client):

@@ -1,0 +1,219 @@
+# Portuguese translations for CDPedia.
+# Copyright (C) 2020 CDPedistas (see AUTHORS.txt)
+# This file is distributed under the same license as the CDPedia project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CDPedia 0.9\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2020-08-05 22:13-0300\n"
+"PO-Revision-Date: 2020-07-19 02:40-0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt\n"
+"Language-Team: pt <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: src/web/translations.py:20
+msgid "January"
+msgstr ""
+
+#: src/web/translations.py:21
+msgid "February"
+msgstr ""
+
+#: src/web/translations.py:22
+msgid "March"
+msgstr ""
+
+#: src/web/translations.py:23
+msgid "April"
+msgstr ""
+
+#: src/web/translations.py:24
+msgid "May"
+msgstr ""
+
+#: src/web/translations.py:25
+msgid "June"
+msgstr ""
+
+#: src/web/translations.py:26
+msgid "July"
+msgstr ""
+
+#: src/web/translations.py:27
+msgid "August"
+msgstr ""
+
+#: src/web/translations.py:28
+msgid "September"
+msgstr ""
+
+#: src/web/translations.py:29
+msgid "October"
+msgstr ""
+
+#: src/web/translations.py:30
+msgid "November"
+msgstr ""
+
+#: src/web/translations.py:31
+msgid "December"
+msgstr ""
+
+#: src/web/templates/404.html:2
+msgid "Article not found"
+msgstr ""
+
+#: src/web/templates/404.html:4
+#, python-format
+msgid "The article %s couldn't be included in the disk."
+msgstr ""
+
+#: src/web/templates/404.html:6
+#, python-format
+msgid ""
+"You can access it in Wikipedia in <a class=\"external\" href=\"%s\">this "
+"external link</a>."
+msgstr ""
+
+#: src/web/templates/500.html:2
+msgid "Error"
+msgstr ""
+
+#: src/web/templates/500.html:4
+msgid "There was a problem"
+msgstr ""
+
+#: src/web/templates/article.html:9
+#, python-format
+msgid ""
+"If you have an Internet connection, you can visit the article's <a "
+"class=\"external\" href=\"%s\">updated original page</a>."
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:61
+msgid ""
+"<a href=\"/institucional/cdpedia.html\">CDPedia</a> is a project of <a "
+"href=\"/institucional/pyar.html\">Python Argentina</a>. Learn to program "
+"in Python! Here you have the <a href=\"/tutorial\" "
+"target=\"_blank\">tutorial</a>."
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:64
+msgid ""
+"Articles and images are shown here without any processing more than the "
+"strictly necessary for the correct user navigation."
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:67
+#, python-format
+msgid ""
+"All the content from the articles come from the <a "
+"href=\"http://%s.wikipedia.org/\">Wikipedia online site</a>."
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:72
+msgid ""
+"The text is released under the <a href=/institucional/cc-by-sa.html"
+">Attribution-ShareAlike Creative Commons License</a>; additional terms "
+"may apply. Read in this page the <a "
+"href=\"/institucional/Términos_de_Uso.htm\">usage terms</a> for more "
+"information. Wikipedia® is a registered trademark of the <a "
+"href=\"/institucional/wikimedia.html\">Wikimedia Foundation, Inc.</a>, a "
+"non-profit organization."
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:75
+msgid "About Wikipedia"
+msgstr ""
+
+#: src/web/templates/cdpedia_base.html:78
+msgid "Disclaimers"
+msgstr ""
+
+#: src/web/templates/layout.html:5
+msgid "CDPedia, the Offline Wikipedia"
+msgstr ""
+
+#: src/web/templates/main_page.html:3
+msgid "Welcome to the <a href=\"/institucional/cdpedia.html\">CDPedia</a>!"
+msgstr ""
+
+#: src/web/templates/main_page.html:12 src/web/templates/main_page.html:15
+#: src/web/templates/main_page.html:16
+msgid "Featured article"
+msgstr ""
+
+#: src/web/templates/main_page.html:24
+msgid "Read more..."
+msgstr ""
+
+#: src/web/templates/no_image.svg:8
+msgid "No image"
+msgstr ""
+
+#: src/web/templates/search.html:5
+msgid "Results of the search for"
+msgstr ""
+
+#: src/web/templates/search.html:11
+msgid "Prev"
+msgstr ""
+
+#: src/web/templates/search.html:13
+msgid "Results"
+msgstr ""
+
+#: src/web/templates/search.html:14
+msgid "Next"
+msgstr ""
+
+#: src/web/templates/search.html:17
+msgid ""
+"Show <a href=\"?quantity=20\">20</a>, <a href=\"?quantity=50\">50</a>,\n"
+"        <a href=\"?quantity=100\">100</a> or <a "
+"href=\"?quantity=500\">500</a> results."
+msgstr ""
+
+#: src/web/templates/sidebar.html:4 src/web/templates/sidebar.html:9
+msgid "Homepage"
+msgstr ""
+
+#: src/web/templates/sidebar.html:10
+msgid "Random article"
+msgstr ""
+
+#: src/web/templates/sidebar.html:11
+msgid "Wikipedia in the Web"
+msgstr ""
+
+#: src/web/templates/sidebar.html:12
+msgid "Help"
+msgstr ""
+
+#: src/web/templates/sidebar.html:16 src/web/templates/sidebar.html:21
+msgid "Search"
+msgstr ""
+
+#: src/web/templates/sidebar.html:20
+msgid "Search articles with this text"
+msgstr ""
+
+#: src/web/templates/sidebar.html:27
+msgid "Presented by"
+msgstr ""
+
+#: src/web/templates/sidebar.html:37
+msgid "Version"
+msgstr ""
+
+#: src/web/templates/sidebar.html:39
+msgid "Generated on"
+msgstr ""
+
