@@ -143,7 +143,7 @@ class VIPDecissor:
 
         # portal articles from the front-page portal, itself included
         viparts.add(config.langconf['portal_index'])
-        _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'portal_pages.txt')
+        _path = os.path.join(config.DIR_TEMP, 'portal_pages.txt')
         with open(_path, 'rt', encoding='utf-8') as fh:
             viparts.update(line.strip() for line in fh)
 
