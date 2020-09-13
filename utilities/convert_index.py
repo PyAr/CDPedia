@@ -78,6 +78,23 @@ def cycle():
             yield words, ptje, (html, title, redir, primtext)
 
 
+def cycle_filtered():
+    allreadyseen = set()
+    repeated = null_title = 0
+    for words, ptje, data in cycle():
+        hash_data = hash(data)
+        if hash_data not in allreadyseen:
+            allreadyseen.add(hash_data)
+            if data[1]:
+                yield words, ptje, data
+            else:
+                null_title += 1
+        else:
+            repeated += 1
+    print("null_title", null_title, "  repeated", repeated)
+
+
+
 def media_words():
     words_lenght = defaultdict(int)
     with open("long_titles.txt", "w") as fh:
@@ -109,7 +126,7 @@ def main():
     if sqlitepath.exists():
         sqlitepath.unlink()
         print("Database index %s was removed" % sqlitepath)
-    IndexSQL.create(str(PATH_IDX), cycle())
+    IndexSQL.create(str(PATH_IDX), cycle_filtered())
 
 
 if __name__ == "__main__":
