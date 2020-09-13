@@ -38,6 +38,8 @@ def decompress_data(data):
 
 class DocSet:
     """Data type to encode, decode & compute documents-id's sets."""
+    SEPARATOR = 0xFF
+
     def __init__(self):
         self._docs_list = defaultdict(list)
 
@@ -119,17 +121,18 @@ class DocSet:
         docs_enc = DocSet.delta_encode(docs)
         # if any score is greater than 255 or lesser than 1, it won't work
         position = [v[1] for v in docs_list]
-        if not all(position):
-            raise ValueError("Positions can't be zero.")
+        if any([x >= self.SEPARATOR for x in position]):
+            raise ValueError("Positions can't be greater than 254.")
+        position.append(self.SEPARATOR)
         position = array.array("B", position)
-        return position.tobytes() + b"\x00" + docs_enc
+        return position.tobytes() + docs_enc
 
     @classmethod
     def decode(cls, encoded):
         """Decode a compressed docset."""
         docset = cls()
         if len(encoded) > 1:
-            limit = encoded.index(b"\x00")
+            limit = encoded.index(cls.SEPARATOR)
             docsid = cls.delta_decode(encoded[limit + 1:])
             positions = array.array('B')
             positions.frombytes(encoded[:limit])
@@ -184,8 +187,8 @@ class Search:
         # computes the similitude of phrase
         self.ordered = []
         for docid in results:
-            length = self._get_doc_length(docid)
-            phrase = [""] * length
+            word_quant = self._get_doc_word_quant(docid)
+            phrase = [""] * word_quant
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
             similitude = self.iterative_levenshtein(phrase)
@@ -195,21 +198,21 @@ class Search:
 
     @lru_cache(1000)
     def _get_page(self, pageid):
-        """Return the array of lenghts in word of a page's titles."""
-        cur = self.db.execute("SELECT lengths FROM docs where pageid = ?", (pageid,))
+        """Return the array of word_quants in word of a page's titles."""
+        cur = self.db.execute("SELECT word_quants FROM docs where pageid = ?", (pageid,))
         row = cur.fetchone()
         decomp_data = array.array("B")
         if row:
             decomp_data.frombytes(row[0])
         return decomp_data
 
-    def _get_doc_length(self, docid):
+    def _get_doc_word_quant(self, docid):
         """Return one stored document item."""
         page_id, rel_position = divmod(docid, PAGE_SIZE)
-        lenghts = self._get_page(page_id)
-        if not lenghts:
+        word_quants = self._get_page(page_id)
+        if not word_quants:
             return 0
-        return lenghts[rel_position]
+        return word_quants[rel_position]
 
     def _get_docs(self, key):
         """Store the words asoc w/ the docs & return a founded docs's set."""
@@ -217,7 +220,7 @@ class Search:
         for word, docset in self._fetch(key):
             for docid, positions in docset._docs_list.items():
                 for pos in positions:
-                    self.docs[docid][pos - 1] = word
+                    self.docs[docid][pos] = word
                 founded.add(docid)
         return founded
 
@@ -411,18 +414,18 @@ class Index:
         class Compressed(SQLmany):
             """Creates the table of compressed documents information.
 
-            The groups is PAGE_SIZE lenght, pickled and compressed."""
+            The groups is PAGE_SIZE word_quant, pickled and compressed."""
             def persist(self):
                 """Compress and commit data to index."""
                 docs_data = []
-                lenghts = array.array("B")
-                for lenght, data in self.buffer:
-                    lenghts.append(lenght)
+                word_quants = array.array("B")
+                for word_quant, data in self.buffer:
+                    word_quants.append(word_quant)
                     docs_data.append(data)
                 pickdata = pickletools.optimize(pickle.dumps(docs_data))
                 comp_data = best_compressor.compress(pickdata)
                 page_id = (self.count - 1) // PAGE_SIZE
-                database.execute(self.sql, (page_id, lenghts.tobytes(), comp_data))
+                database.execute(self.sql, (page_id, word_quants.tobytes(), comp_data))
                 database.commit()
 
         def create_database():
@@ -435,7 +438,7 @@ class Index:
                     docsets BLOB);
                 CREATE TABLE docs
                     (pageid INTEGER PRIMARY KEY,
-                    lengths BLOB,
+                    word_quants BLOB,
                     data BLOB);
                 CREATE TABLE temp_docs
                     (page_score NUMERIC, data BLOB);
@@ -447,20 +450,14 @@ class Index:
             """Dump every doc data in a temp table to order it."""
             sql = "INSERT INTO temp_docs (page_score, data) VALUES (?, ?)"
             docs_table = SQLmany("Unsorted", sql)
-            allready_seen = set()
             dict_stats["Repeated docs"] = 0
             for words, page_score, data in source:
-                hash_data = (data[1].__hash__(), data.__hash__())
-                if hash_data not in allready_seen:
-                    allready_seen.add(hash_data)
-                    data = list(data)
-                    # see if html file name can be deduced
-                    # from the title. Mark using None
-                    if data[0] == to_filename(data[1]):
-                        data[0] = None
-                    docs_table.append((page_score, pickle.dumps([words, data])))
-                else:
-                    dict_stats["Repeated docs"] += 1
+                data = list(data)
+                # see if html file name can be deduced
+                # from the title. Mark using None
+                if data[0] == to_filename(data[1]):
+                    data[0] = None
+                docs_table.append((page_score, pickle.dumps([words, data])))
             docs_table.finish()
             database.execute("create index idx_temp on temp_docs (page_score);")
 
@@ -477,21 +474,17 @@ class Index:
         def add_docs_keys(source):
             """Add docs and keys registers to db and its rel in memory."""
             idx_dict = defaultdict(DocSet)
-            sql = "INSERT INTO docs (pageid, lengths, data) VALUES (?, ?, ?)"
+            sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql)
             for words, page_score, data in source:
                 data.append(page_score)
                 docid = docs_table.append((len(words), data))
-                add_words(idx_dict, words, docid)
+                for idx, word in enumerate(words):
+                    # item_score = max(1, 0.6 * word_sccores
+                    idx_dict[word].append(docid, idx)
 
             docs_table.finish()
             return idx_dict
-
-        def add_words(idx_dict, words, docid):
-            """Stores in a dict the words and its related documents."""
-            for idx, word in enumerate(words):
-                # item_score = max(1, 0.6 * word_sccores
-                idx_dict[word].append(docid, idx + 1)
 
         def add_tokens_to_db(idx_dict):
             """Insert token words in the database."""

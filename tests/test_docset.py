@@ -60,7 +60,7 @@ def test_create_doc_set():
 def test_invalid_docset():
     """Test creating an invalid DocSet."""
     docset = sqlite_index.DocSet()
-    data = {0: 0, 123: 12, 234: 1, 56: 5, 432: 9}
+    data = {0: 0xFF, 123: 12, 234: 1, 56: 5, 432: 9}
     for k, v in data.items():
         docset.append(k, v)
     with pytest.raises(ValueError) as _:
