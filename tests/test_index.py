@@ -17,11 +17,11 @@
 
 import shutil
 import tempfile
-import logging
 import pytest
 
 from src.armado import easy_index
 from src.armado import compressed_index
+from src.armado import sqlite_index
 
 
 def decomp(data):
@@ -86,7 +86,7 @@ data = """\
 DataSet.add_fixture("E", data)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index])
+@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
 def create_index(request):
     """Create an index with given info in a temp dir, load it and return built index."""
     tempdir = tempfile.mkdtemp()
@@ -106,7 +106,7 @@ def create_index(request):
         shutil.rmtree(tempdir)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index])
+@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
 def get_engine(request):
     """Provide temp dirs and index engines to the tests."""
     tempdir = tempfile.mkdtemp()
@@ -142,59 +142,6 @@ def test_several_items(create_index):
     tokens = sorted([str(k) for k in idx.keys()])
     assert tokens == ["ala", "blanca", "blanco", "conejo", "negro"]
 
-
-def test_search(create_index):
-    """Several items stored."""
-    idx = create_index(DataSet("B").info)
-    res = searchidx(idx, ["ala"])
-    assert abrev(res) == decomp("ala blanca/3")
-
-
-def test_several_results(caplog, create_index):
-    """Several results for one key stored."""
-    caplog.set_level(logging.INFO)
-    idx = create_index(DataSet("B").info)
-    # items = [a for a in idx.search(["conejo"])]
-    res = searchidx(idx, ["conejo"])
-    assert set(abrev(res)) == set(decomp("conejo negro/6; conejo blanco/5"))
-
-
-def test_several_keys(caplog, create_index):
-    """Several item stored."""
-    caplog.set_level(logging.INFO)
-    idx = create_index(DataSet("B").info)
-    # items = [a for a in idx.search(["conejo"])]
-    res = searchidx(idx, ["conejo", "negro"])
-    assert abrev(res) == decomp("conejo negro/6")
-
-
-def test_many_results(caplog, create_index):
-    """Test with many pages of results."""
-    caplog.set_level(logging.INFO)
-    data = """\
-        blanca ojeda/9000;
-        coneja blanca/9000;
-        gradaciones entre los colores de blanca/9000;
-        conejo blanca/9000;
-        caja blanca/9000;
-        limpieza de blanca/9000;
-        blanca casa/9000;
-        es blanca la paloma/9000;
-        Blanca gómez/9000;
-        recuerdos de blanca/9000;
-        blanca/9000
-    """
-    DataSet.add_fixture("D", data)
-    idx = create_index(DataSet("D").info)
-    assert len(DataSet("D").info) == len([v for v in idx.values()])
-    res = searchidx(idx, ["blanca"], debug=False)
-    assert len(res) == len(DataSet("D").info)
-
-
-def searchidx(idx, keys, debug=False):
-    res = list(idx.search(keys))
-    return res
-
 # --- Test the .random method.
 
 
@@ -225,55 +172,3 @@ def test_infunc_one_item(create_index):
     idx = create_index(DataSet("B").info)
     assert "ala" in idx
     assert "bote" not in idx
-
-
-def test_search_nopartial(create_index):
-    """Does not find partial values."""
-    idx = create_index(DataSet("A").info)
-    res = idx.search(["w"])
-    assert list(res) == []
-
-
-# --- Test the .partial_search method.
-
-
-def test_partialsearch_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    res = idx.partial_search(["a"])
-    assert list(res) == []
-
-
-def test_partialsearch_prefix(create_index):
-    """Match its prefix."""
-    idx = create_index(DataSet("B").info)
-    res = idx.partial_search(["blanc"])
-    assert set(abrev(res)) == set(decomp("conejo blanco/5; ala blanca/3"))
-    res = idx.partial_search(["zz"])
-    assert list(res) == []
-
-
-def test_partialsearch_several_values(create_index):
-    """Several values stored."""
-    idx = create_index(DataSet("E").info)
-    res = idx.partial_search(["a"])
-    assert set(abrev(res)) == set(decomp("aaa/4;abc/4;abd/4"))
-    res = idx.partial_search(["b"])
-    assert set(abrev(res)) == set(decomp("abc/4;abd/4;bcd/4;bbd/4"))
-    res = idx.partial_search(["c"])
-    assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.partial_search(["d"])
-    assert set(abrev(res)) == set(decomp("bcd/4;abd/4;bbd/4"))
-    res = idx.partial_search(["o"])
-    assert set(abrev(res)) == set()
-
-
-def test_partialsearch_and(create_index):
-    """Check that AND is applied."""
-    idx = create_index(DataSet("E").info)
-    res = idx.partial_search(["a", "b"])
-    assert set(abrev(res)) == set(decomp("abc/4;abd/4"))
-    res = idx.partial_search(["b", "c"])
-    assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.partial_search(["a", "o"])
-    assert set(abrev(res)) == set()
