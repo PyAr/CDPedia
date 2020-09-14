@@ -87,7 +87,7 @@ def test_empty_docsets():
     assert docset == docset2
     assert len(docset) == 0
 
-# ----- Test the sqlite database using DocSet type
+# ----- Test the sqlite database using DocSet type.
 
 
 def test_database():
