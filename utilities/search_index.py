@@ -23,31 +23,32 @@ import timeit
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index as IndexSQL # NOQA import after fixing path
-from src.armado.sqlite_index import Index as IndexComp # NOQA import after fixing path
-# from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
+#from src.armado.sqlite_index import Index as IndexComp # NOQA import after fixing path
+from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
 
-PAGE = 40
+PAGE = 60
 
 
 def show_results(result, verbose):
+    def show_stat(definition, value):
+        print("{:>25}:{}".format(definition, value), flush=True)
+
     res = []
-    stats = {}
     first_res_time = 0
     for row in result:
         res.append(row)
-        if args.verbose:
-            # pp(row)
-            print(len(res), row[1])
         if len(res) == 1:
             first_res_time = timeit.default_timer() - initial_time
-            stats["First Result"] = first_res_time
+            show_stat("First Result", first_res_time)
+        if args.verbose and len(res) <= PAGE:
+            # pp(row)
+            print('{0:2d} "{1:30s}"{2:6d} {3:60s}'.format(
+                len(res), row[1], row[-1], row[-2][:60].replace("\n", " ")))
         if len(res) == PAGE:
             first_res_time = timeit.default_timer() - initial_time
-            stats["First %d Result" % PAGE] = first_res_time
-    stats["Time"] = timeit.default_timer() - initial_time
-    stats["Results"] = len(res)
-    for k, v in stats.items():
-        print("{:>25}:{}".format(k, v))
+            show_stat("First %d Result" % PAGE, first_res_time)
+    show_stat("Time", timeit.default_timer() - initial_time)
+    show_stat("Results", len(res))
     return [tuple(r[0:2]) for r in res]
 
 
@@ -69,10 +70,9 @@ def show(title, data, other):
 
 
 if __name__ == "__main__":
-    PATH_IDX = "./idx"
     help = """Search some words and compare results in different indexes.
 
-    Uses {} as path to index.""".format(PATH_IDX)
+    Uses .idx as path to index."""
 
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('keys', metavar='word', type=str, nargs='+',
@@ -92,16 +92,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if not args.indexes:
         args.indexes = [IndexSQL, IndexComp]
+    path = {IndexSQL: "./idx", IndexComp: "./idx/old"}
     if not args.complete and not args.partial:
         args.complete = True
         args.partial = True
     res_part = [0] * 2
     res_comp = [0] * 2
     # print(args)
-    args.indexes = [IndexSQL]
+    # args.indexes = [IndexSQL]
     for nro, Index in enumerate(args.indexes):
         initial_time = timeit.default_timer()
-        idx = Index(PATH_IDX)
+        idx = Index(path[Index])
         print(repr(Index))
         delta_time = timeit.default_timer() - initial_time
         print("Open Time: ", delta_time * 100)

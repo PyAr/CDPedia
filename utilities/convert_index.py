@@ -79,6 +79,7 @@ def cycle():
 
 
 def cycle_filtered():
+    """ Avoid any null or repeated entry, just for security."""
     allreadyseen = set()
     repeated = null_title = 0
     for words, ptje, data in cycle():
@@ -91,8 +92,7 @@ def cycle_filtered():
                 null_title += 1
         else:
             repeated += 1
-    print("null_title", null_title, "  repeated", repeated)
-
+    print("\nnull_title", null_title, "  repeated", repeated)
 
 
 def media_words():

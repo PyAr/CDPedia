@@ -17,6 +17,7 @@
 
 import array
 import logging
+import math
 import os
 import pickle
 import random
@@ -26,6 +27,7 @@ from functools import lru_cache
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
+from src.utiles import ProgressBar
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +194,7 @@ class Search:
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
             similitude = self.iterative_levenshtein(phrase)
-            self.ordered.append((similitude, docid))
+            self.ordered.append((similitude + math.log(docid + 1, 1.2), docid))
 
         self.ordered.sort()
 
@@ -248,7 +250,7 @@ class Search:
         keys = self.keys
         rows = len(keys) + 1
         cols = len(phrase) + 1
-        deletes, inserts, substitutes, partial = 100, 30, 90, 60
+        deletes, inserts, substitutes, partial = 100, 25, 90, 60
 
         dist = [[0 for x in range(cols)] for x in range(rows)]
 
@@ -267,7 +269,7 @@ class Search:
                 if keys[row - 1] == phrase[col - 1]:
                     cost = 0
                 elif phrase[col - 1].startswith(keys[row - 1]):
-                    cost = (substitutes + partial) // 2
+                    cost = (2 * partial) // 3
                 elif keys[row - 1] in phrase[col - 1]:
                     cost = partial
                 else:
@@ -362,14 +364,14 @@ class Index:
         The AND boolean operation is applied to the keys.
         """
         docset = Search(self.db, keys)
-        for score, ndoc in docset.ordered:
+        for n, (score, ndoc) in enumerate(docset.ordered):
             doc_data = self.get_doc(ndoc)
             yield doc_data
 
     partial_search = search
 
     @classmethod
-    def create(cls, directory, source, show_progress=True):
+    def create(cls, directory, source):
         """Creates the index in the directory.
         The source must give path, page_score, title and
         a list of extracted words from title in an ordered fashion
@@ -381,11 +383,12 @@ class Index:
 
         class SQLmany:
             """Execute many INSERTs greatly improves the performance."""
-            def __init__(self, name, sql):
+            def __init__(self, name, sql, quantity):
                 self.sql = sql
                 self.name = name
                 self.count = 0
                 self.buffer = []
+                self.progress_bar = ProgressBar(name, quantity)
 
             def append(self, data):
                 """Append one data set to persist on db."""
@@ -394,16 +397,17 @@ class Index:
                 if self.count % PAGE_SIZE == 0:
                     self.persist()
                     self.buffer = []
-                if cls.show_progress and self.count % 1000 == 0:
-                    print(self.name[0].lower(), end="", flush=True)
+                # self.count is the quantity of docs added
+                # but it is the index that is returned
+                # and it is zero based, hence one less.
+                self.progress_bar.step(self.count)
                 return self.count - 1
 
             def finish(self):
                 """Finish the process and prints some data."""
                 if self.buffer:
                     self.persist()
-                if cls.show_progress:
-                    print(self.name, ":", self.count, flush=True)
+                self.progress_bar.finish(self.count)
                 dict_stats[self.name] = self.count
 
             def persist(self):
@@ -440,44 +444,22 @@ class Index:
                     (pageid INTEGER PRIMARY KEY,
                     word_quants BLOB,
                     data BLOB);
-                CREATE TABLE temp_docs
-                    (page_score NUMERIC, data BLOB);
                 """
 
             database.executescript(script)
 
-        def create_temp_ordered(source):
-            """Dump every doc data in a temp table to order it."""
-            sql = "INSERT INTO temp_docs (page_score, data) VALUES (?, ?)"
-            docs_table = SQLmany("Unsorted", sql)
-            dict_stats["Repeated docs"] = 0
-            for words, page_score, data in source:
-                data = list(data)
-                # see if html file name can be deduced
-                # from the title. Mark using None
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
-                docs_table.append((page_score, pickle.dumps([words, data])))
-            docs_table.finish()
-            database.execute("create index idx_temp on temp_docs (page_score);")
-
-        def ordered_source():
-            """Loop through all docs stored in database in page_score order."""
-            sql = "SELECT page_score, data from temp_docs order by page_score desc"
-            cur = database.cursor()
-            cur.execute(sql)
-            for row in cur.fetchall():
-                page_score = row[0]
-                words, data = pickle.loads(row[1])
-                yield words, page_score, data
-
-        def add_docs_keys(source):
+        def add_docs_keys(source, quantity):
             """Add docs and keys registers to db and its rel in memory."""
             idx_dict = defaultdict(DocSet)
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
-            docs_table = Compressed("Documents", sql)
+            docs_table = Compressed("Documents", sql, quantity)
+            page_ant = -1
+
             for words, page_score, data in source:
-                data.append(page_score)
+                if page_ant > 0 and page_score > page_ant:
+                    print("ant:", page_ant, " scr:", page_score)
+                page_ant = page_score
+                data = list(data) + [page_score]
                 docid = docs_table.append((len(words), data))
                 for idx, word in enumerate(words):
                     # item_score = max(1, 0.6 * word_sccores
@@ -489,7 +471,7 @@ class Index:
         def add_tokens_to_db(idx_dict):
             """Insert token words in the database."""
             sql_ins = "insert into tokens (word, docsets) values (?, ?)"
-            token_store = SQLmany("Tokens", sql_ins)
+            token_store = SQLmany("Tokens", sql_ins, len(idx_dict))
             for word, docs_list in idx_dict.items():
                 logger.debug("Word: %s %r" % (word, docs_list))
                 dict_stats["Indexed"] += len(docs_list)
@@ -499,20 +481,37 @@ class Index:
         def create_indexes():
             script = '''
                 create index idx_words on tokens (word);
-                drop table temp_docs;
                 vacuum;
                 '''
             database.executescript(script)
 
-        cls.show_progress = show_progress
+        def order_source(source):
+            """Load on memory dict to ensure ordered docs."""
+            ordered_source = defaultdict(list)
+            quant = 0
+            for quant, (words, page_score, data) in enumerate(source):
+                data = list(data)
+                # see if html file name can be deduced
+                # from the title. Mark using None
+                if data[0] == to_filename(data[1]):
+                    data[0] = None
+                value = [words, page_score, data]
+                ordered_source[page_score].append(value)
+            return ordered_source, quant
+
+        def gen_ordered(ordered_source):
+            for score in sorted(ordered_source.keys(), reverse=True):
+                for value in ordered_source[score]:
+                    yield value
+
         logger.info("Indexing")
         initial_time = timeit.default_timer()
         dict_stats = defaultdict(int)
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        create_temp_ordered(source)
-        idx_dict = add_docs_keys(ordered_source())
+        ordered_source, quantity = order_source(source)
+        idx_dict = add_docs_keys(gen_ordered(ordered_source), quantity)
         add_tokens_to_db(idx_dict)
         create_indexes()
         dict_stats["Total time"] = int(timeit.default_timer() - initial_time)

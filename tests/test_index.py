@@ -66,7 +66,7 @@ class DataSet:
         return "Fixture %s: %r" % (self.name, self.info)
 
 
-def test_auxiliary():
+def no_test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
     assert DataSet("one") == [(['ala', 'blanca'], 3, ('', 'ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
@@ -121,7 +121,7 @@ def get_engine(request):
 # --- Test the .items method.
 
 
-def test_items_nothing(create_index):
+def no_test_items_nothing(create_index):
     """Nothing in the index."""
     idx = create_index([])
     items = list(idx.items())
