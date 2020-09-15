@@ -39,14 +39,13 @@ def _tarball_info(lang, lang_config, dumpbase):
     filedir = os.path.join(dumpbase, 'pydocs')
     filename = lang + '_' + os.path.basename(url)
     filepath = os.path.join(filedir, filename)
-    exists = os.path.isfile(filepath)
-    return url, filepath, filename, exists
+    return url, filepath, filename
 
 
 def download(lang, lang_config, dumpbase):
     """Download python documentation tarball."""
-    url, filepath, filename, exists = _tarball_info(lang, lang_config, dumpbase)
-    if exists:
+    url, filepath, filename = _tarball_info(lang, lang_config, dumpbase)
+    if os.path.isfile(filepath):
         logger.info('Python documentation already downloaded: %s', filename)
         return
 
@@ -61,7 +60,7 @@ def download(lang, lang_config, dumpbase):
 
 def clone(lang, lang_config, dumpbase):
     """Copy python docs archive from dump to cdroot."""
-    url, filepath, filename, exists = _tarball_info(lang, lang_config, dumpbase)
+    url, filepath, filename = _tarball_info(lang, lang_config, dumpbase)
     dest = os.path.join(config.DIR_ASSETS, config.PYTHON_DOCS_FILENAME)
     logger.info('Copying python docs')
     shutil.copy(filepath, dest)
