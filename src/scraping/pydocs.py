@@ -53,10 +53,9 @@ def download(lang, lang_config, dumpbase):
     logger.info('Downloading python documentation: %s', filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     req = urllib.request.Request(url, headers=HEADERS)
-    u = urllib.request.urlopen(req)
-    data = u.read()
+    resp = urllib.request.urlopen(req)
     with open(filepath, "wb") as fh:
-        fh.write(data)
+        shutil.copyfileobj(resp, fh)
     logger.info('Documentation successfuly downloaded')
 
 
