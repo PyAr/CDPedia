@@ -16,26 +16,31 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import os
-import shutil
+import datetime
 import sys
 import urllib.request as request
 import urllib.parse as parse
 import urllib.error as error
 
+
 LOCAL_HOST = 'http://127.0.0.1:8000'
 
 
-class _Track:
+class Track:
     """Match urls in CDPedia."""
-    def __init__(self, url):
-        self.url = url
+    instant = datetime.datetime.now()
 
-    def verify_web(self):
-        status, reason = self.get_html(self.url)
-        result = (status, reason, self.url)
+    def __init__(self):
+        self.file_name = 'results-{}.txt'.format(self.instant.strftime('%Y%m%d-%f'))
+        self.aftermath = open(self.file_name, 'w', encoding='utf-8')
+        self.title = ' Status  Reason      Url_base\n\n'
+        self.aftermath.write(self.title)
+
+    def verify_web(self, url):
+        status, reason = self.get_html(url)
+        result = (status, reason, url)
         if status != 200:
-            _write_results(result)
+            self.aftermath.write('{:^9}{:<12}{}\n'.format(*result))
         return status
 
     def get_html(self, link):
@@ -46,59 +51,46 @@ class _Track:
         except Exception as err:
             if isinstance(err, error.HTTPError):
                 return err.code, err.reason
+            else:
+                raise err
 
 
-def _urls_to_verify(file_):
+def urls_to_verify(file_):
     """Extract urls/names to proccess."""
     urls = list()
     with open(file_, 'r', encoding='utf-8') as lines:
         for line in lines:
-            # this is for the structure system save in files.
-            url = '/'.join([LOCAL_HOST, 'wiki', line.split('|')[1]
-                            if file_ == 'pag_elegidas.txt' else line.split()[0]])
+            # pag_elegidas.txt has multiple columns
+            if '|' in line:
+                name = line.split('|')[1]
+            # just the page name, like all_articles.txt
+            else:
+                name = line.split()[0]
+            url = '/'.join([LOCAL_HOST, 'wiki', name])
             urls.append(url)
     return urls
 
 
-def _clean_dir():
-    if os.path.isdir('Pages_out'):
-        shutil.rmtree('Pages_out')
-
-
-def _create_result_dir():
-    if not os.path.isdir('Pages_out'):
-        os.mkdir('Pages_out')
-
-
-def _write_results(data, name='results.txt'):
-    with open('Pages_out/{}'.format(name), 'a', encoding='utf-8') as r:
-        if os.stat('Pages_out/{}'.format(name)).st_size == 0:
-            title = ' Status  Reason      Url_base\n\n'
-            r.write(title)
-        r.write('{:^9}{:<12}{}\n'.format(*data))
-
-
-def _main(file_=None):
-    _clean_dir()
-    _create_result_dir()
-    select = 'pag_elegidas.txt' if not file_ else file_
-    urls = _urls_to_verify(select)
+def main(file_='pag_elegidas.txt'):
+    urls = urls_to_verify(file_)
     print('Pages in this CDPedia version', len(urls))
     inside, outside = 0, 0
+    tags = Track()
     for url in urls:
         url_quote = parse.quote(url, safe='/:')
-        tags = _Track(url_quote)
-        result = tags.verify_web()
+        result = tags.verify_web(url_quote)
         if result == 200:
             inside += 1
         else:
             outside += 1
         print('Testing pages in CDPedia {0} ·:|:· In Parallel Universe {1}\r'
               .format(inside, outside), end='')
-    if not os.path.isfile('Pages_out/results.txt'):
+    if outside == 0:
+        tags.aftermath.write(chr(128126))
         print('\nCongrats!! All pages are included in CDPedia')
     else:
-        print('\nSomething outside, check results.txt in Pages_out folder')
+        print('\nSomething outside, check results.txt')
+    tags.aftermath.close()
 
 
 if __name__ == '__main__':
@@ -106,7 +98,7 @@ if __name__ == '__main__':
     # in root of this file and turn on cdpedia!
     if len(sys.argv) > 1:
         # Add other file.
-        _main(file_=sys.argv[1])
+        main(file_=sys.argv[1])
     else:
-        _main()
+        main()
     print('Job Done')
