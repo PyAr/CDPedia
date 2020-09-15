@@ -29,7 +29,7 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
-logger = logging.getLogger('scraping.pydocs')
+logger = logging.getLogger(__name__)
 
 
 def _tarball_info(lang, lang_config, dumpbase):
