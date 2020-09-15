@@ -34,26 +34,18 @@ logger = logging.getLogger('scraping.pydocs')
 
 def _tarball_info(lang, lang_config, dumpbase):
     """Get documentation tarball url and path."""
-    url = lang_config.get('python_docs')
-    if url is None:
-        url, filepath, exists = None, None, False
-    else:
-        filedir = os.path.join(dumpbase, 'pydocs')
-        filename = lang + '_' + os.path.basename(url)
-        filepath = os.path.join(filedir, filename)
-        exists = os.path.isfile(filepath)
+    # python docs URL must exist, otherwise raise KeyError
+    url = lang_config['python_docs']
+    filedir = os.path.join(dumpbase, 'pydocs')
+    filename = lang + '_' + os.path.basename(url)
+    filepath = os.path.join(filedir, filename)
+    exists = os.path.isfile(filepath)
     return url, filepath, filename, exists
 
 
 def download(lang, lang_config, dumpbase):
     """Download python documentation tarball."""
     url, filepath, filename, exists = _tarball_info(lang, lang_config, dumpbase)
-    if url is None:
-        logger.warning("Python documentation URL not set")
-        return
-    if not url.endswith('.tar.bz2'):
-        logger.error('Wrong tarball URL, skipping documentation download')
-        return
     if exists:
         logger.info('Python documentation already downloaded: %s', filename)
         return
@@ -71,9 +63,6 @@ def download(lang, lang_config, dumpbase):
 def clone(lang, lang_config, dumpbase):
     """Copy python docs archive from dump to cdroot."""
     url, filepath, filename, exists = _tarball_info(lang, lang_config, dumpbase)
-    if not exists:
-        logger.warning('Python docs archive not found.')
-        return
     dest = os.path.join(config.DIR_ASSETS, config.PYTHON_DOCS_FILENAME)
     logger.info('Copying python docs')
     shutil.copy(filepath, dest)
