@@ -28,19 +28,19 @@ LOCAL_HOST = 'http://127.0.0.1:8000'
 
 class Track:
     """Match urls in CDPedia."""
-    instant = datetime.datetime.now()
 
     def __init__(self):
-        self.file_name = 'results-{}.txt'.format(self.instant.strftime('%Y%m%d-%f'))
-        self.aftermath = open(self.file_name, 'w', encoding='utf-8')
+        self.instant = datetime.datetime.now()
+        self.file_name = 'results-{}.txt'.format(self.instant.strftime('%Y%m%d-%H%M%S'))
+        self.resultlog = open(self.file_name, 'w', encoding='utf-8')
         self.title = ' Status  Reason      Url_base\n\n'
-        self.aftermath.write(self.title)
+        self.resultlog.write(self.title)
 
     def verify_web(self, url):
         status, reason = self.get_html(url)
         result = (status, reason, url)
         if status != 200:
-            self.aftermath.write('{:^9}{:<12}{}\n'.format(*result))
+            self.resultlog.write('{:^9}{:<12}{}\n'.format(*result))
         return status
 
     def get_html(self, link):
@@ -57,7 +57,7 @@ class Track:
 
 def urls_to_verify(file_):
     """Extract urls/names to proccess."""
-    urls = list()
+    urls = []
     with open(file_, 'r', encoding='utf-8') as lines:
         for line in lines:
             # pag_elegidas.txt has multiple columns
@@ -71,14 +71,14 @@ def urls_to_verify(file_):
     return urls
 
 
-def main(file_='pag_elegidas.txt'):
+def main(file_):
     urls = urls_to_verify(file_)
     print('Pages in this CDPedia version', len(urls))
     inside, outside = 0, 0
-    tags = Track()
+    track = Track()
     for url in urls:
         url_quote = parse.quote(url, safe='/:')
-        result = tags.verify_web(url_quote)
+        result = track.verify_web(url_quote)
         if result == 200:
             inside += 1
         else:
@@ -86,11 +86,10 @@ def main(file_='pag_elegidas.txt'):
         print('Testing pages in CDPedia {0} ·:|:· In Parallel Universe {1}\r'
               .format(inside, outside), end='')
     if outside == 0:
-        tags.aftermath.write(chr(128126))
         print('\nCongrats!! All pages are included in CDPedia')
     else:
         print('\nSomething outside, check results.txt')
-    tags.aftermath.close()
+    track.resultlog.close()
 
 
 if __name__ == '__main__':
@@ -100,5 +99,4 @@ if __name__ == '__main__':
         # Add other file.
         main(file_=sys.argv[1])
     else:
-        main()
-    print('Job Done')
+        main(file_='pag_elegidas.txt')
