@@ -101,8 +101,8 @@ class TestWikiSite(object):
         mocker.patch(target + 'WikiFile', preprocess.WikiFile)
 
         # set up the portal pages in a custom dir_assets
-        mocker.patch('config.DIR_ASSETS', str(tmp_path))
-        portals_file = tmp_path / 'dynamic' / 'portal_pages.txt'
+        mocker.patch('config.DIR_TEMP', str(tmp_path))
+        portals_file = tmp_path / 'portal_pages.txt'
         portals_file.parent.mkdir(exist_ok=True)
         portals_file.touch()
 
