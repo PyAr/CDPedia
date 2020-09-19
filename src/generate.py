@@ -102,11 +102,6 @@ def copy_assets(src_info, dest):
             raise EnvironmentError("Directory not found, can't continue")
         copy_dir(src_dir, dst_dir)
 
-    # external (from us, bah) resources
-    src_dir = "resources/external_assets"
-    dst_dir = path.join(dest, "extern")
-    copy_dir(src_dir, dst_dir)
-
     # general info
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
@@ -314,6 +309,7 @@ def main(lang, src_info, version, lang_config, gendate,
 
     logger.info("Copying the assets and locale files")
     copy_assets(src_info, config.DIR_ASSETS)
+    shutil.copy(os.path.join(src_info, 'portal_pages.txt'), config.DIR_TEMP)
     shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
     set_locale(lang_config.get('second_language'), record=True)
 

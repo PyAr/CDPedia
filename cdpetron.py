@@ -257,7 +257,7 @@ def scrap_portal(language, lang_config):
         soup = bs4.BeautifulSoup(fh, features="html.parser")
 
     cnt = 0
-    _path = os.path.join(location.resources, PORTAL_PAGES)
+    _path = os.path.join(location.langdir, PORTAL_PAGES)
     with open(_path, 'wt', encoding='utf8') as fh:
         for page in preprocessors.extract_pages(soup):
             cnt += 1

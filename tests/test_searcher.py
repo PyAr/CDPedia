@@ -120,7 +120,7 @@ class SearcherTestCase(unittest.TestCase):
         search_id = self.searcher.start_search(['a'])
         t = time.time()
         self.searcher.get_results(search_id)
-        self.assertTrue(time.time() - t >= .5)
+        self.assertTrue(time.time() - t >= .4)
 
     def test_get_results_quantity(self):
         """Get indicated quantity."""
