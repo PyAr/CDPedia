@@ -34,6 +34,7 @@ from src.preprocessing import preprocess
 from src.armado.compresor import ArticleManager, ImageManager
 from src.armado import cdpindex
 from src.images import extract, download, scale, calculate, embed
+from src.scraping import pydocs
 from src.utiles import set_locale
 
 
@@ -111,11 +112,6 @@ def copy_assets(src_info, dest):
     dst_dir = path.join(dest, "institucional")
     copy_dir(src_dir, dst_dir)
 
-    # compressed assets
-    src_dir = "resources"
-    for asset in config.COMPRESSED_ASSETS:
-        shutil.copy(path.join(src_dir, asset), dest)
-
     # dynamic stuff
     src_dir = path.join(src_info, "resources")
     dst_dir = path.join(dest, "dynamic")
@@ -192,6 +188,7 @@ def gen_run_config(lang_config):
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
+    f.write('PYTHON_DOCS_FILENAME = "%s"\n' % config.PYTHON_DOCS_FILENAME)
     f.write('LOCALE = "%s"\n' % os.environ['LANGUAGE'])
     f.write('DIR_BLOQUES = os.path.join("cdpedia", "bloques")\n')
     f.write('DIR_ASSETS = os.path.join("cdpedia", "assets")\n')
@@ -371,6 +368,9 @@ def main(lang, src_info, version, lang_config, gendate,
     logger.info("Copying the sources and libs")
     copy_sources()
     generate_libs()
+
+    # Copy python docs
+    pydocs.clone(lang, lang_config, os.path.dirname(src_info))
 
     logger.info("Generating the links to blocks and indexes")
     # blocks

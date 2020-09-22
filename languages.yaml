@@ -4,6 +4,7 @@
 #  - include: some specific pages that *must* be included
 #  - portal_index: the title of the main "portals" index (optional)
 #  - second_language: alternative language for missing translations (optional)
+#  - python_docs: URL of the python documentation tarball to be included in final image
 
 es:
     include: [
@@ -17,6 +18,7 @@ es:
         "Wikipedia:Portal",
     ]
     portal_index: Portal:Portada
+    python_docs: https://docs.python.org/es/3.8/archives/python-3.8.5-docs-html.tar.bz2
 
 ay:
     include: [
@@ -25,6 +27,7 @@ ay:
     ]
     portal_index: Nayriri_uñstawi
     second_language: es
+    python_docs: https://docs.python.org/es/3.8/archives/python-3.8.5-docs-html.tar.bz2
 
 pt:
     include: [
@@ -38,6 +41,7 @@ pt:
         "Wikipédia:Portal",
     ]
     portal_index: Portal:Índice
+    python_docs: https://docs.python.org/pt-br/3.8/archives/python-3.8.5-docs-html.tar.bz2
 
 fr:
     include: [
@@ -51,3 +55,4 @@ fr:
         "Wikipédia:Liste_des_portails",
     ]
     portal_index: Portail:Accueil
+    python_docs: https://docs.python.org/fr/3.8/archives/python-3.8.5-docs-html.tar.bz2
