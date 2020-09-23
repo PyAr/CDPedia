@@ -336,10 +336,8 @@ class Index:
             idx_dict = defaultdict(DocSet)
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, quantity)
-            page_ant = -1
 
             for words, page_score, data in source:
-                page_ant = page_score
                 data = list(data) + [page_score]
                 docid = docs_table.append((len(words), data))
                 for idx, word in enumerate(words):
