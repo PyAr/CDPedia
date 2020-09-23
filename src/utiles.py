@@ -174,21 +174,3 @@ def set_locale(second_language=None, record=False):
         # running cdpedia, load locale from file
         with open(config.LOG_LOCALE, 'rt') as fh:
             os.environ['LANGUAGE'] = fh.read()
-
-
-class ProgressBar:
-    """A simple terminal progress bar."""
-    def __init__(self, name, quantity):
-        self.quantity = quantity
-        self.name = name
-        self.progress_step = max(1, quantity) / 100
-
-    def step(self, count):
-        if self.progress_step < 1 or count % int(self.progress_step) == 0:
-            workdone = min(100, int(count / self.progress_step))
-            print("\r {0:12s}: [{1:100s}] {2:7d}".format(
-                  self.name, '#' * workdone, count), end="", flush=True)
-
-    def finish(self, count):
-        print("\r {0:12s}: [{1:100s}] {2:7d}".format(
-            self.name, '#' * 100, count), flush=True)

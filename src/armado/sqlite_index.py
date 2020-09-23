@@ -23,10 +23,10 @@ import random
 import sqlite3
 from collections import defaultdict
 from functools import lru_cache
+from progress.bar import Bar
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
-from src.utiles import ProgressBar
 
 logger = logging.getLogger(__name__)
 
@@ -191,10 +191,11 @@ class Index:
     def keys(self):
         """Returns an iterator over the stored keys."""
         cur = self.db.execute("SELECT word FROM tokens")
-        return [row[0] for row in cur.fetchall()]
+        for row in cur.fetchall():
+            yield row[0]
 
     def items(self):
-        """Returns an iterator over the stored items."""
+        """Return an iterator over the stored items."""
         sql = "select word, docsets as 'ds [docset]' from tokens"
         cur = self.db.execute(sql)
         for row in cur.fetchall():
@@ -231,6 +232,7 @@ class Index:
 
     @lru_cache(1000)
     def _get_page(self, pageid):
+        """Get a page of doc entry data."""
         cur = self.db.execute("SELECT data FROM docs where pageid = ?", (pageid,))
         row = cur.fetchone()
         if row:
@@ -239,11 +241,11 @@ class Index:
         return None
 
     def get_doc(self, docid):
-        '''Returns one stored document item.'''
+        """Return one stored document item."""
         page_id, rel_position = divmod(docid, PAGE_SIZE)
         data = self._get_page(page_id)
         if not data:
-            return None
+            raise IndexError("Non existing docid")
         row = data[rel_position]
         # if the html filename is marked as computable
         # do it and store in position 0.
@@ -253,14 +255,14 @@ class Index:
 
     @classmethod
     def create(cls, directory, source):
-        """Creates the index in the directory.
+        """Create the index in the directory.
+
         The source must give path, page_score, title and
         a list of extracted words from title in an ordered fashion
-
         It must return the quantity of pairs indexed.
         """
         import pickletools
-        import timeit
+        import time
 
         class SQLmany:
             """Execute many INSERTs greatly improves the performance."""
@@ -269,7 +271,7 @@ class Index:
                 self.name = name
                 self.count = 0
                 self.buffer = []
-                self.progress_bar = ProgressBar(name, quantity)
+                self.progress_bar = Bar(name, max=max(1 / 100, quantity))
 
             def append(self, data):
                 """Append one data set to persist on db."""
@@ -281,14 +283,14 @@ class Index:
                 # self.count is the quantity of docs added
                 # but it is the index that is returned
                 # and it is zero based, hence one less.
-                self.progress_bar.step(self.count)
+                self.progress_bar.next()
                 return self.count - 1
 
             def finish(self):
                 """Finish the process and prints some data."""
                 if self.buffer:
                     self.persist()
-                self.progress_bar.finish(self.count)
+                self.progress_bar.finish()
                 dict_stats[self.name] = self.count
 
             def persist(self):
@@ -337,13 +339,10 @@ class Index:
             page_ant = -1
 
             for words, page_score, data in source:
-                if page_ant > 0 and page_score > page_ant:
-                    print("ant:", page_ant, " scr:", page_score)
                 page_ant = page_score
                 data = list(data) + [page_score]
                 docid = docs_table.append((len(words), data))
                 for idx, word in enumerate(words):
-                    # item_score = max(1, 0.6 * word_sccores
                     idx_dict[word].append(docid, idx)
 
             docs_table.finish()
@@ -378,7 +377,7 @@ class Index:
                     data[0] = None
                 value = [words, page_score, data]
                 ordered_source[page_score].append(value)
-            return ordered_source, quant
+            return ordered_source, quant + 1
 
         def gen_ordered(ordered_source):
             for score in sorted(ordered_source.keys(), reverse=True):
@@ -386,7 +385,7 @@ class Index:
                     yield value
 
         logger.info("Indexing")
-        initial_time = timeit.default_timer()
+        initial_time = time.time()
         dict_stats = defaultdict(int)
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
@@ -395,7 +394,7 @@ class Index:
         idx_dict = add_docs_keys(gen_ordered(ordered_source), quantity)
         add_tokens_to_db(idx_dict)
         create_indexes()
-        dict_stats["Total time"] = int(timeit.default_timer() - initial_time)
+        dict_stats["Total time"] = int(time.time() - initial_time)
         # Finally, show some statistics.
         for k, v in dict_stats.items():
             logger.info("{:>20}:{}".format(k, v))
