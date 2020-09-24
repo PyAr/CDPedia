@@ -122,7 +122,7 @@ class TestVIPDecissor:
     @pytest.fixture
     def vips(self, mocker, tmp_path):
         """Set expected VIP articles information."""
-        mocker.patch('config.DIR_ASSETS', str(tmp_path))
+        mocker.patch('config.DIR_TEMP', str(tmp_path))
 
         # VIP articles from languages.yaml
         include = 'Wikipedia:Portal', 'Wikipedia:Acerca_de'
@@ -137,9 +137,7 @@ class TestVIPDecissor:
 
         # VIP articles from main portals page
         portals = ['Portal:Derecho', 'Portal:Economía', 'Portal:Educación']
-        dir_portals = tmp_path / 'dynamic'
-        dir_portals.mkdir()
-        with (dir_portals / 'portal_pages.txt').open('wt', encoding='utf-8') as fh:
+        with (tmp_path / 'portal_pages.txt').open('wt', encoding='utf-8') as fh:
             for portal in portals:
                 fh.write(portal + '\n')
 
