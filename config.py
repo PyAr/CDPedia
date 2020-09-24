@@ -58,8 +58,7 @@ LOCALE = None
 # Directorios especiales con metadata y cosas que no son los HTMLs de las
 # páginas en sí
 ASSETS = ["static"]
-COMPRESSED_ASSETS = ['tutorial.tar.xz']
-ALL_ASSETS = ASSETS + COMPRESSED_ASSETS + ["images", "extern"]
+ALL_ASSETS = ASSETS + ["images", "extern"]
 if EDICION_ESPECIAL is not None:
     ALL_ASSETS.append(EDICION_ESPECIAL)
 
@@ -110,6 +109,9 @@ DIR_ASSETS = "temp/cdroot/cdpedia/assets"
 
 # Directorio de los archivos estáticos de origen
 DIR_SOURCE_ASSETS = "resources"
+
+# Generic name for the python docs tarball that will be copied to the final image
+PYTHON_DOCS_FILENAME = 'python-docs.tar.bz2'
 
 # Decidimos cuales páginas quedaron
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"

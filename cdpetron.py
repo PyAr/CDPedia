@@ -39,7 +39,7 @@ from utilities import localize
 from src import list_articles_by_namespaces, generate
 from src.armado import to3dirs
 from src.preprocessing import preprocessors
-from src.scraping import scraper
+from src.scraping import scraper, pydocs
 
 
 # some constants to download the articles list we need to scrap
@@ -257,7 +257,7 @@ def scrap_portal(language, lang_config):
         soup = bs4.BeautifulSoup(fh, features="html.parser")
 
     cnt = 0
-    _path = os.path.join(location.resources, PORTAL_PAGES)
+    _path = os.path.join(location.langdir, PORTAL_PAGES)
     with open(_path, 'wt', encoding='utf8') as fh:
         for page in preprocessors.extract_pages(soup):
             cnt += 1
@@ -318,6 +318,7 @@ def main(language, lang_config, imag_config,
     if not noscrap:
         scrap_portal(language, lang_config)
         scrap_pages(language, test)
+        pydocs.download(language, lang_config, location.dumpbase)
 
     if extra_pages:
         _call_scraper(language, extra_pages)

@@ -98,6 +98,7 @@ class CDPedia:
             Rule('/favicon.ico', endpoint='favicon'),
         ])
         self._tutorial_ready = False
+        self.docs_dirname = None  # root directory of tar archive
 
     def get_creation_date(self):
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'start_date.txt')
@@ -218,13 +219,15 @@ class CDPedia:
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
-            if not os.path.exists(os.path.join(tmpdir, 'tutorial')):
+            if not self.docs_dirname or not os.path.exists(
+                    os.path.join(tmpdir, self.docs_dirname)):
                 tar = tarfile.open(
-                    os.path.join(config.DIR_ASSETS, "tutorial.tar.xz"), mode="r:xz")
+                    os.path.join(config.DIR_ASSETS, config.PYTHON_DOCS_FILENAME), mode="r:bz2")
+                self.docs_dirname = tar.next().name
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True
-        asset = "/cmp/tutorial/index.html"
+        asset = "/cmp/{}/tutorial/index.html".format(self.docs_dirname)
         return self.render_template('compressed_asset.html',
                                     server_mode=config.SERVER_MODE,
                                     asset_url=asset,

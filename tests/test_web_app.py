@@ -40,6 +40,7 @@ def create_app_client(mocker, tmp_path):
     mocker.patch('config.LANGUAGE', 'es')
     mocker.patch('config.PORTAL_PAGE', 'Portal:Portal')
     mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
+    mocker.patch('config.PYTHON_DOCS_FILENAME', 'docs.tar.bz2')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
     mocker.patch.dict('os.environ', {'LANGUAGE': 'es'})
@@ -47,7 +48,7 @@ def create_app_client(mocker, tmp_path):
         fh.write('42\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
         fh.write('es\n')
-    with tarfile.open(str(tmp_path / "tutorial.tar.xz"), 'w:xz') as fh:
+    with tarfile.open(str(tmp_path / config.PYTHON_DOCS_FILENAME), 'w:bz2') as fh:
         fh.addfile(tarfile.TarInfo(name="testtuto"))
     inst_dir = tmp_path / 'institucional'
     inst_dir.mkdir()
