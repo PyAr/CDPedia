@@ -32,15 +32,9 @@ logger = logging.getLogger('images.scale')
 
 
 def scale_image(frompath, topath, scale_factor):
-    """
-    Reduces the size of an image by the scale_factor using the PIL library.
-    """
+    """Reduce the size of an image by the scale_factor using the PIL library."""
     scale_ratio = scale_factor / 100  # since scale_factor is in percentage
-    try:
-        img = Image.open(frompath)
-    except IOError:
-        logger.warning("Couldn't read image at %s" % frompath)
-        return -1
+    img = Image.open(frompath)
 
     # pull out the original dimensions and calculate resized dimensions
     width, height = img.size
@@ -49,7 +43,7 @@ def scale_image(frompath, topath, scale_factor):
     # resize and save at new destination
     output_image = img.resize(resize_tuple)
     output_image.save(topath)
-    logger.info("Success! Resized image saved at %s" % topath)
+    logger.debug("Resized image saved at %s. Scaled to %d" % (topath, scale_factor))
 
     return 0
 
@@ -122,11 +116,11 @@ def run(verbose):
                     shutil.copyfile(frompath, topath)
 
             else:
-                status = scale_image(frompath=frompath, topath=topath, scale_factor=scale)
-                if not status:
+                try:
+                    scale_image(frompath=frompath, topath=topath, scale_factor=scale)
                     done_now[dskurl] = scale
-                else:
-                    logger.warning("Got %d when processing %s", status, frompath)
+                except Exception:
+                    logger.exception("Error processing %s", frompath)
 
     # save images processed now
     with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
