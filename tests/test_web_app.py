@@ -118,6 +118,17 @@ def test_wiki_article_maradona(create_app_client):
     assert b"Yo soy el Diego" in response.data
 
 
+def test_wiki_article_with_special_chars(create_app_client):
+    app, client = create_app_client()
+    app = web_app.create_app(watchdog=None, with_static=False)
+    html = "foo <a>bar</a> baz"
+    app.art_mngr.get_item = lambda x: html
+    client = Client(app, Response)
+    response = client.get("/wiki/.foo/bar%baz")
+    assert response.status_code == 200
+    assert html.encode('utf-8') in response.data
+
+
 def test_wiki_random_article(create_app_client):
     _, client = create_app_client()
     response = client.get("/al_azar")
@@ -201,6 +212,13 @@ def test_search_term_url(create_app_client):
 
     response = client.post(
         "/search", data={"keywords": " ".join(words)}, follow_redirects=True)
+    assert response.status_code == 200
+
+
+def test_search_term_with_slash(create_app_client):
+    _, client = create_app_client()
+    data = {"keywords": "foo/bar"}
+    response = client.post("/search", data=data, follow_redirects=True)
     assert response.status_code == 200
 
 

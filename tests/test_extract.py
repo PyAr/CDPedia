@@ -19,11 +19,15 @@
 """Tests for the 'extract' module."""
 
 import unittest
+import urllib.parse
 
 import bs4
 
+from src.armado import to3dirs
 from src.images.extract import ImageParser
 from .utils import load_fixture
+
+import pytest
 
 
 class ReplaceImageParserTestCase(unittest.TestCase):
@@ -238,3 +242,45 @@ def test_included_pages_links():
 
     no_chosen_pages_count = len(soup1.find_all("a", "nopo"))
     assert no_chosen_pages_count - 1 == len(soup2.find_all("a", "nopo"))
+
+
+@pytest.mark.parametrize('name', (
+    'foo_bar',
+    'foo#bar',
+    'foo%25bar%2F_baz',  # foo%bar/_baz
+))
+def test_fixlinks_nopo(name):
+    """Test that wiki links to not included pages are marked with the 'nopo' class."""
+    chosen_pages = {'eggs', 'spam'}
+    html = '<a href="/wiki/{}"></a>'.format(name)
+    soup = bs4.BeautifulSoup(html, 'lxml')
+    a_tag = soup.find('a')
+    ImageParser.fixlinks(a_tag, chosen_pages)
+    assert a_tag.attrs.get('class') == ['nopo']
+
+
+@pytest.mark.parametrize('name', (
+    'foo_bar',
+    '.foo/bar%baz',  # filesystem chars
+    'Fóõ*b@r/(_bàz!)',  # arbitrary chars
+))
+def test_fixlinks_no_nopo(name):
+    """Test that wiki links to included pages are not marked with the 'nopo' class."""
+    fname = to3dirs.to_filename(name)
+    chosen_pages = {fname}
+    url = urllib.parse.quote(name)
+    html = '<a href="/wiki/{}"></a>'.format(url)
+    soup = bs4.BeautifulSoup(html, 'lxml')
+    a_tag = soup.find('a')
+    ImageParser.fixlinks(a_tag, chosen_pages)
+    assert a_tag.attrs.get('class') is None
+
+
+def test_fixlinks_fragment():
+    """Links with fragment part to included pages should not be marked as 'nopo'."""
+    chosen_pages = {'foo'}
+    html = '<a href="/wiki/foo#bar></a>'
+    soup = bs4.BeautifulSoup(html, 'lxml')
+    a_tag = soup.find('a')
+    ImageParser.fixlinks(a_tag, chosen_pages)
+    assert a_tag.attrs.get('class') is None
