@@ -86,10 +86,10 @@ class CDPedia:
         self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
-            Rule('/%s/<name>' % ARTICLES_BASE_URL, endpoint='article'),
+            Rule('/%s/<path:name>' % ARTICLES_BASE_URL, endpoint='article'),
             Rule('/al_azar', endpoint='random'),
             Rule('/search', endpoint='search'),
-            Rule('/search/<key>', endpoint='search_results'),
+            Rule('/search/<path:key>', endpoint='search_results'),
             Rule('/images/<path:name>', endpoint='image'),
             Rule('/institucional/<path:path>', endpoint='institutional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
