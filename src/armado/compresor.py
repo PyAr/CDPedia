@@ -63,7 +63,7 @@ class BloqueManager(object):
     """
     archive_dir = None  # the directory with all the blocks
     archive_extension = ".hdp"  # extension of the blocks handled by this class
-    archive_class = None  # class to be used for the blcoks
+    archive_class = None  # class to be used for the blocks
     items_per_block = 0  # quantity of items per block
 
     def __init__(self, verbose=False):
@@ -284,8 +284,8 @@ class ArticleManager(BloqueManager):
 
         # build the redirect dict, also separated by blocks to know where to find them
         redirects = {}
-        for linea in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
-            orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+        for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
+            orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
             # only keep this redirect if really points to an useful article (discarding any
             # possible 'fragment')
