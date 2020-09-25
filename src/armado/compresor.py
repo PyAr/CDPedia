@@ -37,12 +37,14 @@ import os
 import pickle
 import shutil
 import struct
+import urllib.parse
 from functools import lru_cache
 from lzma import LZMAFile as CompressedFile
 from os import path
 
 import config
 from src import utiles
+from src.armado import to3dirs
 
 
 logger = logging.getLogger(__name__)
@@ -273,7 +275,9 @@ class ArticleManager(BloqueManager):
         bloques = {}
         all_filenames = set()
         for dir3, filename, _ in top_pages:
-            all_filenames.add(filename)
+            # unquote special fielsystem chars
+            filename_orig = urllib.parse.unquote(filename)
+            all_filenames.add(filename_orig)
             bloqNum = utiles.coherent_hash(filename.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, filename))
             logger.debug("  files: %s %r %r", bloqNum, dir3, filename)
@@ -291,8 +295,10 @@ class ArticleManager(BloqueManager):
 
             # put it in a block
             bloqNum = utiles.coherent_hash(orig.encode('utf8')) % numBloques
-            redirects.setdefault(bloqNum, []).append((orig, dest))
-            logger.debug("  redirs: %s %r %r", bloqNum, orig, dest)
+            # target must be disk filename
+            dest_filename = to3dirs.to_filename(dest)
+            redirects.setdefault(bloqNum, []).append((orig, dest_filename))
+            logger.debug("  redirs: %s %r %r", bloqNum, orig, dest_filename)
 
         # build each of the compressed blocks
         tot_archs = 0
