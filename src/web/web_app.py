@@ -119,6 +119,8 @@ class CDPedia:
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
+        # compressed article name contains special filesystem chars quoted
+        name = to3dirs.to_filename(name)
         try:
             data = self.art_mngr.get_item(name)
         except Exception as err:
