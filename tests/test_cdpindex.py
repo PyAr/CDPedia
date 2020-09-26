@@ -16,10 +16,8 @@
 
 """Tests for the cdpindex module."""
 
-import urllib.parse
-
 import config
-from src.armado import cdpindex
+from src.armado import cdpindex, to3dirs
 
 import pytest
 
@@ -107,7 +105,7 @@ def test_repeated_entry_redirects(index, data, mocker):
 def test_redirects_with_special_chars(index, data, mocker, title):
     """Check redirects to pages containing encoded special filesystem chars."""
     # only target chars should be quoted: '/', '.' and '%'
-    filename = urllib.parse.quote(title)
+    filename = to3dirs.to_filename(title)
     with open(config.LOG_TITLES, 'at', encoding='utf-8') as fh:
         fh.write('{}|{}|\n'.format(filename, title))
     top_pages = [('f/o/o', filename, 10)]
