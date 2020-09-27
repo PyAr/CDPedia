@@ -287,7 +287,7 @@ class Index:
                 return self.count - 1
 
             def finish(self):
-                """Finish the process and prints some data."""
+                """Finish the process and show some data."""
                 if self.buffer:
                     self.persist()
                 self.progress_bar.finish()
