@@ -363,33 +363,14 @@ class Index:
                 '''
             database.executescript(script)
 
-        def order_source(source):
-            """Load on memory dict to ensure ordered docs."""
-            ordered_source = defaultdict(list)
-            quant = 0
-            for quant, (words, page_score, data) in enumerate(source):
-                data = list(data)
-                # see if html file name can be deduced
-                # from the title. Mark using None
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
-                value = [words, page_score, data]
-                ordered_source[page_score].append(value)
-            return ordered_source, quant + 1
-
-        def gen_ordered(ordered_source):
-            for score in sorted(ordered_source.keys(), reverse=True):
-                for value in ordered_source[score]:
-                    yield value
-
         logger.info("Indexing")
         initial_time = time.time()
         dict_stats = defaultdict(int)
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        ordered_source, quantity = order_source(source)
-        idx_dict = add_docs_keys(gen_ordered(ordered_source), quantity)
+        ordered_source = sorted(source, key=lambda data: data[1])
+        idx_dict = add_docs_keys(ordered_source, len(ordered_source))
         add_tokens_to_db(idx_dict)
         create_indexes()
         dict_stats["Total time"] = int(time.time() - initial_time)
