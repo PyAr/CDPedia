@@ -122,9 +122,8 @@ def get_engine(request):
 
 def test_items_nothing(create_index):
     """Nothing in the index."""
-    idx = create_index([])
-    items = list(idx.items())
-    assert items == []
+    with pytest.raises(ValueError) as _:
+        create_index([])
 
 
 def test_one_item(create_index):
@@ -159,12 +158,6 @@ def test_random_several_values(create_index):
     assert value[0] in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
 
 # --- Test the "in" functionality.
-
-
-def test_infunc_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    assert "a" not in idx
 
 
 def test_infunc_one_item(create_index):

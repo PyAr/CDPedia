@@ -17,6 +17,7 @@
 
 import array
 import logging
+import operator
 import os
 import pickle
 import random
@@ -271,7 +272,7 @@ class Index:
                 self.name = name
                 self.count = 0
                 self.buffer = []
-                self.progress_bar = Bar(name, max=max(1 / 100, quantity))
+                self.progress_bar = Bar(name, max=quantity)
 
             def append(self, data):
                 """Append one data set to persist on db."""
@@ -331,14 +332,16 @@ class Index:
 
             database.executescript(script)
 
-        def add_docs_keys(source, quantity):
+        def add_docs_keys(source):
             """Add docs and keys registers to db and its rel in memory."""
             idx_dict = defaultdict(DocSet)
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
-            docs_table = Compressed("Documents", sql, quantity)
+            docs_table = Compressed("Documents", sql, len(source))
 
             for words, page_score, data in source:
                 data = list(data) + [page_score]
+                if data[0] == to_filename(data[1]):
+                    data[0] = None
                 docid = docs_table.append((len(words), data))
                 for idx, word in enumerate(words):
                     idx_dict[word].append(docid, idx)
@@ -369,8 +372,10 @@ class Index:
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        ordered_source = sorted(source, key=lambda data: data[1])
-        idx_dict = add_docs_keys(ordered_source, len(ordered_source))
+        ordered_source = sorted(source, key=operator.itemgetter(1))
+        if not ordered_source:
+            raise ValueError("No data to index")
+        idx_dict = add_docs_keys(ordered_source)
         add_tokens_to_db(idx_dict)
         create_indexes()
         dict_stats["Total time"] = int(time.time() - initial_time)
