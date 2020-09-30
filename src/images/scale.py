@@ -45,8 +45,6 @@ def scale_image(frompath, topath, scale_factor):
     output_image.save(topath)
     logger.debug("Resized image saved at %s. Scaled to %d" % (topath, scale_factor))
 
-    return 0
-
 
 def run(verbose):
     """Reduce images using precalculated scales."""
@@ -117,7 +115,7 @@ def run(verbose):
 
             else:
                 try:
-                    scale_image(frompath=frompath, topath=topath, scale_factor=scale)
+                    scale_image(frompath, topath, scale)
                     done_now[dskurl] = scale
                 except Exception:
                     logger.exception("Error processing %s", frompath)
