@@ -3,6 +3,7 @@ Babel
 bs4
 flake8
 futures
+pillow
 pytest
 pytest-mock
 lxml
