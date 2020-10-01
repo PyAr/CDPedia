@@ -4,6 +4,7 @@ bs4
 flake8
 futures
 progress
+pillow
 pytest
 pytest-mock
 lxml
