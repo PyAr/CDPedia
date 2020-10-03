@@ -26,7 +26,7 @@ from src.armado.sqlite_index import Index as IndexSQL # NOQA import after fixing
 #from src.armado.sqlite_index import Index as IndexComp # NOQA import after fixing path
 from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
 
-PAGE = 34
+PAGE = 3004
 
 
 

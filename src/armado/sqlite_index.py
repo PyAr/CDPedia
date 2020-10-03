@@ -194,9 +194,9 @@ class Search:
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
             similitude = self.iterative_levenshtein(phrase)
-            order_factor = 150000*math.pow(docid + 1, -.5)
+            order_factor = 20000 * math.pow(docid + 1, -.5)
             explain = f"s={similitude}, id={docid}, f={order_factor}"
-            explain = ""
+            # explain = ""
 
             self.ordered.append((order_factor - similitude, docid, explain))
             # self.ordered.append((docid, docid, explain))
@@ -252,10 +252,13 @@ class Search:
         first j items of phrase
         """
 
+        if self.keys == phrase:
+            return -1000
+
         keys = self.keys
         rows = len(keys) + 1
         cols = len(phrase) + 1
-        deletes, inserts, substitutes, partial = 100, 25, 90, 60
+        deletes, inserts, substitutes, partial = 10000, 25, 10000, 120
 
         dist = [[0 for x in range(cols)] for x in range(rows)]
 
@@ -271,19 +274,21 @@ class Search:
 
         for col in range(1, cols):
             for row in range(1, rows):
+                lendiff = len(phrase[col - 1]) - len(keys[row - 1])
                 if keys[row - 1] == phrase[col - 1]:
                     cost = 0
                 elif phrase[col - 1].startswith(keys[row - 1]):
-                    cost = (2 * partial) // 3
+                    cost = lendiff * (partial // 2)
                 elif keys[row - 1] in phrase[col - 1]:
-                    cost = partial
+                    cost = lendiff * partial
                 else:
                     cost = substitutes
                 dist[row][col] = min(dist[row - 1][col] + deletes,
                                      dist[row][col - 1] + inserts,
                                      dist[row - 1][col - 1] + cost)  # substitution
 
-        return dist[row][col]
+        r = dist[row][col]
+        return r
 
 
 class Index:
