@@ -28,11 +28,16 @@ from src.armado.compressed_index import Index as IndexComp # NOQA import after f
 
 PAGE = 3004
 
+def output(*out):
+    if args.file:
+        with open(args.file, "a") as fn:
+            print(*out, file=fn)
+    print(*out)
 
 
 def show_results(result, verbose):
     def show_stat(definition, value):
-        print("{:>25}:{}".format(definition, value), flush=True)
+        output("{:>25}:{}".format(definition, value))
 
     res = []
     first_res_time = 0
@@ -43,7 +48,7 @@ def show_results(result, verbose):
             show_stat("First Result", first_res_time)
         if args.verbose and len(res) <= PAGE:
             # pp(row)
-            print('{0:2d}){2:8d} "{1:30s}"{4} {3:70s}'.format(
+            output('{0:2d}){2:8d} "{1:30s}"{4} {3:70s}'.format(
                 len(res), row[1], row[-2], row[-3][:70].replace("\n", " "), row[-1]))
         if len(res) == PAGE:
             first_res_time = timeit.default_timer() - initial_time
@@ -58,15 +63,15 @@ def show(title, data, other):
     p = []
     for item in data:
         if item not in other:
-            print("     ", item)
+            output("     ", item)
             n += 1
         else:
             pos = other.index(item)
             if pos in p:
-                print("repetido:", item)
+                output("repetido:", item)
             p.append(other.index(item))
-    print(title, " Total:", n, "   data:", len(data), " other:", len(other))
-    print("-" * 40)
+    output(title, " Total:", n, "   data:", len(data), " other:", len(other))
+    output("-" * 40)
     return n
 
 
@@ -78,45 +83,31 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=help)
     parser.add_argument('keys', metavar='word', type=str, nargs='+',
                         help='strings to search')
+    parser.add_argument('-f', '--file', dest='file', help="append to a file")
     parser.add_argument('-c', '--comp', dest='indexes', action='append_const',
                         const=IndexComp, help="use compressed index")
     parser.add_argument('-s', '--sql', dest='indexes', action='append_const',
                         const=IndexSQL, help="use sqlite index")
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         default=False, help="Show detailed results")
-    parser.add_argument('-w', '--word', dest='complete', action='store_true',
-                        default=False, help="complete word search")
-    parser.add_argument('-p', '--partial', dest='partial', action='store_true',
-                        default=False, help="partial word search")
     parser.add_argument('-d', '--difference', dest='diff', action='store_true',
                         default=False, help="differences in search's results")
     args = parser.parse_args()
     if not args.indexes:
         args.indexes = [IndexSQL, IndexComp]
     path = {IndexSQL: "./idx", IndexComp: "./idx/old"}
-    if not args.complete and not args.partial:
-        args.complete = True
-        args.partial = True
     res_part = [0] * 2
     res_comp = [0] * 2
-    # print(args)
     # args.indexes = [IndexSQL]
     for nro, Index in enumerate(args.indexes):
         initial_time = timeit.default_timer()
         idx = Index(path[Index])
-        print(repr(Index))
+        output(repr(Index), "   keys=", args.keys)
         delta_time = timeit.default_timer() - initial_time
-        print("Open Time: ", delta_time * 100)
-        if args.complete:
-            initial_time = timeit.default_timer()
-            res = idx.search(args.keys)
-            res_comp[nro] = show_results(res, args.verbose)
-        """
-        if args.partial:
-            initial_time = timeit.default_timer()
-            res = idx.partial_search(args.keys)
-            res_part[nro] = show_results(res, args.verbose)
-        """
+        output("Open Time: ", delta_time * 100)
+        initial_time = timeit.default_timer()
+        res = idx.search(args.keys)
+        res_comp[nro] = show_results(res, args.verbose)
 
     if args.diff:
         show("Complete word: in sql not in comp", res_comp[0], res_comp[1])

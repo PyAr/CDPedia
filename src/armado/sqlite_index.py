@@ -193,8 +193,10 @@ class Search:
             phrase = [""] * word_quant
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
+            if phrase[0] == "mares":
+                print(f"docid={docid}")
             similitude = self.iterative_levenshtein(phrase)
-            order_factor = 20000 * math.pow(docid + 1, -.5)
+            order_factor = int(40000 * math.pow(docid + 1, -.5))
             explain = f"s={similitude}, id={docid}, f={order_factor}"
             # explain = ""
 
@@ -258,9 +260,10 @@ class Search:
         keys = self.keys
         rows = len(keys) + 1
         cols = len(phrase) + 1
-        deletes, inserts, substitutes, partial = 10000, 25, 10000, 120
+        deletes, inserts, substitutes = 200, 25, 30
 
-        dist = [[0 for x in range(cols)] for x in range(rows)]
+        # dist = [[0] * cols] * rows
+        dist = [[0 for c in range(cols)] for r in range(rows)]
 
         # source prefixes can be transformed into empty strings
         # by deletions:
@@ -272,20 +275,26 @@ class Search:
         for col in range(1, cols):
             dist[0][col] = int(col * inserts ** 1.2)
 
-        for col in range(1, cols):
-            for row in range(1, rows):
-                lendiff = len(phrase[col - 1]) - len(keys[row - 1])
+        for row in range(1, rows):
+            lenkey = len(keys[row - 1])
+            for col in range(1, cols):
+                lendiff = len(phrase[col - 1]) - lenkey
                 if keys[row - 1] == phrase[col - 1]:
                     cost = 0
                 elif phrase[col - 1].startswith(keys[row - 1]):
-                    cost = lendiff * (partial // 2)
+                    cost = lendiff * (substitutes // 2)
                 elif keys[row - 1] in phrase[col - 1]:
-                    cost = lendiff * partial
+                    cost = lendiff * substitutes
                 else:
-                    cost = substitutes
+                    lendiff += 2 * lenkey
+                    cost = substitutes * lendiff
+
                 dist[row][col] = min(dist[row - 1][col] + deletes,
                                      dist[row][col - 1] + inserts,
                                      dist[row - 1][col - 1] + cost)  # substitution
+
+        if phrase[0] == "mares":
+            print("Cost matrix", phrase, " -- >", repr(dist))
 
         r = dist[row][col]
         return r
