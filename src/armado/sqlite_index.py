@@ -194,9 +194,14 @@ class Search:
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
             similitude = self.iterative_levenshtein(phrase)
-            self.ordered.append((similitude + math.log(docid + 1, 1.2), docid))
+            order_factor = 150000*math.pow(docid + 1, -.5)
+            explain = f"s={similitude}, id={docid}, f={order_factor}"
+            explain = ""
 
-        self.ordered.sort()
+            self.ordered.append((order_factor - similitude, docid, explain))
+            # self.ordered.append((docid, docid, explain))
+
+        self.ordered.sort(reverse = True)
 
     @lru_cache(1000)
     def _get_page(self, pageid):
@@ -363,10 +368,15 @@ class Index:
 
         The AND boolean operation is applied to the keys.
         """
+        files_yielded = set()
         docset = Search(self.db, keys)
-        for n, (score, ndoc) in enumerate(docset.ordered):
-            doc_data = self.get_doc(ndoc)
-            yield doc_data
+        for score, ndoc, explain in docset.ordered:
+            doc_data = self.get_doc(ndoc) + [explain]
+            if not doc_data[0] in files_yielded:
+                files_yielded.add(doc_data[0])
+                yield doc_data
+            if len(files_yielded) >= 100:
+                break
 
     partial_search = search
 

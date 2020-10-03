@@ -26,7 +26,8 @@ from src.armado.sqlite_index import Index as IndexSQL # NOQA import after fixing
 #from src.armado.sqlite_index import Index as IndexComp # NOQA import after fixing path
 from src.armado.compressed_index import Index as IndexComp # NOQA import after fixing path
 
-PAGE = 60
+PAGE = 34
+
 
 
 def show_results(result, verbose):
@@ -42,8 +43,8 @@ def show_results(result, verbose):
             show_stat("First Result", first_res_time)
         if args.verbose and len(res) <= PAGE:
             # pp(row)
-            print('{0:2d} "{1:30s}"{2:6d} {3:60s}'.format(
-                len(res), row[1], row[-1], row[-2][:60].replace("\n", " ")))
+            print('{0:2d}){2:8d} "{1:30s}"{4} {3:70s}'.format(
+                len(res), row[1], row[-2], row[-3][:70].replace("\n", " "), row[-1]))
         if len(res) == PAGE:
             first_res_time = timeit.default_timer() - initial_time
             show_stat("First %d Result" % PAGE, first_res_time)
