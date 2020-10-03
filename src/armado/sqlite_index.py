@@ -202,7 +202,7 @@ class Search:
             self.ordered.append((order_factor - similitude, docid))
             # self.ordered.append((docid, docid, explain))
 
-        self.ordered.sort(reverse = True)
+        self.ordered.sort(reverse=True)
 
     @lru_cache(1000)
     def _get_page(self, pageid):

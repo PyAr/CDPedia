@@ -257,4 +257,3 @@ def test_partialsearch_and(create_index):
     res = idx.partial_search(["b", "c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
     res = idx.partial_search(["a", "o"])
-
