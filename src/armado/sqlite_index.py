@@ -46,6 +46,7 @@ class DocSet:
 
     def __init__(self):
         self._docs_list = defaultdict(list)
+        self.items = self._docs_list.items
 
     def append(self, docid, position):
         """Append an item to the docs_list."""
@@ -140,7 +141,6 @@ class DocSet:
             docsid = cls.delta_decode(encoded[limit + 1:])
             positions = array.array('B')
             positions.frombytes(encoded[:limit])
-            docset._docs_list = defaultdict(list)
             for docid, position in zip(docsid, positions):
                 docset._docs_list[docid].append(position)
         return docset
@@ -226,7 +226,7 @@ class Search:
         """Store the words asoc w/ the docs & return a founded docs's set."""
         founded = set()
         for word, docset in self._fetch(key):
-            for docid, positions in docset._docs_list.items():
+            for docid, positions in docset.items():
                 for pos in positions:
                     self.docs[docid][pos] = word
                 founded.add(docid)
