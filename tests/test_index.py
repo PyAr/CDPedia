@@ -170,6 +170,13 @@ def test_infunc_one_item(create_index):
 # --- Test the .search method.
 
 
+def test_search_failed(create_index):
+    """Several items stored."""
+    idx = create_index(DataSet("B").info)
+    res = searchidx(idx, ["botero"])
+    assert abrev(res) == []
+
+
 def test_search(create_index):
     """Several items stored."""
     idx = create_index(DataSet("B").info)
@@ -214,11 +221,11 @@ def test_many_results(caplog, create_index):
     DataSet.add_fixture("D", data)
     idx = create_index(DataSet("D").info)
     assert len(DataSet("D").info) == len([v for v in idx.values()])
-    res = searchidx(idx, ["blanca"], debug=False)
+    res = searchidx(idx, ["blanca"])
     assert len(res) == len(DataSet("D").info)
 
 
-def searchidx(idx, keys, debug=False):
+def searchidx(idx, keys):
     res = list(idx.search(keys))
     return res
 

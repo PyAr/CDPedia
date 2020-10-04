@@ -29,6 +29,7 @@ from progress.bar import Bar
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
+from src.armado import cdpindex
 
 logger = logging.getLogger(__name__)
 
@@ -194,13 +195,12 @@ class Search:
             phrase = [""] * word_quant
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
-            if phrase[0] == "mares":
-                print(f"docid={docid}")
             similitude = self.iterative_levenshtein(phrase)
+
+            # first docid are a LOT more important
             order_factor = int(40000 * math.pow(docid + 1, -.5))
 
             self.ordered.append((order_factor - similitude, docid))
-            # self.ordered.append((docid, docid, explain))
 
         self.ordered.sort(reverse=True)
 
@@ -233,26 +233,22 @@ class Search:
         return founded
 
     def _fetch(self, key):
-        """Returns all the values of a partial key search."""
+        """Return all the values of a partial key search."""
         sql = "select word, docsets as 'ds [docset]' from tokens"
         sql += " where word like '%{}%'".format(key)
         cur = self.db.execute(sql)
-        row = cur.fetchone()
-        if not row:
-            yield key, DocSet()
-        else:
+        for row in cur.fetchall():
             yield row[0], row[1]
-            for row in cur.fetchall():
-                yield row[0], row[1]
 
     def iterative_levenshtein(self, phrase):
-        """Computes the Levenshtein distance between the lists keys and phrase.
+        """Compute the Levenshtein distance between the lists keys and phrase.
 
         For all i and j, dist[i,j] will contain the Levenshtein
         distance between the first i items of keys and the
         first j items of phrase
         """
 
+        # If there are exact match, put on the top
         if self.keys == phrase:
             return -1000
 
@@ -261,7 +257,6 @@ class Search:
         cols = len(phrase) + 1
         deletes, inserts, substitutes = 200, 25, 30
 
-        # dist = [[0] * cols] * rows
         dist = [[0 for c in range(cols)] for r in range(rows)]
 
         # source prefixes can be transformed into empty strings
@@ -270,21 +265,26 @@ class Search:
             dist[row][0] = row * deletes
 
         # target prefixes can be created from an empty source string
-        # by inserting the characters
+        # by inserting the characters.
+        # Inserts in the last positions cost more.
         for col in range(1, cols):
             dist[0][col] = int(col * inserts ** 1.2)
 
         for row in range(1, rows):
             lenkey = len(keys[row - 1])
+
             for col in range(1, cols):
                 lendiff = len(phrase[col - 1]) - lenkey
                 if keys[row - 1] == phrase[col - 1]:
-                    cost = 0
+                    cost = 0  # if equal, no subtituion cost
                 elif phrase[col - 1].startswith(keys[row - 1]):
+                    # if starts with key, just half cost
                     cost = lendiff * (substitutes // 2)
                 elif keys[row - 1] in phrase[col - 1]:
+                    # if includes the key, multiply
                     cost = lendiff * substitutes
                 else:
+                    # total substitution, cost by sum of lengths
                     lendiff += 2 * lenkey
                     cost = substitutes * lendiff
 
@@ -292,11 +292,7 @@ class Search:
                                      dist[row][col - 1] + inserts,
                                      dist[row - 1][col - 1] + cost)  # substitution
 
-        if phrase[0] == "mares":
-            print("Cost matrix", phrase, " -- >", repr(dist))
-
-        r = dist[row][col]
-        return r
+        return dist[row][col]
 
 
 class Index:
@@ -383,6 +379,7 @@ class Index:
 
         The AND boolean operation is applied to the keys.
         """
+        keys = list(map(cdpindex.normalize_words, keys))
         files_yielded = set()
         docset = Search(self.db, keys)
         for score, ndoc in docset.ordered:
