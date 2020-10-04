@@ -177,6 +177,14 @@ def test_search_failed(create_index):
     assert abrev(res) == []
 
 
+def test_search_unicode(create_index):
+    """Several items stored."""
+    idx = create_index(DataSet("B").info)
+    res1 = searchidx(idx, ["Alá"])
+    res2 = searchidx(idx, ["ála"])
+    assert res1 == res2
+
+
 def test_search(create_index):
     """Several items stored."""
     idx = create_index(DataSet("B").info)

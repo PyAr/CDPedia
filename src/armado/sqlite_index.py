@@ -219,7 +219,7 @@ class Search:
         page_id, rel_position = divmod(docid, PAGE_SIZE)
         word_quants = self._get_page(page_id)
         if not word_quants:
-            return 0
+            raise ValueError("Inconsistency on data, docid non exists")
         return word_quants[rel_position]
 
     def _get_docs(self, key):
