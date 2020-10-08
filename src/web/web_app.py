@@ -86,10 +86,10 @@ class CDPedia:
         self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
-            Rule('/%s/<name>' % ARTICLES_BASE_URL, endpoint='article'),
+            Rule('/%s/<path:name>' % ARTICLES_BASE_URL, endpoint='article'),
             Rule('/al_azar', endpoint='random'),
             Rule('/search', endpoint='search'),
-            Rule('/search/<key>', endpoint='search_results'),
+            Rule('/search/<path:key>', endpoint='search_results'),
             Rule('/images/<path:name>', endpoint='image'),
             Rule('/institucional/<path:path>', endpoint='institutional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
@@ -119,6 +119,8 @@ class CDPedia:
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
+        # compressed article name contains special filesystem chars quoted
+        name = to3dirs.to_filename(name)
         try:
             data = self.art_mngr.get_item(name)
         except Exception as err:
