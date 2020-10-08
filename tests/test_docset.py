@@ -60,7 +60,7 @@ def test_create_doc_set():
 def test_invalid_docset():
     """Test creating an invalid DocSet."""
     docset = sqlite_index.DocSet()
-    data = {0: 0, 123: 12, 234: 1, 56: 5, 432: 9}
+    data = {0: 255, 123: 12, 234: 1, 56: 5, 432: 9}
     for k, v in data.items():
         docset.append(k, v)
     with pytest.raises(ValueError) as _:
@@ -87,7 +87,7 @@ def test_empty_docsets():
     assert docset == docset2
     assert len(docset) == 0
 
-# ----- Test the sqlite database using DocSet type
+# ----- Test the sqlite database using DocSet type.
 
 
 def test_database():

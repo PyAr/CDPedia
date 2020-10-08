@@ -556,6 +556,8 @@ class Index(object):
                     bucket = key_shelf[key] = array.array('l')
                 bucket.append(docid)
 
+        if ids_cnter == 0:
+            raise ValueError("No data to index")
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
         print(" Delta-encoding index buckets...")
