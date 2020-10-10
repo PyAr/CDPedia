@@ -34,6 +34,7 @@ from src.armado import cdpindex
 logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
+MAX_RESULTS = 100
 
 
 def decompress_data(data):
@@ -223,14 +224,14 @@ class Search:
         return word_quants[rel_position]
 
     def _get_docs(self, key):
-        """Store the words asoc w/ the docs & return a founded docs's set."""
-        founded = set()
+        """Store the words asoc w/ the docs & return a found docs's set."""
+        found = set()
         for word, docset in self._fetch(key):
             for docid, positions in docset.items():
                 for pos in positions:
                     self.docs[docid][pos] = word
-                founded.add(docid)
-        return founded
+                found.add(docid)
+        return found
 
     def _fetch(self, key):
         """Return all the values of a partial key search."""
@@ -310,7 +311,7 @@ class Index:
             ''')
 
     def keys(self):
-        """Returns an iterator over the stored keys."""
+        """Return an iterator over the stored keys."""
         cur = self.db.execute("SELECT word FROM tokens")
         for row in cur.fetchall():
             yield row[0]
@@ -323,7 +324,7 @@ class Index:
             yield row[0], row[1]
 
     def values(self):
-        """Returns an iterator over the stored values."""
+        """Return an iterator over the stored values."""
         cur = self.db.execute("SELECT pageid, data FROM docs ORDER BY pageid")
         for row in cur.fetchall():
             decomp_data = decompress_data(row[1])
@@ -340,12 +341,12 @@ class Index:
         return row[0] * PAGE_SIZE + len(decomp_data)
 
     def random(self):
-        """Returns a random value."""
+        """Return a random value."""
         docid = random.randint(0, len(self) - 1)
         return self.get_doc(docid)
 
     def __contains__(self, key):
-        """Returns if the key is in the index or not."""
+        """Return if the key is in the index or not."""
         cur = self.db.execute("SELECT word FROM tokens where word = ?", (key,))
         if cur.fetchone():
             return True
@@ -375,7 +376,7 @@ class Index:
         return row
 
     def search(self, keys):
-        """Returns all the values that are found for those keys.
+        """Return all the values that are found for those keys.
 
         The AND boolean operation is applied to the keys.
         """
@@ -384,10 +385,11 @@ class Index:
         docset = Search(self.db, keys)
         for score, ndoc in docset.ordered:
             doc_data = self.get_doc(ndoc)
+            # Do not return more than one index result to the same file.
             if not doc_data[0] in files_yielded:
                 files_yielded.add(doc_data[0])
                 yield doc_data
-            if len(files_yielded) >= 100:
+            if len(files_yielded) >= MAX_RESULTS:
                 break
 
     partial_search = search
