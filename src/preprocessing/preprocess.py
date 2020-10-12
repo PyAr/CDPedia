@@ -338,22 +338,22 @@ def profiled_run(root_dir):
 
     wikisite.commit()
     tend = time.time()
-    print("Whole process", tend - tini)
-    print("In processors", sum(wikisite.prof_times.values()))
+    logger.DEBUG("Whole process", tend - tini)
+    logger.DEBUG("In processors", sum(wikisite.prof_times.values()))
     for proc in wikisite.prof_times:
         quant = wikisite.prof_quant[proc]
         total = wikisite.prof_times[proc]
-        print("         proc ", proc, quant, total, total / quant)
-    print("Full stats (if profile run) saved in /tmp/procesar.stat")
+        logger.DEBUG("         proc ", proc, quant, total, total / quant)
+    logger.DEBUG("Full stats (if profile run) saved in /tmp/procesar.stat")
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: preprocess.py root_dir")
+        logger.INFO("Usage: preprocess.py root_dir")
         exit()
     if os.path.exists(config.LOG_PREPROCESADO):
-        print("ERROR: The PREPROCESSED file is there, it will make some articles to be skipped:",
-              config.LOG_PREPROCESADO)
+        logger.ERROR("ERROR: The PREPROCESSED file is there, it will make some articles to be skipped:",
+                     config.LOG_PREPROCESADO)
         exit()
 
     # fix config for a needed variable

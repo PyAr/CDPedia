@@ -20,23 +20,25 @@
 Muestra info del archivo comprimido.
 """
 
-from __future__ import division, with_statement, print_function
-
+import logging
 import operator
 import sys
 import os
+
+logger = logging.getLogger(__name__)
+
 sys.path.append(os.getcwd())
 from src.armado.compresor import Comprimido, BloqueImagenes  # NOQA import after fixing path
 
 
 def main(fname, a_extraer):
     fsize = os.stat(fname).st_size
-    print("Mostrando info del archivo %r (tamaño: %d bytes)" % (fname, fsize))
+    logger.INFO("Mostrando info del archivo %r (tamaño: %d bytes)" % (fname, fsize))
     if fname.endswith('.cdi'):
         c = BloqueImagenes(fname)
     else:
         c = Comprimido(fname)
-    print("Del header (%d bytes): %d archivos en total" % (c.header_size, len(c.header)))
+    logger.INFO("Del header (%d bytes): %d archivos en total" % (c.header_size, len(c.header)))
 
     # header: dict con k -> filename
     #                  v -> (seek, size) o el nombre del apuntado
@@ -48,22 +50,22 @@ def main(fname, a_extraer):
         else:
             (seek, size) = info
             archivos.append((name, seek, size))
-    print("    %d reales   %d redirects" % (len(archivos), redirects))
+    logger.INFO("    %d reales   %d redirects" % (len(archivos), redirects))
     archivos.sort(key=operator.itemgetter(1))
     size_archs = archivos[-1][1] + archivos[-1][2]  # del último, posic + largo
 
-    print("Overhead header: %.1f%%" % (100 * (4 + c.header_size) / size_archs))
-    print("Compresión neta: al %.2f%%" % (100 * fsize / size_archs))
+    logger.INFO("Overhead header: %.1f%%" % (100 * (4 + c.header_size) / size_archs))
+    logger.INFO("Compresión neta: al %.2f%%" % (100 * fsize / size_archs))
 
     if not a_extraer:
         # mostramos los archivos que hay adentro
-        print("Archivos:")
+        logger.INFO("Archivos:")
         for name, seek, size in archivos:
-            print("  ", name.encode("utf8"))
+            logger.INFO("  ", name.encode("utf8"))
     else:
         # extraemos los archivos indicados
         for arch in a_extraer:
-            print("Extrayendo", arch.encode("utf8"))
+            logger.INFO("Extrayendo", arch.encode("utf8"))
             data = c.get_item(arch)
             with open(os.path.basename(arch), "wb") as fdest:
                 fdest.write(data)
@@ -71,9 +73,9 @@ def main(fname, a_extraer):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  verComprimido.py <comprimido> [archivo [...]]")
-        print("           donde el archivo comprimido es un .cdp / .cdi")
-        print("           opcionalmente, se pueden pasar archivos a extraer")
+        logger.INFO("Usar:  verComprimido.py <comprimido> [archivo [...]]")
+        logger.INFO("           donde el archivo comprimido es un .cdp / .cdi")
+        logger.INFO("           opcionalmente, se pueden pasar archivos a extraer")
         sys.exit()
 
     main(sys.argv[1], sys.argv[2:])

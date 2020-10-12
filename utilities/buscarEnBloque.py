@@ -16,8 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-from __future__ import print_function
-
+import logging
 import sys
 import optparse
 import os
@@ -25,15 +24,16 @@ import os
 sys.path.append(os.getcwd())
 from src.armado.compresor import ArticleManager, ImageManager  # NOQA import after fixing path
 
+logger = logging.getLogger(__name__)
 
 def main(manager, nom_item, verbose):
     info = manager.get_item(nom_item)
     if info is None:
-        print("No se encontró el item")
+        logger.INFO("No se encontró el item")
     else:
-        print("Largo item devuelto", len(info))
+        logger.INFO("Largo item devuelto", len(info))
         if verbose:
-            print("Artículo:\n", repr(info))
+            logger.INFO("Artículo:\n", repr(info))
 
 
 if __name__ == "__main__":

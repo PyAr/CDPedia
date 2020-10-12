@@ -15,15 +15,14 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-
-from __future__ import print_function
-
+import logging
 import sys
 import bz2
 import cPickle
 
 TRANSPARENT = '!'
 
+logger = logging.getLogger(__name__)
 
 def main(filename):
     f = open(filename)
@@ -52,12 +51,12 @@ def main(filename):
                 pixels.append((x, y, colors[char]))
         y -= 1
     data = cPickle.dumps(pixels)
-    print(bz2.compress(data).encode('base64'))
+    logger.INFO(bz2.compress(data).encode('base64'))
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print(u"""
+        logger.INFO(u"""
   %s archivo.xpm
     Convierte un xpm a un pickle bzipped en base64, como para usar en bmp.py.
     Solo funciona con xpms de un byte por pixel, y capaz con algunas

@@ -407,11 +407,11 @@ if __name__ == "__main__":
                          args.language, _config_fname)
             exit()
     if args.image_list:
-        print('{:10}{:10}{:10}'.format('Image', 'Format', 'Max. pages'))
-        print('=' * 30)
+        logger.debug('{:10}{:10}{:10}'.format('Image', 'Format', 'Max. pages'))
+        logger.debug('=' * 30)
         for data in sorted(imag_config):
-            print('{:10}{:10}{:10}'.format(data, imag_config[data]['type'],
-                  imag_config[data]['page_limit']))
+            logger.debug('{:10}{:10}{:10}'.format(data, imag_config[data]['type'],
+                               imag_config[data]['page_limit'])) debug o info?
         exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:

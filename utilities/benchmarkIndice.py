@@ -20,8 +20,9 @@
 Muestra info del índice.
 """
 
-from __future__ import division, with_statement, print_function
+from __future__ import division, with_statement
 
+import logging
 import sys
 import os
 import time
@@ -33,6 +34,7 @@ sys.path.append(os.path.abspath("."))
 from src.armado.cdpindex import IndexInterface  # NOQA import after fixing path
 
 BLOQUE = 20
+logger = logging.getLogger(__name__)
 
 
 class Timer(object):
@@ -46,7 +48,7 @@ class Timer(object):
     def __exit__(self, *args):
         tnow = time.time()
         mseg = 1000 * (tnow - self.t) / self.divisor
-        print("%8.1fms  %s" % (mseg, self.msg))
+        logger.INFO("%8.1fms  %s" % (mseg, self.msg))
         self.t = tnow
 
 
@@ -67,11 +69,11 @@ def main(direct):
         indice.ready.wait()
     memdesp = usoMemoria()
 
-    print("               ocupa memoria:  %d KB" % (memdesp - memant))
+    logger.INFO("               ocupa memoria:  %d KB" % (memdesp - memant))
 
     with Timer("Listado completo palabras"):
         palabras = [x.decode("utf8") for x in indice.listado_palabras()]
-    print("               cant palabras:", len(palabras))
+    logger.INFO("               cant palabras:", len(palabras))
 
     # palabras completas
     azar = functools.partial(random.choice, palabras)
@@ -130,13 +132,13 @@ def main(direct):
             indice.partial_search(p)
 
     memdesp = usoMemoria()
-    print("\nNuevo consumo de memoria:  %d KB" % (memdesp - memant))
+    logger.INFO("\nNuevo consumo de memoria:  %d KB" % (memdesp - memant))
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usar:  benchmarkIndice.py <dir_indice>")
-        print("           dir_indice es el directorio donde está el índice")
+        logger.INFO("Usar:  benchmarkIndice.py <dir_indice>")
+        logger.INFO("           dir_indice es el directorio donde está el índice")
         sys.exit()
 
     base = sys.argv[1]

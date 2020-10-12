@@ -294,13 +294,13 @@ def main(lang, src_info, version, lang_config, gendate,
         _lang_conf = config.imagtypes[lang]
     except KeyError:
         available_langs = list(config.imagtypes.keys())
-        print("ERROR: %r is not a valid language! try one of %s" % (lang, available_langs))
+        logger.error("ERROR: %r is not a valid language! try one of %s" % (lang, available_langs))
         exit()
     try:
         config.imageconf = _lang_conf[version]
     except KeyError:
         available_versions = list(_lang_conf.keys())
-        print("ERROR: %r is not a valid version! try one of %s" % (version, available_versions))
+        logger.error("ERROR: %r is not a valid version! try one of %s" % (version, available_versions))
         exit()
     config.langconf = lang_config
 
@@ -476,7 +476,7 @@ To update an image with the code and assets changes  in this working copy:
         try:
             import guppy.heapy.RM
         except ImportError:
-            print("ERROR: Tried to start heapy but guppy is not installed!")
+            logger.error("ERROR: Tried to start heapy but guppy is not installed!")
             exit()
         guppy.heapy.RM.on()
 
@@ -485,7 +485,7 @@ To update an image with the code and assets changes  in this working copy:
         try:
             lang_config = _config[lang]
         except KeyError:
-            print("ERROR: there's no %r in 'languages.yaml'" % (lang,))
+            logger.error("ERROR: there's no %r in 'languages.yaml'" % (lang,))
             exit()
 
     if options.update_mini:

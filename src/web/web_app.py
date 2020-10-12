@@ -17,6 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 import gettext
+import logging
 import os
 import posixpath
 import tarfile
@@ -42,6 +43,8 @@ from src.armado import to3dirs
 from .utils import TemplateManager
 
 ARTICLES_BASE_URL = "wiki"
+
+logger = logging.getLogger(__name__)
 
 
 class ArticleNotFound(HTTPException):
@@ -144,7 +147,7 @@ class CDPedia:
             raise InternalServerError(msg)
         if asset_data is None:
             if self.verbose:
-                print("WARNING: no pudimos encontrar", repr(name))
+                logger.INFO("WARNING: no pudimos encontrar", repr(name))
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
@@ -170,10 +173,10 @@ class CDPedia:
         path = os.path.join("institucional", path)
         asset_file = os.path.join(config.DIR_ASSETS, path)
         if os.path.isdir(asset_file):
-            print("WARNING: ", repr(asset_file), "es un directorio")
+            logger.INFO("WARNING: ", repr(asset_file), "es un directorio")
             raise NotFound()
         if not os.path.exists(asset_file):
-            print("WARNING: no pudimos encontrar", repr(asset_file))
+            logger.INFO("WARNING: no pudimos encontrar", repr(asset_file))
             raise NotFound()
 
         # all unicode
@@ -239,8 +242,8 @@ class CDPedia:
         self.watchdog.update()
         seconds = str(int(config.BROWSER_WD_SECONDS * 0.85))
         html = (
-            "<html><head><meta http-equiv='refresh' content='%s'></head><body></body></html>" % (
-                seconds,))
+                "<html><head><meta http-equiv='refresh' content='%s'></head><body></body></html>" % (
+            seconds,))
         resp = Response(html, mimetype="text/html")
         return resp
 

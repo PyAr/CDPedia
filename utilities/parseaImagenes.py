@@ -20,13 +20,13 @@
 Muestra info del archivo comprimido.
 """
 
-from __future__ import print_function
-
+import logging
 import sys
 import os
 sys.path.append(os.getcwd())
 from src.imagenes import extraer  # NOQA import after path fix
 
+logger = logging.getLogger(__name__)
 
 def main(fname):
     pi = extraer.ParseaImagenes(test=True)
@@ -35,7 +35,7 @@ def main(fname):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  parseaImagenes.py <arch.html>")
+        logger.INFO("Usar:  parseaImagenes.py <arch.html>")
         sys.exit()
 
     main(sys.argv[1])

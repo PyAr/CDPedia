@@ -20,10 +20,13 @@
 Muestra info del índice.
 """
 
-from __future__ import print_function
 
+import logging
 import sys
 import os
+
+logger = logging.getLogger(__name__)
+
 sys.path.append(os.path.abspath("."))
 
 from src.armado.cdpindex import IndexInterface  # NOQA import after fixing the path
@@ -36,18 +39,18 @@ def main(direct, palabras):
 
     if not palabras:
         for palabra, data in indice.listar():
-            print("%s: %s" % (palabra.encode("utf8"), data))
+            logger.INFO("%s: %s" % (palabra.encode("utf8"), data))
     else:
         encontrado = indice.search(" ".join(palabras))
         for it in encontrado:
-            print(it)
+            logger.INFO(it)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  verIndice.py <dir_indice> [palabra [...]]")
-        print("           dir_indice es el dir donde está el índice")
-        print("           las palabras opcionales son buscadas en el índice")
+        logger.INFO("Usar:  verIndice.py <dir_indice> [palabra [...]]")
+        logger.INFO("           dir_indice es el dir donde está el índice")
+        logger.INFO("           las palabras opcionales son buscadas en el índice")
         sys.exit()
 
     base = sys.argv[1]
