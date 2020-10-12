@@ -17,7 +17,7 @@
 """Tests for the cdpindex module."""
 
 import config
-from src.armado import cdpindex
+from src.armado import cdpindex, to3dirs
 
 import pytest
 
@@ -98,4 +98,22 @@ def test_repeated_entry_redirects(index, data, mocker):
     entries = list(index.create.call_args[0][1])
     # should have one entry from top_pages and one entry from redirects; both kind of entries
     # have the same normalized title, url and score but differs in a boolean param.
+    assert len(entries) == 2
+
+
+@pytest.mark.parametrize('title', ('foo/bar', 'foo.bar', 'foo%bar'))
+def test_redirects_with_special_chars(index, data, mocker, title):
+    """Check redirects to pages containing encoded special filesystem chars."""
+    # only target chars should be quoted: '/', '.' and '%'
+    filename = to3dirs.to_filename(title)
+    with open(config.LOG_TITLES, 'at', encoding='utf-8') as fh:
+        fh.write('{}|{}|\n'.format(filename, title))
+    top_pages = [('f/o/o', filename, 10)]
+    mocker.patch('src.preprocessing.preprocess.pages_selector', mocker.Mock(top_pages=top_pages))
+    with open(config.LOG_REDIRECTS, 'wt', encoding='utf-8') as fh:
+        fh.write('redirect|{}\n'.format(title))
+
+    cdpindex.generate_from_html(None, None)
+    assert index.create.call_count == 1
+    entries = list(index.create.call_args[0][1])
     assert len(entries) == 2
