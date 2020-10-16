@@ -12,6 +12,7 @@
 }
 
 ul#navegacionBody {
+    line-height: 1.5em;
 	list-style-type: none;
 	list-style-image: none;
 	margin-left: 0.2em;
@@ -64,6 +65,12 @@ input#searchInput, input#searchInput:focus {
     border: 0;
     width: 130px;
     outline: 0;
+    padding-right: 0.4em;
+    box-shadow: unset;
+}
+
+#mw-panel {
+    top: 0;
 }
 
 #mw-panel h5 {
@@ -72,10 +79,10 @@ input#searchInput, input#searchInput:focus {
 
 button#searchButton {
     border: 0;
-    background: white;
     padding: .1em;
+    position: static;
+    text-indent: unset;
 }
-
 
 div.paging-results{
     background-color: #F3F3F3;
@@ -97,9 +104,20 @@ li.search-result-text{
     font-size: 85%;
 }
 
+/* CDPedia logo */
+
+#p-logo {
+    height:220px;
+    margin-bottom: unset;
+}
+
+#p-logo > a {
+    height: inherit;
+}
+
 div#pyar-logo-h-inst img {
     margin-top: 10px;
-    margin-bottom: 10px;  
+    margin-bottom: 10px;
 }
 
 div#pyar-logo-v-side img {
