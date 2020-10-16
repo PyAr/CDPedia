@@ -39,7 +39,7 @@ from utilities import localize
 from src import list_articles_by_namespaces, generate
 from src.armado import to3dirs
 from src.preprocessing import preprocessors
-from src.scraping import scraper, pydocs
+from src.scraping import scraper, pydocs, css
 
 
 # some constants to download the articles list we need to scrap
@@ -67,7 +67,7 @@ KEEP_PROCESSED = [
 ]
 
 
-class Location(object):
+class Location:
     """Holder for the different working locations, presenting an enum-like interface.
 
     It also ensures that each dir is properly prefixed with selected language, and that it exists.
@@ -85,6 +85,7 @@ class Location(object):
         self.langdir = os.path.join(self.dumpbase, language)
         self.articles = os.path.join(self.langdir, self.ARTICLES)
         self.resources = os.path.join(self.langdir, self.RESOURCES)
+        self.cssdir = os.path.join(self.resources, config.CSS_DIRNAME)
         self.images = os.path.join(self.dumpbase, self.IMAGES)  # language agnostic
 
         # (maybe) create all the above directories; note they are ordered!
@@ -93,6 +94,7 @@ class Location(object):
             self.langdir,
             self.articles,
             self.resources,
+            self.cssdir,
             self.images,
         ]
         for item in to_create:
@@ -315,13 +317,18 @@ def main(language, lang_config, imag_config,
     else:
         gendate = get_lists(language, lang_config, test)
 
+    # setup css output before any scraping
+    css.link_extractor.setup(location.cssdir)
+
     if not noscrap:
         scrap_portal(language, lang_config)
         scrap_pages(language, test)
         pydocs.download(language, lang_config, location.dumpbase)
+        css.scrap_css()
 
     if extra_pages:
         _call_scraper(language, extra_pages)
+        css.scrap_css()
 
     if config.VALIDATE_TRANSLATION:
         tr_updated, tr_complete, tr_compiled = localize.translation_status(language)

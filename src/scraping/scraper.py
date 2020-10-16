@@ -36,6 +36,7 @@ import urllib.request
 
 from src import utiles
 from src.armado import to3dirs
+from src.scraping.css import link_extractor as extract_css_links
 
 logger = logging.getLogger(__name__)
 
@@ -288,6 +289,9 @@ def get_html(url, basename):
         # unknown html format
         raise BadHTMLError("HTML file from  {!r} has an unknown format".format(url))
     stripped_html = "\n".join(found.groups())
+
+    # extract css links here as html head is discarded
+    extract_css_links(html)
 
     return stripped_html
 
