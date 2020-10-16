@@ -140,6 +140,18 @@ LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 EMBED_IMAGES = True
 LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 
+# Directory name for saving CSS stylesheets and associated resources
+CSS_DIRNAME = 'css'
+
+# Filename for combining all CSS modules into single stylesheet
+CSS_FILENAME = 'wikipedia.css'
+
+# filename for collecting CSS links while scraping
+CSS_LINKS_FILENAME = 'css_links.txt'
+
+# Subdirectory of 'CSS_DIRNAME' for saving resources needed by stylesheets
+CSS_RESOURCES_DIRNAME = 'images'
+
 # Validate translation before generating a CDPedia in the specified language.
 # Interrupt process if validation fails. In test mode, show validation result
 # but don't interrupt process.
