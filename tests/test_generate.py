@@ -68,7 +68,7 @@ def test_copy_css(tmp_path):
     (css_dir / 'foo.css').touch()  # should not be copied
     (res_dir / 'bar.png').touch()
     (res_dir / 'baz.ico').touch()
-    _copy_css(src_base, dst_base)
+    _copy_css(str(src_base), str(dst_base))
     css = list(dst_base.rglob('*.css'))
     assert len(css) == 1
     assert css[0].name == config.CSS_FILENAME
