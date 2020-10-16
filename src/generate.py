@@ -45,7 +45,7 @@ if sys.stdout.encoding is None:
 
 
 # get a logger (may be already set up, or will set up in __main__)
-logger = logging.getLogger('generar')
+logger = logging.getLogger(__name__)
 
 
 def make_it_nicer():
@@ -65,7 +65,7 @@ def make_it_nicer():
             "Platform without 'ionice' installed! (running without optimizations): %s", e)
 
 
-def copy_dir(src_dir, dst_dir):
+def copy_dir(src_dir, dst_dir, *ignore_subdirs):
     """Copy a directory recursively.
 
     Will copy everything except '.pyc' and '.*'.
@@ -80,7 +80,9 @@ def copy_dir(src_dir, dst_dir):
         src_path = path.join(src_dir, fname)
         dst_path = path.join(dst_dir, fname)
         if path.isdir(src_path):
-            copy_dir(src_path, dst_path)
+            if fname in ignore_subdirs:
+                continue
+            copy_dir(src_path, dst_path, *ignore_subdirs)
         else:
             shutil.copy(src_path, dst_path)
 
@@ -115,6 +117,24 @@ def copy_assets(src_info, dest):
     # dynamic stuff
     src_dir = path.join(src_info, "resources")
     dst_dir = path.join(dest, "dynamic")
+    copy_dir(src_dir, dst_dir, config.CSS_DIRNAME)
+    _copy_css(src_info, dest)
+
+
+def _copy_css(src_base, dst_base):
+    """Copy unified css file and associated resources."""
+    css_src_dir = os.path.join(src_base, config.DIR_SOURCE_ASSETS, config.CSS_DIRNAME)
+    css_dst_dir = os.path.join(dst_base, 'static', config.CSS_DIRNAME)
+    os.makedirs(css_dst_dir, exist_ok=True)
+
+    logger.info('Copying %s and requried resources', config.CSS_FILENAME)
+    src_path = os.path.join(css_src_dir, config.CSS_FILENAME)
+    dst_path = os.path.join(css_dst_dir, config.CSS_FILENAME)
+    shutil.copy(src_path, dst_path)
+
+    # copy css resources
+    src_dir = os.path.join(css_src_dir, config.CSS_RESOURCES_DIRNAME)
+    dst_dir = os.path.join(css_dst_dir, config.CSS_RESOURCES_DIRNAME)
     copy_dir(src_dir, dst_dir)
 
 
