@@ -1,0 +1,12 @@
+{% extends "cdpedia_base.html" %}
+{% block title %}{{article_name}}{% endblock %}
+{% block content %}
+{{article}}
+{% endblock %}
+
+{% block footer_pre %}
+{{ gettext('<a href="%s">próximo artículo</a>') % ('/test-infra') }}
+<li id="f-info-original">
+{{ gettext('If you have an Internet connection, you can visit the article\'s <a class="external" href="%s">updated original page</a>.') % (orig_link,)}}
+</li>
+{% endblock %}
