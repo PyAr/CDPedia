@@ -14,13 +14,12 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
 import codecs
-import logging
 import sys
 sys.path.append("/data/test")
 from mwlib import htmlwriter, uparser, dummydb  # NOQA import after fixing path
 
-logger = logging.getLogger(__name__)
 
 def main(titulo, archin, archout):
     out = codecs.open(archout, "w", "utf8")
@@ -38,6 +37,6 @@ def main(titulo, archin, archout):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        logger.INFO("Usar  %s titulo input.xml output.html" % sys.argv[0])
+        print("Usar  %s titulo input.xml output.html" % sys.argv[0])
         sys.exit()
     main(*sys.argv[1:])

@@ -13,14 +13,12 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-import logging
 import subprocess
 import os
 import shutil
 import timeit
 from PIL import Image
 
-logger = logging.getLogger(__name__)
 scale = 50
 dst = os.path.join("pil_vs_imagemagick", "resized-images")
 dump = 'pil_vs_imagemagick/dump'
@@ -59,14 +57,14 @@ def resize_image(pil):
 
 if os.path.exists(dst):
     shutil.rmtree(dst)
-logger.INFO('time with pil:', (timeit.timeit(
+print('time with pil:', (timeit.timeit(
     'resize_image(True)',
     setup='from __main__ import resize_image',
     number=10)))
-logger.INFO(len(os.listdir(dst)), "images")
+print(len(os.listdir(dst)), "images")
 shutil.rmtree(dst)
-logger.INFO('time with convert:', (timeit.timeit(
+print('time with convert:', (timeit.timeit(
     'resize_image(False)',
     setup='from __main__ import resize_image',
     number=10)))
-logger.INFOlen(os.listdir(dst)), "images")
+print(len(os.listdir(dst)), "images")

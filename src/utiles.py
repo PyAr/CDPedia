@@ -40,6 +40,7 @@ class WatchDog(threading.Thread):
     En esta simple implementación el callback puede tardar hasta 2 veces sleep
     segundos en ser llamado.
     """
+
     def __init__(self, callback, sleep):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -87,6 +88,7 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
 
 class TimingLogger:
     """Log only if more than N seconds passed after last log."""
+
     def __init__(self, secs_period, log_func):
         self._threshold = time.time() + secs_period
         self.log_func = log_func
@@ -128,8 +130,8 @@ class _StatusBoard:
             self.ok += 1
 
         speed = self.total / (time.time() - self.init_time)
-        logger.debug("Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
-            self.total, self.ok, self.bad, speed), end='', flush=True)
+        logger.debug("Total=%d  ok=%d  bad=%d  speed=%.2f items/s\r",
+                     self.total, self.ok, self.bad, speed)
 
 
 class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):

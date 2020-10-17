@@ -27,13 +27,11 @@ Packages needed in the system:
 """
 
 import hashlib
-import logging
 import os
 import shutil
 import subprocess
 import sys
 
-logger = logging.getLogger(__name__)
 
 TRACKERS = [
     'udp://tracker.openbittorrent.com:80',
@@ -65,8 +63,8 @@ def main(wwwdir, torrentdir, image_filepath):
     parts = image_fname.split("-")
     lang = parts[1]
     dt = parts[3]
-    logger.INFO("Distributing image file {!r}".format(image_filepath))
-    logger.INFO("    lang={!r}  date={!r}".format(lang, dt))
+    print("Distributing image file {!r}".format(image_filepath))
+    print("    lang={!r}  date={!r}".format(lang, dt))
 
     # create the .torrent
     cmd = ['transmission-create', image_filepath]
@@ -83,20 +81,20 @@ def main(wwwdir, torrentdir, image_filepath):
 
     # create the destination directory if not there, and move the torrent file
     web_dir = os.path.join(wwwdir, 'images', lang, dt)
-    logger.INFO("Moving to web dir", repr(web_dir))
+    print("Moving to web dir", repr(web_dir))
     if not os.path.exists(web_dir):
         os.makedirs(web_dir)
     shutil.move(torrent_file, web_dir)
 
     # save hashes
-    logger.INFO("Calculating hashes...")
+    print("Calculating hashes...")
     md5_value, sha1_value = _hasher(image_filepath)
     md5_fname = os.path.join(web_dir, image_fname + '.md5')
-    logger.INFO("Saving to {!r}: {}".format(md5_fname, md5_value))
+    print("Saving to {!r}: {}".format(md5_fname, md5_value))
     with open(md5_fname, 'wt') as fh:
         fh.write("{}  {}\n".format(md5_value, image_fname))
     sha1_fname = os.path.join(web_dir, image_fname + '.sha1')
-    logger.INFO("Saving to {!r}: {}".format(sha1_fname, sha1_value))
+    print("Saving to {!r}: {}".format(sha1_fname, sha1_value))
     with open(sha1_fname, 'wt') as fh:
         fh.write("{}  {}\n".format(sha1_value, image_fname))
 
@@ -112,7 +110,7 @@ def main(wwwdir, torrentdir, image_filepath):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        logger.INFO("Usage: {} www_dir torrent_dir cdpedia_image_filename".format(sys.argv[0]))
+        print("Usage: {} www_dir torrent_dir cdpedia_image_filename".format(sys.argv[0]))
         exit()
 
     wwwdir, torrentdir, image_filepath = sys.argv[1:]

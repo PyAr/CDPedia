@@ -20,12 +20,10 @@
 Muestra info del índice.
 """
 
-
-import logging
+from __future__ import print_function
 import sys
 import os
 
-logger = logging.getLogger(__name__)
 
 sys.path.append(os.path.abspath("."))
 
@@ -39,18 +37,18 @@ def main(direct, palabras):
 
     if not palabras:
         for palabra, data in indice.listar():
-            logger.INFO("%s: %s" % (palabra.encode("utf8"), data))
+            print("%s: %s" % (palabra.encode("utf8"), data))
     else:
         encontrado = indice.search(" ".join(palabras))
         for it in encontrado:
-            logger.INFO(it)
+            print(it)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        logger.INFO("Usar:  verIndice.py <dir_indice> [palabra [...]]")
-        logger.INFO("           dir_indice es el dir donde está el índice")
-        logger.INFO("           las palabras opcionales son buscadas en el índice")
+        print("Usar:  verIndice.py <dir_indice> [palabra [...]]")
+        print("           dir_indice es el dir donde está el índice")
+        print("           las palabras opcionales son buscadas en el índice")
         sys.exit()
 
     base = sys.argv[1]

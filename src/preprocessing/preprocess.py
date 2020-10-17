@@ -227,7 +227,7 @@ class WikiSite(object):
             while page in redirects:
                 page = redirects[page]
                 if page in loop_guard:
-                    logger.warning("Redirect loop found: %s", loop_guard, page)
+                    logger.warning("Redirect loop found: %s %s", loop_guard, page)
                     break
                 loop_guard.append(page)
 
@@ -338,22 +338,22 @@ def profiled_run(root_dir):
 
     wikisite.commit()
     tend = time.time()
-    logger.DEBUG("Whole process", tend - tini)
-    logger.DEBUG("In processors", sum(wikisite.prof_times.values()))
+    logger.debug("Whole process %d", tend - tini)
+    logger.debug("In processors %d", sum(wikisite.prof_times.values()))
     for proc in wikisite.prof_times:
         quant = wikisite.prof_quant[proc]
         total = wikisite.prof_times[proc]
-        logger.DEBUG("         proc ", proc, quant, total, total / quant)
-    logger.DEBUG("Full stats (if profile run) saved in /tmp/procesar.stat")
+        logger.debug("         proc %d %d %d %2.f", proc, quant, total, total / quant)
+    logger.debug("Full stats (if profile run) saved in /tmp/procesar.stat")
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        logger.INFO("Usage: preprocess.py root_dir")
+        logger.info("Usage: preprocess.py root_dir")
         exit()
     if os.path.exists(config.LOG_PREPROCESADO):
-        logger.ERROR("ERROR: The PREPROCESSED file is there, it will make some articles to be skipped:",
-                     config.LOG_PREPROCESADO)
+        logger.error("The PREPROCESSED file is there, it will make some articles to be skipped: "
+                     "%s", config.LOG_PREPROCESADO)
         exit()
 
     # fix config for a needed variable

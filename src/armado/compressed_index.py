@@ -19,14 +19,11 @@ import os
 import pickle
 import random
 import sys
-import logging
 from functools import lru_cache
 from lzma import LZMAFile as CompressedFile
 
 DOCSTORE_BUCKET_SIZE = 1 << 20
 DOCSTORE_CACHE_SIZE = 20
-
-logger = logging.getLogger(__name__)
 
 
 def delta_encode(docset, sorted=sorted, with_reps=False):
@@ -563,7 +560,7 @@ class Index(object):
             raise ValueError("No data to index")
         # prepare for serialization:
         # turn docsets into lists if delta-encoded integers (they're more compressible)
-        logger.INFO(" Delta-encoding index buckets...")
+        print(" Delta-encoding index buckets...")
         sys.stdout.flush()
 
         bucket_bytes = 0
@@ -580,20 +577,21 @@ class Index(object):
                 docset,
             )
 
-        logger.INFO("done")
+        print("done")
+
         # print statistics
 
-        logger.DEBUG("  Index contains:")
-        logger.DEBUG("      ", len(key_shelf), "terms")
-        logger.DEBUG("      ", bucket_entries, "entries")
-        logger.DEBUG("      ", len(ids_shelf), "documents")
-        logger.DEBUG("")
-        logger.DEBUG("      ", len(key_shelf) // max(1, len(ids_shelf)), "terms on avg per documents")
-        logger.DEBUG("")
-        logger.DEBUG("  Bucket bytes", bucket_bytes)
-        logger.DEBUG("  Bucket entries", bucket_entries)
-        logger.DEBUG("  Bucket maximum size", bucket_maxentries)
-        logger.DEBUG("  Avg bytes per entry", (float(bucket_bytes) / max(1, bucket_entries)))
+        print("  Index contains:")
+        print("      ", len(key_shelf), "terms")
+        print("      ", bucket_entries, "entries")
+        print("      ", len(ids_shelf), "documents")
+        print("")
+        print("      ", len(key_shelf) // max(1, len(ids_shelf)), "terms on avg per documents")
+        print("")
+        print("  Bucket bytes", bucket_bytes)
+        print("  Bucket entries", bucket_entries)
+        print("  Bucket maximum size", bucket_maxentries)
+        print("  Avg bytes per entry", (float(bucket_bytes) / max(1, bucket_entries)))
 
         # save key
         # Format:
@@ -611,11 +609,11 @@ class Index(object):
         # free the big dict... eats up a lot
         del key_shelf
 
-        logger.INFO(" Computing similitude matrix...")
+        print(" Computing similitude matrix...",)
         sys.stdout.flush()
 
         def progress_cb(p):
-            logger.INFO("\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
+            print("\r Computing similitude matrix...  %d%%\t" % int(p), file=sys.stderr)
             sys.stderr.flush()
 
         matrix = TermSimilitudeMatrix(map(operator.itemgetter(0), sitems),
@@ -623,30 +621,30 @@ class Index(object):
         docsets = FrozenStringList(map(operator.itemgetter(1), sitems))
         del sitems
 
-        logger.INFO("done")
-        logger.INFO(" Saving:")
+        print("done")
+        print(" Saving:")
 
         keyfilename = os.path.join(directory, "compindex.key.xz")
         fh = CompressedFile(keyfilename, "wb")
         pickle.dump((matrix.pickle(), docsets.pickle()), fh, 2)
-        logger.INFO("  Uncompressed keystore bytes", fh.tell())
+        print("  Uncompressed keystore bytes", fh.tell())
         fh.close()
 
         fh = open(keyfilename, "rb")
         fh.seek(0, 2)
-        logger.INFO("  Final keystore bytes", fh.tell())
-        logger.INFO()
+        print("  Final keystore bytes", fh.tell())
+        print()
         fh.close()
 
         # split ids_shelf in N dicts of about ~16M pickled data each,
         # this helps get better compression ratios
         NB = sum(len(pickle.dumps(item, 2)) for item in ids_shelf.items())
-        logger.INFO("  Total docstore bytes", NB)
+        print("  Total docstore bytes", NB)
 
         N = int((NB + DOCSTORE_BUCKET_SIZE / 2) // DOCSTORE_BUCKET_SIZE)
         if not N:
             N = 1
-        logger.INFO("  Docstore buckets", N, "(", NB // N, " bytes per bucket)")
+        print("  Docstore buckets", N, "(", NB // N, " bytes per bucket)")
         all_idshelves = [{} for i in range(N)]
         for k, v in ids_shelf.items():
             cual = k % N
@@ -668,8 +666,8 @@ class Index(object):
             doccomp += fh.tell()
             fh.close()
 
-        logger.INFO("  Docstore uncompressed bytes", docucomp)
-        logger.INFO("  Docstore compressed bytes", doccomp)
-        logger.INFO("")
+        print("  Docstore uncompressed bytes", docucomp)
+        print("  Docstore compressed bytes", doccomp)
+        print("")
 
         return indexed_counter

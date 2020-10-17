@@ -14,12 +14,11 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+from __future__ import print_function
 import codecs
-import logging
 import sys
 import xml.sax
 
-logger = logging.getLogger(__name__)
 
 usage = """Usar: %s [-x] filename title outfile
 
@@ -55,11 +54,11 @@ class Handler(xml.sax.handler.ContentHandler):
             self.in_title = False
             if self.exacto:
                 if self.wanted == self.accum_title:
-                    logger.INFO(self.accum_title)
+                    print(self.accum_title)
                     self.this_page = True
             else:
                 if self.wanted in self.accum_title:
-                    logger.INFO(self.accum_title)
+                    print(self.accum_title)
                     self.this_page = True
             self.accum_title = ""
         if name == "text":
@@ -75,7 +74,7 @@ class Handler(xml.sax.handler.ContentHandler):
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        logger.INFO(usage % sys.argv[0])
+        print(usage % sys.argv[0])
         sys.exit(1)
 
     exacto = False
