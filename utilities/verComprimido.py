@@ -21,11 +21,10 @@ Muestra info del archivo comprimido.
 """
 
 from __future__ import division, with_statement, print_function
+
 import operator
 import sys
 import os
-
-
 sys.path.append(os.getcwd())
 from src.armado.compresor import Comprimido, BloqueImagenes  # NOQA import after fixing path
 

@@ -32,7 +32,6 @@ import shutil
 import subprocess
 import sys
 
-
 TRACKERS = [
     'udp://tracker.openbittorrent.com:80',
     'udp://tracker.opentrackr.org:1337',

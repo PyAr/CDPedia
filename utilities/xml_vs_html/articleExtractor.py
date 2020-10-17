@@ -15,10 +15,10 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 from __future__ import print_function
+
 import codecs
 import sys
 import xml.sax
-
 
 usage = """Usar: %s [-x] filename title outfile
 
