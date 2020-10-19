@@ -238,13 +238,16 @@ class TestJoiner:
 
     def test_join(self, tmp_path):
         """Test joining css modules."""
+        filepath_foo = tmp_path / 'foo.css'
+        filepath_bar = tmp_path / 'bar.css'
+        filepath_baz = tmp_path / 'baz.css'
         modules = {
-            'foo': {'filepath': tmp_path / 'foo.css', 'exists': True},
-            'bar': {'filepath': tmp_path / 'bar.css', 'exists': True},
-            'baz': {'filepath': tmp_path / 'baz.css', 'exists': False},
+            'foo': {'filepath': str(filepath_foo), 'exists': True},
+            'bar': {'filepath': str(filepath_bar), 'exists': True},
+            'baz': {'filepath': str(filepath_baz), 'exists': False},
         }
-        modules['foo']['filepath'].write_text('foo-content')
-        modules['bar']['filepath'].write_text('bar-content')
+        filepath_foo.write_text('foo-content')
+        filepath_bar.write_text('bar-content')
         joiner = _Joiner(modules, {})
         joiner.join(outdir=str(tmp_path))
         output = tmp_path / config.CSS_FILENAME
