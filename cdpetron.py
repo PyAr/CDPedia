@@ -324,10 +324,11 @@ def main(language, lang_config, imag_config,
         scrap_portal(language, lang_config)
         scrap_pages(language, test)
         pydocs.download(language, lang_config, location.dumpbase)
-        css.scrap_css()
 
     if extra_pages:
         _call_scraper(language, extra_pages)
+
+    if not noscrap or extra_pages:
         css.scrap_css()
 
     if config.VALIDATE_TRANSLATION:
