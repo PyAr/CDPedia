@@ -104,6 +104,12 @@ li.search-result-text{
     font-size: 85%;
 }
 
+/* Don't show list empty elements */
+
+.mw-empty-elt {
+    display: none;
+}
+
 /* CDPedia logo */
 
 #p-logo {
