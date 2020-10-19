@@ -251,7 +251,10 @@ class TestJoiner:
         joiner = _Joiner(modules, {})
         joiner.join(outdir=str(tmp_path))
         output = tmp_path / config.CSS_FILENAME
-        assert output.read_text(encoding='utf-8') == 'foo-content\nbar-content\n'
+        # lines order should not be significant
+        lines = set(output.read_text(encoding='utf-8').split())
+        lines_expected = {'foo-content', 'bar-content'}
+        assert lines_expected == lines
 
     def test_fix_url(self, resources):
         """Retarget url to local files."""
