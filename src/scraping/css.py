@@ -41,7 +41,6 @@ class _LinkExtractor:
     def __init__(self):
         self.cssdir = None
         self.links = None
-        self.links_file = None
 
         # pattern for extracting css links from html
         regex = r"/w/load.php\?.*?only=styles&amp;skin=vector"
@@ -51,26 +50,19 @@ class _LinkExtractor:
         self._lock = threading.Lock()
 
     def setup(self, cssdir):
-        """Set output file and load previously saved data."""
+        """Set output file handler and load previously saved data."""
         self.cssdir = cssdir
-        self.links_file = os.path.join(cssdir, config.CSS_LINKS_FILENAME)
-        self.links = self.load_links(self.links_file)
-
-    @staticmethod
-    def load_links(filepath):
-        """Load css links from file."""
+        links_file = os.path.join(cssdir, config.CSS_LINKS_FILENAME)
         try:
-            with open(filepath, 'rt', encoding='utf-8') as fh:
-                links = set(line.strip() for line in fh)
+            self._fh = open(links_file, 'r+t', encoding='utf-8', buffering=1)
+            self.links = set(line.strip() for line in self._fh)
         except FileNotFoundError:
-            links = set()
-        return links
+            self._fh = open(links_file, 'wt', encoding='utf-8', buffering=1)
+            self.links = set()
 
-    def dump_links(self, links):
-        """Dump current set of css links to file."""
-        with open(self.links_file, 'at', encoding='utf-8') as fh:
-            fh.write('\n'.join(links))
-            fh.write('\n')
+    def close(self):
+        """Close output file handler."""
+        self._fh.close()
 
     def __call__(self, html):
         """Extract css links from html string."""
@@ -80,7 +72,7 @@ class _LinkExtractor:
             # as html head is discarded after this extraction,
             # dump new links as soon as found to avoid data loss
             with self._lock:
-                self.dump_links(new_links)
+                self._fh.write('\n'.join(new_links) + '\n')
 
 
 # single link collector for all scraping tasks: portals, articles, extra, etc.
@@ -88,10 +80,11 @@ link_extractor = _LinkExtractor()
 
 
 def scrap_css():
-    """Scrap CSS modules and associated resources and generate a single stylesheet."""
+    """Scrap CSS modules with associated resources and generate a single stylesheet."""
     # scrap stylesheets
     cssdir = link_extractor.cssdir
     scraper = _Scraper(link_extractor.links, cssdir)
+    link_extractor.close()
     scraper.scrap()
     # combine all css into single file retargeting urls
     joiner = _Joiner(scraper.modules, scraper.resources)
