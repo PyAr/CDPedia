@@ -152,6 +152,9 @@ CSS_LINKS_FILENAME = 'css_links.txt'
 # Subdirectory of 'CSS_DIRNAME' for saving resources needed by stylesheets
 CSS_RESOURCES_DIRNAME = 'images'
 
+# Directory name for static resources
+STATIC_DIRNAME = 'static'
+
 # Validate translation before generating a CDPedia in the specified language.
 # Interrupt process if validation fails. In test mode, show validation result
 # but don't interrupt process.

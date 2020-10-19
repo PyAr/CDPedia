@@ -227,8 +227,9 @@ class _Joiner:
     def __init__(self, modules, resources):
         self.modules = modules
         self.resources = {v['url_raw']: k for k, v in resources.items() if v['exists']}
-        # resources directory in web app
-        self._res_dir = '/static/{}/{}/'.format(config.CSS_DIRNAME, config.CSS_RESOURCES_DIRNAME)
+        # css resources relative path for web app
+        self._res_dir = '/{}/{}/{}/'.format(
+            config.STATIC_DIRNAME, config.CSS_DIRNAME, config.CSS_RESOURCES_DIRNAME)
         self._fix_urls = functools.partial(re_resource_url.sub, self._fix_url)
 
     def join(self, outdir):

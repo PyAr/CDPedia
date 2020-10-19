@@ -124,7 +124,7 @@ def copy_assets(src_info, dest):
 def _copy_css(src_base, dst_base):
     """Copy unified css file and associated resources."""
     css_src_dir = os.path.join(src_base, config.DIR_SOURCE_ASSETS, config.CSS_DIRNAME)
-    css_dst_dir = os.path.join(dst_base, 'static', config.CSS_DIRNAME)
+    css_dst_dir = os.path.join(dst_base, config.STATIC_DIRNAME, config.CSS_DIRNAME)
     os.makedirs(css_dst_dir, exist_ok=True)
 
     logger.info('Copying %s and requried resources', config.CSS_FILENAME)
