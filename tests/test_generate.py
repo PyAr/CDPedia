@@ -24,12 +24,10 @@ from src.generate import copy_dir, _copy_css
 def dirtree(tmp_path):
     """Simple directory structure including some files."""
     dirs = [tmp_path / d for d in ('d', 'd/d1', 'd/d1/d11', 'd/d2', 'd/d2/d21')]
-    files = []
     for d in dirs:
         d.mkdir()
         for f in ('foo.txt', '.foo', 'foo.pyc'):
-            files.append(d / f)
-            files[-1].touch()
+            (d / f).touch()
     return str(dirs[0])
 
 
@@ -66,10 +64,10 @@ def test_copy_css(tmp_path):
     # create couple of files
     (css_dir / config.CSS_FILENAME).touch()
     (css_dir / 'foo.css').touch()  # should not be copied
-    (res_dir / 'bar.png').touch()
-    (res_dir / 'baz.ico').touch()
+    (res_dir / 'img.png').touch()
+    (res_dir / 'img.ico').touch()
     _copy_css(str(src_base), str(dst_base))
     css = list(dst_base.rglob('*.css'))
     assert len(css) == 1
     assert css[0].name == config.CSS_FILENAME
-    assert len(list(dst_base.rglob('ba*'))) == 2
+    assert len(list(dst_base.rglob('img.*'))) == 2
