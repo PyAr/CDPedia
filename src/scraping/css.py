@@ -183,7 +183,8 @@ class _Scraper:
             self.resources[name] = {'url': url, 'url_raw': url_raw,
                                     'filepath': filepath, 'exists': exists}
 
-    def _safe_resource_name(self, url):
+    @staticmethod
+    def _safe_resource_name(url):
         """Construct a safe filename from given URL."""
         filename = os.path.basename(url)
         filename = urllib.parse.unquote(filename)
@@ -234,6 +235,7 @@ class _Joiner:
         self._res_dir = '/{}/{}/{}/'.format(
             config.STATIC_DIRNAME, config.CSS_DIRNAME, config.CSS_RESOURCES_DIRNAME)
         self._fix_urls = functools.partial(re_resource_url.sub, self._fix_url)
+        self._dont_fix = {'http://www.w3.org/1998/Math/MathML'}
 
     def join(self, outdir):
         """Unify all CSS modules into a single stylesheet."""
@@ -250,6 +252,8 @@ class _Joiner:
     def _fix_url(self, match):
         """Retarget resource link to local file if available."""
         url_raw = match.group(1)
+        if url_raw in self._dont_fix:
+            return match.group()
         filename = self.resources.get(url_raw)
         if not filename:
             url_local = 'nofile'
