@@ -149,7 +149,17 @@ class _Scraper:
             names = query.get('modules')[0]
             if not names:
                 continue
-            unique_names.update(names.split('|'))
+            for name in names.split('|'):
+                if ',' in name:
+                    # 'foo.bar,baz' -> 'foo.bar', 'foo.baz'
+                    first, *extra = name.split(',')
+                    unique_names.add(first)
+                    parent, _ = first.rsplit('.', 1)
+                    for e in extra:
+                        unique_names.add(parent + '.' + e)
+                else:
+                    # 'foo.bar.baz'
+                    unique_names.add(name)
         logger.info('Found %i unique CSS module names', len(unique_names))
         return unique_names
 
