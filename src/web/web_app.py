@@ -138,14 +138,14 @@ class CDPedia:
 
     def on_test_infra(self, request, remaining=[]):
         if not remaining:
-            with open('/home/luri/PycharmProjects/CDPedia/extra-pages.txt', 'r') as extra_pages:
-                for line in extra_pages:
-                    remaining.append(line)
+            with open("extra-pages.txt", 'r') as articles_to_try:
+                for article in articles_to_try:
+                    remaining.append(article)
         name = remaining.pop().rstrip()
         orig_link = utils.get_orig_link(name)
         name = to3dirs.to_filename(name)
         try:
-               data = self.art_mngr.get_item(name)
+            data = self.art_mngr.get_item(name)
         except Exception as err:
             raise InternalServerError("Error interno al buscar contenido: %s" % err)
         if data is None:
