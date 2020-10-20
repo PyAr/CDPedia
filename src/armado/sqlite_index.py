@@ -17,6 +17,7 @@
 
 import array
 import logging
+import math
 import operator
 import os
 import pickle
@@ -28,10 +29,12 @@ from progress.bar import Bar
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
+from src.armado import cdpindex
 
 logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
+MAX_RESULTS = 100
 
 
 def decompress_data(data):
@@ -44,6 +47,7 @@ class DocSet:
 
     def __init__(self):
         self._docs_list = defaultdict(list)
+        self.items = self._docs_list.items
 
     def append(self, docid, position):
         """Append an item to the docs_list."""
@@ -138,7 +142,6 @@ class DocSet:
             docsid = cls.delta_decode(encoded[limit + 1:])
             positions = array.array('B')
             positions.frombytes(encoded[:limit])
-            docset._docs_list = defaultdict(list)
             for docid, position in zip(docsid, positions):
                 docset._docs_list[docid].append(position)
         return docset
@@ -175,6 +178,124 @@ def to_filename(title):
     return expected
 
 
+class Search:
+    """Fetch and order some search."""
+    def __init__(self, db, keys):
+        self.db = db
+        self.docs = defaultdict(dict)
+        self.keys = keys
+        # create a set of result w/all keys
+        results = self._get_docs(keys[0])
+        for key in keys[1:]:
+            results &= self._get_docs(key)
+
+        # computes the similitude of phrase
+        self.ordered = []
+        for docid in results:
+            word_quant = self._get_doc_word_quant(docid)
+            phrase = [""] * word_quant
+            for pos, word in self.docs[docid].items():
+                phrase[pos] = word
+            similitude = self.iterative_levenshtein(phrase)
+
+            # first docid are a LOT more important
+            order_factor = int(40000 * math.pow(docid + 1, -.5))
+
+            self.ordered.append((order_factor - similitude, docid))
+
+        self.ordered.sort(reverse=True)
+
+    @lru_cache(1000)
+    def _get_page(self, pageid):
+        """Return the array of word_quants in word of a page's titles."""
+        cur = self.db.execute("SELECT word_quants FROM docs where pageid = ?", (pageid,))
+        row = cur.fetchone()
+        decomp_data = array.array("B")
+        if row:
+            decomp_data.frombytes(row[0])
+        return decomp_data
+
+    def _get_doc_word_quant(self, docid):
+        """Return one stored document item."""
+        page_id, rel_position = divmod(docid, PAGE_SIZE)
+        word_quants = self._get_page(page_id)
+        if not word_quants:
+            raise ValueError("Inconsistency on data, docid non exists")
+        return word_quants[rel_position]
+
+    def _get_docs(self, key):
+        """Store the words asoc w/ the docs & return a found docs's set."""
+        found = set()
+        for word, docset in self._fetch(key):
+            for docid, positions in docset.items():
+                for pos in positions:
+                    self.docs[docid][pos] = word
+                found.add(docid)
+        return found
+
+    def _fetch(self, key):
+        """Return all the values of a partial key search."""
+        sql = "select word, docsets as 'ds [docset]' from tokens"
+        sql += " where word like '%{}%'".format(key)
+        cur = self.db.execute(sql)
+        for row in cur.fetchall():
+            yield row[0], row[1]
+
+    def iterative_levenshtein(self, phrase):
+        """Compute the Levenshtein distance between the lists keys and phrase.
+
+        For all i and j, dist[i,j] will contain the Levenshtein
+        distance between the first i items of keys and the
+        first j items of phrase
+        """
+
+        # If there are exact match, put on the top
+        if self.keys == phrase:
+            return -1000
+
+        keys = self.keys
+        rows = len(keys) + 1
+        cols = len(phrase) + 1
+        deletes, inserts, substitutes = 200, 25, 30
+
+        dist = [[0 for c in range(cols)] for r in range(rows)]
+
+        # source prefixes can be transformed into empty strings
+        # by deletions:
+        for row in range(1, rows):
+            dist[row][0] = row * deletes
+
+        # target prefixes can be created from an empty source string
+        # by inserting the characters.
+        # Inserts in the last positions cost more.
+        for col in range(1, cols):
+            dist[0][col] = int(col * inserts ** 1.2)
+
+        for row in range(1, rows):
+            lenkey = len(keys[row - 1])
+
+            for col in range(1, cols):
+                lendiff = len(phrase[col - 1]) - lenkey
+                if keys[row - 1] == phrase[col - 1]:
+                    cost = 0  # if equal, no subtituion cost
+                elif phrase[col - 1].startswith(keys[row - 1]):
+                    # if starts with key, just half cost
+                    cost = lendiff * (substitutes // 2)
+                elif keys[row - 1] in phrase[col - 1]:
+                    # if includes the key, multiply
+                    cost = lendiff * substitutes
+                else:
+                    # total substitution, cost by sum of lengths
+                    lendiff += 2 * lenkey
+                    cost = substitutes * lendiff
+
+                dist[row][col] = min(dist[row - 1][col] + deletes,
+                                     dist[row][col - 1] + inserts,
+                                     dist[row - 1][col - 1] + cost)  # substitution
+
+        return dist[row][col]
+
+
 class Index:
     """Handle the index."""
 
@@ -190,7 +311,7 @@ class Index:
             ''')
 
     def keys(self):
-        """Returns an iterator over the stored keys."""
+        """Return an iterator over the stored keys."""
         cur = self.db.execute("SELECT word FROM tokens")
         for row in cur.fetchall():
             yield row[0]
@@ -203,7 +324,7 @@ class Index:
             yield row[0], row[1]
 
     def values(self):
-        """Returns an iterator over the stored values."""
+        """Return an iterator over the stored values."""
         cur = self.db.execute("SELECT pageid, data FROM docs ORDER BY pageid")
         for row in cur.fetchall():
             decomp_data = decompress_data(row[1])
@@ -220,12 +341,12 @@ class Index:
         return row[0] * PAGE_SIZE + len(decomp_data)
 
     def random(self):
-        """Returns a random value."""
+        """Return a random value."""
         docid = random.randint(0, len(self) - 1)
         return self.get_doc(docid)
 
     def __contains__(self, key):
-        """Returns if the key is in the index or not."""
+        """Return if the key is in the index or not."""
         cur = self.db.execute("SELECT word FROM tokens where word = ?", (key,))
         if cur.fetchone():
             return True
@@ -253,6 +374,25 @@ class Index:
         if row[0] is None:
             row[0] = to_filename(row[1])
         return row
+
+    def search(self, keys):
+        """Return all the values that are found for those keys.
+
+        The AND boolean operation is applied to the keys.
+        """
+        keys = list(map(cdpindex.normalize_words, keys))
+        files_yielded = set()
+        docset = Search(self.db, keys)
+        for score, ndoc in docset.ordered:
+            doc_data = self.get_doc(ndoc)
+            # Do not return more than one index result to the same file.
+            if not doc_data[0] in files_yielded:
+                files_yielded.add(doc_data[0])
+                yield doc_data
+            if len(files_yielded) >= MAX_RESULTS:
+                break
+
+    partial_search = search
 
     @classmethod
     def create(cls, directory, source):
@@ -372,7 +512,7 @@ class Index:
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        ordered_source = sorted(source, key=operator.itemgetter(1))
+        ordered_source = sorted(source, reverse=True, key=operator.itemgetter(1))
         if not ordered_source:
             raise ValueError("No data to index")
         idx_dict = add_docs_keys(ordered_source)
