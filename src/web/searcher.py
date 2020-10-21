@@ -138,6 +138,7 @@ class Searcher(object):
         return prev_results[start:start + quantity]
 
     def get_grouped(self, search_id, start=0, quantity=10):
+        """Get results to show from the index."""
         source = self.get_results(search_id, start, quantity)
         results = []
         for link, title, ptje, original, text in source:

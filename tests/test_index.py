@@ -21,7 +21,6 @@ import logging
 import pytest
 
 from src.armado import easy_index
-from src.armado import compressed_index
 from src.armado import sqlite_index
 
 
@@ -87,7 +86,7 @@ data = """\
 DataSet.add_fixture("E", data)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
+@pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
 def create_index(request):
     """Create an index with given info in a temp dir, load it and return built index."""
     tempdir = tempfile.mkdtemp()
@@ -107,7 +106,7 @@ def create_index(request):
         shutil.rmtree(tempdir)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
+@pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
 def get_engine(request):
     """Provide temp dirs and index engines to the tests."""
     tempdir = tempfile.mkdtemp()
