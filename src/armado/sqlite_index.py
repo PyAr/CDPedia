@@ -22,6 +22,7 @@ import operator
 import os
 import pickle
 import random
+import unicodedata
 import sqlite3
 from collections import defaultdict
 from functools import lru_cache
@@ -29,12 +30,17 @@ from progress.bar import Bar
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
-from src.armado import cdpindex
 
 logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
-MAX_RESULTS = 100
+MAX_RESULTS = 500
+
+
+def normalize_words(txt):
+    """Separate and normalize every word from a sentence."""
+    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
+    return txt
 
 
 def decompress_data(data):
@@ -380,7 +386,7 @@ class Index:
 
         The AND boolean operation is applied to the keys.
         """
-        keys = list(map(cdpindex.normalize_words, keys))
+        keys = list(map(normalize_words, keys))
         files_yielded = set()
         docset = Search(self.db, keys)
         for score, ndoc in docset.ordered:
@@ -391,8 +397,6 @@ class Index:
                 yield doc_data
             if len(files_yielded) >= MAX_RESULTS:
                 break
-
-    partial_search = search
 
     @classmethod
     def create(cls, directory, source):
@@ -479,7 +483,7 @@ class Index:
             docs_table = Compressed("Documents", sql, len(source))
 
             for words, page_score, data in source:
-                data = list(data) + [page_score]
+                data = list(data)
                 if data[0] == to_filename(data[1]):
                     data[0] = None
                 docid = docs_table.append((len(words), data))

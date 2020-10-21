@@ -237,38 +237,36 @@ def searchidx(idx, keys):
     res = list(idx.search(keys))
     return res
 
-# --- Test the .partial_search method.
 
-
-def test_partialsearch_prefix(create_index):
+def test_search_prefix(create_index):
     """Match its prefix."""
     idx = create_index(DataSet("B").info)
-    res = idx.partial_search(["blanc"])
+    res = idx.search(["blanc"])
     assert set(abrev(res)) == set(decomp("conejo blanco/5; ala blanca/3"))
-    res = idx.partial_search(["zz"])
+    res = idx.search(["zz"])
     assert list(res) == []
 
 
-def test_partialsearch_several_values(create_index):
+def test_search_several_values(create_index):
     """Several values stored."""
     idx = create_index(DataSet("E").info)
-    res = idx.partial_search(["a"])
+    res = idx.search(["a"])
     assert set(abrev(res)) == set(decomp("aaa/4;abc/4;abd/4"))
-    res = idx.partial_search(["b"])
+    res = idx.search(["b"])
     assert set(abrev(res)) == set(decomp("abc/4;abd/4;bcd/4;bbd/4"))
-    res = idx.partial_search(["c"])
+    res = idx.search(["c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.partial_search(["d"])
+    res = idx.search(["d"])
     assert set(abrev(res)) == set(decomp("bcd/4;abd/4;bbd/4"))
-    res = idx.partial_search(["o"])
+    res = idx.search(["o"])
     assert set(abrev(res)) == set()
 
 
-def test_partialsearch_and(create_index):
+def test_search_and(create_index):
     """Check that AND is applied."""
     idx = create_index(DataSet("E").info)
-    res = idx.partial_search(["a", "b"])
+    res = idx.search(["a", "b"])
     assert set(abrev(res)) == set(decomp("abc/4;abd/4"))
-    res = idx.partial_search(["b", "c"])
+    res = idx.search(["b", "c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.partial_search(["a", "o"])
+    res = idx.search(["a", "o"])

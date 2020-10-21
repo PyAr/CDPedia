@@ -79,16 +79,6 @@ class ThreadedSearch(threading.Thread):
             if self.discarded:
                 return
 
-        # partial
-        result = self.index.partial_search(self.words)
-        if self.discarded:
-            return
-
-        for r in result:
-            self.queue.put(r)
-            if self.discarded:
-                return
-
         # done
         self.queue.put(EOS)
 
@@ -150,7 +140,7 @@ class Searcher(object):
     def get_grouped(self, search_id, start=0, quantity=10):
         source = self.get_results(search_id, start, quantity)
         results = []
-        for link, title, ptje, original, text, _ in source:
+        for link, title, ptje, original, text in source:
             # remove 3 dirs from link and add the proper base url
             link = "%s/%s" % (u'wiki', to3dirs.from_path(link))
             link = quote(link)

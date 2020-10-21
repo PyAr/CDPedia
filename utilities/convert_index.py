@@ -75,17 +75,17 @@ def cycle():
         for n_doc, value in idx.items():
             html, title, ptje, redir, primtext = value
             words = list(WORDS.findall(normalize_words(title)))
-            yield words, ptje, (html, title, redir, primtext)
+            yield words, ptje, (html, title, ptje, redir, primtext)
 
 
 def cycle_filtered():
     """ Avoid any null or repeated entry, just for security."""
-    allreadyseen = set()
+    alreadyseen = set()
     repeated = null_title = 0
     for words, ptje, data in cycle():
         hash_data = hash(data)
-        if hash_data not in allreadyseen:
-            allreadyseen.add(hash_data)
+        if hash_data not in alreadyseen:
+            alreadyseen.add(hash_data)
             if data[1]:
                 yield words, ptje, data
             else:
@@ -93,20 +93,6 @@ def cycle_filtered():
         else:
             repeated += 1
     print("\nnull_title", null_title, "  repeated", repeated)
-
-
-def media_words():
-    words_lenght = defaultdict(int)
-    with open("long_titles.txt", "w") as fh:
-        for words, ptje, data in cycle():
-            lenght = len(words)
-            words_lenght[lenght] += 1
-            if lenght > 15:
-                fh.write(' '.join(words) + "\n")
-    keys = list(words_lenght.keys())
-    keys.sort()
-    for k in keys:
-        print(k, words_lenght[k])
 
 
 def test_cycle():
