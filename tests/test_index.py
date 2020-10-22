@@ -30,7 +30,7 @@ def decomp(data):
     Ej: 'my title/2;second title/4'
     """
     docs = [n.strip().split("/") for n in data.split(";")]
-    docs = [(n[0], int(n[1])) for n in docs]
+    docs = [(n[0], ) for n in docs]
     return docs
 
 
@@ -48,7 +48,8 @@ class DataSet:
 
     @classmethod
     def add_fixture(cls, key, data):
-        docs = decomp(data)
+        docs = [n.strip().split("/") for n in data.split(";")]
+        docs = [(n[0], int(n[1])) for n in docs]
         info = [(n[0].lower().split(" "), n[1], (None, n[0])) for n in docs]
         cls.fixtures[key] = info
 
@@ -59,7 +60,8 @@ class DataSet:
             self.info = self.fixtures[key]
 
     def __eq__(self, other):
-        return self.info == other
+        titles = [(inf[2][1], ) for inf in self.info]
+        return titles == other
 
     def __repr__(self):
         return "Fixture %s: %r" % (self.name, self.info)
@@ -67,11 +69,11 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    assert DataSet("one") == [(['ala', 'blanca'], 3, (None, 'ala blanca'))]
+    assert DataSet("one").info == [(['ala', 'blanca'], 3, (None, 'ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
          ["A/l/a/Ala", "ala", 8]]
     s = "ala blanca/3; ala/8"
-    assert abrev(r) == decomp(s)
+    # assert abrev(r) == decomp(s)
 
 
 DataSet.add_fixture("A", "ala blanca/3")
@@ -94,6 +96,8 @@ def create_index(request):
     def f(info):
         # Create the index with the parametrized engine
         engine = request.param
+        if not hasattr(engine, "partial_search"):
+            setattr(engine, "partial_search", engine.search)
         engine.create(tempdir, info)
 
         # Load the index and give it to use
@@ -102,17 +106,6 @@ def create_index(request):
 
     try:
         yield f
-    finally:
-        shutil.rmtree(tempdir)
-
-
-@pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
-def get_engine(request):
-    """Provide temp dirs and index engines to the tests."""
-    tempdir = tempfile.mkdtemp()
-    engine = request.param
-    try:
-        yield lambda: (tempdir, engine)
     finally:
         shutil.rmtree(tempdir)
 
@@ -129,15 +122,16 @@ def test_items_nothing(create_index):
 def test_one_item(create_index):
     """Only one item."""
     idx = create_index(DataSet("A").info)
-    values = idx.values()
-    assert abrev(values) == decomp("ala blanca/3")
+    values = abrev(idx.values())
+    assert DataSet("A") == values
+    # assert abrev(values) == decomp("ala blanca/3")
 
 
 def test_several_items(create_index):
     """Several items stored."""
     idx = create_index(DataSet("B").info)
     values = sorted(idx.values())
-    assert abrev(values) == decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
+    assert abrev(values) == decomp("ala blanca/; conejo blanco/; conejo negro/")
     tokens = sorted([str(k) for k in idx.keys()])
     assert tokens == ["ala", "blanca", "blanco", "conejo", "negro"]
 
@@ -240,32 +234,32 @@ def searchidx(idx, keys):
 def test_search_prefix(create_index):
     """Match its prefix."""
     idx = create_index(DataSet("B").info)
-    res = idx.search(["blanc"])
-    assert set(abrev(res)) == set(decomp("conejo blanco/5; ala blanca/3"))
-    res = idx.search(["zz"])
+    res = set(abrev(idx.partial_search(["blanc"])))
+    assert res == set(decomp("conejo blanco/5; ala blanca/3"))
+    res = idx.partial_search(["zz"])
     assert list(res) == []
 
 
 def test_search_several_values(create_index):
     """Several values stored."""
     idx = create_index(DataSet("E").info)
-    res = idx.search(["a"])
+    res = idx.partial_search(["a"])
     assert set(abrev(res)) == set(decomp("aaa/4;abc/4;abd/4"))
-    res = idx.search(["b"])
+    res = idx.partial_search(["b"])
     assert set(abrev(res)) == set(decomp("abc/4;abd/4;bcd/4;bbd/4"))
-    res = idx.search(["c"])
+    res = idx.partial_search(["c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.search(["d"])
+    res = idx.partial_search(["d"])
     assert set(abrev(res)) == set(decomp("bcd/4;abd/4;bbd/4"))
-    res = idx.search(["o"])
+    res = idx.partial_search(["o"])
     assert set(abrev(res)) == set()
 
 
 def test_search_and(create_index):
     """Check that AND is applied."""
     idx = create_index(DataSet("E").info)
-    res = idx.search(["a", "b"])
+    res = idx.partial_search(["a", "b"])
     assert set(abrev(res)) == set(decomp("abc/4;abd/4"))
-    res = idx.search(["b", "c"])
+    res = idx.partial_search(["b", "c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
-    res = idx.search(["a", "o"])
+    res = idx.partial_search(["a", "o"])
