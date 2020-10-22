@@ -39,8 +39,6 @@ logger = logging.getLogger(__name__)
 WORDS = re.compile(r"\w+", re.UNICODE)
 
 
-
-
 def _get_html_words(arch):
     # FIXME:this will be used on full text search of html
     arch = os.path.abspath(arch)

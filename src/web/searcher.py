@@ -18,7 +18,6 @@
 
 """The Searcher."""
 import collections
-import operator
 import queue
 import re
 import threading

@@ -26,6 +26,7 @@ from src.armado.sqlite_index import Index # NOQA import after fixing path
 
 PAGE = 50
 
+
 def output(*out):
     if args.file:
         with open(args.file, "a") as fn:

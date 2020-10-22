@@ -23,7 +23,6 @@ import pickle
 import re
 import os
 import sys
-from collections import defaultdict
 from logging.handlers import RotatingFileHandler
 from bz2 import BZ2File as CompressedFile
 sys.path.append(os.path.abspath(os.curdir))
