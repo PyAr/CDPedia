@@ -23,6 +23,11 @@ from random import choice
 
 logger = logging.getLogger(__name__)
 
+destacado_re = re.compile(r'<h1 id="firstHeading" class="firstHeading">([^<]+).*?'
+                          r'<!-- bodytext -->.*?(?:<table .*?</table>)?\n\s*(<p>.*?)'
+                          r'(?:(?:<table id="toc" class="toc">)|(?:<h2)|(?:<div))',
+                          re.MULTILINE | re.DOTALL)
+
 
 class Destacados(object):
     def __init__(self, article_manager, debug=False, verbose=False):
