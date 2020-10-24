@@ -29,11 +29,13 @@ import logging
 import os
 import re
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
+import config
 from src import utiles
 from src.armado import to3dirs
 
@@ -270,6 +272,44 @@ class WikipediaArticle(object):
         return False
 
 
+class CSSLinksExtractor:
+    """Extract raw CSS links from HTML source code."""
+
+    def __init__(self, language_dir):
+        # extracted data must be saved in each language's dump
+        cssdir = os.path.join(language_dir, config.CSS_DIRNAME)
+        links_file = os.path.join(cssdir, config.CSS_LINKS_FILENAME)
+        # load previously collected links if any
+        try:
+            self._fh = open(links_file, 'r+t', encoding='utf-8')
+            self.links = {line.strip() for line in self._fh}
+        except FileNotFoundError:
+            self._fh = open(links_file, 'wt', encoding='utf-8')
+            self.links = set()
+
+        # pattern for extracting css links from html
+        regex = r"/w/load.php\?.*?only=styles&amp;skin=vector"
+        self._findlinks = re.compile(regex).findall
+
+        # lock for writing to same file from different threads
+        self._lock = threading.Lock()
+
+    def close(self):
+        """Close output file handler."""
+        self._fh.close()
+
+    def __call__(self, html):
+        """Extract css links from html string."""
+        new_links = set(self._findlinks(html)) - self.links
+        if new_links:
+            self.links.update(new_links)
+            # as html head is discarded after this extraction,
+            # dump new links as soon as found to avoid data loss
+            with self._lock:
+                self._fh.write('\n'.join(new_links) + '\n')
+                self._fh.flush()
+
+
 regex = (
     r'(<h1 id="firstHeading" class="firstHeading" '
     r'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
@@ -288,6 +328,9 @@ def get_html(url, basename):
         # unknown html format
         raise BadHTMLError("HTML file from  {!r} has an unknown format".format(url))
     stripped_html = "\n".join(found.groups())
+
+    # extract css links here as html head is not saved
+    extract_css_links(html)
 
     return stripped_html
 
@@ -393,7 +436,13 @@ def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, po
     # fix namespaces in to3dirs module so we can use it in this stage
     to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
 
+    # initialize css link extractor
+    global extract_css_links
+    extract_css_links = CSSLinksExtractor(os.path.dirname(dest_dir))
+
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
     func = functools.partial(fetch, language)
     utiles.pooled_exec(func, data_urls, pool_size, known_errors=[ScraperError])
+
+    extract_css_links.close()
