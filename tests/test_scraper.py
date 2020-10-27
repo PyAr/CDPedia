@@ -19,11 +19,11 @@
 import pytest
 
 import config
-from src.scraping.scraper import CSSLinksExtractor
+from src.scraping.scraper import CSSLinkExtractor
 from tests.utils import load_test_article
 
 
-class TestCSSLinksExtractor:
+class TestCSSLinkExtractor:
     """Tests for the CSS links extractor."""
 
     @pytest.fixture
@@ -33,44 +33,47 @@ class TestCSSLinksExtractor:
         linksfile = cssdir / config.CSS_LINKS_FILENAME
         return str(tmp_path), linksfile
 
-    def test_match_css_links(self, css_params):
+    def test_match_css_links(self):
         """Match all CSS links in HTML."""
-        langdir, _ = css_params
-        extractor = CSSLinksExtractor(langdir)
+        extractor = CSSLinkExtractor()
         html, _ = load_test_article('article_with_images')
         links = extractor._findlinks(html)
         assert len(links) == 4
 
-    def test_init_without_previous_data(self, css_params):
+    def test_setup_without_previous_data(self, css_params):
         """Set the correct defaults."""
         langdir, _ = css_params
-        extractor = CSSLinksExtractor(langdir)
+        extractor = CSSLinkExtractor()
+        extractor.setup(langdir)
         assert extractor.links == set()
         assert not extractor._fh.closed
 
-    def test_init_with_previous_data(self, css_params):
+    def test_setup_with_previous_data(self, css_params):
         """Load previously saved URLs."""
         langdir, linksfile = css_params
         links = {'eggs/bacon', 'spam'}
         linksfile.write_text('\n'.join(links) + '\n')
-        extractor = CSSLinksExtractor(langdir)
+        extractor = CSSLinkExtractor()
+        extractor.setup(langdir)
         assert extractor.links == links
         assert not extractor._fh.closed
 
     def test_closing_filehandler(self, css_params):
         """Correctly close filehandler."""
         langdir, _ = css_params
-        extractor = CSSLinksExtractor(langdir)
+        extractor = CSSLinkExtractor()
+        extractor.setup(langdir)
         assert not extractor._fh.closed
         extractor.close()
         assert extractor._fh.closed
 
-    def test_extracting_css_links(self, css_params):
+    def test_collect_css_links(self, css_params):
         """Extract all CSS links from HTML and save them to file."""
         langdir, linksfile = css_params
-        extractor = CSSLinksExtractor(langdir)
+        extractor = CSSLinkExtractor()
+        extractor.setup(langdir)
         html, _ = load_test_article('article_with_images')
-        extractor(html)
+        extractor.collect(html)
         assert len(extractor.links) == 4
         extractor.close()
         links = linksfile.read_text(encoding='utf-8')
