@@ -136,24 +136,6 @@ class ImageParser:
                 line = separator.join((config.DYNAMIC, name, dskurls))
                 fh.write(line + "\n")
 
-    def process_dynamics(self, name, filepath):
-        """Parse a specific special file."""
-        if not os.path.exists(filepath):
-            logger.warning("Special file not found: %r", filepath)
-            return
-
-        with open(filepath, "rt", encoding="utf8") as fh:
-            html = fh.read()
-
-        html, newimgs = self.parse_html(html, self.chosen_pages)
-
-        with open(filepath, "wt", encoding="utf-8") as fh:
-            fh.write(html)
-
-        for dsk, web in newimgs:
-            self.to_download[dsk] = web
-        self.dynamics[name] = [dsk for dsk, web in newimgs]
-
     def parse(self, dir3, fname):
         """Extract and fix image links of preprocessed articles."""
         if (dir3, fname) in self.processed_before:
@@ -321,9 +303,6 @@ def run():
     pi = ImageParser()
     total = len(preprocessed)
     logger.info("Image parser inited")
-
-    logger.info("Extract images from special resources.")
-    pi.process_dynamics('portals', os.path.join(config.DIR_ASSETS, 'dynamic', 'portals.html'))
 
     logger.info("Normal pages: %d pages to process", total)
     done = 0

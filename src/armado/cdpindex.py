@@ -14,10 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Library to create and read index.
-
-"""
+"""Library to create and read index."""
 
 import base64
 import config
@@ -25,7 +22,6 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import threading
 import unicodedata
 from collections import defaultdict
@@ -42,16 +38,6 @@ WORDS = re.compile(r"\w+", re.UNICODE)
 def normalize_words(txt):
     """Separate and normalize every word from a sentence."""
     txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
-    return txt
-
-
-def _get_html_words(arch):
-    # FIXME:this will be used on full text search of html
-    arch = os.path.abspath(arch)
-    cmd = config.CMD_HTML_A_TEXTO % arch
-    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-    txt = p.stdout.read()
-    txt = txt.decode("utf8")
     return txt
 
 

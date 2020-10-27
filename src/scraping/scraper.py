@@ -379,20 +379,16 @@ def fetch(language, data_url):
         os.rename(temp_file.name, disk_name.encode("utf-8"))
 
 
-def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
+def main(articles_path, language, dest_dir, test_limit=None, pool_size=20):
     """Main entry point.
 
     Params:
     - articles_path: the path to the file with the list of articles to download
     - language: the language of the Wikipedia to use (e.g.: 'es')
     - dest_dir: the destination directory to put the downloaded articles (may take tens of GBs)
-    - namespaces_path: the path to a file with the namespace prefixes
     - test_limit: a limit to how many articles download (optional, defaults to all)
     - pool_size: how many concurrent downloaders use (optional, defaults to 20)
     """
-    # fix namespaces in to3dirs module so we can use it in this stage
-    to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
-
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
     func = functools.partial(fetch, language)

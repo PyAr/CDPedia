@@ -49,7 +49,6 @@ URL_LIST = (
 )
 ART_ALL = "all_articles.txt"
 DATE_FILENAME = "start_date.txt"
-NAMESPACES = "namespace_prefixes.txt"
 PORTAL_PAGES = 'portal_pages.txt'
 
 # some limits when running in test mode
@@ -165,10 +164,7 @@ def get_lists(language, lang_config, test):
     logger.info("Got %d namespace articles", q)
 
     # save the namespace prefixes
-    _path = os.path.join(location.resources, NAMESPACES)
-    with open(_path, 'wt', encoding="utf-8") as fh:
-        for prefix in sorted(prefixes):
-            fh.write(prefix + "\n")
+    to3dirs.namespaces.dump(prefixes, location.resources)
 
     q = 0
     for page in lang_config['include']:
@@ -211,9 +207,8 @@ def load_creation_date():
 def _call_scraper(language, articles_file, test=False):
     """Prepare the command and run scraper.py."""
     logger.info("Let's scrap (with limit=%s)", test)
-    namespaces_path = os.path.join(location.resources, NAMESPACES)
     limit = TEST_LIMIT_SCRAP if test else None
-    scraper.main(articles_file, language, location.articles, namespaces_path, test_limit=limit)
+    scraper.main(articles_file, language, location.articles, test_limit=limit)
 
 
 def scrap_pages(language, test):
@@ -280,7 +275,6 @@ def clean(keep_processed):
         # start it fresh
         logger.info("Temp dir setup fresh: %r", temp_dir)
         os.mkdir(temp_dir)
-        os.symlink(location.images, os.path.join(temp_dir, "images"))
         return
 
     # remove (maybe) all stuff inside
@@ -288,8 +282,6 @@ def clean(keep_processed):
                 temp_dir, keep_processed)
     for item in os.listdir(temp_dir):
         if keep_processed and item in KEEP_PROCESSED:
-            continue
-        if item == 'images':
             continue
         path = os.path.join(temp_dir, item)
         if os.path.isdir(path):
@@ -314,6 +306,9 @@ def main(language, lang_config, imag_config,
             return
     else:
         gendate = get_lists(language, lang_config, test)
+
+    # at this point we have the namespaces in disk, let's init them
+    to3dirs.namespaces.load(location.resources)
 
     if not noscrap:
         scrap_portal(language, lang_config)
@@ -346,7 +341,8 @@ def main(language, lang_config, imag_config,
             # keep previous processed if not new scraped articles and not testing
             keep_processed = noscrap and not test
             clean(keep_processed=keep_processed)
-        generate.main(language, location.langdir, image, lang_config, gendate, verbose=test)
+        generate.main(
+            language, location.langdir, image, lang_config, gendate, location.images, verbose=test)
 
 
 if __name__ == "__main__":

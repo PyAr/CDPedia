@@ -16,29 +16,21 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import queue  # NOQA: this is needed by pyinstaller
-import socketserver  # NOQA: this is needed by pyinstaller
 import optparse
 import os
 import platform
 import sys
 import threading
 import traceback
-import uuid  # NOQA: this is needed by pyinstaller
 import webbrowser
 
 # change execution path, so we can access all cdpedia internals (code and libraries); note this
 # is needed for when CDPedia is executed from a different location (e.g.: double click from GUI)
-cdpedia_path = os.path.abspath(__file__)
-os.chdir(os.path.dirname(cdpedia_path))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# fix path if running from disc/tarball (for own code and external libs)
-if os.path.exists("cdpedia"):
-    sys.path.append("cdpedia")
-    sys.path.append(os.path.join("cdpedia", "extlib"))
-
-# imports after sys path was fixed
+# imports after path was fixed
 import config  # NOQA
+from src.armado import to3dirs  # NOQA
 from src.utiles import WatchDog, find_open_port, set_locale  # NOQA
 from src.web.web_app import create_app  # NOQA
 from werkzeug.serving import ThreadedWSGIServer  # NOQA
@@ -109,26 +101,6 @@ def sleep_and_browse():
         sys.exit(-1)
 
 
-def load_language():
-    """Load language from language file if not set in config.
-
-    Only needed when running cdpedia from project root. In this case, language
-    is dynamically loaded from the temp files of the last generated cdpedia.
-    In final cdpedia images, config.LANGUAGE is already set to the correct value.
-    """
-    if config.LANGUAGE is None and os.path.exists(config.LANGUAGE_FILE):
-        with open(config.LANGUAGE_FILE, 'rt', encoding='utf-8') as fh:
-            lang = fh.read().strip()
-        config.LANGUAGE = lang
-        config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
-
-        import yaml  # imported here as not needed in production
-        with open('languages.yaml') as fh:
-            _config = yaml.safe_load(fh)
-        lang_config = _config[lang]
-        config.PORTAL_PAGE = lang_config['portal_index']
-
-
 if __name__ == "__main__":
     parser = optparse.OptionParser()
     parser.add_option("-v", "--verbose", action="store_true", default=False,
@@ -141,7 +113,6 @@ if __name__ == "__main__":
                       default=config.HOSTNAME)
     (options, args) = parser.parse_args()
 
-    load_language()
     set_locale()
 
     sys.excepthook = handle_crash
@@ -151,7 +122,9 @@ if __name__ == "__main__":
     else:
         port = find_open_port(starting_from=options.port, host=options.hostname)
 
+    # init some config vars and other internal structures
     config.PORT, config.HOSTNAME = port, options.hostname
+    to3dirs.namespaces.load(config.NAMESPACES_PREFIXES_DIR)
 
     if not options.daemon:
         server_up = threading.Event()

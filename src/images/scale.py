@@ -31,7 +31,7 @@ from src.images.embed import image_is_embeddable
 logger = logging.getLogger('images.scale')
 
 
-def run(verbose):
+def run(verbose, src):
     """Reduce images using precalculated scales."""
     notfound = 0
     done_now = {}
@@ -53,7 +53,6 @@ def run(verbose):
         with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
             images_embed = set(line.strip() for line in fh)
 
-    src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # load image path and its corresponding scale
