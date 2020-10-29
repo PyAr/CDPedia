@@ -26,7 +26,11 @@ import webbrowser
 
 # change execution path, so we can access all cdpedia internals (code and libraries); note this
 # is needed for when CDPedia is executed from a different location (e.g.: double click from GUI)
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+cdpedia_path = os.path.dirname(os.path.abspath(__file__))
+os.chdir(cdpedia_path)
+
+# fix path to be able to access the "included external libraries"
+sys.path.append(os.path.join(cdpedia_path, "extlib"))
 
 # imports after path was fixed
 import config  # NOQA
