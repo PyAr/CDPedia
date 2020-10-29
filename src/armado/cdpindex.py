@@ -27,23 +27,16 @@ import re
 import shutil
 import subprocess
 import threading
-import unicodedata
 import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-from .compressed_index import Index
+from .sqlite_index import Index, normalize_words
 
 logger = logging.getLogger(__name__)
 
 # regex used to separate words
 WORDS = re.compile(r"\w+", re.UNICODE)
-
-
-def normalize_words(txt):
-    """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
-    return txt
 
 
 def _get_html_words(arch):
