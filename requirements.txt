@@ -1,4 +1,3 @@
 jinja2==2.11.2
 werkzeug==1.0.1
-progress
 pyyaml==5.3.1

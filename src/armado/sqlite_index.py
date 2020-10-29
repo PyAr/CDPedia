@@ -26,7 +26,6 @@ import unicodedata
 import sqlite3
 from collections import defaultdict
 from functools import lru_cache
-from progress.bar import Bar
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
 from src.armado import to3dirs
@@ -411,6 +410,7 @@ class Index:
         """
         import pickletools
         import time
+        from progress.bar import Bar
 
         class SQLmany:
             """Execute many INSERTs greatly improves the performance."""
