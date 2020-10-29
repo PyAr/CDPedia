@@ -209,6 +209,8 @@ class Index(object):
             for key in keys:
                 key_shelf.setdefault(key, set()).add(docid)
 
+        if ids_cnter == 0:
+            raise ValueError("No data to index")
         # save key
         keyfilename = os.path.join(directory, "easyindex.key.xz")
         fh = CompressedFile(keyfilename, "wb")

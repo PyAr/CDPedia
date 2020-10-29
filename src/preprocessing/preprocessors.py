@@ -241,10 +241,6 @@ def extract_pages(soup):
         # unquote
         link = unquote(link)
 
-        # "/" are not really stored like that in disk, they are replaced
-        # by the SLASH word
-        link = link.replace("/", "SLASH")
-
         yield link
 
 

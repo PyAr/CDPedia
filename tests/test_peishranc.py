@@ -122,13 +122,6 @@ def test_two_links_with_class(peishranc):
     assert r == [('otrapag', SCORE_PEISHRANC)]
 
 
-def test_replace_slash(peishranc):
-    """Test replacement of `/` with `SLASH` in final link text."""
-    wikifile = FakeWikiFile('abcd <a href="/wiki/foo/bar">FooBar</a> dcba')
-    _, r = peishranc(wikifile)
-    assert r == [('fooSLASHbar', SCORE_PEISHRANC)]
-
-
 def test_unquote(peishranc):
     """Test link unquoting."""
     wikifile = FakeWikiFile('abcd <a href="/wiki/f%C3%B3u">FooBar</a> dcba')

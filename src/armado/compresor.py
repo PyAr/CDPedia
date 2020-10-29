@@ -34,12 +34,14 @@ import lzma
 import os
 import pickle
 import struct
+import urllib.parse
 from functools import lru_cache
 from lzma import LZMAFile as CompressedFile
 from os import path
 
 import config
 from src import utiles
+from src.armado import to3dirs
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +60,7 @@ class BloqueManager(object):
     """
     archive_dir = None  # the directory with all the blocks
     archive_extension = ".hdp"  # extension of the blocks handled by this class
-    archive_class = None  # class to be used for the blcoks
+    archive_class = None  # class to be used for the blocks
     items_per_block = 0  # quantity of items per block
 
     def __init__(self, verbose=False):
@@ -273,15 +275,17 @@ class ArticleManager(BloqueManager):
         bloques = {}
         all_filenames = set()
         for dir3, filename, _ in top_pages:
-            all_filenames.add(filename)
+            # unquote special fielsystem chars
+            filename_orig = urllib.parse.unquote(filename)
+            all_filenames.add(filename_orig)
             bloqNum = utiles.coherent_hash(filename.encode('utf8')) % numBloques
             bloques.setdefault(bloqNum, []).append((dir3, filename))
             logger.debug("  files: %s %r %r", bloqNum, dir3, filename)
 
         # build the redirect dict, also separated by blocks to know where to find them
         redirects = {}
-        for linea in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
-            orig, dest = linea.strip().split(config.SEPARADOR_COLUMNAS)
+        for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
+            orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
             # only keep this redirect if really points to an useful article (discarding any
             # possible 'fragment')
@@ -291,8 +295,10 @@ class ArticleManager(BloqueManager):
 
             # put it in a block
             bloqNum = utiles.coherent_hash(orig.encode('utf8')) % numBloques
-            redirects.setdefault(bloqNum, []).append((orig, dest))
-            logger.debug("  redirs: %s %r %r", bloqNum, orig, dest)
+            # target must be disk filename
+            dest_filename = to3dirs.to_filename(dest)
+            redirects.setdefault(bloqNum, []).append((orig, dest_filename))
+            logger.debug("  redirs: %s %r %r", bloqNum, orig, dest_filename)
 
         # build each of the compressed blocks
         tot_archs = 0

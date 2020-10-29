@@ -22,6 +22,7 @@ import pytest
 
 from src.armado import easy_index
 from src.armado import compressed_index
+from src.armado import sqlite_index
 
 
 def decomp(data):
@@ -49,7 +50,7 @@ class DataSet:
     @classmethod
     def add_fixture(cls, key, data):
         docs = decomp(data)
-        info = [(n[0].lower().split(" "), n[1], ('', n[0])) for n in docs]
+        info = [(n[0].lower().split(" "), n[1], (None, n[0])) for n in docs]
         cls.fixtures[key] = info
 
     def __init__(self, key):
@@ -67,7 +68,7 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    assert DataSet("one") == [(['ala', 'blanca'], 3, ('', 'ala blanca'))]
+    assert DataSet("one") == [(['ala', 'blanca'], 3, (None, 'ala blanca'))]
     r = [["A/l/a/Ala_Blanca", "ala blanca", 3],
          ["A/l/a/Ala", "ala", 8]]
     s = "ala blanca/3; ala/8"
@@ -86,7 +87,7 @@ data = """\
 DataSet.add_fixture("E", data)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index])
+@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
 def create_index(request):
     """Create an index with given info in a temp dir, load it and return built index."""
     tempdir = tempfile.mkdtemp()
@@ -106,7 +107,7 @@ def create_index(request):
         shutil.rmtree(tempdir)
 
 
-@pytest.fixture(params=[compressed_index.Index, easy_index.Index])
+@pytest.fixture(params=[compressed_index.Index, easy_index.Index, sqlite_index.Index])
 def get_engine(request):
     """Provide temp dirs and index engines to the tests."""
     tempdir = tempfile.mkdtemp()
@@ -122,9 +123,8 @@ def get_engine(request):
 
 def test_items_nothing(create_index):
     """Nothing in the index."""
-    idx = create_index([])
-    items = list(idx.items())
-    assert items == []
+    with pytest.raises(ValueError) as _:
+        create_index([])
 
 
 def test_one_item(create_index):
@@ -141,6 +141,48 @@ def test_several_items(create_index):
     assert abrev(values) == decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
     tokens = sorted([str(k) for k in idx.keys()])
     assert tokens == ["ala", "blanca", "blanco", "conejo", "negro"]
+
+# --- Test the .random method.
+
+
+def test_random_one_item(create_index):
+    """Only one item."""
+    idx = create_index(DataSet("A").info)
+    value = idx.random()
+    assert abrev([value]) == decomp("ala blanca/3")
+
+
+def test_random_several_values(create_index):
+    """Several values stored."""
+    idx = create_index(DataSet("B").info)
+    value = abrev([idx.random()])
+    assert value[0] in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
+
+# --- Test the "in" functionality.
+
+
+def test_infunc_one_item(create_index):
+    """Only one item."""
+    idx = create_index(DataSet("B").info)
+    assert "ala" in idx
+    assert "bote" not in idx
+
+# --- Test the .search method.
+
+
+def test_search_failed(create_index):
+    """Several items stored."""
+    idx = create_index(DataSet("B").info)
+    res = searchidx(idx, ["botero"])
+    assert abrev(res) == []
+
+
+def test_search_unicode(create_index):
+    """Several items stored."""
+    idx = create_index(DataSet("B").info)
+    res1 = searchidx(idx, ["Alá"])
+    res2 = searchidx(idx, ["ála"])
+    assert res1 == res2
 
 
 def test_search(create_index):
@@ -187,61 +229,15 @@ def test_many_results(caplog, create_index):
     DataSet.add_fixture("D", data)
     idx = create_index(DataSet("D").info)
     assert len(DataSet("D").info) == len([v for v in idx.values()])
-    res = searchidx(idx, ["blanca"], debug=False)
+    res = searchidx(idx, ["blanca"])
     assert len(res) == len(DataSet("D").info)
 
 
-def searchidx(idx, keys, debug=False):
+def searchidx(idx, keys):
     res = list(idx.search(keys))
     return res
 
-# --- Test the .random method.
-
-
-def test_random_one_item(create_index):
-    """Only one item."""
-    idx = create_index(DataSet("A").info)
-    value = idx.random()
-    assert abrev([value]) == decomp("ala blanca/3")
-
-
-def test_random_several_values(create_index):
-    """Several values stored."""
-    idx = create_index(DataSet("B").info)
-    value = abrev([idx.random()])
-    assert value[0] in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
-
-# --- Test the "in" functionality.
-
-
-def test_infunc_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    assert "a" not in idx
-
-
-def test_infunc_one_item(create_index):
-    """Only one item."""
-    idx = create_index(DataSet("B").info)
-    assert "ala" in idx
-    assert "bote" not in idx
-
-
-def test_search_nopartial(create_index):
-    """Does not find partial values."""
-    idx = create_index(DataSet("A").info)
-    res = idx.search(["w"])
-    assert list(res) == []
-
-
 # --- Test the .partial_search method.
-
-
-def test_partialsearch_nothing(create_index):
-    """Nothing in the index."""
-    idx = create_index([])
-    res = idx.partial_search(["a"])
-    assert list(res) == []
 
 
 def test_partialsearch_prefix(create_index):
@@ -276,4 +272,3 @@ def test_partialsearch_and(create_index):
     res = idx.partial_search(["b", "c"])
     assert set(abrev(res)) == set(decomp("abc/4;bcd/4"))
     res = idx.partial_search(["a", "o"])
-    assert set(abrev(res)) == set()

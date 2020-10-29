@@ -86,10 +86,10 @@ class CDPedia:
         self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
-            Rule('/%s/<name>' % ARTICLES_BASE_URL, endpoint='article'),
+            Rule('/%s/<path:name>' % ARTICLES_BASE_URL, endpoint='article'),
             Rule('/al_azar', endpoint='random'),
             Rule('/search', endpoint='search'),
-            Rule('/search/<key>', endpoint='search_results'),
+            Rule('/search/<path:key>', endpoint='search_results'),
             Rule('/images/<path:name>', endpoint='image'),
             Rule('/institucional/<path:path>', endpoint='institutional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
@@ -98,6 +98,7 @@ class CDPedia:
             Rule('/favicon.ico', endpoint='favicon'),
         ])
         self._tutorial_ready = False
+        self.docs_dirname = None  # root directory of tar archive
 
     def get_creation_date(self):
         _path = os.path.join(config.DIR_ASSETS, 'dynamic', 'start_date.txt')
@@ -118,6 +119,8 @@ class CDPedia:
 
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
+        # compressed article name contains special filesystem chars quoted
+        name = to3dirs.to_filename(name)
         try:
             data = self.art_mngr.get_item(name)
         except Exception as err:
@@ -218,13 +221,15 @@ class CDPedia:
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
         if not self._tutorial_ready:
-            if not os.path.exists(os.path.join(tmpdir, 'tutorial')):
+            if not self.docs_dirname or not os.path.exists(
+                    os.path.join(tmpdir, self.docs_dirname)):
                 tar = tarfile.open(
-                    os.path.join(config.DIR_ASSETS, "tutorial.tar.xz"), mode="r:xz")
+                    os.path.join(config.DIR_ASSETS, config.PYTHON_DOCS_FILENAME), mode="r:bz2")
+                self.docs_dirname = tar.next().name
                 tar.extractall(tmpdir)
                 tar.close()
             self._tutorial_ready = True
-        asset = "/cmp/tutorial/index.html"
+        asset = "/cmp/{}/tutorial/index.html".format(self.docs_dirname)
         return self.render_template('compressed_asset.html',
                                     server_mode=config.SERVER_MODE,
                                     asset_url=asset,

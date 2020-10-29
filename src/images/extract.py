@@ -34,6 +34,7 @@ import bs4
 
 import config
 from src import utiles
+from src.armado import to3dirs
 from src.preprocessing import preprocess
 
 
@@ -106,7 +107,8 @@ class ImageParser:
             with open(config.LOG_REDIRECTS, "rt", encoding="utf-8") as fh:
                 for line in fh:
                     orig, dest = line.strip().split(sep)
-                    if dest in chpages:
+                    fname = to3dirs.to_filename(dest)
+                    if fname in chpages:
                         chpages.add(orig)
         logger.debug("Quantity of chosen pages, including redirects: %d",
                      len(self.chosen_pages))
@@ -287,10 +289,13 @@ class ImageParser:
             return
 
         # this is a classic article link
+        # get filename from link in same format as found in 'chosen_pages'
         if link.startswith(SEPLINK):
             fname = link[len(SEPLINK):]
+            # remove fragment part if any
+            fname = fname.split("#")[0]
             fname = urllib.parse.unquote(fname)
-
+            fname = to3dirs.to_filename(fname)
             # if it was choosen, leave it as is
             if fname not in choosen_pages:
                 # mark an unchoosen page with the 'nopo' class

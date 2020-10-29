@@ -40,6 +40,7 @@ def create_app_client(mocker, tmp_path, monkeypatch):
     mocker.patch('config.LANGUAGE', 'es')
     mocker.patch('config.PORTAL_PAGE', 'Portal:Portal')
     mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
+    mocker.patch('config.PYTHON_DOCS_FILENAME', 'docs.tar.bz2')
     mocker.patch('src.armado.compresor.ArticleManager.archive_dir', str(tmp_path))
     mocker.patch('src.armado.compresor.ImageManager.archive_dir', str(tmp_path))
     mocker.patch.dict('os.environ', {'LANGUAGE': 'es'})
@@ -47,7 +48,7 @@ def create_app_client(mocker, tmp_path, monkeypatch):
         fh.write('42\n')
     with (tmp_path / 'language.txt').open('wt') as fh:
         fh.write('es\n')
-    with tarfile.open(str(tmp_path / "tutorial.tar.xz"), 'w:xz') as fh:
+    with tarfile.open(str(tmp_path / config.PYTHON_DOCS_FILENAME), 'w:bz2') as fh:
         fh.addfile(tarfile.TarInfo(name="testtuto"))
     inst_dir = tmp_path / 'institucional'
     inst_dir.mkdir()
@@ -115,6 +116,17 @@ def test_wiki_article_maradona(create_app_client):
     response = client.get("/wiki/Diego_Armando_Maradona")
     assert response.status_code == 200
     assert b"Yo soy el Diego" in response.data
+
+
+def test_wiki_article_with_special_chars(create_app_client):
+    app, client = create_app_client()
+    app = web_app.create_app(watchdog=None, with_static=False)
+    html = "foo <a>bar</a> baz"
+    app.art_mngr.get_item = lambda x: html
+    client = Client(app, Response)
+    response = client.get("/wiki/.foo/bar%baz")
+    assert response.status_code == 200
+    assert html.encode('utf-8') in response.data
 
 
 def test_wiki_random_article(create_app_client):
@@ -200,6 +212,13 @@ def test_search_term_url(create_app_client):
 
     response = client.post(
         "/search", data={"keywords": " ".join(words)}, follow_redirects=True)
+    assert response.status_code == 200
+
+
+def test_search_term_with_slash(create_app_client):
+    _, client = create_app_client()
+    data = {"keywords": "foo/bar"}
+    response = client.post("/search", data=data, follow_redirects=True)
     assert response.status_code == 200
 
 

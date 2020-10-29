@@ -24,6 +24,7 @@ import re
 import shutil
 import threading
 import unicodedata
+import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
@@ -151,8 +152,9 @@ def generate_from_html(dirbase, verbose):
 
             # pass words to the redirects which points to
             # this html file, using the same score
-            if arch in redirs:
-                for (words, title) in redirs[arch]:
+            arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
+            if arch_orig in redirs:
+                for (words, title) in redirs[arch_orig]:
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
                     yield list(words), ptje, data
