@@ -73,12 +73,12 @@ class BloqueManager(object):
         self.verbose = verbose
 
     @classmethod
-    def _prep_archive_dir(self, lang=None):
+    def _prep_archive_dir(cls, lang=None):
         """Prepare the directory for the archive."""
         # prepare the destination dir
-        if os.path.exists(self.archive_dir):
-            shutil.rmtree(self.archive_dir)
-        os.makedirs(self.archive_dir)
+        if os.path.exists(cls.archive_dir):
+            shutil.rmtree(cls.archive_dir)
+        os.makedirs(cls.archive_dir)
 
         # save the language of the blocks, if any
         if lang is not None:
@@ -86,9 +86,9 @@ class BloqueManager(object):
                 fh.write(lang + '\n')
 
     @classmethod
-    def guardarNumBloques(self, cant):
+    def guardarNumBloques(cls, cant):
         """Save to disk the quantity of blocks."""
-        fname = os.path.join(self.archive_dir, 'numbloques.txt')
+        fname = os.path.join(cls.archive_dir, 'numbloques.txt')
         with open(fname, 'wt', encoding='ascii') as fh:
             fh.write(str(cant) + '\n')
 
@@ -156,7 +156,7 @@ class BloqueImagenes(Bloque):
         self.manager = manager
 
     @classmethod
-    def crear(self, bloqNum, fileNames, verbose=False):
+    def crear(cls, bloqNum, fileNames, verbose=False):
         """Generate the file."""
         logger.debug("Processing block of images %s", bloqNum)
 
@@ -177,7 +177,7 @@ class BloqueImagenes(Bloque):
             len(fileNames), seek, len(headerBytes))
 
         # open the file to compress
-        nomfile = os.path.join(config.DIR_ASSETS, 'images', "%08x.cdi" % bloqNum)
+        nomfile = os.path.join(config.DIR_IMGBLOQUES, "%08x.cdi" % bloqNum)
         logger.debug("  saving in %s", nomfile)
 
         with open(nomfile, "wb") as dst_fh:
@@ -212,7 +212,7 @@ class Comprimido(Bloque):
         self.manager = manager
 
     @classmethod
-    def crear(self, redirects, bloqNum, top_filenames, verbose=False):
+    def crear(cls, redirects, bloqNum, top_filenames, verbose=False):
         """Generate the compressed file."""
         logger.debug("Processing block %s", bloqNum)
 
@@ -259,8 +259,8 @@ class ArticleManager(BloqueManager):
     items_per_block = config.ARTICLES_PER_BLOCK
 
     @classmethod
-    def generar_bloques(self, lang, verbose):
-        self._prep_archive_dir(lang)
+    def generar_bloques(cls, lang, verbose):
+        cls._prep_archive_dir(lang)
 
         # import this here as it's not needed in production
         from src.preprocessing import preprocess
@@ -270,8 +270,8 @@ class ArticleManager(BloqueManager):
         top_pages = preprocess.pages_selector.top_pages
         logger.debug("Processing %d articles", len(top_pages))
 
-        numBloques = len(top_pages) // self.items_per_block + 1
-        self.guardarNumBloques(numBloques)
+        numBloques = len(top_pages) // cls.items_per_block + 1
+        cls.guardarNumBloques(numBloques)
         bloques = {}
         all_filenames = set()
         for dir3, filename, _ in top_pages:
@@ -323,14 +323,14 @@ class ArticleManager(BloqueManager):
 
 
 class ImageManager(BloqueManager):
-    archive_dir = os.path.join(config.DIR_ASSETS, 'images')
+    archive_dir = config.DIR_IMGBLOQUES
     archive_extension = ".cdi"
     archive_class = BloqueImagenes
     items_per_block = config.IMAGES_PER_BLOCK
 
     @classmethod
-    def generar_bloques(self, verbose):
-        self._prep_archive_dir()
+    def generar_bloques(cls, verbose):
+        cls._prep_archive_dir()
 
         # get all the images, and store them in a dict using its block number, calculated
         # wiht a hash of the name
@@ -341,8 +341,8 @@ class ImageManager(BloqueManager):
                 fileNames.append(name)
         logger.debug("Processing %d images", len(fileNames))
 
-        numBloques = len(fileNames) // self.items_per_block + 1
-        self.guardarNumBloques(numBloques)
+        numBloques = len(fileNames) // cls.items_per_block + 1
+        cls.guardarNumBloques(numBloques)
         bloques = {}
         for fileName in fileNames:
             bloqNum = utiles.coherent_hash(fileName.encode('utf8')) % numBloques

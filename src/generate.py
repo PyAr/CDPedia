@@ -48,6 +48,14 @@ if sys.stdout.encoding is None:
 logger = logging.getLogger('generar')
 
 
+def link(src, dst):
+    """Create a hard link, like os.link, only if needed."""
+    if os.path.isdir(dst):
+        dst = os.path.join(dst, os.path.basename(src))
+    if not os.path.exists(dst):
+        os.link(src, dst)
+
+
 def make_it_nicer():
     """Make the process nicer at CPU and IO levels."""
     # cpu, simple
@@ -75,14 +83,14 @@ def copy_dir(src_dir, dst_dir):
     for fname in os.listdir(src_dir):
         if fname.startswith("."):
             continue
-        if fname.endswith('.pyc'):
+        if fname.endswith('.pyc') or fname == "__pycache__":
             continue
         src_path = path.join(src_dir, fname)
         dst_path = path.join(dst_dir, fname)
         if path.isdir(src_path):
             copy_dir(src_path, dst_path)
         else:
-            shutil.copy(src_path, dst_path)
+            link(src_path, dst_path)
 
 
 def copy_assets(src_info, dest):
@@ -105,7 +113,7 @@ def copy_assets(src_info, dest):
     # general info
     src_dir = "resources/general_info"
     copy_dir(src_dir, config.DIR_CDBASE)
-    shutil.copy('AUTHORS.txt', os.path.join(config.DIR_CDBASE, 'AUTORES.txt'))
+    link('AUTHORS.txt', os.path.join(config.DIR_CDBASE, 'AUTORES.txt'))
 
     # institutional
     src_dir = "resources/institucional"
@@ -121,25 +129,23 @@ def copy_assets(src_info, dest):
 def copy_sources():
     """Copy the source code files."""
     # el src
-    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "src")
+    dest_src = path.join(config.DIR_CDBASE, "src")
     clean_dir(dest_src)
-    shutil.copy(path.join("src", "__init__.py"), dest_src)
-    shutil.copy(path.join("src", "utiles.py"), dest_src)
-    copy_dir(path.join("src", "armado"),
-             path.join(config.DIR_CDBASE, "cdpedia", "src", "armado"))
-    copy_dir(path.join("src", "web"),
-             path.join(config.DIR_CDBASE, "cdpedia", "src", "web"))
+    link(path.join("src", "__init__.py"), dest_src)
+    link(path.join("src", "utiles.py"), dest_src)
+    copy_dir(path.join("src", "armado"), path.join(dest_src, "armado"))
+    copy_dir(path.join("src", "web"), path.join(dest_src, "web"))
 
     # el main va al root
-    shutil.copy("cdpedia.py", config.DIR_CDBASE)
+    link(path.join("src", "cdpedia.py"), config.DIR_CDBASE)
 
     if config.DESTACADOS:
-        shutil.copy(config.DESTACADOS, os.path.join(config.DIR_CDBASE, "cdpedia"))
+        link(config.DESTACADOS, config.DIR_CDBASE)
 
 
 def generate_libs():
     """Generate all needed libs."""
-    dest_src = path.join(config.DIR_CDBASE, "cdpedia", "extlib")
+    dest_src = path.join(config.DIR_CDBASE, "extlib")
     cmd = [
         'pip', 'install',  # base command
         '--target={}'.format(dest_src),  # put all the resulting files in that specific dir
@@ -172,8 +178,7 @@ def build_iso(dest):
 
 def gen_run_config(lang_config):
     """Generate the config file used on the final user computer."""
-    featured = os.path.join("cdpedia", config.DESTACADOS) if config.DESTACADOS else None
-    f = open(path.join(config.DIR_CDBASE, "cdpedia", "config.py"), "w")
+    f = open(path.join(config.DIR_CDBASE, "config.py"), "w")
     f.write('import os\n\n')
     f.write('VERSION = %s\n' % repr(config.VERSION))
     f.write('SERVER_MODE = %s\n' % config.SERVER_MODE)
@@ -183,18 +188,20 @@ def gen_run_config(lang_config):
     f.write('PORTAL_PAGE = "%s"\n' % lang_config['portal_index'])
     f.write('ASSETS = %s\n' % config.ASSETS)
     f.write('ALL_ASSETS = %s\n' % config.ALL_ASSETS)
-    f.write('DESTACADOS = {}\n'.format(featured))
+    f.write('DESTACADOS = {}\n'.format(config.DESTACADOS))
     f.write('BROWSER_WD_SECONDS = %d\n' % config.BROWSER_WD_SECONDS)
     f.write('SEARCH_RESULTS = %d\n' % config.SEARCH_RESULTS)
     f.write('LANGUAGE = "%s"\n' % config.LANGUAGE)
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
     f.write('PYTHON_DOCS_FILENAME = "%s"\n' % config.PYTHON_DOCS_FILENAME)
     f.write('LOCALE = "%s"\n' % os.environ['LANGUAGE'])
-    f.write('DIR_BLOQUES = os.path.join("cdpedia", "bloques")\n')
-    f.write('DIR_ASSETS = os.path.join("cdpedia", "assets")\n')
-    f.write('DIR_INDICE = os.path.join("cdpedia", "indice")\n')
+    f.write('DIR_BLOQUES = "bloques"\n')
+    f.write('DIR_IMGBLOQUES = "images"\n')
+    f.write('DIR_ASSETS = "assets"\n')
+    f.write('DIR_INDICE = "indice"\n')
     f.write('IMAGES_PER_BLOCK = %d\n' % config.IMAGES_PER_BLOCK)
     f.write('ARTICLES_PER_BLOCK = %d\n' % config.ARTICLES_PER_BLOCK)
+    f.write('NAMESPACES_PREFIXES_DIR = os.path.join("assets", "dynamic")\n')
     f.close()
 
 
@@ -204,7 +211,7 @@ def prepare_temporary_dirs(process_articles):
     if os.path.exists(dtemp):
         if not process_articles:
             # preparamos paths y vemos que todo esté ok
-            src_indices = path.join(config.DIR_CDBASE, "cdpedia", "indice")
+            src_indices = path.join(config.DIR_CDBASE, "indice")
             src_bloques = config.DIR_BLOQUES
             if not os.path.exists(src_indices):
                 logger.error("Want to avoid article processing but didn't "
@@ -221,7 +228,6 @@ def prepare_temporary_dirs(process_articles):
             os.rename(src_indices, tmp_indices)
             os.rename(src_bloques, tmp_bloques)
             shutil.rmtree(path.join(dtemp, "cdroot"), ignore_errors=True)
-            os.makedirs(path.join(config.DIR_CDBASE, "cdpedia"))
             os.rename(tmp_indices, src_indices)
             os.rename(tmp_bloques, src_bloques)
 
@@ -246,25 +252,6 @@ def build_tarball(tarball_name):
 
     # remove the symlink
     os.remove(nice_name)
-
-
-def update_mini(image_path):
-    """Update cdpedia image using code + assets in current working copy."""
-    # chequeo no estricto image_path apunta a una imagen de cdpedia
-    deberia_estar = [image_path, 'cdpedia', 'bloques', '00000000.cdp']
-    if not os.path.exists(os.path.join(*deberia_estar)):
-        logger.error("The directory doesn't look like a CDPedia image.")
-        raise EnvironmentError("CDPedia image not found, can't continue")
-
-    # adapt some config paths
-    old_top_dir = config.DIR_CDBASE
-    new_top_dir = image_path
-    config.DIR_CDBASE = config.DIR_CDBASE.replace(old_top_dir, new_top_dir)
-    config.DIR_ASSETS = config.DIR_ASSETS.replace(old_top_dir, new_top_dir)
-
-    copy_sources()
-    src_info = ''
-    copy_assets(src_info, os.path.join(new_top_dir, 'cdpedia', 'assets'))
 
 
 def main(lang, src_info, version, lang_config, gendate,
@@ -308,9 +295,9 @@ def main(lang, src_info, version, lang_config, gendate,
     prepare_temporary_dirs(process_articles)
 
     logger.info("Copying the assets and locale files")
-    copy_assets(src_info, config.DIR_ASSETS)
-    shutil.copy(os.path.join(src_info, 'portal_pages.txt'), config.DIR_TEMP)
-    shutil.copytree('locale', path.join(config.DIR_CDBASE, "locale"))
+    copy_assets(src_info, os.path.join(config.DIR_CDBASE, 'assets'))
+    link(os.path.join(src_info, 'portal_pages.txt'), config.DIR_TEMP)
+    copy_dir('locale', path.join(config.DIR_CDBASE, "locale"))
     set_locale(lang_config.get('second_language'), record=True)
 
     articulos = path.join(src_info, "articles")
@@ -374,12 +361,17 @@ def main(lang, src_info, version, lang_config, gendate,
 
     logger.info("Generating the links to blocks and indexes")
     # blocks
-    dest = path.join(config.DIR_CDBASE, "cdpedia", "bloques")
+    dest = path.join(config.DIR_CDBASE, "bloques")
     if os.path.exists(dest):
         os.remove(dest)
     os.symlink(path.abspath(config.DIR_BLOQUES), dest)
+    # images blocks
+    dest = path.join(config.DIR_CDBASE, "images")
+    if os.path.exists(dest):
+        os.remove(dest)
+    os.symlink(path.abspath(config.DIR_IMGBLOQUES), dest)
     # indexes
-    dest = path.join(config.DIR_CDBASE, "cdpedia", "indice")
+    dest = path.join(config.DIR_CDBASE, "indice")
     if os.path.exists(dest):
         os.remove(dest)
     os.symlink(path.abspath(config.DIR_INDICE), dest)
@@ -443,9 +435,6 @@ To update an image with the code and assets changes  in this working copy:
     parser.add_option("-g", "--guppy", action="store_true",
                       dest="guppy", help="arranca con guppy/heapy prendido")
 
-    parser.add_option("--update-mini", action="store_true", dest="update_mini",
-                      help="Actualiza una imagen con el code + assets de esta working copy.")
-
     (options, args) = parser.parse_args()
 
     if len(args) != 3:
@@ -488,8 +477,5 @@ To update an image with the code and assets changes  in this working copy:
             print("ERROR: there's no %r in 'languages.yaml'" % (lang,))
             exit()
 
-    if options.update_mini:
-        update_mini(direct)
-    else:
-        gendate = datetime.date.today().strftime("%Y%m%d")
-        main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)
+    gendate = datetime.date.today().strftime("%Y%m%d")
+    main(lang, direct, version, lang_config, gendate, verbose, desconectado, process_articles)

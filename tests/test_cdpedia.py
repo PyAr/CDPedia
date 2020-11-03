@@ -14,10 +14,24 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import cdpedia
+import os
+
+
 import config
 
 import pytest
+
+
+# importing cdpedia.py will change current working directory, so let's store and
+# put it back after all tests here are run
+_init_dir = os.getcwd()
+
+from src import cdpedia  # NOQA (importing not at the top)
+
+
+def teardown_module(module):
+    """Restore original directory."""
+    os.chdir(_init_dir)
 
 
 @pytest.fixture

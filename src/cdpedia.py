@@ -16,29 +16,25 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import queue  # NOQA: this is needed by pyinstaller
-import socketserver  # NOQA: this is needed by pyinstaller
 import optparse
 import os
 import platform
 import sys
 import threading
 import traceback
-import uuid  # NOQA: this is needed by pyinstaller
 import webbrowser
 
 # change execution path, so we can access all cdpedia internals (code and libraries); note this
 # is needed for when CDPedia is executed from a different location (e.g.: double click from GUI)
-cdpedia_path = os.path.abspath(__file__)
-os.chdir(os.path.dirname(cdpedia_path))
+cdpedia_path = os.path.dirname(os.path.abspath(__file__))
+os.chdir(cdpedia_path)
 
-# fix path if running from disc/tarball (for own code and external libs)
-if os.path.exists("cdpedia"):
-    sys.path.append("cdpedia")
-    sys.path.append(os.path.join("cdpedia", "extlib"))
+# fix path to be able to access the "included external libraries"
+sys.path.append(os.path.join(cdpedia_path, "extlib"))
 
-# imports after sys path was fixed
+# imports after path was fixed
 import config  # NOQA
+from src.armado import to3dirs  # NOQA
 from src.utiles import WatchDog, find_open_port, set_locale  # NOQA
 from src.web.web_app import create_app  # NOQA
 from werkzeug.serving import ThreadedWSGIServer  # NOQA
@@ -123,7 +119,7 @@ def load_language():
         config.URL_WIKIPEDIA = config.URL_WIKIPEDIA_TPL.format(lang=lang)
 
         import yaml  # imported here as not needed in production
-        with open('languages.yaml') as fh:
+        with open('../languages.yaml') as fh:
             _config = yaml.safe_load(fh)
         lang_config = _config[lang]
         config.PORTAL_PAGE = lang_config['portal_index']
@@ -151,7 +147,9 @@ if __name__ == "__main__":
     else:
         port = find_open_port(starting_from=options.port, host=options.hostname)
 
+    # init some config vars and other internal structures
     config.PORT, config.HOSTNAME = port, options.hostname
+    to3dirs.namespaces.load(config.NAMESPACES_PREFIXES_DIR)
 
     if not options.daemon:
         server_up = threading.Event()
