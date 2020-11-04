@@ -39,7 +39,7 @@ from utilities import localize
 from src import list_articles_by_namespaces, generate
 from src.armado import to3dirs
 from src.preprocessing import preprocessors
-from src.scraping import scraper, pydocs
+from src.scraping import scraper, pydocs, css
 
 
 # some constants to download the articles list we need to scrap
@@ -324,6 +324,10 @@ def main(language, lang_config, imag_config,
 
     if extra_pages:
         _call_scraper(language, extra_pages)
+
+    # scrap css after article scraping is finished
+    if not noscrap or extra_pages:
+        css.scrap_css(location.cssdir)
 
     if config.VALIDATE_TRANSLATION:
         tr_updated, tr_complete, tr_compiled = localize.translation_status(language)
