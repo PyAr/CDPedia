@@ -381,6 +381,11 @@ class Index:
         return row
 
     def search(self, keys):
+        """Not implemented, just added for API compatibility.
+
+        As partial_search is fast enough, there is no need
+        to split the search in two different functions.
+        Just use partial_search instead."""
         pass
 
     def partial_search(self, keys):

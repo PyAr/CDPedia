@@ -1,5 +1,3 @@
-# -*- encoding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -15,6 +13,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
+"""Search text into the index from command-line."""
 
 import os
 import sys

@@ -13,9 +13,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-"""
-Creates a sqlite_index from a existing compressed_index
-"""
+"""Create a sqlite_index from a existing compressed_index."""
 
 import pathlib
 import logging
