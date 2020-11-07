@@ -36,7 +36,7 @@ QUOTER = {c: '%{:02X}'.format(ord(c)) for c in './%'}
 
 
 class Namespaces:
-    """A list of namespaces initted from different sources."""
+    """A list of namespaces initiated from different sources."""
 
     _fname = 'namespace_prefixes.txt'
 
@@ -58,7 +58,7 @@ class Namespaces:
 
     def __contains__(self, tocheck):
         if self._namespaces is None:
-            raise RuntimeError("Namespaces not initted.")
+            raise RuntimeError("Namespaces not initiated.")
 
         return tocheck in self._namespaces
 
