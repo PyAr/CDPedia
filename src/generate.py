@@ -385,6 +385,12 @@ def main(lang, src_info, version, lang_config, gendate,
         with zipfile.ZipFile(py_win_zip, 'r') as zh:
             zh.extractall(py_win_dst)
 
+        # delete any '*._pth' file from embedded python directory to prevent
+        # the override of sys.path at runtime (Windows specific behaviour)
+        for filename in os.listdir(py_win_dst):
+            if filename.endswith('._pth'):
+                os.remove(os.path.join(py_win_dst, filename))
+
     logger.info("Generating runtime config")
     gen_run_config(lang_config)
 
