@@ -36,7 +36,7 @@ def create_app_client(mocker, tmp_path):
     """Helper to create tests app and client."""
 
     # fix config and write some setup files
-    mocker.patch('config.DIR_ASSETS', str(tmp_path))
+    config.DIR_ASSETS = str(tmp_path)
     mocker.patch('config.LANGUAGE', 'es')
     mocker.patch('config.PORTAL_PAGE', 'Portal:Portal')
     mocker.patch('config.URL_WIKIPEDIA', 'http://es.wikipedia.org/')
