@@ -533,7 +533,7 @@ class Index(object):
             if any([('\n' in k) for k in keys]):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
-            value = list(data) + [score]
+            value = list(data)
 
             # docid -> info final
             docid = ids_cnter
