@@ -76,7 +76,7 @@ def make_it_nicer():
 def copy_dir(src_dir, dst_dir):
     """Copy a directory recursively.
 
-    Will copy everything except '.pyc' and '.*'.
+    Will copy everything except compiled Python and hidden files
     """
     if not os.path.exists(dst_dir):
         os.mkdir(dst_dir)

@@ -84,6 +84,7 @@ class Location(object):
         self.langdir = os.path.join(self.dumpbase, language)
         self.articles = os.path.join(self.langdir, self.ARTICLES)
         self.resources = os.path.join(self.langdir, self.RESOURCES)
+        self.cssdir = os.path.join(self.langdir, config.CSS_DIRNAME)
         self.images = os.path.join(self.dumpbase, self.IMAGES)  # language agnostic
 
         # (maybe) create all the above directories; note they are ordered!
@@ -92,6 +93,7 @@ class Location(object):
             self.langdir,
             self.articles,
             self.resources,
+            self.cssdir,
             self.images,
         ]
         for item in to_create:
