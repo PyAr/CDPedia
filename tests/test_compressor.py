@@ -28,7 +28,7 @@ import pytest
 def test_redirects(mocker, tmp_path, filename):
     """Check that redirects are correctly registered in article block."""
 
-    mocker.patch('config.DIR_BLOQUES', str(tmp_path))
+    mocker.patch('config.DIR_PAGES_BLOCKS', str(tmp_path))
     mocker.patch('config.LOG_REDIRECTS', str(tmp_path / 'redirects.txt'))
     mocker.patch('src.armado.compresor.Comprimido')
     top_pages = [('f/o/o', filename, 10)]

@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -18,12 +16,11 @@
 
 """Reduce images based on precalculated scale values."""
 
-from __future__ import with_statement, unicode_literals
-
 import config
 import logging
 import os
 import shutil
+
 from PIL import Image
 
 from src.images.embed import image_is_embeddable

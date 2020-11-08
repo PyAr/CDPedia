@@ -32,7 +32,7 @@ import pytest
 
 
 @pytest.fixture
-def create_app_client(mocker, tmp_path, monkeypatch):
+def create_app_client(mocker, tmp_path):
     """Helper to create tests app and client."""
 
     # fix config and write some setup files
