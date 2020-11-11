@@ -90,6 +90,7 @@ class TestCSSScraper:
             'wiki.com/foo?a=b&modules=first.module&c=d\n'
             'wiki.com/foo?n=r&modules=first.module|second.module&x=y\n'
             'wiki.com/foo?f=g&modules=foo.bar,baz&h=i\n'
+            'wiki.com/foo?a=b&c=d\n'
         )
         tmp_path.joinpath(config.CSS_LINKS_FILENAME).write_text(links)
         names = scraper._module_names()

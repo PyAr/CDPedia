@@ -105,8 +105,8 @@ class _CSSScraper:
         unique_names = set()
         for link in raw_links:
             url = urllib.parse.urlparse(link)
-            query = urllib.parse.parse_qs(url.query)
-            names = query.get('modules')[0]
+            query = dict(urllib.parse.parse_qsl(url.query))
+            names = query.get('modules')
             if not names:
                 continue
             for name in names.split('|'):
