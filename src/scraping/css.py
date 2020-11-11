@@ -67,14 +67,14 @@ class _CSSScraper:
         self._load_modules_info()
 
         # download missing css modules
-        items = [i for i in self.modules.values() if not i['exists']]
+        items = [i for i in self.modules.values() if not i['is_file']]
         logger.info('Scraping %i CSS modules', len(items))
         utiles.pooled_exec(self._download_css, items, pool_size=20,
                            known_errors=self.known_errors)
 
         # download missing resources
         os.makedirs(self.resdir, exist_ok=True)
-        items = [i for i in self.resources.values() if not i['exists']]
+        items = [i for i in self.resources.values() if not i['is_file']]
         logger.info('Scraping %i CSS associated resources', len(items))
         utiles.pooled_exec(self._download_resource, items, pool_size=20,
                            known_errors=self.known_errors)
@@ -84,12 +84,12 @@ class _CSSScraper:
         for name in self._module_names():
             url = self._css_url(name)
             filepath = os.path.join(self.cssdir, name)
-            exists = os.path.isfile(filepath)
-            if exists:
+            is_file = os.path.isfile(filepath)
+            if is_file:
                 # stylesheet may contain resources not yet downloaded
                 with open(filepath, 'rt', encoding='utf-8') as fh:
                     self._collect_resources_info(fh.read())
-            self.modules[name] = {'url': url, 'filepath': filepath, 'exists': exists}
+            self.modules[name] = {'url': url, 'filepath': filepath, 'is_file': is_file}
 
     def _module_names(self):
         """Extract unique module names from raw CSS links.
@@ -139,8 +139,8 @@ class _CSSScraper:
                 url = config.URL_WIKIPEDIA + url[1:]
             name = self._safe_resource_name(url)
             filepath = os.path.join(self.resdir, name)
-            exists = os.path.isfile(filepath)
-            self.resources[url_orig] = {'url': url, 'filepath': filepath, 'exists': exists}
+            is_file = os.path.isfile(filepath)
+            self.resources[url_orig] = {'url': url, 'filepath': filepath, 'is_file': is_file}
 
     @staticmethod
     def _safe_resource_name(url):
@@ -170,7 +170,7 @@ class _CSSScraper:
         """Download a single CSS module."""
         css = self._download(item['url'], decode=True)
         if css:
-            item['exists'] = True
+            item['is_file'] = True
             # collect resources urls for downloading them later
             self._collect_resources_info(css)
             with open(item['filepath'], 'wt', encoding='utf-8') as fh:
@@ -180,6 +180,6 @@ class _CSSScraper:
         """Download a single resource."""
         res = self._download(item['url'])
         if res:
-            item['exists'] = True
+            item['is_file'] = True
             with open(item['filepath'], 'wb') as fh:
                 fh.write(res)

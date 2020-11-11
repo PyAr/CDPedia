@@ -67,14 +67,14 @@ class TestCSSScraper:
         assert calls[0][0][0] == scraper._download_css
         assert calls[1][0][0] == scraper._download_resource
 
-    @pytest.mark.parametrize('module_exists', (True, False))
-    def test_load_modules_info(self, mocker, tmp_path, scraper, module_exists):
+    @pytest.mark.parametrize('is_module_file', (True, False))
+    def test_load_modules_info(self, mocker, tmp_path, scraper, is_module_file):
         """Load css module info."""
         name = 'foo.bar'
         mocker.patch.object(scraper, '_module_names', lambda: {name})
         mocker.patch.object(scraper, '_collect_resources_info')
         filepath = tmp_path / name
-        if module_exists:
+        if is_module_file:
             filepath.touch()
         scraper._load_modules_info()
         # check expected module info
@@ -82,7 +82,7 @@ class TestCSSScraper:
         assert module is not None
         assert name in module['url']
         assert module['filepath'] == str(filepath)
-        assert module['exists'] == module_exists
+        assert module['is_file'] == is_module_file
 
     def test_module_names(self, tmp_path, scraper):
         """Extract module names from raw urls in file."""
@@ -158,7 +158,7 @@ class TestCSSScraper:
         item = {'url': 'url', 'filepath': str(filepath)}
         assert not filepath.exists()
         scraper._download_css(item)
-        assert item['exists']
+        assert item['is_file']
         assert filepath.read_text() == 'text'
 
     def test_download_resource(self, mocker, tmp_path, scraper):
@@ -168,5 +168,5 @@ class TestCSSScraper:
         item = {'url': 'url', 'filepath': str(filepath)}
         assert not filepath.exists()
         scraper._download_resource(item)
-        assert item['exists']
+        assert item['is_file']
         assert filepath.read_bytes() == b'content'
