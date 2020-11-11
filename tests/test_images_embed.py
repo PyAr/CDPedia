@@ -103,7 +103,7 @@ def test_embed_vector(svg_image):
     assert soup.svg is not None
 
 
-def test_embed_images(html_file, mocker, tmp_path):
+def test_embed_images(html_file, mocker):
     """Test general method for embedding images."""
     mocker.patch('src.images.embed._EmbedImages.embed_vector', mocker.Mock())
     embedder = embed._EmbedImages(os.path.join(config.DIR_TEMP, 'images'))
@@ -115,6 +115,7 @@ def test_embed_images(html_file, mocker, tmp_path):
 
 
 def test_run(svg_image, html_file, images_data, tmp_path):
+    """Test API's method to embed the image in the file."""
     with open(html_file, 'rb') as fh:
         html = bs4.BeautifulSoup(fh, features='lxml', from_encoding='utf-8')
     assert html.find('img') is not None

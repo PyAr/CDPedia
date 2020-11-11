@@ -72,7 +72,7 @@ class BloqueManager(object):
     @classmethod
     def _prep_archive_dir(cls, lang=None):
         """Prepare the directory for the archive."""
-        # create the destination dir if needed, else clean it's content as previous run may
+        # create the destination dir if needed, else clean its content as previous run may
         # have more files than what currently is needed
         if os.path.exists(cls.archive_dir):
             for name in os.listdir(cls.archive_dir):
