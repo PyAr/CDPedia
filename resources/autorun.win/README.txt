@@ -18,6 +18,11 @@ Download the latest python embeddable `.zip` distribution for win32 and rename i
     wget https://www.python.org/ftp/python/3.8.5/python-3.8.5-embed-win32.zip
     mv python-3.8.5-embed-win32.zip python-win32.zip
 
+Delete any `python*._pth` file that comes with this distribution because we don't want `sys.path`
+to be overridden at runtime. Details: https://docs.python.org/3/using/windows.html#finding-modules
+
+	zip -d python-win32.zip "python38._pth"
+
 Current version in use is 3.8.5. When generating a CDPedia release, the contents of
 this archive will be extracted to the `python` directory of the image.
 
