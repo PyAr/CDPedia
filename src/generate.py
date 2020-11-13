@@ -260,16 +260,6 @@ def main(lang, src_info, version, lang_config, gendate,
     # don't affect the rest of the machine
     make_it_nicer()
 
-    if process_articles:
-        try:
-            import SuffixTree  # NOQA
-        except ImportError:
-            logger.warning(
-                "Import error on SuffixTree; compressed index generation will be REALLY slow. "
-                "Please install it (download, python2 setup.py build, python2 setup.py install) "
-                "from here:  http://taniquetil.com.ar/facundo/SuffixTree-0.7.1-8bit.tar.bz2"
-            )
-
     # set language in config
     if config.LANGUAGE is None:
         config.LANGUAGE = lang

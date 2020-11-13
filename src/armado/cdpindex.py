@@ -31,7 +31,6 @@ import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-# from .compressed_index import Index
 from .sqlite_index import Index, normalize_words
 
 logger = logging.getLogger(__name__)
