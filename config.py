@@ -76,8 +76,9 @@ SEARCH_RESULTS = 20
 
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
-DIR_BLOQUES = "temp/bloques"
-DIR_IMGBLOQUES = "temp/imgbloques"
+DIR_PAGES_BLOCKS = "temp/pages"
+IMAGES_PER_BLOCK = 200
+DIR_IMAGES_BLOCKS = "temp/images"
 
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
@@ -94,14 +95,8 @@ DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 # Directorio de las imágenes ya listas para inclusión
 DIR_IMGSLISTAS = DIR_TEMP + "/imglistas"
 
-# Cantidad de imágenes por bloque
-IMAGES_PER_BLOCK = 200
-
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "temp/cdroot"
-
-# Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
-DIR_ASSETS = "temp/cdroot/assets"
 
 # Directorio de los archivos estáticos de origen
 DIR_SOURCE_ASSETS = "resources"
@@ -113,7 +108,7 @@ PYTHON_DOCS_FILENAME = 'python-docs.tar.bz2'
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 
 # Generation language will be saved in this file
-LANGUAGE_FILE = os.path.join(DIR_BLOQUES, 'language.txt')
+LANGUAGE_FILE = os.path.join(DIR_PAGES_BLOCKS, 'language.txt')
 
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"

@@ -277,7 +277,6 @@ def clean(keep_processed):
         # start it fresh
         logger.info("Temp dir setup fresh: %r", temp_dir)
         os.mkdir(temp_dir)
-        os.symlink(location.images, os.path.join(temp_dir, "images"))
         return
 
     # remove (maybe) all stuff inside
@@ -285,8 +284,6 @@ def clean(keep_processed):
                 temp_dir, keep_processed)
     for item in os.listdir(temp_dir):
         if keep_processed and item in KEEP_PROCESSED:
-            continue
-        if item == 'images':
             continue
         path = os.path.join(temp_dir, item)
         if os.path.isdir(path):
@@ -347,7 +344,8 @@ def main(language, lang_config, imag_config,
             # keep previous processed if not new scraped articles and not testing
             keep_processed = noscrap and not test
             clean(keep_processed=keep_processed)
-        generate.main(language, location.langdir, image, lang_config, gendate, verbose=test)
+        generate.main(
+            language, location.langdir, image, lang_config, gendate, location.images, verbose=test)
 
 
 if __name__ == "__main__":
