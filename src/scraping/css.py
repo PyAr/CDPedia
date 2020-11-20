@@ -14,7 +14,26 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""CSS stylesheets scraping."""
+"""CSS stylesheets scraping.
+
+Wikipedia uses a modular system for requesting stylesheets. The CSS links
+in the article's HTML contain params that request multiple individual CSS
+modules, based on the content of the page that needs to be styled: tables,
+TOC, image galleries, quotes, infoboxes, etc.
+
+The article scraper extracts and saves all raw CSS links in a single file.
+This module will parse that file and download all individual CSS modules,
+saving each one to its own file.
+
+Additionally, each CSS module may contain links to other media resources
+needed for styling content, like icons and backgrounds. These files will
+also be downloaded.
+
+Finally, a unified stylesheet will be generated, concatenating all CSS
+modules into a single file that will be loaded by all CDPedia pages.
+
+Reference: https://www.mediawiki.org/wiki/API:Styling_content
+"""
 
 import logging
 import os
@@ -34,7 +53,7 @@ re_resource_url = re.compile(r'url\(([^\s}]+)\)')
 
 
 def scrap_css(cssdir):
-    """Download CSS modules with associated resources and create a unified stylesheet."""
+    """Download CSS modules with media resources and create a unified stylesheet."""
     # scrap stylesheets
     scraper = _CSSScraper(cssdir)
     scraper.download_all()
@@ -49,13 +68,25 @@ class URLNotFoundError(Exception):
 
 
 class _CSSScraper:
-    """Download required stylesheets and associated resources."""
+    """Download required stylesheets and associated media resources.
+
+    Details of the process:
+
+    - Load raw CSS links from CSS_LINKS_FILENAME.
+    - Parse all raw CSS links to extract a set of unique CSS module names.
+    - Check which CSS modules have been already downloaded. Parse those that
+      exist to collect links to media resources (they will be downloaded later).
+    - Download missing CSS modules, save each one to its own file. Parse the
+      CSS before saving to continue collecting media resources links.
+    - Download all media resources, save them in a single folder using a safe
+      filename.
+    """
 
     def __init__(self, cssdir):
         self.cssdir = cssdir
         self.resdir = os.path.join(cssdir, config.CSS_RESOURCES_DIRNAME)
-        self.modules = {}
-        self.resources = {}
+        self.modules = {}  # css modules
+        self.resources = {}  # media files (no css)
 
         # url and params for downloading stylesheets
         self.url = config.URL_WIKIPEDIA + 'w/load.php'
@@ -72,21 +103,22 @@ class _CSSScraper:
         utiles.pooled_exec(self._download_css, items, pool_size=20,
                            known_errors=self.known_errors)
 
-        # download missing resources
+        # download missing media resources
         os.makedirs(self.resdir, exist_ok=True)
         items = [i for i in self.resources.values() if not i['is_file']]
-        logger.info('Scraping %i CSS associated resources', len(items))
+        logger.info('Scraping %i CSS media resources', len(items))
         utiles.pooled_exec(self._download_resource, items, pool_size=20,
                            known_errors=self.known_errors)
 
     def _load_modules_info(self):
-        """Load information about all CSS modules that must be downloaded."""
+        """Load information about all CSS modules needed by CDPedia."""
         for name in self._module_names():
             url = self._css_url(name)
             filepath = os.path.join(self.cssdir, name)
             is_file = os.path.isfile(filepath)
             if is_file:
-                # stylesheet may contain resources not yet downloaded
+                # parse CSS module code to extract links to media resources,
+                # they will be downloaded later if needed
                 with open(filepath, 'rt', encoding='utf-8') as fh:
                     self._collect_resources_info(fh.read())
             self.modules[name] = {'url': url, 'filepath': filepath, 'is_file': is_file}
