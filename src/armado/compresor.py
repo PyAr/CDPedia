@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -35,7 +33,6 @@ import logging
 import lzma
 import os
 import pickle
-import shutil
 import struct
 import urllib.parse
 from functools import lru_cache
@@ -75,10 +72,13 @@ class BloqueManager(object):
     @classmethod
     def _prep_archive_dir(cls, lang=None):
         """Prepare the directory for the archive."""
-        # prepare the destination dir
+        # create the destination dir if needed, else clean its content as previous run may
+        # have more files than what currently is needed
         if os.path.exists(cls.archive_dir):
-            shutil.rmtree(cls.archive_dir)
-        os.makedirs(cls.archive_dir)
+            for name in os.listdir(cls.archive_dir):
+                os.unlink(os.path.join(cls.archive_dir, name))
+        else:
+            os.makedirs(cls.archive_dir)
 
         # save the language of the blocks, if any
         if lang is not None:
@@ -177,7 +177,7 @@ class BloqueImagenes(Bloque):
             len(fileNames), seek, len(headerBytes))
 
         # open the file to compress
-        nomfile = os.path.join(config.DIR_IMGBLOQUES, "%08x.cdi" % bloqNum)
+        nomfile = os.path.join(config.DIR_IMAGES_BLOCKS, "%08x.cdi" % bloqNum)
         logger.debug("  saving in %s", nomfile)
 
         with open(nomfile, "wb") as dst_fh:
@@ -237,7 +237,7 @@ class Comprimido(Bloque):
             len(top_filenames), seek, len(headerBytes))
 
         # open the compressed file
-        nomfile = path.join(config.DIR_BLOQUES, "%08x.cdp" % bloqNum)
+        nomfile = path.join(config.DIR_PAGES_BLOCKS, "%08x.cdp" % bloqNum)
         logger.debug("  saving in %s", nomfile)
 
         with CompressedFile(nomfile, "wb") as dst_fh:
@@ -253,7 +253,7 @@ class Comprimido(Bloque):
 
 
 class ArticleManager(BloqueManager):
-    archive_dir = config.DIR_BLOQUES
+    archive_dir = config.DIR_PAGES_BLOCKS
     archive_extension = ".cdp"
     archive_class = Comprimido
     items_per_block = config.ARTICLES_PER_BLOCK
@@ -323,7 +323,7 @@ class ArticleManager(BloqueManager):
 
 
 class ImageManager(BloqueManager):
-    archive_dir = config.DIR_IMGBLOQUES
+    archive_dir = config.DIR_IMAGES_BLOCKS
     archive_extension = ".cdi"
     archive_class = BloqueImagenes
     items_per_block = config.IMAGES_PER_BLOCK

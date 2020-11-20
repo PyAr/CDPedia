@@ -195,8 +195,8 @@ def gen_run_config(lang_config):
     f.write('URL_WIKIPEDIA = "%s"\n' % config.URL_WIKIPEDIA)
     f.write('PYTHON_DOCS_FILENAME = "%s"\n' % config.PYTHON_DOCS_FILENAME)
     f.write('LOCALE = "%s"\n' % os.environ['LANGUAGE'])
-    f.write('DIR_BLOQUES = "bloques"\n')
-    f.write('DIR_IMGBLOQUES = "images"\n')
+    f.write('DIR_PAGES_BLOCKS = "pages"\n')
+    f.write('DIR_IMAGES_BLOCKS = "images"\n')
     f.write('DIR_ASSETS = "assets"\n')
     f.write('DIR_INDICE = "indice"\n')
     f.write('IMAGES_PER_BLOCK = %d\n' % config.IMAGES_PER_BLOCK)
@@ -254,21 +254,11 @@ def build_tarball(tarball_name):
     os.remove(nice_name)
 
 
-def main(lang, src_info, version, lang_config, gendate,
+def main(lang, src_info, version, lang_config, gendate, images_dump_dir,
          verbose=False, desconectado=False, process_articles=True):
     """Generate the CDPedia tarball or iso."""
     # don't affect the rest of the machine
     make_it_nicer()
-
-    if process_articles:
-        try:
-            import SuffixTree  # NOQA
-        except ImportError:
-            logger.warning(
-                "Import error on SuffixTree; compressed index generation will be REALLY slow. "
-                "Please install it (download, python2 setup.py build, python2 setup.py install) "
-                "from here:  http://taniquetil.com.ar/facundo/SuffixTree-0.7.1-8bit.tar.bz2"
-            )
 
     # set language in config
     if config.LANGUAGE is None:
@@ -323,14 +313,14 @@ def main(lang, src_info, version, lang_config, gendate,
 
     if not desconectado:
         logger.info("Downloading the images from the internet")
-        download.retrieve()
+        download.retrieve(images_dump_dir)
 
     logger.info("Reducing the downloaded images")
-    scale.run(verbose)
+    scale.run(verbose, images_dump_dir)
 
     if config.EMBED_IMAGES:
         logger.info("Embedding selected images")
-        embed.run()
+        embed.run(images_dump_dir)
 
     logger.info("Putting the reduced images into blocks")
     # agrupamos las imagenes en bloques
@@ -347,10 +337,8 @@ def main(lang, src_info, version, lang_config, gendate,
         result = cdpindex.generate_from_html(articulos, verbose)
         logger.info("Got %d files", result)
         logger.info("Generating the articles blocks")
-        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(lang,
-                                                                     verbose)
-        logger.info("Got %d blocks with %d files and %d redirects",
-                    q_blocks, q_files, q_redirs)
+        q_blocks, q_files, q_redirs = ArticleManager.generar_bloques(lang, verbose)
+        logger.info("Got %d blocks with %d files and %d redirects", q_blocks, q_files, q_redirs)
 
     logger.info("Copying the sources and libs")
     copy_sources()
@@ -360,16 +348,16 @@ def main(lang, src_info, version, lang_config, gendate,
     pydocs.clone(lang, lang_config, os.path.dirname(src_info))
 
     logger.info("Generating the links to blocks and indexes")
-    # blocks
-    dest = path.join(config.DIR_CDBASE, "bloques")
+    # pages blocks
+    dest = path.join(config.DIR_CDBASE, "pages")
     if os.path.exists(dest):
         os.remove(dest)
-    os.symlink(path.abspath(config.DIR_BLOQUES), dest)
+    os.symlink(path.abspath(config.DIR_PAGES_BLOCKS), dest)
     # images blocks
     dest = path.join(config.DIR_CDBASE, "images")
     if os.path.exists(dest):
         os.remove(dest)
-    os.symlink(path.abspath(config.DIR_IMGBLOQUES), dest)
+    os.symlink(path.abspath(config.DIR_IMAGES_BLOCKS), dest)
     # indexes
     dest = path.join(config.DIR_CDBASE, "indice")
     if os.path.exists(dest):
