@@ -14,6 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+import os
 import urllib.parse
 
 import pytest
@@ -39,11 +40,13 @@ def test_re_resource_url(url):
 
 def test_scrap_css(mocker):
     """Call appropriate methods for downloading and joining."""
+    cssdir = 'foo'
     css_scraper = mocker.Mock()
     mocker.patch('src.scraping.css._CSSScraper', css_scraper)
-    scrap_css(cssdir='foo')
-    assert css_scraper.mock_calls[-1] == mocker.call().download_all()
-    # TODO: test joining
+    scrap_css(cssdir=cssdir)
+    css_output = os.path.join(cssdir, config.CSS_FILENAME)
+    assert css_scraper.mock_calls[-2] == mocker.call().download_all()
+    assert css_scraper.mock_calls[-1] == mocker.call().unify_stylesheets(css_output)
 
 
 class TestCSSScraper:
@@ -170,3 +173,56 @@ class TestCSSScraper:
         scraper._download_resource(item)
         assert item['is_file']
         assert filepath.read_bytes() == b'content'
+
+    @pytest.fixture
+    def resources(self):
+        resources = {
+            'foo_url_raw': {'url': 'foo_url', 'filepath': 'foo', 'is_file': True},
+            'bar_url_raw': {'url': 'bar_url', 'filepath': 'bar', 'is_file': True},
+            'baz_url_raw': {'url': 'baz_url', 'filepath': 'baz', 'is_file': False},
+        }
+        return resources
+
+    def test_retarget_url(self, scraper, resources):
+        """Retarget url to local files."""
+        scraper.resources = resources
+        css = 'spam url(foo_url_raw) spam url(bar_url_raw) spam url(baz_url_raw) spam'
+        css_fixed = scraper.retarget_urls(css)
+        assert 'url(/static/css/images/foo)' in css_fixed
+        assert 'url(/static/css/images/bar)' in css_fixed
+        # no local 'baz': keep url function without args
+        assert 'url()' in css_fixed
+
+    def test_dont_alter_special_urls(self, scraper, resources):
+        """Don't alter some URLs in CSS code, e.g. XML namespaces."""
+        scraper.resources = resources
+        scraper.urls_no_media = ['keep', 'adsf']
+        css = 'spam url(foo_url_raw) spam url(keep) spam'
+        css_fixed = scraper.retarget_urls(css)
+        assert 'url(keep)' in css_fixed
+        assert 'url(/static/css/images/foo)' in css_fixed
+
+    @pytest.fixture
+    def modules(self, tmp_path):
+        """"""
+        module_foo = tmp_path / 'module.foo'
+        module_bar = tmp_path / 'module.bar'
+        module_baz = tmp_path / 'module.baz'
+        modules = {
+            'foo': {'filepath': str(module_foo), 'is_file': True},
+            'bar': {'filepath': str(module_bar), 'is_file': True},
+            'baz': {'filepath': str(module_baz), 'is_file': False},
+        }
+        module_foo.write_text('foo_content')
+        module_bar.write_text('bar_content')
+        return modules
+
+    def test_join(self, tmp_path, scraper, modules):
+        """Test joining css modules."""
+        scraper.modules = modules
+        output = tmp_path / config.CSS_FILENAME
+        scraper.unify_stylesheets(output)
+        # lines order should not be significant
+        lines = set(output.read_text().split())
+        lines_expected = {'foo_content', 'bar_content'}
+        assert lines_expected == lines
