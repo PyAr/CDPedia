@@ -48,23 +48,21 @@ class FetchingError(Exception):
 
 def remove_metadata(img):
     """Open and Close image to remove metadata with pillow."""
-    if not img.lower().endswith('.svg'):
-        size = os.stat(img).st_size
-        img_pil = Image.open(img)
+    size = os.stat(img).st_size
+    with Image.open(img) as img_pil:
         img_pil.save(img)
-        final_size = os.stat(img).st_size
-        logger.debug("Removing Metadata from: %r", img)
-        logger.debug("Metadata Removed: %r(bytes)", size - final_size)
+    final_size = os.stat(img).st_size
+    logger.debug("Removing Metadata from: %r", img)
+    logger.debug("Metadata clean-up : %r(bytes) removed", size - final_size)
 
 
 def optimize_png(img):
     """Run pngquant to optimize PNG format."""
-    if img.lower().endswith('.png'):
-        size = os.stat(img).st_size
-        subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
-        final_size = os.stat(img).st_size
-        logger.debug("PNG optimized: %r", img)
-        logger.debug("Weight Removed: %r(bytes)", size - final_size)
+    size = os.stat(img).st_size
+    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
+    final_size = os.stat(img).st_size
+    logger.debug("PNG optimized: %r", img)
+    logger.debug("Weight Removed: %r(bytes)", size - final_size)
 
 
 def _download(url, fullpath):
@@ -80,8 +78,11 @@ def _download(url, fullpath):
     with open(fullpath, "wb") as fh:
         fh.write(img)
 
-    remove_metadata(fullpath)
-    optimize_png(fullpath)
+    if not fullpath.lower().endswith('.svg'):
+        remove_metadata(fullpath)
+
+    if fullpath.lower().endswith('.png'):
+        optimize_png(fullpath)
 
 
 def download(data):
