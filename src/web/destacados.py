@@ -15,6 +15,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
+
 import logging
 import config
 import itertools
@@ -61,8 +62,7 @@ class Destacados(object):
                 break
 
             # destacado roto :|
-            if self.verbose:
-                logger.WARNING("WARNING: Artículo destacado no encontrado: %s" % link)
+            logger.warning("Artículo destacado no encontrado: %s", link)
             self.destacados.remove(link)
         else:
             # no hay destacado
@@ -77,8 +77,7 @@ class Destacados(object):
         m = re.search(destacado_re, data)
 
         if not m:
-            if self.verbose:
-                logger.WARNING("WARNING: Este articulo rompe la regexp para destacado: %s" % link)
+            logger.warning("Este articulo rompe la regexp para destacado: %s", link)
             return None
         titulo, primeros_parrafos = m.groups()
         return link, titulo, primeros_parrafos

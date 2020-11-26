@@ -277,8 +277,7 @@ def main(lang, src_info, version, lang_config, gendate, images_dump_dir,
         config.imageconf = _lang_conf[version]
     except KeyError:
         available_versions = list(_lang_conf.keys())
-        logger.error(
-            "%r is not a valid version! try one of %s", version, available_versions)
+        logger.error("%r is not a valid version! try one of %s", version, available_versions)
         exit()
     config.langconf = lang_config
 

@@ -146,8 +146,7 @@ class CDPedia:
             msg = "Error interno al buscar imagen: %s" % err
             raise InternalServerError(msg)
         if asset_data is None:
-            if self.verbose:
-                logger.warning("no pudimos encontrar %s", repr(name))
+            logger.warning("No pudimos encontrar %r", name)
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
@@ -173,10 +172,10 @@ class CDPedia:
         path = os.path.join("institucional", path)
         asset_file = os.path.join(config.DIR_ASSETS, path)
         if os.path.isdir(asset_file):
-            logger.warning(" %s", repr(asset_file), "es un directorio")
+            logger.warning("%r es un directorio", asset_file)
             raise NotFound()
         if not os.path.exists(asset_file):
-            logger.warning(" no pudimos encontrar %s", repr(asset_file))
+            logger.warning("No pudimos encontrar %r", asset_file)
             raise NotFound()
 
         # all unicode

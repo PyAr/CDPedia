@@ -334,7 +334,7 @@ To test:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        logger.debug(usage)
+        print(usage)
         sys.exit()
 
     # setup logging
@@ -349,4 +349,4 @@ if __name__ == "__main__":
     preprocess.pages_selector._calculated = True
     pi = ImageParser()
     pi.parse(sys.argv[1], sys.argv[2])
-    logger.debug("\n".join(str(x) for x in pi.to_download.items()))
+    print("\n".join(str(x) for x in pi.to_download.items()))

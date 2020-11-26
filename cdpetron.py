@@ -41,6 +41,7 @@ from src.armado import to3dirs
 from src.preprocessing import preprocessors
 from src.scraping import scraper, pydocs, css
 
+
 # some constants to download the articles list we need to scrap
 URL_LIST = (
     "http://dumps.wikimedia.org/%(language)swiki/latest/"
@@ -363,7 +364,7 @@ if __name__ == "__main__":
                              "'--image-type' option")
     parser.add_argument("--test-mode", action='store_true',
                         help="Work on a few pages only "
-                             "(1000 default pages)")
+                        "(1000 default pages)")
     parser.add_argument("-p", "--page-limit", type=int,
                         help="Change default limit pages in test mode")
     parser.add_argument("--image-type",
@@ -412,7 +413,7 @@ if __name__ == "__main__":
         print('=' * 30)
         for data in sorted(imag_config):
             print('{:10}{:10}{:10}'.format(data, imag_config[data]['type'],
-                                           imag_config[data]['page_limit']))
+                  imag_config[data]['page_limit']))
         exit()
     logger.info("Opened succesfully image type config file %r", _config_fname)
     if args.image_type:

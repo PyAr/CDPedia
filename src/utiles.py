@@ -40,7 +40,6 @@ class WatchDog(threading.Thread):
     En esta simple implementación el callback puede tardar hasta 2 veces sleep
     segundos en ser llamado.
     """
-
     def __init__(self, callback, sleep):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -88,7 +87,6 @@ def find_open_port(starting_from=8000, host="127.0.0.1"):
 
 class TimingLogger:
     """Log only if more than N seconds passed after last log."""
-
     def __init__(self, secs_period, log_func):
         self._threshold = time.time() + secs_period
         self.log_func = log_func
@@ -130,8 +128,16 @@ class _StatusBoard:
             self.ok += 1
 
         speed = self.total / (time.time() - self.init_time)
-        logger.debug("Total=%d  ok=%d  bad=%d  speed=%.2f items/s\r",
-                     self.total, self.ok, self.bad, speed)
+
+        # this is done through standard `print` to show progress nicely (if used logging it
+        # will be too cumbersome to have one line per stat)
+        stat = "Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
+            self.total, self.ok, self.bad, speed)
+        print(stat, end='', flush=True)
+
+    def finish(self):
+        """Show final stats."""
+        print("Total={}  ok={}  bad={}".format(self.total, self.ok, self.bad))
 
 
 class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -153,7 +159,7 @@ def pooled_exec(func, payloads, pool_size, known_errors=()):
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
         list(executor.map(board.process, payloads))
-    print()  # this is to get the cursor out of the same line of the progress report above
+    board.finish()
 
 
 def set_locale(second_language=None, record=False):

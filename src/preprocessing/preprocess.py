@@ -349,11 +349,11 @@ def profiled_run(root_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        logger.info("Usage: preprocess.py root_dir")
+        print("Usage: preprocess.py root_dir")
         exit()
     if os.path.exists(config.LOG_PREPROCESADO):
-        logger.error("The PREPROCESSED file is there, it will make some articles to be skipped: "
-                     "%s", config.LOG_PREPROCESADO)
+        print("ERROR: The PREPROCESSED file is there, it will make some articles to be skipped:",
+              config.LOG_PREPROCESADO)
         exit()
 
     # fix config for a needed variable
