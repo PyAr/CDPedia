@@ -217,11 +217,11 @@ class TestCSSScraper:
         module_bar.write_text('bar_content')
         return modules
 
-    def test_join(self, tmp_path, scraper, modules):
+    def test_join_css_modules(self, tmp_path, scraper, modules):
         """Test joining css modules."""
         scraper.modules = modules
         output = tmp_path / config.CSS_FILENAME
-        scraper.unify_stylesheets(output)
+        scraper.unify_stylesheets(str(output))
         # lines order should not be significant
         lines = set(output.read_text().split())
         lines_expected = {'foo_content', 'bar_content'}
