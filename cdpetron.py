@@ -25,6 +25,7 @@ import itertools
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import urllib.parse
 import urllib.request
@@ -382,6 +383,12 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Show more progress information.")
     args = parser.parse_args()
+
+    try:
+        subprocess.run(["pngquant"], stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        logger.error("Please install pngquant")
+        sys.exit(-1)
 
     if args.no_clean and not args.image_type:
         logger.error("--no-clean option is only usable when --image-type was indicated")
