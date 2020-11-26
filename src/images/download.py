@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -20,9 +18,12 @@
 
 import logging
 import os
+import subprocess
 import urllib.request
 import urllib.error
 import time
+
+from PIL import Image
 
 import config
 
@@ -45,6 +46,27 @@ class FetchingError(Exception):
         self.msg_args = msg_args
 
 
+def remove_metadata(img):
+    """Open and Close image to remove metadata with pillow."""
+    if not img.lower().endswith('.svg'):
+        size = os.stat(img).st_size
+        img_pil = Image.open(img)
+        img_pil.save(img)
+        final_size = os.stat(img).st_size
+        logger.debug("Removing Metadata from: %r", img)
+        logger.debug("Metadata Removed: %r(bytes)", size - final_size)
+
+
+def optimize_png(img):
+    """Run pngquant to optimize PNG format."""
+    if img.lower().endswith('.png'):
+        size = os.stat(img).st_size
+        subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
+        final_size = os.stat(img).st_size
+        logger.debug("PNG optimized: %r", img)
+        logger.debug("Weight Removed: %r(bytes)", size - final_size)
+
+
 def _download(url, fullpath):
     """Download image from url and save it to disk."""
     basedir, _ = os.path.split(fullpath)
@@ -57,6 +79,9 @@ def _download(url, fullpath):
     img = u.read()
     with open(fullpath, "wb") as fh:
         fh.write(img)
+
+    remove_metadata(fullpath)
+    optimize_png(fullpath)
 
 
 def download(data):
