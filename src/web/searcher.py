@@ -18,7 +18,6 @@
 
 """The Searcher."""
 import collections
-import operator
 import queue
 import re
 import threading
@@ -74,11 +73,11 @@ class ThreadedSearch(threading.Thread):
         if self.discarded:
             return
 
-        for r in result:
-            self.queue.put(r)
-            if self.discarded:
-                return
-
+        if result:
+            for r in result:
+                self.queue.put(r)
+                if self.discarded:
+                    return
         # partial
         result = self.index.partial_search(self.words)
         if self.discarded:
@@ -148,18 +147,10 @@ class Searcher(object):
         return prev_results[start:start + quantity]
 
     def get_grouped(self, search_id, start=0, quantity=10):
-        """Get the results, old fashion grouped.
-
-        WARNING: this code is untested, but it's basically the old grouping
-        code that used to live in server.py.
-        """
-        results = self.get_results(search_id, start, quantity)
-
-        # -------------- start of old untested code --------------------
-
-        # group by link, giving priority to the title of the original articles
-        grouped_results = {}
-        for link, title, ptje, original, text in results:
+        """Get results to show from the index."""
+        source = self.get_results(search_id, start, quantity)
+        results = []
+        for link, title, ptje, original, text in source:
             # remove 3 dirs from link and add the proper base url
             link = "%s/%s" % (u'wiki', to3dirs.from_path(link))
             link = quote(link)
@@ -167,23 +158,5 @@ class Searcher(object):
             # put the tokens in lowercase because
             # the uppercase gives them a choppy effect
             tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
-
-            if link in grouped_results:
-                (tit, prv_ptje, tokens, txt) = grouped_results[link]
-                tokens.update(tit_tokens)
-                if original:
-                    # save the info of the original article
-                    tit = title
-                    txt = text
-                grouped_results[link] = (tit, prv_ptje + ptje, tokens, txt)
-            else:
-                grouped_results[link] = (title, ptje, tit_tokens, text)
-
-        # clean the tokens
-        for link, (tit, ptje, tokens, text) in grouped_results.items():
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in tit.split())
-            tokens.difference_update(tit_tokens)
-
-        # sort results
-        candidatos = ((k,) + tuple(v) for k, v in grouped_results.items())
-        return sorted(candidatos, key=operator.itemgetter(2), reverse=True)
+            results.append((link, title, ptje, tit_tokens, text))
+        return results

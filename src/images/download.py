@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -79,7 +77,7 @@ def download(data):
             time.sleep(retries.pop())
 
 
-def retrieve():
+def retrieve(images_dump_dir):
     """Download the images from the net."""
     download_list = []
 
@@ -97,7 +95,7 @@ def retrieve():
             continue
 
         _, arch, url = line.split(config.SEPARADOR_COLUMNAS)
-        fullpath = os.path.join(config.DIR_TEMP, "images", arch)
+        fullpath = os.path.join(images_dump_dir, arch)
 
         if url not in imgs_problems and not os.path.exists(fullpath):
             download_list.append((url, fullpath))

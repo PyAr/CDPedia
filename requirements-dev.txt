@@ -3,8 +3,8 @@ Babel
 bs4
 flake8
 futures
-progress
 pillow
+progress
 pytest
 pytest-mock
 lxml

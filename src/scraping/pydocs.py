@@ -61,6 +61,6 @@ def download(lang, lang_config, dumpbase):
 def clone(lang, lang_config, dumpbase):
     """Copy python docs archive from dump to cdroot."""
     url, filepath, filename = _tarball_info(lang, lang_config, dumpbase)
-    dest = os.path.join(config.DIR_ASSETS, config.PYTHON_DOCS_FILENAME)
+    dest = os.path.join(config.DIR_CDBASE, 'assets', config.PYTHON_DOCS_FILENAME)
     logger.info('Copying python docs')
     shutil.copy(filepath, dest)

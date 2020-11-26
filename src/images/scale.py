@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -18,12 +16,11 @@
 
 """Reduce images based on precalculated scale values."""
 
-from __future__ import with_statement, unicode_literals
-
 import config
 import logging
 import os
 import shutil
+
 from PIL import Image
 
 from src.images.embed import image_is_embeddable
@@ -46,7 +43,7 @@ def scale_image(frompath, topath, scale_factor):
     logger.debug("Resized image saved at %s. Scaled to %d" % (topath, scale_factor))
 
 
-def run(verbose):
+def run(verbose, src):
     """Reduce images using precalculated scales."""
     notfound = 0
     done_now = {}
@@ -68,7 +65,6 @@ def run(verbose):
         with open(config.LOG_IMAGES_EMBEDDED, 'rt', encoding='utf-8') as fh:
             images_embed = set(line.strip() for line in fh)
 
-    src = os.path.join(config.DIR_TEMP, "images")
     dst = os.path.join(config.DIR_IMGSLISTAS)
 
     # load image path and its corresponding scale

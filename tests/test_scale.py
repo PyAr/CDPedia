@@ -22,18 +22,20 @@ import os
 from PIL import Image
 from src.images.scale import scale_image
 
-ORIGINAL = os.path.join(os.getcwd(), 'tests', 'fixtures', 'image-to-scale.jpg')
-SCALED = os.path.join(os.getcwd(), 'tests', 'fixtures', 'scaled-image.jpg')
-
 
 class ScaleImagesTestCase(unittest.TestCase):
     """Tests for Scale."""
 
+    def setUp(self):
+        super().setUp()
+        self.original = os.path.join(os.getcwd(), 'tests', 'fixtures', 'image-to-scale.jpg')
+        self.scaled = os.path.join(os.getcwd(), 'tests', 'fixtures', 'scaled-image.jpg')
+
     def test_scale(self):
-        scale_image(ORIGINAL, SCALED, 50)
-        img = Image.open(SCALED)
+        scale_image(self.original, self.scaled, 50)
+        img = Image.open(self.scaled)
         resized_size = img.size
         self.assertEqual(resized_size, (25, 25))
 
     def tearDown(self):
-        os.remove(SCALED)
+        os.remove(self.scaled)
