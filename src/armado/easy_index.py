@@ -196,7 +196,7 @@ class Index(object):
             if any([('\n' in k) for k in keys]):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
-            value = list(data) + [ptje]
+            value = list(data)
 
             # docid -> info final
             # don't add to tmp_reverse_id or ids_shelf if the value is repeated

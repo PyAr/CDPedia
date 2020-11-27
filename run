@@ -1,1 +1,3 @@
-fades -r requirements.txt cdpedia.py
+# run the "production" cdpedia inside a venv with no dependencies installed, so we're 
+# sure everything is properly taken from itself or included external libraries
+fades temp/cdroot/cdpedia.py

@@ -15,6 +15,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 import bs4
+import os
 
 import config
 from src.images import embed
@@ -88,14 +89,14 @@ def test_load_embed_data(images_data):
 
 def test_load_vector(svg_image):
     """Test correct loading of SVG images."""
-    embedder = embed._EmbedImages()
+    embedder = embed._EmbedImages(os.path.join(config.DIR_TEMP, 'images'))
     node = embedder.load_vector(svg_image)
     assert getattr(node, 'name', None) == 'svg'
 
 
 def test_embed_vector(svg_image):
     """Test embedding of SVG image."""
-    embedder = embed._EmbedImages()
+    embedder = embed._EmbedImages(os.path.join(config.DIR_TEMP, 'images'))
     soup = bs4.BeautifulSoup('<img src="foo.svg">', features='lxml')
     assert soup.svg is None
     embedder.embed_vector(soup.img, svg_image)
@@ -105,7 +106,7 @@ def test_embed_vector(svg_image):
 def test_embed_images(html_file, mocker):
     """Test general method for embedding images."""
     mocker.patch('src.images.embed._EmbedImages.embed_vector', mocker.Mock())
-    embedder = embed._EmbedImages()
+    embedder = embed._EmbedImages(os.path.join(config.DIR_TEMP, 'images'))
     image = '/images/foo.svg'
     embedder.embed_images(html_file, {image})
     args = embedder.embed_vector.call_args[0]
@@ -113,12 +114,13 @@ def test_embed_images(html_file, mocker):
     assert args[1] == config.DIR_TEMP + image
 
 
-def test_run(svg_image, html_file, images_data):
+def test_run(svg_image, html_file, images_data, tmp_path):
+    """Test API's method to embed the image in the file."""
     with open(html_file, 'rb') as fh:
         html = bs4.BeautifulSoup(fh, features='lxml', from_encoding='utf-8')
     assert html.find('img') is not None
     assert html.find('svg') is None
-    embed.run()
+    embed.run(str(tmp_path / 'images'))
     with open(html_file, 'rb') as fh:
         html = bs4.BeautifulSoup(fh, features='lxml', from_encoding='utf-8')
     assert html.find('img') is None
