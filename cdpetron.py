@@ -385,7 +385,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        subprocess.run(["pngquant"], stderr=subprocess.DEVNULL)
+        subprocess.run(["pngquant"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except FileNotFoundError:
         logger.error("Please install pngquant")
         sys.exit(-1)
