@@ -1,4 +1,14 @@
+#content {
+    background-color: white;
+    border: 1px solid #a7d7f9;
+    border-right-width: 0;
+    margin-left: 11em;
+    padding: 1.25em 1.5em 1.5em 1.5em;
+}
+
 #footer {
+    border-top: unset;
+    margin-left: 11em;
 	overflow: hidden;
 	padding-right: 0;
 }
@@ -70,6 +80,8 @@ input#searchInput, input#searchInput:focus {
 }
 
 #mw-panel {
+    background-image: unset;
+    left: unset;
     top: 0;
 }
 
