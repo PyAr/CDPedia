@@ -249,7 +249,7 @@ class _CSSScraper:
             url = ''
             logger.debug('No local version of %s', url_raw)
         else:
-            # new target must be relative to web app root
+            # retarget
             filename = os.path.basename(resource['filepath'])
             url = self.retarget_base + filename
         return 'url({})'.format(url)

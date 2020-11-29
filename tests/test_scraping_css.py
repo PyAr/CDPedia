@@ -222,7 +222,7 @@ class TestCSSScraper:
         scraper.modules = modules
         output = tmp_path / config.CSS_FILENAME
         scraper.unify_stylesheets(str(output))
-        # lines order should not be significant
+        # line order should not be significant
         lines = set(output.read_text().split())
         lines_expected = {'foo_content', 'bar_content'}
         assert lines_expected == lines
