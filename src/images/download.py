@@ -18,9 +18,12 @@
 
 import logging
 import os
+import subprocess
 import urllib.request
 import urllib.error
 import time
+
+from PIL import Image
 
 import config
 
@@ -43,6 +46,25 @@ class FetchingError(Exception):
         self.msg_args = msg_args
 
 
+def remove_metadata(img):
+    """Open and Close image to remove metadata with pillow."""
+    size = os.stat(img).st_size
+    with Image.open(img) as img_pil:
+        img_pil.save(img)
+    final_size = os.stat(img).st_size
+    logger.debug("Removing Metadata from: %r", img)
+    logger.debug("Metadata clean-up : %r(bytes) removed", size - final_size)
+
+
+def optimize_png(img):
+    """Run pngquant to optimize PNG format."""
+    size = os.stat(img).st_size
+    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
+    final_size = os.stat(img).st_size
+    logger.debug("PNG optimized: %r", img)
+    logger.debug("Weight Removed: %r(bytes)", size - final_size)
+
+
 def _download(url, fullpath):
     """Download image from url and save it to disk."""
     basedir, _ = os.path.split(fullpath)
@@ -55,6 +77,12 @@ def _download(url, fullpath):
     img = u.read()
     with open(fullpath, "wb") as fh:
         fh.write(img)
+
+    if not fullpath.lower().endswith('.svg'):
+        remove_metadata(fullpath)
+
+    if fullpath.lower().endswith('.png'):
+        optimize_png(fullpath)
 
 
 def download(data):
