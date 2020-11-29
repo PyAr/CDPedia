@@ -176,6 +176,7 @@ class TestCSSScraper:
 
     @pytest.fixture
     def resources(self):
+        """Fake CSS media resources."""
         resources = {
             'foo_url_raw': {'url': 'foo_url', 'filepath': 'foo', 'is_file': True},
             'bar_url_raw': {'url': 'bar_url', 'filepath': 'bar', 'is_file': True},
@@ -204,7 +205,7 @@ class TestCSSScraper:
 
     @pytest.fixture
     def modules(self, tmp_path):
-        """"""
+        """Fake CSS modules."""
         module_foo = tmp_path / 'module.foo'
         module_bar = tmp_path / 'module.bar'
         module_baz = tmp_path / 'module.baz'
