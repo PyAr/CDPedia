@@ -137,7 +137,7 @@ class _StatusBoard:
 
     def finish(self):
         """Show final stats."""
-        print("Total={}  ok={}  bad={}".format(self.total, self.ok, self.bad))
+        logger.info("Scraping done! Total=%s  ok=%s  bad=%s", self.total, self.ok, self.bad)
 
 
 class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
