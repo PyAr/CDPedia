@@ -1,17 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{title}}{% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="/static/skins/css/main.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="/static/skins/css/shared.css" type="text/css" media="screen" />
-
-    <link rel="stylesheet" href="/static/skins/css/commonPrint.css" type="text/css" media="print" />
-    <link rel="stylesheet" href="/static/skins/css/combined.min.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/static/skins/css/jquery-ui-1.7.2.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/static/skins/css/Common.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/static/skins/css/Print.css" type="text/css" media="print" />
-    <link rel="stylesheet" href="/static/skins/css/Handheld.css" type="text/css" media="handheld" />
-    <link rel="stylesheet" href="/static/skins/css/Vector.css" type="text/css" media="all" />
-
+    <link rel="stylesheet" href="/static/css/wikipedia.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/static/css/cdpedia.css" type="text/css" media="all" />
 
     <!--[if lt IE 5.5000]><style type="text/css">@import "/static/skins/monobook/IE50Fixes.css";</style><![endif]-->
@@ -39,7 +29,7 @@
   <iframe src="/watchdog/update" style="width:1px;height:1px;display:none;"></iframe>
   <!-- /WatchDog iframe -->
   {% endif %}
-  <div id="content">
+  <div id="content" class="mw-body">
     <a id="top"></a>
     <div id="mw-js-message" style="display:none;"></div>
     <!-- sitenotice -->
@@ -53,7 +43,7 @@
   <!-- /content -->
   {% include "sidebar.html" %}
   <!-- footer -->
-  <div id="footer">
+  <div id="footer" class="mw-footer">
     <ul id="f-info-cdpedia">
       {% block footer_pre %}
       {% endblock %}

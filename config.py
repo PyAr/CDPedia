@@ -134,6 +134,9 @@ LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 # Directory name for saving CSS stylesheets and associated resources
 CSS_DIRNAME = 'css'
 
+# stylesheet filename for unifying all Wikipedia CSS
+CSS_FILENAME = 'wikipedia.css'
+
 # filename for collecting CSS links while scraping
 CSS_LINKS_FILENAME = 'css_links.txt'
 
