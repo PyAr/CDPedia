@@ -106,8 +106,10 @@ msgstr ""
 
 #: src/web/templates/cdpedia_base.html:64
 msgid ""
-"Articles and images are shown here without any processing more than the "
-"strictly necessary for the correct user navigation."
+"Articles are shown here without any processing more than the "
+"strictly necessary for the correct user navigation. "
+"The original images contained in this article may have their "
+"own copyright, access the info on Wikipedia."
 msgstr ""
 
 #: src/web/templates/cdpedia_base.html:67
