@@ -128,8 +128,16 @@ class _StatusBoard:
             self.ok += 1
 
         speed = self.total / (time.time() - self.init_time)
-        print("Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
-            self.total, self.ok, self.bad, speed), end='', flush=True)
+
+        # this is done through standard `print` to show progress nicely (if used logging it
+        # will be too cumbersome to have one line per stat)
+        stat = "Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
+            self.total, self.ok, self.bad, speed)
+        print(stat, end='', flush=True)
+
+    def finish(self):
+        """Show final stats."""
+        logger.info("Scraping done! Total=%s  ok=%s  bad=%s", self.total, self.ok, self.bad)
 
 
 class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
@@ -151,7 +159,7 @@ def pooled_exec(func, payloads, pool_size, known_errors=()):
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
         list(executor.map(board.process, payloads))
-    print()  # this is to get the cursor out of the same line of the progress report above
+    board.finish()
 
 
 def set_locale(second_language=None, record=False):
