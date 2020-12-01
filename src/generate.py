@@ -135,7 +135,7 @@ def copy_css(lang_dump_dir, dst_assets):
     # copy unified stylesheet file
     css_src = os.path.join(css_dir_src, config.CSS_FILENAME)
     css_dst = os.path.join(css_dir_dst, config.CSS_FILENAME)
-    shutil.copy(css_src, css_dst)
+    link(css_src, css_dst)
 
     # copy directory of required media resources
     res_src = os.path.join(css_dir_src, config.CSS_RESOURCES_DIRNAME)
