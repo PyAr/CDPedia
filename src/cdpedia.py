@@ -23,6 +23,20 @@ import sys
 import threading
 import traceback
 import webbrowser
+import logging
+
+
+# set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s  %(name)-20s %(levelname)-8s %(message)s")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
 
 # change execution path, so we can access all cdpedia internals (code and libraries); note this
 # is needed for when CDPedia is executed from a different location (e.g.: double click from GUI)
@@ -56,18 +70,18 @@ def handle_crash(type, value, tb):
     """Handle any exception that is not addressed explicitly."""
     if issubclass(type, KeyboardInterrupt):
         # We leave!
-        print("Closed by user request.")
+        logger.info("Closed by user request.")
         cd_wd_timer.cancel()
         sys.exit(0)
     else:
         exception = traceback.format_exception(type, value, tb)
         exception = "".join(exception)
-        print(exception)
+        logger.info(exception)
 
 
 def close():
     """Shutdown the server."""
-    print("Exiting by watchdog timer")
+    logger.info("Exiting by watchdog timer")
     server.shutdown()
     sys.exit(0)
 
@@ -100,7 +114,7 @@ def sleep_and_browse():
         index = "http://%s:%d/%s/%s" % (config.HOSTNAME, config.PORT,
                                         config.EDICION_ESPECIAL, config.INDEX)
     if not webbrowser.open(index):
-        print("You need a browser installed in your system to access the CDPedia content.")
+        logger.info("You need a browser installed in your system to access the CDPedia content.")
         server.shutdown()
         sys.exit(-1)
 
@@ -154,7 +168,7 @@ if __name__ == "__main__":
             browser_watchdog.start()
 
         if options.verbose:
-            print("Raising the server...")
+            logger.info("Raising the server...")
 
         app = create_app(browser_watchdog, verbose=options.verbose)
 
@@ -164,7 +178,7 @@ if __name__ == "__main__":
         server.serve_forever()
 
         if options.verbose:
-            print("Finished.")
+            logger.info("Finished.")
         cd_wd_timer.cancel()
 
     else:
