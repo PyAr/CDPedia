@@ -36,6 +36,8 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+logging.getLogger("PIL").setLevel(logging.INFO)
+
 logger = logging.getLogger("images.download")
 
 
@@ -56,7 +58,7 @@ def optimize_image(img):
         optimize_png(img, sizes=(size, final_size,))
     else:
         logger.debug("Removing Metadata from: %r", img)
-        logger.debug("Metadata clean-up : %s(bytes) removed", size - final_size)
+        logger.debug("Metadata clean-up: %s(bytes) removed", size - final_size)
 
 
 def optimize_png(img, sizes):
