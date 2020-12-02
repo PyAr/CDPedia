@@ -269,9 +269,8 @@ def scrap_portal(language, lang_config):
 
 def clean(keep_processed):
     """Clean and setup the temp directory."""
-    # let's create a temp directory for the generation with a symlink to
-    # images (clean it first if already there). Note that 'temp' and
-    # 'images' are hardcoded here, as this is what expects
+    # let's create a temp directory for the generation (clean it first if already
+    # there). Note that 'temp' is hardcoded here, as this is what expects
     # the generation part)
     temp_dir = "temp"
     if not os.path.exists(temp_dir):

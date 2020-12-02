@@ -36,6 +36,7 @@ Reference: https://www.mediawiki.org/wiki/API:Styling_content
 """
 
 import logging
+import functools
 import os
 import re
 import urllib.error
@@ -54,10 +55,10 @@ re_resource_url = re.compile(r'url\(([^\s}]+)\)')
 
 def scrap_css(cssdir):
     """Download CSS modules with media resources and create a unified stylesheet."""
-    # scrap stylesheets
     scraper = _CSSScraper(cssdir)
     scraper.download_all()
-    # TODO: join css into single stylesheet
+    unified_css = os.path.join(cssdir, config.CSS_FILENAME)
+    scraper.unify_stylesheets(unified_css)
 
 
 class URLNotFoundError(Exception):
@@ -80,7 +81,15 @@ class _CSSScraper:
       CSS before saving to continue collecting media resources links.
     - Download all media resources, save them in a single folder using a safe
       filename.
+    - Generate a unified stylesheet by combining all single CSS modules.
+    - All links to external media resources will be retargeted to the local
+      versions if they exist
     """
+
+    # known URLs found in CSS that are not media resources and shouldn't be altered
+    urls_no_media = (
+        'http://www.w3.org/1998/Math/MathML',  # MathML namespace
+    )
 
     def __init__(self, cssdir):
         self.cssdir = cssdir
@@ -92,6 +101,12 @@ class _CSSScraper:
         self.url = config.URL_WIKIPEDIA + 'w/load.php'
         self.params = {'only': 'styles', 'skin': 'vector', 'lang': config.LANGUAGE}
         self.known_errors = [URLNotFoundError]
+
+        # url retargeter to be used when generating unified stylehseet
+        self.retarget_urls = functools.partial(re_resource_url.sub, self._retarget_url)
+        # base location for retargeting CSS media resources (relative to final assets dir)
+        self.retarget_base = '/static/{}/{}/'.format(
+            config.CSS_DIRNAME, config.CSS_RESOURCES_DIRNAME)
 
     def download_all(self):
         """Download required css files and associated resources."""
@@ -164,6 +179,8 @@ class _CSSScraper:
         """Extract resources information from given css string."""
         for url_orig in re_resource_url.findall(css):
             url = url_orig.strip('"')
+            if url in self.urls_no_media:
+                continue
             # build absolute url if needed
             if url.startswith('//'):
                 url = 'http:' + url
@@ -215,3 +232,41 @@ class _CSSScraper:
             item['is_file'] = True
             with open(item['filepath'], 'wb') as fh:
                 fh.write(res)
+
+    def _retarget_url(self, match):
+        """Retarget external media URL to local file if available.
+
+        E.g.: 'url(http://wiki.org/foo/bar.png)' -> 'url(/css/images/bar.png)'.
+        Meant to be used as 'repl' param for 're.sub'.
+        """
+        url_raw = match.group(1)
+        resource = self.resources.get(url_raw)
+        if url_raw in self.urls_no_media:
+            # don't alter special URLs
+            url = url_raw
+        elif not resource or not resource['is_file']:
+            # don't keep original URL to avoid browser requests to the web
+            url = ''
+            logger.debug('No local version of %s', url_raw)
+        else:
+            # retarget
+            filename = os.path.basename(resource['filepath'])
+            url = self.retarget_base + filename
+        return 'url({})'.format(url)
+
+    def unify_stylesheets(self, output):
+        """Unify all CSS modules into a single stylesheet.
+
+        The unified CSS will have all external links retargeted to local files if
+        they exist. Otherwise links will be removed to prevent unwanted web requests.
+        """
+        logger.info("Generating unified stylesheet '%s' with retargeted links",
+                    config.CSS_FILENAME)
+        with open(output, 'wt', encoding='utf-8') as fh_main:
+            for module in self.modules.values():
+                if module['is_file']:
+                    with open(module['filepath'], 'rt', encoding='utf-8') as fh:
+                        css_raw = fh.read()
+                    css_fixed = self.retarget_urls(css_raw)
+                    fh_main.write(css_fixed)
+                    fh_main.write('\n')
