@@ -36,6 +36,7 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+# Turning off the PIL debug logs as are too noisy.
 logging.getLogger("PIL").setLevel(logging.INFO)
 
 logger = logging.getLogger("images.download")
@@ -48,27 +49,27 @@ class FetchingError(Exception):
         self.msg_args = msg_args
 
 
-def optimize_image(img):
+def optimize_image(img_path):
     """Open and Close image to remove metadata with pillow."""
-    size = os.stat(img).st_size
-    with Image.open(img) as img_pil:
-        img_pil.save(img)
-    final_size = os.stat(img).st_size
-    if img.lower().endswith('.png'):
-        optimize_png(img, sizes=(size, final_size,))
+    size = os.stat(img_path).st_size
+    with Image.open(img_path) as img:
+        img.save(img_path)
+    final_size = os.stat(img_path).st_size
+    if img_path.lower().endswith('.png'):
+        optimize_png(img_path, size, final_size)
     else:
-        logger.debug("Removing Metadata from: %r", img)
-        logger.debug("Metadata clean-up: %s(bytes) removed", size - final_size)
+        logger.debug("Metadata removed from %r: %d(bytes) removed",
+                     img_path, size - final_size)
 
 
-def optimize_png(img, sizes):
+def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
-    size = os.stat(img).st_size
-    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
-    final_size = os.stat(img).st_size
-    logger.debug("PNG Image: %r", img)
-    logger.debug("Metadata: %s(bytes) removed :: Extra clean-up: %s(bytes) removed",
-                 sizes[0] - sizes[1], size - final_size)
+    size = os.stat(img_path).st_size
+    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
+    final_size = os.stat(img_path).st_size
+    logger.debug("Metadata removed from %r: %d(bytes) removed"
+                 " · PNG, Extra clean-up: %d(bytes) removed",
+                 img_path, original_size - current_size, size - final_size)
 
 
 def _download(url, fullpath):
