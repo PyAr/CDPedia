@@ -126,6 +126,23 @@ def copy_assets(src_info, dest):
     copy_dir(src_dir, dst_dir)
 
 
+def copy_css(lang_dump_dir, dst_assets):
+    """Copy unified css file and associated media resources."""
+    css_dir_src = os.path.join(lang_dump_dir, config.CSS_DIRNAME)
+    css_dir_dst = os.path.join(dst_assets, 'static', config.CSS_DIRNAME)
+    os.makedirs(css_dir_dst, exist_ok=True)
+
+    # copy unified stylesheet file
+    css_src = os.path.join(css_dir_src, config.CSS_FILENAME)
+    css_dst = os.path.join(css_dir_dst, config.CSS_FILENAME)
+    link(css_src, css_dst)
+
+    # copy directory of required media resources
+    res_src = os.path.join(css_dir_src, config.CSS_RESOURCES_DIRNAME)
+    res_dst = os.path.join(css_dir_dst, config.CSS_RESOURCES_DIRNAME)
+    copy_dir(res_src, res_dst)
+
+
 def copy_sources():
     """Copy the source code files."""
     # el src
@@ -285,10 +302,14 @@ def main(lang, src_info, version, lang_config, gendate, images_dump_dir,
     prepare_temporary_dirs(process_articles)
 
     logger.info("Copying the assets and locale files")
-    copy_assets(src_info, os.path.join(config.DIR_CDBASE, 'assets'))
+    dst_assets = os.path.join(config.DIR_CDBASE, 'assets')
+    copy_assets(src_info, dst_assets)
     link(os.path.join(src_info, 'portal_pages.txt'), config.DIR_TEMP)
     copy_dir('locale', path.join(config.DIR_CDBASE, "locale"))
     set_locale(lang_config.get('second_language'), record=True)
+
+    logger.info("Copying '%s' stylesheet and associated media resources", config.CSS_FILENAME)
+    copy_css(src_info, dst_assets)
 
     articulos = path.join(src_info, "articles")
     if process_articles:
