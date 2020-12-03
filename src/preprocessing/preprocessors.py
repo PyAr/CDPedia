@@ -104,7 +104,7 @@ class ContentExtractor(_Processor):
             if node is not None:
                 text = node.text.strip()
                 if len(text) > self._max_length:
-                    text = text[:self._max_length] + "\u2026"
+                    text = text[:self._max_length] + "…"
                 safe_text = base64.b64encode(text.encode("utf8")).decode('utf-8')
 
         if safe_text == '':
