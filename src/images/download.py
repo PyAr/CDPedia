@@ -64,12 +64,11 @@ def optimize_image(img_path):
 
 def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
-    size = os.stat(img_path).st_size
     subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
     final_size = os.stat(img_path).st_size
     logger.debug("Metadata removed from %r: %d(bytes) removed"
                  " · PNG, Extra clean-up: %d(bytes) removed",
-                 img_path, original_size - current_size, size - final_size)
+                 img_path, original_size - current_size, current_size - final_size)
 
 
 def _download(url, fullpath):
