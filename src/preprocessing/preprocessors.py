@@ -100,7 +100,14 @@ class ContentExtractor(_Processor):
         safe_text = ''
         parent = wikifile.soup.find('div', class_="mw-parser-output")
         if parent is not None:
-            node = parent.find('p', recursive=False)
+            node = parent.find('p', class_=None, recursive=False)
+            if node is None or len(node.text.split()) < 2:
+                cand = parent.find_all('p', class_=None)[:4]
+                if cand:
+                    length = [len(n.text.split()) for n in cand]
+                    which = length.index(max(length))
+                    node = cand[which]
+
             if node is not None:
                 text = node.text.strip()
                 if len(text) > self._max_length:

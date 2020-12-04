@@ -48,7 +48,8 @@ def article_2():
 
 
 cases = [('modelo que permite obtener un color', 'article_with_images'),
-         ("15 de febrero de 1811", 'article_with_summary_fixed')]
+         ("15 de febrero de 1811", 'article_with_summary_fixed'),
+         ("en el territorio continental. Se extiende", 'portal')]
 
 
 @pytest.fixture(params=cases)
