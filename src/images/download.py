@@ -36,6 +36,9 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+# Turning off the PIL debug logs as are too noisy.
+logging.getLogger("PIL").setLevel(logging.INFO)
+
 logger = logging.getLogger("images.download")
 
 
@@ -46,23 +49,26 @@ class FetchingError(Exception):
         self.msg_args = msg_args
 
 
-def remove_metadata(img):
+def optimize_image(img_path):
     """Open and Close image to remove metadata with pillow."""
-    size = os.stat(img).st_size
-    with Image.open(img) as img_pil:
-        img_pil.save(img)
-    final_size = os.stat(img).st_size
-    logger.debug("Removing Metadata from: %r", img)
-    logger.debug("Metadata clean-up : %r(bytes) removed", size - final_size)
+    size = os.stat(img_path).st_size
+    with Image.open(img_path) as img:
+        img.save(img_path)
+    final_size = os.stat(img_path).st_size
+    if img_path.lower().endswith('.png'):
+        optimize_png(img_path, size, final_size)
+    else:
+        logger.debug("Metadata removed from %r: %d(bytes) removed",
+                     img_path, size - final_size)
 
 
-def optimize_png(img):
+def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
-    size = os.stat(img).st_size
-    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img])
-    final_size = os.stat(img).st_size
-    logger.debug("PNG optimized: %r", img)
-    logger.debug("Weight Removed: %r(bytes)", size - final_size)
+    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
+    final_size = os.stat(img_path).st_size
+    logger.debug("Metadata removed from %r: %d(bytes) removed"
+                 " · PNG, Extra clean-up: %d(bytes) removed",
+                 img_path, original_size - current_size, current_size - final_size)
 
 
 def _download(url, fullpath):
@@ -79,10 +85,7 @@ def _download(url, fullpath):
         fh.write(img)
 
     if not fullpath.lower().endswith('.svg'):
-        remove_metadata(fullpath)
-
-    if fullpath.lower().endswith('.png'):
-        optimize_png(fullpath)
+        optimize_image(fullpath)
 
 
 def download(data):
