@@ -97,14 +97,24 @@ class ContentExtractor(_Processor):
             self.stats['title found'] += 1
 
         # extract the first paragraph
-        node = wikifile.soup.find('p')
-        if node is None:
+        texts = []
+        parent = wikifile.soup.find('div', class_="mw-parser-output")
+        if parent is not None:
+            node = parent.find('p', class_=None, recursive=False)
+            if node is not None:
+                texts.append(node.text.strip())
+
+            cand = parent.find_all('p', class_=None)
+            texts.extend([c.text.strip() for c in cand if c != node])
+            texts = [c for c in texts if c]
+            text = '·'.join(texts)
+            if len(text) > self._max_length:
+                text = text[:self._max_length] + "…"
+
+        if texts == []:
             safe_text = ''
             self.stats['text not found'] += 1
         else:
-            text = node.text.strip()
-            if len(text) > self._max_length:
-                text = text[:self._max_length] + "..."
             safe_text = base64.b64encode(text.encode("utf8")).decode('utf-8')
             self.stats['text found'] += 1
 

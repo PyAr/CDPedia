@@ -23,7 +23,6 @@
   {% for link, title, _, tokens, text in results %}
     <li class="search-result">
         <div class="search-result-title"><a href="/{{ link }}">{{ title }}</a></div>
-        {% if tokens %}<div class="search-result-tokens">{{ tokens|join(', ') }}</div>{% endif %}
         {% if text %}<div class="search-result-text"> {{ text }} </div>{% endif %}
     </li>
   {% endfor %}
