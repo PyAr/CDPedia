@@ -47,6 +47,18 @@ def article_2():
     return load_test_article('article_with_images')
 
 
+cases = [('modelo que permite obtener un color', 'article_with_images'),
+         ("15 de febrero de 1811", 'article_with_summary_fixed'),
+         ("en el territorio continental. Se extiende", 'portal')]
+
+
+@pytest.fixture(params=cases)
+def article_3(request):
+    """Load article html and wikifile."""
+    text, article_name = request.param
+    return text, load_test_article(article_name)
+
+
 @pytest.fixture
 def dummy_vip_decissor(mocker):
     """Dummy VIP decissor."""
@@ -87,10 +99,9 @@ class TestContentExtractor:
             title_saved = next(fh).split(config.SEPARADOR_COLUMNAS)[1]
         assert title_saved == title
 
-    def test_extract_paragraph(self, extractor, article_2):
+    def test_extract_paragraph(self, extractor, article_3):
         """Test paragraph extraction."""
-        html, wikifile = article_2
-        text = 'modelo que permite obtener un color'
+        text, (html, wikifile) = article_3
         assert text in html
         result = extractor(wikifile)
         assert result == (0, [])
@@ -100,7 +111,7 @@ class TestContentExtractor:
         with open(config.LOG_TITLES, 'r', encoding='utf-8') as fh:
             text_saved_b64 = next(fh).split(config.SEPARADOR_COLUMNAS)[2]
         text_saved = base64.b64decode(text_saved_b64).decode('utf-8')
-        assert len(text_saved) <= extractor._max_length + 3  # text + ellipsis
+        assert len(text_saved) <= extractor._max_length + 1  # text + ellipsis
         assert text in text_saved
 
     def test_extract_from_empty_article(self, extractor):
