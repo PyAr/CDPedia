@@ -11,7 +11,7 @@ All is automated nowadays, but you need to be sure that there is configuration f
 
 For example, let's suppose you want to create a DVD version of Spanish Wikipedia. Then, you need to be sure that there is configuration for `es` in the `languages.yaml` file, and for `dvd` (in the `es` section) in the `imagtypes.yaml` file.
 
-The next step is to run the CDPetron (for which you need to first create an activate a virtualenv):
+The next step is to run the CDPetron (for which you need to first create and activate a virtualenv):
 
     virtualenv --python=python3 venv
     source venv/bin/activate
@@ -27,7 +27,7 @@ Alternatively, just use [fades](https://github.com/PyAr/fades/) to deal with the
 
 The first parameter is where all the dump from the web will go (pages, images, etc... be sure you have a lot of free space!), and then the language.
 
-In those examples CDPetron will produce *all the image types*. To specify a particular iamge type to be built, you can use the `--image-type` option (remember that it needs to be defined in the `imagtypes.yaml` file):
+In those examples CDPetron will produce *all the image types*. To specify a particular image type to be built, you can use the `--image-type` option (remember that it needs to be defined in the `imagtypes.yaml` file):
 
     ./cdpetron.py /opt/somedir es --image-type dvd5
 
@@ -57,7 +57,7 @@ Also, you have several parameters like ``--no-lists``, ``--no-scrap``, and ``--n
 
 ## Creating an image with specific pages
 
-The `cdpetron` sctip has some specific option to help testing some specific pages when developing.
+The `cdpetron` script has a specific option to help testing some specific pages when developing.
 
 These are not to be confused with `--test-mode`, which builds a small functional CDPedia, but with first 1000 pages, not the ones you want to check. That said, the best way to use these are together with `--test-mode`, which makes everything faster.
 
@@ -70,9 +70,9 @@ For example, then:
     ./cdpetron.py /opt/somedir es --test-mode --extra-pages=/tmp/extra.txt --page-limit=50
 
 
-# How to add a new lenguage
+# How to add a new language
 
-CDpedia is multilenguage, so you can generate it in Spanish, Portuguese, German, or whatever, with the only condition than the there is a Wikipedia online for that language
+CDpedia is multilanguage, so you can generate it in Spanish, Portuguese, German, or whatever, with the only condition than the there is a Wikipedia online for that language
 
 Currently in the project everything is setup for the following languages:
 
@@ -83,7 +83,7 @@ Currently in the project everything is setup for the following languages:
 
 You can add the proper structures for another language of your preference, and generate the CDPedia for that language. We encourage you to submit a PR with those structures for the new language so they are available for everybody else, thanks!
 
-So, to add a new lenguage you need to take care of different things: language configuration (`imagtypes.yaml` and `languages.yaml`), service texts for the running CDPedia, and project web page for the public. 
+So, to add a new language you need to take care of different things: language configuration (`imagtypes.yaml` and `languages.yaml`), service texts for the running CDPedia, and project web page for the public. 
 
 Let's see these in detail (you can see current files for real life examples):
 
