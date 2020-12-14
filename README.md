@@ -27,7 +27,7 @@ Alternatively, just use [fades](https://github.com/PyAr/fades/) to deal with the
 
 The first parameter is where all the dump from the web will go (pages, images, etc... be sure you have a lot of free space!), and then the language.
 
-In those examples CDPetron will produce *all the image types*. To specify a particular image type to be built, you can use the `--image-type` option (remember that it needs to be defined in the `imagtypes.yaml` file):
+In those examples CDPetron will produce the *tarbig* image type that includes all the articles and most of the pictures. To specify another image type to be built, you can use the `--image-type` option (remember that it needs to be defined in the `imagtypes.yaml` file):
 
     ./cdpetron.py /opt/somedir es --image-type dvd5
 
