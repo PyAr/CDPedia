@@ -37,8 +37,16 @@ MAX_RESULTS = 500
 
 
 def normalize_words(txt):
-    """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
+    """Normalize every word from a sentence.
+
+    - remove all diacritical marks
+    - convert all letters to lowercase
+    - keep non-ascii chars to support non-latin alphabets
+    """
+    # decompose unicode chars
+    txt = unicodedata.normalize('NFKD', txt)
+    # remove diacritics from decomposed string
+    txt = ''.join(c.lower() for c in txt if not unicodedata.combining(c))
     return txt
 
 
