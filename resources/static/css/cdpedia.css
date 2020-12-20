@@ -90,10 +90,13 @@ input#searchInput, input#searchInput:focus {
 }
 
 button#searchButton {
+    background: unset;
     border: 0;
     padding: .1em;
     position: static;
     text-indent: unset;
+    width: unset;
+    min-width: unset;
 }
 
 div.paging-results{
