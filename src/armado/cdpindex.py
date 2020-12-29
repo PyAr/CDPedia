@@ -101,7 +101,7 @@ def tokenize_title(title):
     # strip parenthesis from words, for titles like 'Grañón (La Rioja)'
     words = set(w.strip('()') for w in title_norm.split())
     words.update(WORDS.findall(title_norm))
-    return list(words)
+    return words
 
 
 def generate_from_html(dirbase, verbose):
