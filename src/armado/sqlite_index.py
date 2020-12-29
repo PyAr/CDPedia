@@ -35,6 +35,9 @@ logger = logging.getLogger(__name__)
 PAGE_SIZE = 512
 MAX_RESULTS = 500
 
+# cache for normalized chars
+_normalized_chars = {}
+
 
 def normalize_words(txt):
     """Normalize every word from a sentence.
@@ -45,9 +48,18 @@ def normalize_words(txt):
     """
     # decompose unicode chars
     txt = unicodedata.normalize('NFKD', txt)
-    # remove diacritics from decomposed string
-    txt = ''.join(c.lower() for c in txt if not unicodedata.combining(c))
-    return txt
+
+    # construct normalized text
+    txt_norm = []
+    for c in txt:
+        try:
+            c_norm = _normalized_chars[c]
+        except KeyError:
+            c_norm = '' if unicodedata.combining(c) else c.lower()
+            _normalized_chars[c] = c_norm
+        txt_norm.append(c_norm)
+
+    return ''.join(txt_norm)
 
 
 def decompress_data(data):
