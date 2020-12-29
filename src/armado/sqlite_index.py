@@ -17,7 +17,6 @@
 
 import array
 import logging
-import math
 import operator
 import os
 import pickle
@@ -201,14 +200,11 @@ class Search:
             phrase = [""] * word_quant
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
-            similitude = self.iterative_levenshtein(phrase)
+            difference = self.iterative_levenshtein(phrase)
 
-            # first docid are a LOT more important
-            order_factor = int(40000 * math.pow(docid + 1, -.5))
+            self.ordered.append((difference, docid))
 
-            self.ordered.append((order_factor - similitude, docid))
-
-        self.ordered.sort(reverse=True)
+        self.ordered.sort()
 
     @lru_cache(1000)
     def _get_page(self, pageid):
@@ -394,16 +390,28 @@ class Index:
         The AND boolean operation is applied to the keys.
         """
         keys = list(map(normalize_words, keys))
-        files_yielded = set()
         docset = Search(self.db, keys)
+        results_per_html = {}
         for score, ndoc in docset.ordered:
             doc_data = self.get_doc(ndoc)
-            # Do not return more than one index result to the same file.
-            if not doc_data[0] in files_yielded:
-                files_yielded.add(doc_data[0])
-                yield doc_data
-            if len(files_yielded) >= MAX_RESULTS:
+            html, title, page_score, is_original, description = doc_data
+
+            # decide which result to keep (avoiding results pointing to the same real file)
+            # according to a score formed by the tuple (is_original, page_score), because
+            # redirects have the same score than the original article
+            old_score, _ = results_per_html.get(html, (None, None))
+            new_score = (is_original, page_score)
+            if old_score is None or new_score > old_score:
+                results_per_html[html] = (new_score, doc_data)
+
+            if len(results_per_html) >= MAX_RESULTS:
                 break
+
+        # once deduplicated and chosen all the results, use the page_score to do the final
+        # presentation ordering
+        ordered = sorted(results_per_html.values(), key=lambda x: x[0][1], reverse=True)
+        for new_score, doc_data in ordered:
+            yield doc_data
 
     @classmethod
     def create(cls, directory, source):
