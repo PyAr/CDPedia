@@ -19,11 +19,18 @@ import os
 import sys
 import argparse
 import timeit
+from unittest.mock import patch, MagicMock
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index # NOQA import after fixing path
+import src.armado.to3dirs
 
-PAGE = 50
+
+mock = MagicMock()
+mock.__contains__ = MagicMock(return_value=True)
+src.armado.to3dirs.namespaces = mock
+
+PAGE = 3004
 
 
 def output(*out):
@@ -38,6 +45,7 @@ def show_results(result):
         output("{:>25}:{}".format(definition, value))
 
     first_res_time = 0
+    nro = 0
     for nro, (namhtml, title, ptje, redir, primtext) in enumerate(result):
         if nro == 0:
             first_res_time = timeit.default_timer() - initial_time

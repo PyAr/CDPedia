@@ -147,6 +147,7 @@ def generate_from_html(dirbase, verbose):
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
+                ptje = score // 8000
                 for (words, title) in redirs[arch_orig]:
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)

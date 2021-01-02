@@ -204,7 +204,7 @@ class Search:
             similitude = self.iterative_levenshtein(phrase)
 
             # first docid are a LOT more important
-            order_factor = int(40000 * math.pow(docid + 1, -.5))
+            order_factor = int(40000 * math.pow(docid + 1, -.2))
 
             self.ordered.append((order_factor - similitude, docid))
 
