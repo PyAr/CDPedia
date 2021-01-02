@@ -22,8 +22,11 @@ import timeit
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index # NOQA import after fixing path
+from src.armado import to3dirs
 
 PAGE = 50
+
+to3dirs.namespaces.load("/home/facundo/temp/cdpdump/es/resources")
 
 
 def output(*out):

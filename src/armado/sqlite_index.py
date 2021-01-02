@@ -17,6 +17,7 @@
 
 import array
 import logging
+import math
 import operator
 import os
 import pickle
@@ -32,7 +33,7 @@ from src.armado import to3dirs
 logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
-MAX_RESULTS = 500
+MAX_RESULTS = 50
 
 
 def normalize_words(txt):
@@ -202,9 +203,12 @@ class Search:
                 phrase[pos] = word
             difference = self.iterative_levenshtein(phrase)
 
-            self.ordered.append((difference, docid))
+            # first docid are a LOT more important
+            order_factor = int(40000 * math.pow(docid + 1, -.5))
 
-        self.ordered.sort()
+            self.ordered.append((order_factor - difference, docid))
+
+        self.ordered.sort(reverse=True)
 
     @lru_cache(1000)
     def _get_page(self, pageid):
