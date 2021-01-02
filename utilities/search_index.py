@@ -19,11 +19,11 @@ import os
 import sys
 import argparse
 import timeit
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index # NOQA import after fixing path
-import src.armado.to3dirs
+import src.armado.to3dirs  # NOQA import after fixing path
 
 
 mock = MagicMock()

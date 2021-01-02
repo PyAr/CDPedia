@@ -16,7 +16,6 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-import argparse
 import pathlib
 import base64
 import logging
@@ -27,7 +26,7 @@ import sys
 import urllib.parse
 from collections import defaultdict
 from logging.handlers import RotatingFileHandler
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 sys.path.append(os.path.abspath(os.curdir))
 
 import config   # NOQA import after fixing path
@@ -65,7 +64,6 @@ def calculate():
             page, score = line.strip().split(colsep)
             dir3, fname = src.armado.to3dirs.get_path_file(page)
             all_pages.append((dir3, fname, int(score)))
-
 
     # order by score, and get top N
     all_pages.sort(key=operator.itemgetter(2), reverse=True)
@@ -160,7 +158,8 @@ if __name__ == "__main__":
     if PATH_TEMP.exists():
         for filename in ["titles.txt", "page_scores_final.txt", "redirects.txt"]:
             if not PATH_TEMP.joinpath(filename).exists():
-                raise FileNotFoundError("The file {} is needed".format(str(PATH_TEMP.joinpath(filename))))
+                raise FileNotFoundError("The file {} is needed".format(
+                    str(PATH_TEMP.joinpath(filename))))
 
     n_pag, gen = generate_from_html()
     idx = IndexSQL.create(str(PATH_IDX), gen())
