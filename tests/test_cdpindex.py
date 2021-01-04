@@ -46,10 +46,18 @@ def data(mocker, tmp_path):
         pass
 
 
-@pytest.mark.parametrize('text', ('Foo', 'FOO', 'Fóó', 'fòÕ'))
-def test_word_normalization(text):
-    expected = 'foo'
-    assert expected == cdpindex.normalize_words(text)
+@pytest.mark.parametrize('text_raw, text_norm', (
+    ('FOO', 'foo'),
+    ('FóÕ', 'foo'),
+    ('ñandú', 'nandu'),
+    ('.com', '.com'),
+    ('AC/DC', 'ac/dc'),
+    ('замо́к', 'замок'),
+    ('παϊδάκια', 'παιδακια'),
+))
+def test_word_normalization(text_raw, text_norm):
+    """Check lowercase convertion and diacritics removal."""
+    assert text_norm == cdpindex.normalize_words(text_raw)
 
 
 def test_normal_entries_top_pages(index, data, mocker):
@@ -117,3 +125,24 @@ def test_redirects_with_special_chars(index, data, mocker, title):
     assert index.create.call_count == 1
     entries = list(index.create.call_args[0][1])
     assert len(entries) == 2
+
+
+@pytest.mark.parametrize('title, expected_tokens', (
+    ('Foo BAR', {'foo', 'bar'}),
+    ('José de San Martín', {'jose', 'de', 'san', 'martin'}),
+    ('Jeep Ñandú', {'jeep', 'nandu'}),
+    ('Grañón (La Rioja)', {'granon', 'la', 'rioja'}),
+    ('Chacarita (Buenos Aires)', {'chacarita', 'buenos', 'aires'}),
+    ('Número π', {'numero', 'π'}),
+    ('AC/DC', {'ac/dc', 'ac', 'dc'}),
+    ('.com', {'.com', 'com'}),
+    ('$9.99', {'$9.99', '99', '9'}),
+    ('Fahrenheit 9/11', {'fahrenheit', '9/11', '9', '11'}),
+    ('♥ Heart (álbum)', {'♥', 'heart', 'album'}),
+    ('Србија', {'србија'}),
+    ('Έλενα Παπαρίζου', {'ελενα', 'παπαριζου'}),
+))
+def test_title_tokenization(title, expected_tokens):
+    """Check the tokens that will be inserted in the index."""
+    tokens = set(cdpindex.tokenize_title(title))
+    assert tokens == expected_tokens
