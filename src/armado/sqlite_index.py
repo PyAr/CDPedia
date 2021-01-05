@@ -224,7 +224,7 @@ class Search:
             difference = self.iterative_levenshtein(phrase)
 
             # first docid are a LOT more important
-            order_factor = int(40000 * math.pow(docid + 1, -.2))
+            order_factor = int(40000 * math.pow(docid + 1, -.5))
 
             self.ordered.append((order_factor - difference, docid))
 
