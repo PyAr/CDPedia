@@ -45,7 +45,7 @@ def show_results(result):
         output("{:>25}:{}".format(definition, value))
 
     first_res_time = 0
-    nro = 0
+    nro = None
     for nro, (namhtml, title, ptje, redir, primtext) in enumerate(result):
         if nro == 0:
             first_res_time = timeit.default_timer() - initial_time
@@ -57,6 +57,9 @@ def show_results(result):
         if nro == PAGE:
             first_res_time = timeit.default_timer() - initial_time
             show_stat("First %d Result" % PAGE, first_res_time)
+    if nro is None:
+        output("No results")
+        return
     show_stat("Time", timeit.default_timer() - initial_time)
     show_stat("Results", nro + 1)
     return
