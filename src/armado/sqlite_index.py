@@ -35,11 +35,31 @@ logger = logging.getLogger(__name__)
 PAGE_SIZE = 512
 MAX_RESULTS = 500
 
+# cache for normalized chars
+_normalized_chars = {}
+
 
 def normalize_words(txt):
-    """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
-    return txt
+    """Normalize every word from a sentence.
+
+    - remove all diacritical marks
+    - convert all letters to lowercase
+    - keep non-ascii chars to support non-latin alphabets
+    """
+    # decompose unicode chars
+    txt = unicodedata.normalize('NFKD', txt)
+
+    # construct normalized text
+    txt_norm = []
+    for c in txt:
+        try:
+            c_norm = _normalized_chars[c]
+        except KeyError:
+            c_norm = '' if unicodedata.combining(c) else c.lower()
+            _normalized_chars[c] = c_norm
+        txt_norm.append(c_norm)
+
+    return ''.join(txt_norm)
 
 
 def decompress_data(data):
@@ -194,19 +214,19 @@ class Search:
         for key in keys[1:]:
             results &= self._get_docs(key)
 
-        # computes the similitude of phrase
+        # computes the difference of phrase
         self.ordered = []
         for docid in results:
             word_quant = self._get_doc_word_quant(docid)
             phrase = [""] * word_quant
             for pos, word in self.docs[docid].items():
                 phrase[pos] = word
-            similitude = self.iterative_levenshtein(phrase)
+            difference = self.iterative_levenshtein(phrase)
 
             # first docid are a LOT more important
             order_factor = int(40000 * math.pow(docid + 1, -.2))
 
-            self.ordered.append((order_factor - similitude, docid))
+            self.ordered.append((order_factor - difference, docid))
 
         self.ordered.sort(reverse=True)
 

@@ -31,7 +31,7 @@ sys.path.append(os.path.abspath(os.curdir))
 
 import config   # NOQA import after fixing path
 import src.armado.to3dirs  # NOQA import after fixing path
-from src.armado.sqlite_index import Index as IndexSQL  # NOQA import after fixing path
+from src.armado.sqlite_index import Index # NOQA import after fixing path
 from src.armado.cdpindex import filename2words, normalize_words  # NOQA import after fixing path
 
 logger = logging.getLogger()
@@ -52,6 +52,8 @@ src.armado.to3dirs.namespaces = mock
 WORDS = re.compile(r"\w+", re.UNICODE)
 PATH_TEMP = pathlib.Path("./temp")
 PATH_IDX = pathlib.Path("./idx")
+config.LOG_REDIRECTS = PATH_TEMP / "redirects.txt"
+config.LOG_TITLES = PATH_TEMP / "titles.txt"
 
 
 def calculate():
@@ -71,42 +73,49 @@ def calculate():
     return all_pages
 
 
-def generate_from_html(verbose=True):
+def tokenize_title(title):
+    """Create list of tokens from given title."""
+    title_norm = normalize_words(title)
+    # strip parenthesis from words, for titles like 'Grañón (La Rioja)'
+    words = set(w.strip('()') for w in title_norm.split())
+    words.update(WORDS.findall(title_norm))
+    return words
+
+
+def generate_from_html(dirbase, verbose):
     """Creates the index. used to create new versions of cdpedia."""
     # make redirections
-    with PATH_TEMP.joinpath("redirects.txt").open("rt", encoding='utf8') as fh:
-        redirs = defaultdict(set)
-        for line in fh:
-            orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS, 1)
+    # use a set to avoid duplicated titles after normalization
+    redirs = defaultdict(set)
+    for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
+        orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
 
-            # in the original article, the title is missing
-            # so we use the words founded in the filename
-            # it isn't the optimal solution, but works
-            words, title = filename2words(orig)
-            try:
-                redirs[dest].add(tuple(words))
-            except Exception as e:
-                print("ERror:", e, line, type(dest), type(words))
+        # in the original article, the title is missing
+        # so we use the words founded in the filename
+        # it isn't the optimal solution, but works
+        words, title = filename2words(orig)
+        redirs[dest].add((tuple(words), title))
     print("Len redirs", len(redirs))
 
     top_pages = calculate()
-    already_seen = set()
+
     titles_texts = {}
-    with PATH_TEMP.joinpath("titles.txt").open("rt", encoding='utf8') as fh:
+    with open(config.LOG_TITLES, "rt", encoding='utf8') as fh:
         for line in fh:
             arch, title, encoded_primtext = line.strip().split(config.SEPARADOR_COLUMNAS)
             primtext = base64.b64decode(encoded_primtext).decode("utf8")
             titles_texts[arch] = (title, primtext)
     print("Len titles", len(titles_texts))
+    already_seen = set()
 
     def check_already_seen(data):
         """Check for duplicated index entries. Crash if founded."""
         if data in already_seen:
-            raise KeyError("Duplicated document in: {}".format(data))
+            # raise KeyError("Duplicated document in: {}".format(data))
+            print("KeyError Duplicated document in: {}".format(data))
         already_seen.add(data)
 
     def gen():
-        """Source generator to SQLite index."""
         for dir3, arch, score in top_pages:
             # auxiliar info
             namhtml = os.path.join(dir3, arch)
@@ -117,26 +126,24 @@ def generate_from_html(verbose=True):
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
             data = (namhtml, title, ptje, True, primtext)
-            if not title:
-                continue
             check_already_seen(data)
-            words = WORDS.findall(normalize_words(title))
+            words = tokenize_title(title)
             yield words, ptje, data
+            word_set = set(words)
+
             # pass words to the redirects which points to
             # this html file, using the same score
-            arch_orig = urllib.parse.unquote(arch)
+            arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
-                ptje = score // 6000
-                for words in redirs[arch_orig]:
-                    # the title is missing in the original article so we use the words found in
-                    # the filename (it isn't the optimal solution, but works)
-                    title = " ".join(words)
-                    if not title:
-                        continue
-                    data = (namhtml, title, ptje, False, "")
-                    check_already_seen(data)
-                    yield list(words), ptje, data
-
+                ptje = score // 8000
+                for (words, title) in redirs[arch_orig]:
+                    if not word_set.issuperset(set(words)):
+                        data = (namhtml, title, ptje, False, "")
+                        check_already_seen(data)
+                        yield list(words), ptje, data
+                    else:
+                        logger.info("Ommited '{}', is subset of '{}'".format(
+                            ' '.join(words), ' '.join(word_set)))
     return len(top_pages), gen
 
 
@@ -161,5 +168,5 @@ if __name__ == "__main__":
                 raise FileNotFoundError("The file {} is needed".format(
                     str(PATH_TEMP.joinpath(filename))))
 
-    n_pag, gen = generate_from_html()
-    idx = IndexSQL.create(str(PATH_IDX), gen())
+    n_pag, gen = generate_from_html(PATH_TEMP, verbose=True)
+    idx = Index.create(str(PATH_IDX), gen())

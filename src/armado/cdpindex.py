@@ -95,6 +95,15 @@ def filename2words(fname):
     return p, t
 
 
+def tokenize_title(title):
+    """Create list of tokens from given title."""
+    title_norm = normalize_words(title)
+    # strip parenthesis from words, for titles like 'Grañón (La Rioja)'
+    words = set(w.strip('()') for w in title_norm.split())
+    words.update(WORDS.findall(title_norm))
+    return words
+
+
 def generate_from_html(dirbase, verbose):
     """Creates the index. used to create new versions of cdpedia."""
     # This isn't needed on the final user, so it is imported here
@@ -140,8 +149,9 @@ def generate_from_html(dirbase, verbose):
             ptje = 50 + score // 1000
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
-            words = WORDS.findall(normalize_words(title))
+            words = tokenize_title(title)
             yield words, ptje, data
+            word_set = set(words)
 
             # pass words to the redirects which points to
             # this html file, using the same score
@@ -149,9 +159,13 @@ def generate_from_html(dirbase, verbose):
             if arch_orig in redirs:
                 ptje = score // 8000
                 for (words, title) in redirs[arch_orig]:
-                    data = (namhtml, title, ptje, False, "")
-                    check_already_seen(data)
-                    yield list(words), ptje, data
+                    if not word_set.issuperset(set(words)):
+                        data = (namhtml, title, ptje, False, "")
+                        check_already_seen(data)
+                        yield list(words), ptje, data
+                    else:
+                        logger.debug("Ommited {}, is subset of {}".format(
+                            title, ' '.join(word_set)))
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
