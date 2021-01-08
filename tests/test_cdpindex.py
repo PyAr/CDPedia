@@ -60,6 +60,16 @@ def test_word_normalization(text_raw, text_norm):
     assert text_norm == cdpindex.normalize_words(text_raw)
 
 
+@pytest.mark.parametrize('fname_raw, words', (
+    ('España´82', ['espana', '82']),
+    ('España 82', ['espana', '82']),
+    ('España_82', ['espana', '82']),
+))
+def test_filename_to_words(fname_raw, words):
+    """Check getting words from the filename (used for redirects)."""
+    assert cdpindex.filename2words(fname_raw) == words
+
+
 def test_normal_entries_top_pages(index, data, mocker):
     """All entries from top_pages should be added to the index."""
     top_pages = [
@@ -93,20 +103,33 @@ def test_repeated_entries_top_pages(index, data, mocker):
 
 def test_repeated_entry_redirects(index, data, mocker):
     """Don't add repeated redirect entries to the index."""
-    top_pages = [('f/o/o', 'foo', 10)]
+    with open(config.LOG_TITLES, 'wt', encoding='utf-8') as fh:
+        fh.write('foo_bar|foo bar|\n')
+    top_pages = [('f/o/o_bar', 'foo_bar', 10)]
     mocker.patch('src.preprocessing.preprocess.pages_selector', mocker.Mock(top_pages=top_pages))
-    # these redirects will have the same title after normalization,
-    # only one of these should be added to the index
+
+    # these redirects will have similar titles after normalization, those will exact words
+    # will be not included, only the one with the new word (and NOT the repeated one after that!)
     with open(config.LOG_REDIRECTS, 'wt', encoding='utf-8') as fh:
-        fh.write('Foo|foo\n')
-        fh.write('FOO|foo\n')
-        fh.write('fOO|foo\n')
+        fh.write('Foo Bar|foo_bar\n')
+        fh.write('FOO BAR|foo_bar\n')
+        fh.write('fOO bazzz|foo_bar\n')
+        fh.write('BAZZZ fOo|foo_bar\n')
     cdpindex.generate_from_html(None, None)
     assert index.create.call_count == 1
     entries = list(index.create.call_args[0][1])
+
     # should have one entry from top_pages and one entry from redirects; both kind of entries
     # have the same normalized title, url and score but differs in a boolean param.
     assert len(entries) == 2
+    words, _, (html, _, _, is_original, _) = entries[0]
+    assert words == {'bar', 'foo'}
+    assert html == 'f/o/o_bar/foo_bar'
+    assert is_original
+    words, _, (html, _, _, is_original, _) = entries[1]
+    assert words == {'bazzz'}
+    assert html == 'f/o/o_bar/foo_bar'
+    assert not is_original
 
 
 @pytest.mark.parametrize('title', ('foo/bar', 'foo.bar', 'foo%bar'))
