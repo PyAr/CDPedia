@@ -136,6 +136,25 @@ def test_repeated_entry_redirects(index, data, mocker):
     assert not is_original
 
 
+def test_repeated_entry_redirects_special_madres(index, data, mocker):
+    """Specific test for madres."""
+    with open(config.LOG_TITLES, 'wt', encoding='utf-8') as fh:
+        fh.write('Madres_de_Plaza_de_Mayo|Madres de Plaza de Mayo|\n')
+    top_pages = [('M/a/dres_de_Plaza_de_Mayo', 'Madres_de_Plaza_de_Mayo', 10)]
+    mocker.patch('src.preprocessing.preprocess.pages_selector', mocker.Mock(top_pages=top_pages))
+
+    # these redirects will have similar titles after normalization, those will exact words
+    # will be not included, only the one with the new word (and NOT the repeated one after that!)
+    with open(config.LOG_REDIRECTS, 'wt', encoding='utf-8') as fh:
+        fh.write('Madres|Madres_de_Plaza_de_Mayo\n')
+    cdpindex.generate_from_html(None, None)
+    assert index.create.call_count == 1
+    entries = list(index.create.call_args[0][1])
+    assert len(entries) == 2
+    assert entries[0][0] == {'madres', 'de', 'plaza', 'mayo'}
+    assert entries[1][0] == {'madres'}
+
+
 @pytest.mark.parametrize('title', ('foo/bar', 'foo.bar', 'foo%bar'))
 def test_redirects_with_special_chars(index, data, mocker, title):
     """Check redirects to pages containing encoded special filesystem chars."""
