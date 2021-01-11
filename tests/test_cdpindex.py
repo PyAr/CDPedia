@@ -119,15 +119,19 @@ def test_repeated_entry_redirects(index, data, mocker):
     assert index.create.call_count == 1
     entries = list(index.create.call_args[0][1])
 
-    # should have one entry from top_pages and one entry from redirects; both kind of entries
-    # have the same normalized title, url and score but differs in a boolean param.
+    # should have one entry from top_pages and one entry from redirects:
+    #  - YES: the original article, for sure
+    #  - NO: both next redirects, which after normalization have the same words
+    #  - YES: the redirect bringing new words (note ALL words are indexed, not only the different
+    #         ones, as all are needed if the user search for those words doing an AND)
+    #  - NO: the last redirect, that again are the same words than an already indexed item
     assert len(entries) == 2
     words, _, (html, _, _, is_original, _) = entries[0]
     assert words == {'bar', 'foo'}
     assert html == 'f/o/o_bar/foo_bar'
     assert is_original
     words, _, (html, _, _, is_original, _) = entries[1]
-    assert words == {'bazzz'}
+    assert words == {'foo', 'bazzz'}
     assert html == 'f/o/o_bar/foo_bar'
     assert not is_original
 

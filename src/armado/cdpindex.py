@@ -113,7 +113,7 @@ def generate_from_html(dirbase, verbose):
     for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
         orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
         words = filename2words(orig)
-        redirs[dest].add(tuple(words))
+        redirs[dest].add(frozenset(words))
 
     top_pages = preprocess.pages_selector.top_pages
 
@@ -150,22 +150,21 @@ def generate_from_html(dirbase, verbose):
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
-                already_used_words = words.copy()  # leave the original intact
+                # keep sets of already indexed words, to ignore exact-words redirects
+                already_indexed_words = {frozenset(words)}
+
                 for words in redirs[arch_orig]:
-                    # store the redirect for the words that are not also pointing to the
-                    # original article
-                    redir_only_words = set(words) - already_used_words
-                    if not redir_only_words:
+                    if words in already_indexed_words:
                         # all about this redirect was included before, ignore
                         continue
+                    already_indexed_words.add(words)
 
                     # the title is missing in the original article so we use the words found in
                     # the filename (it isn't the optimal solution, but works)
                     title = " ".join(words)
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    yield redir_only_words, ptje, data
-                    already_used_words.update(redir_only_words)
+                    yield words, ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
