@@ -387,15 +387,22 @@ class Index:
             return decomp_data
         return None
 
-    def get_doc(self, docid):
+    def _get_raw_doc(self, docid):
         """Return one stored document item."""
         page_id, rel_position = divmod(docid, PAGE_SIZE)
         data = self._get_page(page_id)
         if not data:
             raise IndexError("Non existing docid")
-        row = data[rel_position]
-        # if the html filename is marked as computable
+        return data[rel_position]
+
+    def get_doc(self, docid):
+        """Return one stored document item."""
+        row = self._get_raw_doc(docid)
         # do it and store in position 0.
+        if isinstance(row[0], int) and len(row) == 2:
+            redir_docid, redir_title = row
+            row = self._get_raw_doc(redir_docid)
+            row[1] = "{} <i>“{}”</i>".format(row[1], redir_title)
         if row[0] is None:
             row[0] = to_filename(row[1])
         return row
@@ -416,22 +423,13 @@ class Index:
         keys = list(map(normalize_words, keys))
         files_yielded = set()
         docset = Search(self.db, keys)
-        ndocs = []
         for score, ndoc in docset.ordered:
-            if ndoc in ndocs:
-                continue
-            ndocs.append(ndoc)
             doc_data = self.get_doc(ndoc)
-            if isinstance(doc_data[0], int) and len(doc_data) == 2:
-                if doc_data[0] in ndocs:
-                    continue
-                ndocs.append(doc_data[0])
-                redir_title = doc_data[1]
-                doc_data = self.get_doc(doc_data[0])
-                doc_data[1] = "{} <i>“{}”</i>".format(doc_data[1], redir_title)
             if not doc_data[0] in files_yielded:
                 files_yielded.add(doc_data[0])
-                yield doc_data
+                # VERY IMPORTANT HACK:
+                # if not use copy(), ThreadedSearch mix strings and creates a mess
+                yield doc_data.copy()
             if len(files_yielded) >= MAX_RESULTS:
                 break
 
