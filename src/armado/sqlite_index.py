@@ -416,9 +416,19 @@ class Index:
         keys = list(map(normalize_words, keys))
         files_yielded = set()
         docset = Search(self.db, keys)
+        ndocs = []
         for score, ndoc in docset.ordered:
+            if ndoc in ndocs:
+                continue
+            ndocs.append(ndoc)
             doc_data = self.get_doc(ndoc)
-            # Do not return more than one index result to the same file.
+            if isinstance(doc_data[0], int) and len(doc_data) == 2:
+                if doc_data[0] in ndocs:
+                    continue
+                ndocs.append(doc_data[0])
+                redir_title = doc_data[1]
+                doc_data = self.get_doc(doc_data[0])
+                doc_data[1] = "{} <i>“{}”</i>".format(doc_data[1], redir_title)
             if not doc_data[0] in files_yielded:
                 files_yielded.add(doc_data[0])
                 yield doc_data
@@ -510,13 +520,18 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, data in source:
+            for words, page_score, data, redirs in source:
                 data = list(data)
                 if data[0] == to_filename(data[1]):
                     data[0] = None
-                docid = docs_table.append((len(words), data))
+                prim_docid = docs_table.append((len(words), data))
                 for idx, word in enumerate(words):
-                    idx_dict[word].append(docid, idx)
+                    idx_dict[word].append(prim_docid, idx)
+                for redir in redirs:
+                    redir_data = (prim_docid, ' '.join(words))
+                    docid = docs_table.append((len(redir), redir_data))
+                    for idx, word in enumerate(redir):
+                        idx_dict[word].append(docid, idx)
 
             docs_table.finish()
             return idx_dict

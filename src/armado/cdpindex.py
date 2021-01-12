@@ -119,7 +119,7 @@ def generate_from_html(dirbase, verbose):
         # so we use the words founded in the filename
         # it isn't the optimal solution, but works
         words, title = filename2words(orig)
-        redirs[dest].add((tuple(words), title))
+        redirs[dest].add(tuple(words))
 
     top_pages = preprocess.pages_selector.top_pages
 
@@ -150,16 +150,11 @@ def generate_from_html(dirbase, verbose):
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
             words = tokenize_title(title)
-            yield words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
-            if arch_orig in redirs:
-                for (words, title) in redirs[arch_orig]:
-                    data = (namhtml, title, ptje, False, "")
-                    check_already_seen(data)
-                    yield list(words), ptje, data
+            yield words, ptje, data, redirs[arch_orig]
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
