@@ -185,7 +185,7 @@ class Index(object):
         indexed_counter = 0
 
         # fill them
-        for keys, ptje, data in source:
+        for keys, ptje, data, redirs in source:
             checkme = all([isinstance(keys, list),
                           isinstance(ptje, int),
                           isinstance(data, tuple)])
@@ -197,7 +197,6 @@ class Index(object):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
             value = list(data)
-
             # docid -> info final
             # don't add to tmp_reverse_id or ids_shelf if the value is repeated
             docid = ids_cnter
@@ -208,6 +207,16 @@ class Index(object):
             # keys -> docid
             for key in keys:
                 key_shelf.setdefault(key, set()).add(docid)
+
+            # create the additional entries for redirs
+            for redir in redirs:
+                redir_data = (data[0], ' '.join(redir), data[2], False, '')
+                redir_docid = ids_cnter
+                ids_cnter += 1
+                ids_shelf[redir_docid] = redir_data
+
+                for key in redir:
+                    key_shelf.setdefault(key, set()).add(redir_docid)
 
         if ids_cnter == 0:
             raise ValueError("No data to index")

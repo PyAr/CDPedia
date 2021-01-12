@@ -62,8 +62,8 @@ def create_app_client(mocker, tmp_path):
 
     # a bogus index with a couple of items (so it behaves properly for get_random and similar)
     mocker.patch('config.DIR_INDICE', str(tmp_path))
-    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1')),
-                    (['key2'], 8, ('p/a/g/page2', 'Page2'))]
+    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1'), []),
+                    (['key2'], 8, ('p/a/g/page2', 'Page2'), [])]
     cdpindex.Index.create(str(tmp_path), fake_content)
 
     app = web_app.create_app(watchdog=None, with_static=False)

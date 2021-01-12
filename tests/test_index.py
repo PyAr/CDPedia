@@ -49,7 +49,8 @@ class DataSet:
     def add_fixture(cls, key, data):
         docs = [n.strip().split("/") for n in data.split(";")]
         docs = [(n[0], int(n[1])) for n in docs]
-        info = [(n[0].lower().split(" "), n[1], (None, n[0])) for n in docs]
+        redirs = []
+        info = [(n[0].lower().split(" "), n[1], (None, n[0]), redirs) for n in docs]
         cls.fixtures[key] = info
 
     def __init__(self, key):
@@ -68,7 +69,7 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    assert DataSet("one").info == [(['ala', 'blanca'], 3, (None, 'ala blanca'))]
+    assert DataSet("one").info == [(['ala', 'blanca'], 3, (None, 'ala blanca'), [])]
     r = [("A/l/a/Ala_Blanca", "ala blanca", ),
          ("A/l/a/Ala", "ala", )]
     s = "ala blanca; ala"

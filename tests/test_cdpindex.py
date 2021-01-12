@@ -106,7 +106,8 @@ def test_repeated_entry_redirects(index, data, mocker):
     entries = list(index.create.call_args[0][1])
     # should have one entry from top_pages and one entry from redirects; both kind of entries
     # have the same normalized title, url and score but differs in a boolean param.
-    assert len(entries) == 2
+    # the primary entry is sended with the redirs added
+    assert len(entries) == 1
 
 
 @pytest.mark.parametrize('title', ('foo/bar', 'foo.bar', 'foo%bar'))
@@ -124,7 +125,8 @@ def test_redirects_with_special_chars(index, data, mocker, title):
     cdpindex.generate_from_html(None, None)
     assert index.create.call_count == 1
     entries = list(index.create.call_args[0][1])
-    assert len(entries) == 2
+    # the primary entry is sended with the redirs added
+    assert len(entries) == 1
 
 
 @pytest.mark.parametrize('title, expected_tokens', (
