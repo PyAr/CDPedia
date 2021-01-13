@@ -526,7 +526,7 @@ class Index:
                 for idx, word in enumerate(words):
                     idx_dict[word].append(prim_docid, idx)
                 for redir in redirs:
-                    redir_data = (prim_docid, ' '.join(words))
+                    redir_data = (prim_docid, ' '.join(redir))
                     docid = docs_table.append((len(redir), redir_data))
                     for idx, word in enumerate(redir):
                         idx_dict[word].append(docid, idx)
