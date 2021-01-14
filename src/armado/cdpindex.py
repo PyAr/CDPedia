@@ -27,7 +27,7 @@ import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-from .sqlite_index import Index, normalize_words, Index_entry
+from .sqlite_index import Index, normalize_words, Indexentry
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ def generate_from_html(dirbase, verbose):
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-            data = Index_entry(
+            data = Indexentry(
                 link=link,
                 title=title,
                 ptje=ptje,
@@ -162,7 +162,7 @@ def generate_from_html(dirbase, verbose):
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
                 for (words, title) in redirs[arch_orig]:
-                    data = Index_entry(
+                    data = Indexentry(
                         link=link,
                         title=title,
                         ptje=ptje,
