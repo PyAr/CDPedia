@@ -27,7 +27,7 @@ import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-from .sqlite_index import Index, normalize_words
+from .sqlite_index import Index, normalize_words, Index_entry
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class IndexInterface(threading.Thread):
 
     In association with every word will be saved
 
-     - namhtml: the path to the file
+     - link: the path to the file
      - title: the article's title
      - score: to weight the relative importance of each article
     """
@@ -140,14 +140,19 @@ def generate_from_html(dirbase, verbose):
     def gen():
         for dir3, arch, score in top_pages:
             # auxiliar info
-            namhtml = os.path.join(dir3, arch)
+            link = os.path.join(dir3, arch)
             title, primtext = titles_texts[arch]
-            logger.info("Adding to index: [%r]  (%r)" % (title, namhtml))
+            logger.info("Adding to index: [%r]  (%r)" % (title, link))
 
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-            data = (namhtml, title, ptje, True, primtext)
+            data = Index_entry(
+                link=link,
+                title=title,
+                ptje=ptje,
+                rtype=0,
+                primtext=primtext)
             check_already_seen(data)
             words = tokenize_title(title)
             yield words, ptje, data
@@ -157,7 +162,11 @@ def generate_from_html(dirbase, verbose):
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
                 for (words, title) in redirs[arch_orig]:
-                    data = (namhtml, title, ptje, False, "")
+                    data = Index_entry(
+                        link=link,
+                        title=title,
+                        ptje=ptje,
+                        rtype=2)
                     check_already_seen(data)
                     yield list(words), ptje, data
 

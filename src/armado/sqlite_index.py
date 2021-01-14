@@ -24,7 +24,7 @@ import pickle
 import random
 import unicodedata
 import sqlite3
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from functools import lru_cache
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
@@ -34,10 +34,18 @@ logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
 MAX_RESULTS = 500
+index_entry = namedtuple("indexentry",
+                         "link title ptje description subtitle rtype origdocid",
+                         defaults=(None, "", 0, "", "", "", None))
+
+class Indexentry(index_entry):
+   def update(self, **kargs):
+        own = self._asdict()
+        own.update(kargs)
+        return index_entry(**own)
 
 # cache for normalized chars
 _normalized_chars = {}
-
 
 def normalize_words(txt):
     """Normalize every word from a sentence.
@@ -396,9 +404,10 @@ class Index:
         row = data[rel_position]
         # if the html filename is marked as computable
         # do it and store in position 0.
-        if row[0] is None:
-            row[0] = to_filename(row[1])
-        return row
+        idx_entry = Indexentry(*row)
+        if idx_entry.link is None:
+            idx_entry = idx_entry.update(link=to_filename(idx_entry.title))
+        return idx_entry
 
     def search(self, keys):
         """Not implemented, just added for API compatibility.
@@ -510,11 +519,11 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, data in source:
-                data = list(data)
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
-                docid = docs_table.append((len(words), data))
+            for words, page_score, idx_entry in source:
+                if idx_entry.link == to_filename(idx_entry.title):
+                    idx_entry = idx_entry.update(link=None, rtype=1)
+                idx_entry = tuple(idx_entry)
+                docid = docs_table.append((len(words), idx_entry))
                 for idx, word in enumerate(words):
                     idx_dict[word].append(docid, idx)
 
