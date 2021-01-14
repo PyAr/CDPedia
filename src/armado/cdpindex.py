@@ -141,7 +141,7 @@ def generate_from_html(dirbase, verbose):
         for dir3, arch, score in top_pages:
             # auxiliar info
             link = os.path.join(dir3, arch)
-            title, primtext = titles_texts[arch]
+            title, description = titles_texts[arch]
             logger.info("Adding to index: [%r]  (%r)" % (title, link))
 
             # give the title's words great score: 50 plus
@@ -152,7 +152,7 @@ def generate_from_html(dirbase, verbose):
                 title=title,
                 ptje=ptje,
                 rtype=0,
-                primtext=primtext)
+                description=description)
             check_already_seen(data)
             words = tokenize_title(title)
             yield words, ptje, data

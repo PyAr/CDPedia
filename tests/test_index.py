@@ -49,7 +49,7 @@ class DataSet:
     def add_fixture(cls, key, data):
         docs = [n.strip().split("/") for n in data.split(";")]
         docs = [(n[0], int(n[1])) for n in docs]
-        info =[]
+        info = []
         for n in docs:
             data = sqlite_index.Indexentry(link=None, title=n[0])
             info.append((n[0].lower().split(" "), n[1], data))
@@ -73,10 +73,10 @@ def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
     data = sqlite_index.Indexentry(link=None, title="ala blanca")
     assert DataSet("one").info == [(['ala', 'blanca'], 3, data)]
-    r = [("A/l/a/Ala_Blanca", "ala blanca", ),
-         ("A/l/a/Ala", "ala", )]
+    r = [("A/l/a/Ala_Blanca", "ala blanca", 0),
+         ("A/l/a/Ala", "ala", 0)]
     s = "ala blanca; ala"
-#    assert abrev(r) == decomp(s)
+    assert abrev(r) == decomp(s)
 
 
 DataSet.add_fixture("A", "ala blanca/3")

@@ -38,14 +38,17 @@ index_entry = namedtuple("indexentry",
                          "link title ptje description subtitle rtype origdocid",
                          defaults=(None, "", 0, "", "", "", None))
 
+
 class Indexentry(index_entry):
-   def update(self, **kargs):
+    def update(self, **kargs):
         own = self._asdict()
         own.update(kargs)
         return index_entry(**own)
 
+
 # cache for normalized chars
 _normalized_chars = {}
+
 
 def normalize_words(txt):
     """Normalize every word from a sentence.
