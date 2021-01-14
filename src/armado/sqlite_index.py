@@ -34,13 +34,36 @@ logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 512
 MAX_RESULTS = 500
+
+
+# Indexentry is used to give structure to documents entries.
 index_entry = namedtuple("indexentry",
-                         "link title ptje description subtitle rtype origdocid",
-                         defaults=(None, "", 0, "", "", "", None))
+                         "link title ptje description subtitle rtype origdocid")
 
 
 class Indexentry(index_entry):
+    defaults = index_entry(link=None,
+                           title="",
+                           ptje=0,
+                           description="",
+                           subtitle="",
+                           rtype=0,
+                           origdocid=None)
+
+    def __new__(cls, *args, **kargs):
+        """Implements defaults for older python versions (<3.7)."""
+        if len(args) == len(cls.defaults):
+            obj = super().__new__(cls, *args)
+        elif len(kargs) == len(cls.defaults):
+            obj = super().__new__(cls, **kargs)
+        else:
+            base = cls.defaults._asdict()
+            base.update(kargs)
+            obj = super().__new__(cls, **base)
+        return obj
+
     def update(self, **kargs):
+        """To simplify update data."""
         own = self._asdict()
         own.update(kargs)
         return index_entry(**own)

@@ -176,4 +176,5 @@ def generate_from_html(dirbase, verbose):
     os.mkdir(config.DIR_INDICE)
 
     Index.create(config.DIR_INDICE, gen())
+    logger.info("Index created at {}".format(config.DIR_INDICE))
     return len(top_pages)

@@ -38,14 +38,14 @@ def show_results(result):
         output("{:>25}:{}".format(definition, value))
 
     first_res_time = 0
-    for nro, (namhtml, title, ptje, redir, primtext) in enumerate(result):
+    for nro, result in enumerate(result):
         if nro == 0:
             first_res_time = timeit.default_timer() - initial_time
             show_stat("First Result", first_res_time)
         if args.verbose and nro <= PAGE:
             # pp(row)
             output('{0:2d}){2:8d} "{1:30s}" {3:70s}'.format(
-                nro, title, ptje, primtext[:70].replace("\n", " ")))
+                nro, result.title, result.ptje, result.description[:70].replace("\n", " ")))
         if nro == PAGE:
             first_res_time = timeit.default_timer() - initial_time
             show_stat("First %d Result" % PAGE, first_res_time)
