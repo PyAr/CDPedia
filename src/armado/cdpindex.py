@@ -140,28 +140,22 @@ def generate_from_html(dirbase, verbose):
             ptje = 50 + score // 1000
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
-            words = tokenize(title)
-            yield tuple(words), ptje, data
+            orig_words = tuple(tokenize(title))
+            yield orig_words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
-                # keep sets of already indexed words, to ignore exact-words redirects
-                already_indexed_words = {tuple(words)}
-
-                for words in redirs[arch_orig]:
-                    if words in already_indexed_words:
-                        # all about this redirect was included before, ignore
-                        continue
-                    already_indexed_words.add(words)
-
+                # get redirect words (excluding the ones already used in the original article)
+                all_redir_words = redirs[arch_orig] - {orig_words}
+                for redir_words in all_redir_words:
                     # the title is missing in the original article so we use the words found in
                     # the filename (it isn't the optimal solution, but works)
-                    title = " ".join(words)
+                    title = " ".join(redir_words)
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    yield words, ptje, data
+                    yield redir_words, ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
