@@ -54,6 +54,7 @@ mock = MagicMock()
 mock.__contains__ = MagicMock(return_value=True)
 src.armado.to3dirs.namespaces = mock
 
+
 def walk():
     # see how many id files we have
     for fn in os.listdir(PATH_COMP):
