@@ -86,9 +86,11 @@ def run(verbose, src):
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
-            # rules to skip scaling of some images: math/*, .png, and < 2KB
+            # rules to skip scaling of some images: math/*, .png, .gif and < 2KB
             imgsize = os.stat(frompath).st_size
-            if dskurl.startswith('math') or dskurl.endswith('.png') or imgsize < 2048:
+            if dskurl.startswith('math') or imgsize < 2048:
+                scale = 100
+            if dskurl.endswith('.png') or dskurl.endswith('.gif'):
                 scale = 100
 
             # check if image scaling was already done
