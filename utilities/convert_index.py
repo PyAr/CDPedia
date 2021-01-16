@@ -13,7 +13,9 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-"""Create a sqlite_index from a existing compressed_index."""
+"""Create a sqlite_index from a existing compressed_index.
+
+Expect every compressed index bucket in ./idx/old path."""
 
 import pathlib
 import logging
@@ -23,12 +25,14 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 from bz2 import BZ2File as CompressedFile
+from unittest.mock import MagicMock
 sys.path.append(os.path.abspath(os.curdir))
 
 import config   # NOQA import after fixing path
 from src.armado import to3dirs  # NOQA import after fixing path
 from src.armado.sqlite_index import Index as IndexSQL  # NOQA import after fixing path
 from src.armado.cdpindex import normalize_words  # NOQA import after fixing path
+import src.armado.to3dirs    # NOQA import after fixing path
 
 logger = logging.getLogger()
 handler = logging.StreamHandler()
@@ -46,6 +50,9 @@ WORDS = re.compile(r"\w+", re.UNICODE)
 PATH_IDX = pathlib.Path("./idx")
 PATH_COMP = PATH_IDX.joinpath("old")
 
+mock = MagicMock()
+mock.__contains__ = MagicMock(return_value=True)
+src.armado.to3dirs.namespaces = mock
 
 def walk():
     # see how many id files we have
