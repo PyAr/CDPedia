@@ -31,9 +31,6 @@ from .sqlite_index import Index, normalize_words
 
 logger = logging.getLogger(__name__)
 
-# regex used to separate words
-WORDS = re.compile(r"\w+", re.UNICODE)
-
 
 class IndexInterface(threading.Thread):
     """Process the information needed to connect with index.
