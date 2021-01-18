@@ -90,7 +90,7 @@ def run(verbose, src):
             imgsize = os.stat(frompath).st_size
             if dskurl.startswith('math') or imgsize < 2048:
                 scale = 100
-            if dskurl.endswith('.png') or dskurl.endswith('.gif'):
+            if dskurl.endswith(('.png', '.gif')):
                 scale = 100
 
             # check if image scaling was already done
