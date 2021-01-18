@@ -29,11 +29,13 @@ import logging
 import os
 import re
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
+import config
 from src import utiles
 from src.armado import to3dirs
 
@@ -270,6 +272,49 @@ class WikipediaArticle(object):
         return False
 
 
+class CSSLinkExtractor:
+    """Extract raw CSS links from HTML source code."""
+
+    def __init__(self):
+        # pattern for extracting css links from html
+        regex = r"/w/load.php\?.*?only=styles&amp;skin=vector"
+        self._findlinks = re.compile(regex).findall
+
+        # lock for writing to same file from different threads
+        self._lock = threading.Lock()
+
+    def setup(self, language_dump_dir):
+        """Load previous data and set output file handler."""
+        # extracted links will be saved in each language's dump directory
+        cssdir = os.path.join(language_dump_dir, config.CSS_DIRNAME)
+        links_file = os.path.join(cssdir, config.CSS_LINKS_FILENAME)
+        # load previously collected links if any
+        try:
+            self._fh = open(links_file, 'r+t', encoding='utf-8')
+            self.links = {line.strip() for line in self._fh}
+        except FileNotFoundError:
+            self._fh = open(links_file, 'wt', encoding='utf-8')
+            self.links = set()
+
+    def collect(self, html):
+        """Find all css links in HTML string and save new ones to file."""
+        new_links = set(self._findlinks(html)) - self.links
+        if new_links:
+            self.links.update(new_links)
+            # as html head is discarded after this extraction,
+            # dump new links as soon as found to avoid data loss
+            with self._lock:
+                self._fh.write('\n'.join(new_links) + '\n')
+                self._fh.flush()
+
+    def close(self):
+        """Close output file handler."""
+        self._fh.close()
+
+
+# single instance for collecting css links from different threads
+css_link_extractor = CSSLinkExtractor()
+
 regex = (
     r'(<h1 id="firstHeading" class="firstHeading" '
     r'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
@@ -288,6 +333,9 @@ def get_html(url, basename):
         # unknown html format
         raise BadHTMLError("HTML file from  {!r} has an unknown format".format(url))
     stripped_html = "\n".join(found.groups())
+
+    # collect css links here as html head is not saved
+    css_link_extractor.collect(html)
 
     return stripped_html
 
@@ -379,21 +427,22 @@ def fetch(language, data_url):
         os.rename(temp_file.name, disk_name.encode("utf-8"))
 
 
-def main(articles_path, language, dest_dir, namespaces_path, test_limit=None, pool_size=20):
+def main(articles_path, language, dest_dir, test_limit=None, pool_size=20):
     """Main entry point.
 
     Params:
     - articles_path: the path to the file with the list of articles to download
     - language: the language of the Wikipedia to use (e.g.: 'es')
     - dest_dir: the destination directory to put the downloaded articles (may take tens of GBs)
-    - namespaces_path: the path to a file with the namespace prefixes
     - test_limit: a limit to how many articles download (optional, defaults to all)
     - pool_size: how many concurrent downloaders use (optional, defaults to 20)
     """
-    # fix namespaces in to3dirs module so we can use it in this stage
-    to3dirs.namespaces = to3dirs.Namespaces(namespaces_path)
+    # setup css link extractor before scraping
+    css_link_extractor.setup(language_dump_dir=os.path.dirname(dest_dir))
 
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
 
     func = functools.partial(fetch, language)
     utiles.pooled_exec(func, data_urls, pool_size, known_errors=[ScraperError])
+
+    css_link_extractor.close()

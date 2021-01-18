@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -20,9 +18,12 @@
 
 import logging
 import os
+import subprocess
 import urllib.request
 import urllib.error
 import time
+
+from PIL import Image
 
 import config
 
@@ -35,6 +36,9 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+# Turning off the PIL debug logs as are too noisy.
+logging.getLogger("PIL").setLevel(logging.INFO)
+
 logger = logging.getLogger("images.download")
 
 
@@ -43,6 +47,28 @@ class FetchingError(Exception):
     def __init__(self, msg, *msg_args):
         super().__init__(msg)
         self.msg_args = msg_args
+
+
+def optimize_image(img_path):
+    """Open and Close image to remove metadata with pillow."""
+    size = os.stat(img_path).st_size
+    with Image.open(img_path) as img:
+        img.save(img_path)
+    final_size = os.stat(img_path).st_size
+    if img_path.lower().endswith('.png'):
+        optimize_png(img_path, size, final_size)
+    else:
+        logger.debug("Metadata removed from %r: %d(bytes) removed",
+                     img_path, size - final_size)
+
+
+def optimize_png(img_path, original_size, current_size):
+    """Run pngquant to optimize PNG format."""
+    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
+    final_size = os.stat(img_path).st_size
+    logger.debug("Metadata removed from %r: %d(bytes) removed"
+                 " · PNG, Extra clean-up: %d(bytes) removed",
+                 img_path, original_size - current_size, current_size - final_size)
 
 
 def _download(url, fullpath):
@@ -57,6 +83,9 @@ def _download(url, fullpath):
     img = u.read()
     with open(fullpath, "wb") as fh:
         fh.write(img)
+
+    if not fullpath.lower().endswith('.svg'):
+        optimize_image(fullpath)
 
 
 def download(data):
@@ -79,7 +108,7 @@ def download(data):
             time.sleep(retries.pop())
 
 
-def retrieve():
+def retrieve(images_dump_dir):
     """Download the images from the net."""
     download_list = []
 
@@ -97,7 +126,7 @@ def retrieve():
             continue
 
         _, arch, url = line.split(config.SEPARADOR_COLUMNAS)
-        fullpath = os.path.join(config.DIR_TEMP, "images", arch)
+        fullpath = os.path.join(images_dump_dir, arch)
 
         if url not in imgs_problems and not os.path.exists(fullpath):
             download_list.append((url, fullpath))

@@ -17,6 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 import gettext
+import logging
 import os
 import posixpath
 import tarfile
@@ -42,6 +43,8 @@ from src.armado import to3dirs
 from .utils import TemplateManager
 
 ARTICLES_BASE_URL = "wiki"
+
+logger = logging.getLogger(__name__)
 
 
 class ArticleNotFound(HTTPException):
@@ -165,8 +168,7 @@ class CDPedia:
             msg = "Error interno al buscar imagen: %s" % err
             raise InternalServerError(msg)
         if asset_data is None:
-            if self.verbose:
-                print("WARNING: no pudimos encontrar", repr(name))
+            logger.warning("No pudimos encontrar %r", name)
             try:
                 width, _, height = request.args["s"].partition('-')
                 width = int(width)
@@ -192,10 +194,10 @@ class CDPedia:
         path = os.path.join("institucional", path)
         asset_file = os.path.join(config.DIR_ASSETS, path)
         if os.path.isdir(asset_file):
-            print("WARNING: ", repr(asset_file), "es un directorio")
+            logger.warning("%r es un directorio", asset_file)
             raise NotFound()
         if not os.path.exists(asset_file):
-            print("WARNING: no pudimos encontrar", repr(asset_file))
+            logger.warning("No pudimos encontrar %r", asset_file)
             raise NotFound()
 
         # all unicode

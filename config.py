@@ -67,11 +67,6 @@ if EDICION_ESPECIAL is not None:
 # Si no hay destacados debe ser None
 DESTACADOS = None
 
-# Para revisar la página inicial de CDPedia con cada artículo destacado se
-# debe poner esta variable en True y cada vez que se cargué la página inicial
-# se irán mostrando en orden los destacados.
-DEBUG_DESTACADOS = False
-
 # Tiempo de espera máxima, en segundos, para actualización del browser_watchdog.
 # Usar BROWSER_WD_SECONDS = 0 para desactivar el watchdog.
 BROWSER_WD_SECONDS = 120
@@ -81,7 +76,9 @@ SEARCH_RESULTS = 20
 
 # info para el compresor / decompresor
 ARTICLES_PER_BLOCK = 2000
-DIR_BLOQUES = "temp/bloques"
+DIR_PAGES_BLOCKS = "temp/pages"
+IMAGES_PER_BLOCK = 200
+DIR_IMAGES_BLOCKS = "temp/images"
 
 # Directorio de archivos temporales
 DIR_TEMP = "temp"
@@ -98,14 +95,8 @@ DIR_PAGSLISTAS = DIR_TEMP + "/paglistas"
 # Directorio de las imágenes ya listas para inclusión
 DIR_IMGSLISTAS = DIR_TEMP + "/imglistas"
 
-# Cantidad de imágenes por bloque
-IMAGES_PER_BLOCK = 200
-
 # Directorio raiz de los archivos que van al CD
 DIR_CDBASE = "temp/cdroot"
-
-# Directorio de los archivos estáticos: imagenes, hojas de estilo, etc
-DIR_ASSETS = "temp/cdroot/cdpedia/assets"
 
 # Directorio de los archivos estáticos de origen
 DIR_SOURCE_ASSETS = "resources"
@@ -117,7 +108,7 @@ PYTHON_DOCS_FILENAME = 'python-docs.tar.bz2'
 PAG_ELEGIDAS = "temp/pag_elegidas.txt"
 
 # Generation language will be saved in this file
-LANGUAGE_FILE = os.path.join(DIR_BLOQUES, 'language.txt')
+LANGUAGE_FILE = os.path.join(DIR_PAGES_BLOCKS, 'language.txt')
 
 # Logs varios:
 LOG_REDIRECTS = DIR_TEMP + "/redirects.txt"
@@ -140,6 +131,18 @@ LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 EMBED_IMAGES = True
 LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 
+# Directory name for saving CSS stylesheets and associated resources
+CSS_DIRNAME = 'css'
+
+# stylesheet filename for unifying all Wikipedia CSS
+CSS_FILENAME = 'wikipedia.css'
+
+# filename for collecting CSS links while scraping
+CSS_LINKS_FILENAME = 'css_links.txt'
+
+# Subdirectory of 'CSS_DIRNAME' for saving resources needed by stylesheets
+CSS_RESOURCES_DIRNAME = 'images'
+
 # Validate translation before generating a CDPedia in the specified language.
 # Interrupt process if validation fails. In test mode, show validation result
 # but don't interrupt process.
@@ -150,11 +153,6 @@ SEPARADOR_COLUMNAS = '|'
 
 # Tag de que la info viene de un recurso dinámico de mucha importancia
 DYNAMIC = '__dynamic__'
-
-# Comando externo para convertir en HTML en texto, para extraer las palabras
-# del documento. Lynx es el default, pero requiere que esté instalado en el host.
-# W3m está disponible en todos los Ubuntus. %s se expande al path al archivo
-CMD_HTML_A_TEXTO = 'w3m -dump -T "text/html" -I utf-8 -O utf-8 -s -F -no-graph %s'
 
 # load configuration for languages and validate
 _path = os.path.join(os.path.dirname(__file__), "imagtypes.yaml")

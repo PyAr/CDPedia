@@ -14,10 +14,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Library to create and read index.
-
-"""
+"""Library to create and read index."""
 
 import base64
 import config
@@ -25,35 +22,14 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import threading
-import unicodedata
 import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-from .compressed_index import Index
+from .sqlite_index import Index, normalize_words
 
 logger = logging.getLogger(__name__)
-
-# regex used to separate words
-WORDS = re.compile(r"\w+", re.UNICODE)
-
-
-def normalize_words(txt):
-    """Separate and normalize every word from a sentence."""
-    txt = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').lower().decode("ascii")
-    return txt
-
-
-def _get_html_words(arch):
-    # FIXME:this will be used on full text search of html
-    arch = os.path.abspath(arch)
-    cmd = config.CMD_HTML_A_TEXTO % arch
-    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-    txt = p.stdout.read()
-    txt = txt.decode("utf8")
-    return txt
 
 
 class IndexInterface(threading.Thread):
@@ -106,14 +82,18 @@ class IndexInterface(threading.Thread):
         return self.index.partial_search(words)
 
 
-def filename2words(fname):
-    """Transforms a filename in the title and words."""
-    if fname.endswith(".html"):
-        fname = fname[:-5]
-    x = normalize_words(fname)
-    p = x.split("_")
-    t = " ".join(p)
-    return p, t
+def tokenize(title):
+    """Create list of tokens from given title.
+
+    First that title is normalized, and then is splitted by the following chars (effectively
+    removing them):
+        - space
+        - underscore
+        - open and close parentheses
+    """
+    normalized = normalize_words(title)
+    cleaned = re.sub(r'[_\(\)]', ' ', normalized)
+    return cleaned.split()
 
 
 def generate_from_html(dirbase, verbose):
@@ -125,13 +105,9 @@ def generate_from_html(dirbase, verbose):
     # use a set to avoid duplicated titles after normalization
     redirs = defaultdict(set)
     for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
-        orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
-
-        # in the original article, the title is missing
-        # so we use the words founded in the filename
-        # it isn't the optimal solution, but works
-        words, title = filename2words(orig)
-        redirs[dest].add((tuple(words), title))
+        redir_article, orig_article = line.strip().split(config.SEPARADOR_COLUMNAS)
+        words = tokenize(redir_article)
+        redirs[orig_article].add(tuple(words))
 
     top_pages = preprocess.pages_selector.top_pages
 
@@ -161,17 +137,22 @@ def generate_from_html(dirbase, verbose):
             ptje = 50 + score // 1000
             data = (namhtml, title, ptje, True, primtext)
             check_already_seen(data)
-            words = WORDS.findall(normalize_words(title))
-            yield words, ptje, data
+            orig_words = tuple(tokenize(title))
+            yield orig_words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
-                for (words, title) in redirs[arch_orig]:
+                # get redirect words (excluding the ones already used in the original article)
+                all_redir_words = redirs[arch_orig] - {orig_words}
+                for redir_words in all_redir_words:
+                    # the title is missing in the original article so we use the words found in
+                    # the filename (it isn't the optimal solution, but works)
+                    title = " ".join(redir_words)
                     data = (namhtml, title, ptje, False, "")
                     check_already_seen(data)
-                    yield list(words), ptje, data
+                    yield redir_words, ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):

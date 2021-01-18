@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-# Copyright 2010-2017 CDPedistas (see AUTHORS.txt)
+# Copyright 2010-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,26 +28,35 @@ Current implementation complies with two needs:
 import os
 from urllib.parse import unquote
 
-import config
-
 NULL = "_"
 
 QUOTER = {c: '%{:02X}'.format(ord(c)) for c in './%'}
 
 
-class Namespaces(object):
-    """A dynamic loading list of namespaces."""
-    def __init__(self, path=None):
+class Namespaces:
+    """A list of namespaces initiated from different sources."""
+
+    _fname = 'namespace_prefixes.txt'
+
+    def __init__(self):
         self._namespaces = None
-        if path is None:
-            self.filepath = os.path.join(config.DIR_ASSETS, 'dynamic', "namespace_prefixes.txt")
-        else:
-            self.filepath = path
+
+    def load(self, dirbase):
+        """Load the info from the file in the specified directory."""
+        path = os.path.join(dirbase, self._fname)
+        with open(path, 'rt', encoding='utf8') as fh:
+            self._namespaces = {x.strip() for x in fh}
+
+    def dump(self, prefixes, dirbase):
+        """Dump the given information to file in the specified directory."""
+        path = os.path.join(dirbase, self._fname)
+        with open(path, 'wt', encoding="utf-8") as fh:
+            for prefix in sorted(prefixes):
+                fh.write(prefix + "\n")
 
     def __contains__(self, tocheck):
         if self._namespaces is None:
-            with open(self.filepath, 'rt', encoding='utf8') as fh:
-                self._namespaces = set(x.strip() for x in fh)
+            raise RuntimeError("Namespaces not initiated.")
 
         return tocheck in self._namespaces
 

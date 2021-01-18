@@ -66,6 +66,7 @@ def urls_to_verify(file_):
             # just the page name, like all_articles.txt
             else:
                 name = line.split()[0]
+            name = parse.unquote(name)
             url = '/'.join([LOCAL_HOST, 'wiki', name])
             urls.append(url)
     return urls

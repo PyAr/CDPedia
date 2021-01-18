@@ -35,6 +35,9 @@ def image_is_embeddable(imgpath, imgsize):
 class _EmbedImages:
     """Embed images in HTML file."""
 
+    def __init__(self, images_dump_dir):
+        self.images_dump_dir = images_dump_dir
+
     def embed_images(self, htmlpath, images):
         """Embed specified images in HTML source."""
 
@@ -50,7 +53,8 @@ class _EmbedImages:
                 continue
 
             # take embeddable images from original download location
-            imgpath = config.DIR_TEMP + src  # src starts with `/`
+            assert src.startswith('/images/')
+            imgpath = self.images_dump_dir + src[7:]
             kind = os.path.splitext(src)[1].lstrip('.').lower()
             if kind == 'svg':
                 self.embed_vector(node, imgpath)
@@ -98,9 +102,9 @@ def _load_embed_data():
     return page_embeds
 
 
-def run():
+def run(images_dump_dir):
     """Embed pre-selected images into HTML sources."""
-    embedder = _EmbedImages()
+    embedder = _EmbedImages(images_dump_dir)
     page_embeds = _load_embed_data()
     for (dir3, fname), images in page_embeds.items():
         htmlpath = os.path.join(config.DIR_PAGSLISTAS, dir3, fname)

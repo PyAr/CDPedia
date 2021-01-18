@@ -25,7 +25,7 @@ from flake8.api.legacy import get_style_guide
 
 def _get_python_filepaths():
     """Helper to retrieve paths of Python files."""
-    python_paths = ['cdpedia.py', 'config.py', 'cdpetron.py']
+    python_paths = ['config.py', 'cdpetron.py']
     for root in ['src', 'utilities', 'tests']:
         for dirpath, dirnames, filenames in os.walk(root):
             for filename in filenames:
