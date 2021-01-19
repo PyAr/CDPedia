@@ -1,0 +1,4 @@
+[es]
+AC/DC # Article should load correctly
+Número_π # Check equations display correctly
+Escala_de_tonos_enteros # Audio player should have a blue dashed border
