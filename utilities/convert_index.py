@@ -15,7 +15,8 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 """Create a sqlite_index from a existing compressed_index.
 
-Expect every compressed index bucket in ./idx/old path."""
+Expect every compressed index bucket in ./idx/old path.
+"""
 
 import pathlib
 import logging
@@ -53,6 +54,7 @@ PATH_COMP = PATH_IDX.joinpath("old")
 mock = MagicMock()
 mock.__contains__ = MagicMock(return_value=True)
 src.armado.to3dirs.namespaces = mock
+
 
 def walk():
     # see how many id files we have

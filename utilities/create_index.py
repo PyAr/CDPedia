@@ -1,6 +1,4 @@
-# -*- encoding: utf8 -*-
-
-# Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -17,7 +15,8 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 """Create index using data in ./temp.
 
-By default, it put it in ./idx path."""
+By default, it put it in ./idx path.
+"""
 
 import pathlib
 import logging
@@ -77,6 +76,7 @@ class fake_page_selector:
 
 src.preprocessing.preprocess.pages_selector = fake_page_selector()
 config.DIR_INDICE = PATH_IDX
+
 
 if __name__ == "__main__":
     # main()
