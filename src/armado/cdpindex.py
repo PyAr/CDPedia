@@ -31,9 +31,6 @@ from .sqlite_index import Index, normalize_words, Indexentry
 
 logger = logging.getLogger(__name__)
 
-# regex used to separate words
-WORDS = re.compile(r"\w+", re.UNICODE)
-
 
 class IndexInterface(threading.Thread):
     """Process the information needed to connect with index.
@@ -85,23 +82,18 @@ class IndexInterface(threading.Thread):
         return self.index.partial_search(words)
 
 
-def filename2words(fname):
-    """Transforms a filename in the title and words."""
-    if fname.endswith(".html"):
-        fname = fname[:-5]
-    x = normalize_words(fname)
-    p = x.split("_")
-    t = " ".join(p)
-    return p, t
+def tokenize(title):
+    """Create list of tokens from given title.
 
-
-def tokenize_title(title):
-    """Create list of tokens from given title."""
-    title_norm = normalize_words(title)
-    # strip parenthesis from words, for titles like 'Grañón (La Rioja)'
-    words = set(w.strip('()') for w in title_norm.split())
-    words.update(WORDS.findall(title_norm))
-    return words
+    First that title is normalized, and then is splitted by the following chars (effectively
+    removing them):
+        - space
+        - underscore
+        - open and close parentheses
+    """
+    normalized = normalize_words(title)
+    cleaned = re.sub(r'[_\(\)]', ' ', normalized)
+    return cleaned.split()
 
 
 def generate_from_html(dirbase, verbose):
@@ -113,13 +105,9 @@ def generate_from_html(dirbase, verbose):
     # use a set to avoid duplicated titles after normalization
     redirs = defaultdict(set)
     for line in open(config.LOG_REDIRECTS, "rt", encoding="utf-8"):
-        orig, dest = line.strip().split(config.SEPARADOR_COLUMNAS)
-
-        # in the original article, the title is missing
-        # so we use the words founded in the filename
-        # it isn't the optimal solution, but works
-        words, title = filename2words(orig)
-        redirs[dest].add((tuple(words), title))
+        redir_article, orig_article = line.strip().split(config.SEPARADOR_COLUMNAS)
+        words = tokenize(redir_article)
+        redirs[orig_article].add(tuple(words))
 
     top_pages = preprocess.pages_selector.top_pages
 
@@ -154,13 +142,14 @@ def generate_from_html(dirbase, verbose):
                 rtype=0,
                 description=description)
             check_already_seen(data)
-            words = tokenize_title(title)
-            yield words, ptje, data
+            orig_words = tuple(tokenize(title))
+            yield orig_words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
+
                 for (words, title) in redirs[arch_orig]:
                     data = Indexentry(
                         link=link,
@@ -168,7 +157,7 @@ def generate_from_html(dirbase, verbose):
                         ptje=ptje,
                         rtype=2)
                     check_already_seen(data)
-                    yield list(words), ptje, data
+                    yield redir_words, ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
