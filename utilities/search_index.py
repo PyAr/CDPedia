@@ -1,4 +1,4 @@
-# Copyright 2009-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -13,17 +13,25 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
-"""Search text into the index from command-line."""
+"""Search text into the index from command-line.
+
+By default, it uses ./idx path.
+"""
 
 import os
 import sys
 import argparse
 import timeit
+from unittest.mock import MagicMock
 sys.path.append(os.path.abspath(os.curdir))
 
 from src.armado.sqlite_index import Index # NOQA import after fixing path
+import src.armado.to3dirs    # NOQA import after fixing path
 
 PAGE = 50
+mock = MagicMock()
+mock.__contains__ = MagicMock(return_value=True)
+src.armado.to3dirs.namespaces = mock
 
 
 def output(*out):
@@ -38,6 +46,7 @@ def show_results(result):
         output("{:>25}:{}".format(definition, value))
 
     first_res_time = 0
+    nro = None
     for nro, (namhtml, title, ptje, redir, primtext) in enumerate(result):
         if nro == 0:
             first_res_time = timeit.default_timer() - initial_time
@@ -49,6 +58,9 @@ def show_results(result):
         if nro == PAGE:
             first_res_time = timeit.default_timer() - initial_time
             show_stat("First %d Result" % PAGE, first_res_time)
+    if nro is None:
+        output("No results")
+        return
     show_stat("Time", timeit.default_timer() - initial_time)
     show_stat("Results", nro + 1)
     return
