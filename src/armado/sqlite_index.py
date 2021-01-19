@@ -542,8 +542,7 @@ class Index:
             for words, page_score, idx_entry in source:
                 if idx_entry.link == to_filename(idx_entry.title):
                     idx_entry.link = None
-                    # idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
-                # idx_entry = tuple(idx_entry)
+                    idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
                 docid = docs_table.append((len(words), idx_entry))
                 for idx, word in enumerate(words):
                     idx_dict[word].append(docid, idx)
