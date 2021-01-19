@@ -187,8 +187,8 @@ class CDPedia:
 
     # @ei.espera_indice # TODO
     def on_random(self, request):
-        link, tit = self.index.get_random()
-        link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
+        idx_entry = self.index.get_random()
+        link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(idx_entry.link))
         return redirect(urllib.parse.quote(link.encode("utf-8")))
 
     # @ei.espera_indice # TODO

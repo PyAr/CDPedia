@@ -63,13 +63,13 @@ class IndexInterface(threading.Thread):
     def listado_valores(self):
         """Returns every article information."""
         self.ready.wait()
-        return sorted(set(x[:2] for x in self.index.values()))
+        return self.index.values()
 
     def get_random(self):
         """Returns a random article."""
         self.ready.wait()
         value = self.index.random()
-        return value[:2]
+        return value
 
     def search(self, words):
         """Search whole words in the index."""
@@ -122,7 +122,7 @@ def generate_from_html(dirbase, verbose):
     def check_already_seen(data):
         """Check for duplicated index entries. Crash if founded."""
         if data.totuple() in already_seen:
-            #raise KeyError("Duplicated document in: {}".format(data.totuple()))
+            raise KeyError("Duplicated document in: {data.totuple()}")
             return True
         already_seen.add(data.totuple())
         return False
@@ -143,10 +143,8 @@ def generate_from_html(dirbase, verbose):
                 score=ptje,
                 rtype=IndexEntry.TYPE_ORIG_ARTICLE,
                 description=description)
-            # print('p', data)
-            if check_already_seen(data):
-                continue
             orig_words = tuple(tokenize(title))
+            check_already_seen(data)
             yield orig_words, ptje, data
 
             # pass words to the redirects which points to
@@ -154,15 +152,15 @@ def generate_from_html(dirbase, verbose):
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
                 for redir_words in redirs[arch_orig]:
-                    data = IndexEntry(
-                        link=link,
-                        title=title,
-                        score=ptje,
-                        rtype=2)
-                    # print('r', data)
-                    if check_already_seen(data):
-                        continue
-                    yield redir_words, ptje, data
+                    if redir_words != orig_words:
+                        data = IndexEntry(
+                            link=link,
+                            title=title,
+                            subtitle=' '.join(redir_words),
+                            score=ptje,
+                            rtype=2)
+                        check_already_seen(data)
+                        yield redir_words, ptje, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):

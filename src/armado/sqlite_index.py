@@ -37,7 +37,7 @@ MAX_RESULTS = 500
 
 
 class IndexEntry:
-    """FIXME."""
+    """Article or redir index entry data structure."""
 
     __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle')
 
@@ -61,6 +61,7 @@ class IndexEntry:
     def totuple(self):
         values = (getattr(self, att) for att in self.__slots__)
         return tuple(values)
+
 
 # cache for normalized chars
 _normalized_chars = {}

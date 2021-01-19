@@ -88,7 +88,7 @@ def test_repeated_entries_top_pages(index, data, mocker):
     entries_gen = index.create.call_args[0][1]
     # duplicated entry should be detected while iterating over the entries generator
     with pytest.raises(KeyError):
-        gener = list(entries_gen)
+        list(entries_gen)
 
 
 def test_repeated_entry_redirects(index, data, mocker):
@@ -110,8 +110,7 @@ def test_repeated_entry_redirects(index, data, mocker):
     cdpindex.generate_from_html(None, None)
     assert index.create.call_count == 1
     entries = []
-    with pytest.raises(KeyError):
-        entries = list(index.create.call_args[0][1])
+    entries = list(index.create.call_args[0][1])
 
     # should have one entry from top_pages and two entry from redirects:
     #  - YES: the original article, for sure
@@ -125,15 +124,14 @@ def test_repeated_entry_redirects(index, data, mocker):
 
     # the first one for sure must be the original
     words, _, entry = entries[0]
-    # words, _, (html, _, _, is_original, _) = entries[0]
     assert words == ('foo', 'bar')
     assert entry.link == 'f/o/o_bar/foo_bar'
-    assert is_original
+    assert entry.rtype in [0, 1]
 
     # the rest must be redirects, point to same html, and with specific words
     # (comparing like this because order may change)
-    assert {e[2][3] for e in entries[1:]} == {False}
-    assert {e[2][0] for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
+    assert {e[2].rtype for e in entries[1:]} == {2}
+    assert {e[2].link for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
     assert {e[0] for e in entries[1:]} == {('foo', 'bazzz'), ('bazzz', 'foo')}
 
 
