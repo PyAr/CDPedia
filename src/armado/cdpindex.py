@@ -27,7 +27,7 @@ import urllib.parse
 from collections import defaultdict
 
 # from .easy_index import Index
-from .sqlite_index import Index, normalize_words, Indexentry
+from .sqlite_index import Index, normalize_words, IndexEntry
 
 logger = logging.getLogger(__name__)
 
@@ -121,27 +121,31 @@ def generate_from_html(dirbase, verbose):
 
     def check_already_seen(data):
         """Check for duplicated index entries. Crash if founded."""
-        if data in already_seen:
-            raise KeyError("Duplicated document in: {}".format(data))
-        already_seen.add(data)
+        if data.totuple() in already_seen:
+            #raise KeyError("Duplicated document in: {}".format(data.totuple()))
+            return True
+        already_seen.add(data.totuple())
+        return False
 
     def gen():
         for dir3, arch, score in top_pages:
             # auxiliar info
             link = os.path.join(dir3, arch)
             title, description = titles_texts[arch]
-            logger.info("Adding to index: [%r]  (%r)" % (title, link))
+            logger.debug("Adding to index: [%r]  (%r)", title, link)
 
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             ptje = 50 + score // 1000
-            data = Indexentry(
+            data = IndexEntry(
                 link=link,
                 title=title,
-                ptje=ptje,
-                rtype=0,
+                score=ptje,
+                rtype=IndexEntry.TYPE_ORIG_ARTICLE,
                 description=description)
-            check_already_seen(data)
+            # print('p', data)
+            if check_already_seen(data):
+                continue
             orig_words = tuple(tokenize(title))
             yield orig_words, ptje, data
 
@@ -149,14 +153,15 @@ def generate_from_html(dirbase, verbose):
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
-
-                for (words, title) in redirs[arch_orig]:
-                    data = Indexentry(
+                for redir_words in redirs[arch_orig]:
+                    data = IndexEntry(
                         link=link,
                         title=title,
-                        ptje=ptje,
+                        score=ptje,
                         rtype=2)
-                    check_already_seen(data)
+                    # print('r', data)
+                    if check_already_seen(data):
+                        continue
                     yield redir_words, ptje, data
 
     # ensures an empty directory

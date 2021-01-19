@@ -24,7 +24,7 @@ import pickle
 import random
 import unicodedata
 import sqlite3
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from functools import lru_cache
 import lzma as best_compressor  # zlib is faster, lzma has better ratio.
 
@@ -36,38 +36,31 @@ PAGE_SIZE = 512
 MAX_RESULTS = 500
 
 
-# Indexentry is used to give structure to documents entries.
-index_entry = namedtuple("indexentry",
-                         "link title ptje description subtitle rtype origdocid")
+class IndexEntry:
+    """FIXME."""
 
+    __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle')
 
-class Indexentry(index_entry):
-    defaults = index_entry(link=None,
-                           title="",
-                           ptje=0,
-                           description="",
-                           subtitle="",
-                           rtype=0,
-                           origdocid=None)
+    # types of records
+    TYPE_ORIG_ARTICLE = 0  # original article (may be target of possible redirects)
+    TYPE_ORIG_SIMPLE_LINK = 1  # original article whose link can be calculated from the title
+    TYPE_REDIRECT = 2  # a redirect to some original title
 
-    def __new__(cls, *args, **kargs):
-        """Implements defaults for older python versions (<3.7)."""
-        if len(args) == len(cls.defaults):
-            obj = super().__new__(cls, *args)
-        elif len(kargs) == len(cls.defaults):
-            obj = super().__new__(cls, **kargs)
-        else:
-            base = cls.defaults._asdict()
-            base.update(kargs)
-            obj = super().__new__(cls, **base)
-        return obj
+    def __init__(self, rtype, link, title, score=0, description="", subtitle=""):
+        self.rtype = rtype
+        self.link = link
+        self.title = title
+        self.score = score
+        self.description = description
+        self.subtitle = subtitle
 
-    def update(self, **kargs):
-        """To simplify update data."""
-        own = self._asdict()
-        own.update(kargs)
-        return index_entry(**own)
+    def __repr__(self):
+        values = ["%s:%r" % (att, value) for att, value in zip(self.__slots__, self.totuple())]
+        return 'IndexEntry: ' + ','.join(values)
 
+    def totuple(self):
+        values = (getattr(self, att) for att in self.__slots__)
+        return tuple(values)
 
 # cache for normalized chars
 _normalized_chars = {}
@@ -427,12 +420,12 @@ class Index:
         data = self._get_page(page_id)
         if not data:
             raise IndexError("Non existing docid")
-        row = data[rel_position]
+        idx_entry = data[rel_position]
         # if the html filename is marked as computable
         # do it and store in position 0.
-        idx_entry = Indexentry(*row)
+        # idx_entry = Indexentry(*row)
         if idx_entry.link is None:
-            idx_entry = idx_entry.update(link=to_filename(idx_entry.title))
+            idx_entry.link = to_filename(idx_entry.title)
         return idx_entry
 
     def search(self, keys):
@@ -454,8 +447,8 @@ class Index:
         for score, ndoc in docset.ordered:
             doc_data = self.get_doc(ndoc)
             # Do not return more than one index result to the same file.
-            if not doc_data[0] in files_yielded:
-                files_yielded.add(doc_data[0])
+            if doc_data.link not in files_yielded:
+                files_yielded.add(doc_data.link)
                 yield doc_data
             if len(files_yielded) >= MAX_RESULTS:
                 break
@@ -547,8 +540,9 @@ class Index:
 
             for words, page_score, idx_entry in source:
                 if idx_entry.link == to_filename(idx_entry.title):
-                    idx_entry = idx_entry.update(link=None, rtype=1)
-                idx_entry = tuple(idx_entry)
+                    idx_entry.link = None
+                    # idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
+                # idx_entry = tuple(idx_entry)
                 docid = docs_table.append((len(words), idx_entry))
                 for idx, word in enumerate(words):
                     idx_dict[word].append(docid, idx)

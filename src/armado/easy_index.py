@@ -187,16 +187,15 @@ class Index(object):
         # fill them
         for keys, ptje, data in source:
             checkme = all([isinstance(keys, list),
-                          isinstance(ptje, int),
-                          isinstance(data, tuple)])
+                          isinstance(ptje, int)])
             if not checkme:
-                raise TypeError("The keys and value must be lists, ptje must be integer")
+                raise TypeError("The keys must be list, ptje must be integer")
             if not all([isinstance(k, str) for k in keys]):
                 raise TypeError("The keys must be a strings")
             if any([('\n' in k) for k in keys]):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
-            value = list(data)
+            value = data
 
             # docid -> info final
             # don't add to tmp_reverse_id or ids_shelf if the value is repeated
