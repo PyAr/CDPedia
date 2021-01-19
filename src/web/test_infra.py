@@ -46,7 +46,14 @@ def parse_test_infra_file(filepath):
     parser.optionxform = str  # don't alter key names
     with open(filepath, 'r', encoding='utf-8') as fh:
         parser.read_file(fh)
-    return parser.items(config.LANGUAGE)
+
+    try:
+        items = parser.items(config.LANGUAGE)
+    except configparser.NoSectionError:
+        return []
+    if items is None:
+        return []
+    return items
 
 
 def load_test_infra_data():

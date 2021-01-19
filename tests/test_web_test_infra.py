@@ -31,6 +31,8 @@ def test_infra_file(mocker, tmp_path):
 
         [fr]
         Château # Image galleries shouldn't overflow
+
+        [ay]
     """
     filepath = tmp_path / TEST_INFRA_FILENAME
     filepath.write_text(textwrap.dedent(content).strip(), encoding='utf-8')
@@ -64,6 +66,20 @@ def test_parsing_test_infra_file_load_other_language(mocker, test_infra_file):
     mocker.patch('config.LANGUAGE', 'fr')
     data = parse_test_infra_file(test_infra_file)
     assert data == [('Château', "Image galleries shouldn't overflow")]
+
+
+def test_parsing_test_infra_file_not_existing_section(mocker, test_infra_file):
+    """Return empty list if section not found."""
+    mocker.patch('config.LANGUAGE', 'xy')
+    data = parse_test_infra_file(test_infra_file)
+    assert data == []
+
+
+def test_parsing_test_infra_file_empty_section(mocker, test_infra_file):
+    """Return empty list if section is empty."""
+    mocker.patch('config.LANGUAGE', 'ay')
+    data = parse_test_infra_file(test_infra_file)
+    assert data == []
 
 
 @pytest.fixture
