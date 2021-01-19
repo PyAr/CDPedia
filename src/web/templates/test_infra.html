@@ -1,0 +1,17 @@
+{% extends "article.html" %}
+
+{% set index = '{}/{}'.format(number, total) %}
+{% set descr = ' — {}'.format(check) if check else '' %}
+
+{% block content %}
+  <script>window.location = "#{{index}} {{article_name_unquoted}}{{descr}}"</script>
+{{ super() }}
+{% endblock %}
+
+{% block footer_pre %}
+{{ super() }}
+  <p style="background-color:yellow; position:fixed; bottom:2px; right:2px;
+          border:1px solid black; font-size:90%; padding: 5px 5px; z-index:999;">
+    {{article_name_unquoted}}<i>{{descr}}</i><b> [{{index}}] <a href="/test_infra">🢂</a></b>
+  </p>
+{% endblock %}

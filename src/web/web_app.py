@@ -17,6 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 import gettext
+import itertools
 import logging
 import os
 import posixpath
@@ -40,6 +41,7 @@ from src.armado import cdpindex
 from src.armado.cdpindex import normalize_words
 from src.armado import compresor
 from src.armado import to3dirs
+from .test_infra import load_test_infra_data
 from .utils import TemplateManager
 
 ARTICLES_BASE_URL = "wiki"
@@ -99,9 +101,10 @@ class CDPedia:
             Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
             Rule('/favicon.ico', endpoint='favicon'),
-            Rule('/test-infra', endpoint='test_infra')
+            Rule('/test_infra', endpoint='test_infra')
         ])
         self._tutorial_ready = False
+        self._test_infra_data = None
         self.docs_dirname = None  # root directory of tar archive
 
     def get_creation_date(self):
@@ -139,26 +142,22 @@ class CDPedia:
                                     article=data,
                                     )
 
-    def on_test_infra(self, request, remaining=[]):
-        if not remaining:
-            with open("extra-pages.txt", 'r') as articles_to_try:
-                for article in articles_to_try:
-                    remaining.append(article)
-        name = remaining.pop().rstrip()
-        orig_link = utils.get_orig_link(name)
-        name = to3dirs.to_filename(name)
+    def on_test_infra(self, request):
+        if self._test_infra_data is None:
+            try:
+                data = load_test_infra_data()
+            except FileNotFoundError:
+                # won't launch test infra if data file doesn't exist
+                raise NotFound()
+            self._test_infra_data = itertools.cycle(data)
         try:
-            data = self.art_mngr.get_item(name)
-        except Exception as err:
-            raise InternalServerError("Error interno al buscar contenido: %s" % err)
-        if data is None:
-            raise ArticleNotFound(name, orig_link)
-
-        return self.render_template('test-infra.html',
-                                    article_name=name,
-                                    orig_link=orig_link,
-                                    article=data,
-                                    )
+            item_data = next(self._test_infra_data)
+        except StopIteration:
+            raise InternalServerError("No pages to test")
+        article = self.art_mngr.get_item(item_data['article_name'])
+        if article is None:
+            article = 'Article Not Found'
+        return self.render_template('test_infra.html', article=article, **item_data)
 
     def on_image(self, request, name):
         try:
