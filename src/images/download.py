@@ -84,7 +84,8 @@ def _download(url, fullpath):
     with open(fullpath, "wb") as fh:
         fh.write(img)
 
-    if not fullpath.lower().endswith('.svg'):
+    # run optimize_image if images are not .svg or .gif
+    if not fullpath.lower().endswith(('.svg', '.gif')):
         optimize_image(fullpath)
 
 
