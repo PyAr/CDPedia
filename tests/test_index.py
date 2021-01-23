@@ -22,18 +22,7 @@ import pytest
 
 from src.armado import easy_index
 from src.armado import sqlite_index
-
-
-class IndexEntry(sqlite_index.IndexEntry):
-    def __init__(self, link, title, score):
-        super().__init__(rtype=self.TYPE_ORIG_ARTICLE,
-                         link=link, title=title, score=score)
-
-    def __eq__(self, other):
-        for att in self.__slots__:
-            if getattr(self, att) != getattr(other, att):
-                return False
-        return True
+from src.armado.sqlite_index import IndexEntry
 
 
 def decomp(data):
@@ -64,7 +53,8 @@ class DataSet:
         docs = [(n[0], int(n[1])) for n in docs]
         info = []
         for n in docs:
-            data = IndexEntry(link=None, title=n[0], score=n[1])
+            data = IndexEntry(link=None, title=n[0], score=n[1],
+                              rtype=IndexEntry.TYPE_ORIG_ARTICLE)
             info.append((n[0].lower().split(" "), n[1], data))
         cls.fixtures[key] = info
 
@@ -84,7 +74,7 @@ class DataSet:
 
 def test_auxiliary():
     DataSet.add_fixture("one", "ala blanca/3")
-    data = IndexEntry(link=None, title="ala blanca", score=3)
+    data = IndexEntry(link=None, title="ala blanca", score=3, rtype=IndexEntry.TYPE_ORIG_ARTICLE)
     assert DataSet("one").info == [(['ala', 'blanca'], 3, data)]
 
 

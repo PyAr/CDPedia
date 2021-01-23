@@ -18,6 +18,7 @@
 
 import config
 from src.armado import cdpindex, to3dirs
+from src.armado.sqlite_index import IndexEntry
 
 import pytest
 
@@ -109,7 +110,6 @@ def test_repeated_entry_redirects(index, data, mocker):
         fh.write('bazzz_fOo|foo_bar\n')
     cdpindex.generate_from_html(None, None)
     assert index.create.call_count == 1
-    entries = []
     entries = list(index.create.call_args[0][1])
 
     # should have one entry from top_pages and two entry from redirects:
@@ -120,17 +120,17 @@ def test_repeated_entry_redirects(index, data, mocker):
     #  - YES: the next redirect, that even having same words, they are in different order (the
     #         score of the selected results are order dependant!)
     #  - NO: the last redirect, again having "same words same order" of other one already included
-#    assert len(entries) == 3
+    assert len(entries) == 3
 
     # the first one for sure must be the original
     words, _, entry = entries[0]
     assert words == ('foo', 'bar')
     assert entry.link == 'f/o/o_bar/foo_bar'
-    assert entry.rtype in [0, 1]
+    assert entry.rtype == IndexEntry.TYPE_ORIG_ARTICLE
 
     # the rest must be redirects, point to same html, and with specific words
     # (comparing like this because order may change)
-    assert {e[2].rtype for e in entries[1:]} == {2}
+    assert {e[2].rtype for e in entries[1:]} == {IndexEntry.TYPE_REDIRECT}
     assert {e[2].link for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
     assert {e[0] for e in entries[1:]} == {('foo', 'bazzz'), ('bazzz', 'foo')}
 

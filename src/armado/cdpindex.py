@@ -29,6 +29,7 @@ from collections import defaultdict
 # from .easy_index import Index
 from .sqlite_index import Index, normalize_words, IndexEntry
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -128,7 +129,7 @@ def generate_from_html(dirbase, verbose):
         return False
 
     def gen():
-        for dir3, arch, score in top_pages:
+        for dir3, arch, pagerank in top_pages:
             # auxiliar info
             link = os.path.join(dir3, arch)
             title, description = titles_texts[arch]
@@ -136,31 +137,31 @@ def generate_from_html(dirbase, verbose):
 
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
-            ptje = 50 + score // 1000
+            score = 50 + pagerank // 1000
             data = IndexEntry(
                 link=link,
                 title=title,
-                score=ptje,
+                score=score,
                 rtype=IndexEntry.TYPE_ORIG_ARTICLE,
                 description=description)
             orig_words = tuple(tokenize(title))
             check_already_seen(data)
-            yield orig_words, ptje, data
+            yield orig_words, score, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
+                redirs[arch_orig].discard(orig_words)
                 for redir_words in redirs[arch_orig]:
-                    if redir_words != orig_words:
-                        data = IndexEntry(
-                            link=link,
-                            title=title,
-                            subtitle=' '.join(redir_words),
-                            score=ptje,
-                            rtype=2)
-                        check_already_seen(data)
-                        yield redir_words, ptje, data
+                    data = IndexEntry(
+                        link=link,
+                        title=title,
+                        subtitle=' '.join(redir_words),
+                        score=score,
+                        rtype=IndexEntry.TYPE_REDIRECT)
+                    check_already_seen(data)
+                    yield redir_words, score, data
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
@@ -168,5 +169,5 @@ def generate_from_html(dirbase, verbose):
     os.mkdir(config.DIR_INDICE)
 
     Index.create(config.DIR_INDICE, gen())
-    logger.info("Index created at {}".format(config.DIR_INDICE))
+    logger.info("Index created at %s", config.DIR_INDICE)
     return len(top_pages)

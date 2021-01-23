@@ -55,8 +55,11 @@ class IndexEntry:
         self.subtitle = subtitle
 
     def __repr__(self):
-        values = ["%s:%r" % (att, value) for att, value in zip(self.__slots__, self.totuple())]
+        values = ["{}:{!r}".format(attr, getattr(self, attr)) for attr in self.__slots__]
         return 'IndexEntry: ' + ','.join(values)
+
+    def __eq__(self, other):
+        return all(getattr(self, attr) == getattr(other, attr) for attr in self.__slots__)
 
     def totuple(self):
         values = (getattr(self, att) for att in self.__slots__)
