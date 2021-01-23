@@ -149,11 +149,11 @@ class CDPedia:
             except FileNotFoundError:
                 # won't launch test infra if data file doesn't exist
                 raise NotFound()
+            if not data:
+                raise InternalServerError("No pages to test")
             self._test_infra_data = itertools.cycle(data)
-        try:
-            item_data = next(self._test_infra_data)
-        except StopIteration:
-            raise InternalServerError("No pages to test")
+
+        item_data = next(self._test_infra_data)
         article = self.art_mngr.get_item(item_data['article_name'])
         if article is None:
             article = 'Article Not Found'
