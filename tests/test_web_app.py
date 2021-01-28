@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2011-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2011-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,6 +27,7 @@ from werkzeug.wrappers import Response
 import config
 from src.armado import cdpindex
 from src.web import web_app, utils
+from src.web.test_infra import TEST_INFRA_FILENAME
 
 import pytest
 
@@ -240,6 +241,32 @@ def test_on_favicon(create_app_client):
     response = client.get("/favicon.ico")
     assert response.status_code == 200
     assert test_content in response.data
+
+
+def test_on_test_infra_no_data_file(create_app_client):
+    """Disable the endpoint if data file doesn't exist."""
+    data_file = os.path.join(config.DIR_ASSETS, TEST_INFRA_FILENAME)
+    assert not os.path.isfile(data_file)
+    _, client = create_app_client()
+    response = client.get("/test_infra")
+    assert response.status_code == 404
+
+
+def test_on_test_infra_empty_data(mocker, create_app_client):
+    """Return 500 if test infra is enabled but there are no items to check."""
+    mocker.patch('src.web.web_app.load_test_infra_data', return_value=[])
+    _, client = create_app_client()
+    response = client.get("/test_infra")
+    assert response.status_code == 500
+
+
+def test_on_test_infra_data_ok(mocker, create_app_client):
+    """Enable test infra if data has at least one item to check."""
+    data = [{'article_name': 'foo'}]
+    mocker.patch('src.web.web_app.load_test_infra_data', return_value=data)
+    _, client = create_app_client()
+    response = client.get("/test_infra")
+    assert response.status_code == 200
 
 
 def test_get_origin_link(create_app_client):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,6 +41,7 @@ from src import list_articles_by_namespaces, generate
 from src.armado import to3dirs
 from src.preprocessing import preprocessors
 from src.scraping import scraper, pydocs, css
+from src.web import test_infra
 
 
 # some constants to download the articles list we need to scrap
@@ -267,6 +268,26 @@ def scrap_portal(language, lang_config):
     logger.info("Portal scraping done")
 
 
+def enable_test_infra():
+    """Enable test infra web app feature.
+
+    Copy data file to web assets dir and scrape required articles.
+    """
+    src = test_infra.TEST_INFRA_FILENAME  # file in project root
+    data = test_infra.parse_test_infra_file(src)
+    articles = [d[0] for d in data]
+
+    logger.info("Scraping test infra articles")
+    with NamedTemporaryFile('wt', encoding='utf8', dir='/tmp/', prefix='cdpedia-') as tf:
+        tf.write('\n'.join(articles) + '\n')
+        tf.flush()
+        _call_scraper(config.LANGUAGE, tf.name)
+
+    dst = os.path.join(location.resources, src)
+    if not os.path.isfile(dst):
+        os.link(src, dst)
+
+
 def clean(keep_processed):
     """Clean and setup the temp directory."""
     # let's create a temp directory for the generation (clean it first if already
@@ -319,6 +340,9 @@ def main(language, lang_config, imag_config,
 
     if extra_pages:
         _call_scraper(language, extra_pages)
+
+    if test:
+        enable_test_infra()
 
     # scrap css after article scraping is finished
     if not noscrap or extra_pages:

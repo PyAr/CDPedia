@@ -1,0 +1,6 @@
+[es]
+Argentina  # Check image galleries are shown in rows
+AC/DC  # Article should load correctly; browser tab title should be 'AC/DC'
+Número_π  # Check equations display correctly
+Escala_de_tonos_enteros  # Audio player should have a blue dashed border; check if play works
+Sol  # Check eclipse GIF animation shows correctly
