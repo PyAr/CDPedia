@@ -287,6 +287,8 @@ def enable_test_infra():
     if not os.path.isfile(dst):
         os.link(src, dst)
 
+    config.INFRA = [to3dirs._quote(art) for art in articles]
+
 
 def clean(keep_processed):
     """Clean and setup the temp directory."""

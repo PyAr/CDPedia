@@ -95,6 +95,12 @@ def run():
         # get the images that correspond to this file
         dskurls = page_images[(dir3, fname)]
 
+        # add images on top if they belong to test-infra
+        if config.INFRA is not None:
+            if fname in config.INFRA:
+                for image in dskurls:
+                    images_optional[image] = -2
+
         for url in dskurls:
             if required_enabled and image_is_required(url):
                 images_required.add(url)
