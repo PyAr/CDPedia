@@ -61,9 +61,8 @@ class IndexEntry:
     def __eq__(self, other):
         return all(getattr(self, attr) == getattr(other, attr) for attr in self.__slots__)
 
-    def totuple(self):
-        values = (getattr(self, att) for att in self.__slots__)
-        return tuple(values)
+    def __hash__(self):
+        return hash(tuple(getattr(self, attr) for attr in self.__slots__))
 
 
 # cache for normalized chars

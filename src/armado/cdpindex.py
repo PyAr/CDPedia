@@ -122,11 +122,9 @@ def generate_from_html(dirbase, verbose):
 
     def check_already_seen(data):
         """Check for duplicated index entries. Crash if founded."""
-        if data.totuple() in already_seen:
-            raise KeyError("Duplicated document in: {}".format(data.totuple()))
-            return True
-        already_seen.add(data.totuple())
-        return False
+        if data in already_seen:
+            raise KeyError("Duplicated document in: {}".format(data))
+        already_seen.add(data)
 
     def gen():
         for dir3, arch, pagerank in top_pages:
