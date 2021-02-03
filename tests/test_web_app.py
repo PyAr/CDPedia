@@ -26,6 +26,7 @@ from werkzeug.wrappers import Response
 
 import config
 from src.armado import cdpindex
+from src.armado.sqlite_index import IndexEntry
 from src.web import web_app, utils
 from src.web.test_infra import TEST_INFRA_FILENAME
 
@@ -63,8 +64,10 @@ def create_app_client(mocker, tmp_path):
 
     # a bogus index with a couple of items (so it behaves properly for get_random and similar)
     mocker.patch('config.DIR_INDICE', str(tmp_path))
-    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1')),
-                    (['key2'], 8, ('p/a/g/page2', 'Page2'))]
+    entry1 = IndexEntry(link='p/a/g/page1', title='Page1', rtype=IndexEntry.TYPE_ORIG_ARTICLE)
+    entry2 = IndexEntry(link='p/a/g/page2', title='Page2', rtype=IndexEntry.TYPE_ORIG_ARTICLE)
+    fake_content = [(['key1'], 7, entry1),
+                    (['key2'], 8, entry2)]
     cdpindex.Index.create(str(tmp_path), fake_content)
 
     app = web_app.create_app(watchdog=None, with_static=False)

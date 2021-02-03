@@ -150,13 +150,9 @@ class Searcher(object):
         """Get results to show from the index."""
         source = self.get_results(search_id, start, quantity)
         results = []
-        for link, title, ptje, original, text in source:
+        for result in source:
             # remove 3 dirs from link and add the proper base url
-            link = "%s/%s" % (u'wiki', to3dirs.from_path(link))
-            link = quote(link)
-
-            # put the tokens in lowercase because
-            # the uppercase gives them a choppy effect
-            tit_tokens = set(CLEAN.sub("", x.lower()) for x in title.split())
-            results.append((link, title, ptje, tit_tokens, text))
+            link = "%s/%s" % (u'wiki', to3dirs.from_path(result.link))
+            result = result.update(link=quote(link))
+            results.append(result)
         return results

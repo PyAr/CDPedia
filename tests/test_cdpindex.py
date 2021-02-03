@@ -18,6 +18,7 @@
 
 import config
 from src.armado import cdpindex, to3dirs
+from src.armado.sqlite_index import IndexEntry
 
 import pytest
 
@@ -122,15 +123,15 @@ def test_repeated_entry_redirects(index, data, mocker):
     assert len(entries) == 3
 
     # the first one for sure must be the original
-    words, _, (html, _, _, is_original, _) = entries[0]
+    words, _, entry = entries[0]
     assert words == ('foo', 'bar')
-    assert html == 'f/o/o_bar/foo_bar'
-    assert is_original
+    assert entry.link == 'f/o/o_bar/foo_bar'
+    assert entry.rtype == IndexEntry.TYPE_ORIG_ARTICLE
 
     # the rest must be redirects, point to same html, and with specific words
     # (comparing like this because order may change)
-    assert {e[2][3] for e in entries[1:]} == {False}
-    assert {e[2][0] for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
+    assert {e[2].rtype for e in entries[1:]} == {IndexEntry.TYPE_REDIRECT}
+    assert {e[2].link for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
     assert {e[0] for e in entries[1:]} == {('foo', 'bazzz'), ('bazzz', 'foo')}
 
 

@@ -35,6 +35,36 @@ logger = logging.getLogger(__name__)
 PAGE_SIZE = 512
 MAX_RESULTS = 500
 
+
+class IndexEntry:
+    """Article or redir index entry data structure."""
+
+    __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle')
+
+    # types of records
+    TYPE_ORIG_ARTICLE = 0  # original article (may be target of possible redirects)
+    TYPE_ORIG_SIMPLE_LINK = 1  # original article whose link can be calculated from the title
+    TYPE_REDIRECT = 2  # a redirect to some original title
+
+    def __init__(self, rtype, link, title, score=0, description="", subtitle=""):
+        self.rtype = rtype
+        self.link = link
+        self.title = title
+        self.score = score
+        self.description = description
+        self.subtitle = subtitle
+
+    def __repr__(self):
+        values = ["{}:{!r}".format(attr, getattr(self, attr)) for attr in self.__slots__]
+        return 'IndexEntry: ' + ','.join(values)
+
+    def __eq__(self, other):
+        return all(getattr(self, attr) == getattr(other, attr) for attr in self.__slots__)
+
+    def __hash__(self):
+        return hash(tuple(getattr(self, attr) for attr in self.__slots__))
+
+
 # cache for normalized chars
 _normalized_chars = {}
 
@@ -393,12 +423,13 @@ class Index:
         data = self._get_page(page_id)
         if not data:
             raise IndexError("Non existing docid")
-        row = data[rel_position]
+        idx_entry = data[rel_position]
         # if the html filename is marked as computable
         # do it and store in position 0.
-        if row[0] is None:
-            row[0] = to_filename(row[1])
-        return row
+        # idx_entry = Indexentry(*row)
+        if idx_entry.link is None:
+            idx_entry.link = to_filename(idx_entry.title)
+        return idx_entry
 
     def search(self, keys):
         """Not implemented, just added for API compatibility.
@@ -419,8 +450,8 @@ class Index:
         for score, ndoc in docset.ordered:
             doc_data = self.get_doc(ndoc)
             # Do not return more than one index result to the same file.
-            if not doc_data[0] in files_yielded:
-                files_yielded.add(doc_data[0])
+            if doc_data.link not in files_yielded:
+                files_yielded.add(doc_data.link)
                 yield doc_data
             if len(files_yielded) >= MAX_RESULTS:
                 break
@@ -510,11 +541,11 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, data in source:
-                data = list(data)
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
-                docid = docs_table.append((len(words), data))
+            for words, page_score, idx_entry in source:
+                if idx_entry.link == to_filename(idx_entry.title):
+                    idx_entry.link = None
+                    idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
+                docid = docs_table.append((len(words), idx_entry))
                 for idx, word in enumerate(words):
                     idx_dict[word].append(docid, idx)
 
