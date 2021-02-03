@@ -15,7 +15,6 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import logging
 import pytest
 
 from src.armado import easy_index
@@ -33,6 +32,7 @@ def IE(title):
 
 def info(titles, function):
     return [(tokenize(ttl), 0, function(ttl)) for ttl in titles]
+
 
 @pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
 def create_index(request, tmpdir):
