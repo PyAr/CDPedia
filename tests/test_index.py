@@ -46,7 +46,7 @@ def create_index(request, tmpdir):
         engine.create(str(tmpdir), info)
 
         # Load the index and give it to use
-        index = engine(tmpdir)
+        index = engine(str(tmpdir))
         return index
 
     yield f
