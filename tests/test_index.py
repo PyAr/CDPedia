@@ -15,101 +15,41 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 
-import shutil
-import tempfile
 import logging
 import pytest
 
 from src.armado import easy_index
 from src.armado import sqlite_index
+from src.armado.cdpindex import tokenize
 from src.armado.sqlite_index import IndexEntry
 
 
-def decomp(data):
-    """To write docset in a compact way.
-
-    Ej: 'my title;second title'
-    """
-    docs = [n.strip().split("/") + [0] for n in data.split(";")]
-    docs = [(n[0], int(n[1])) for n in docs]
-    return docs
+def IE(title):
+    return IndexEntry(rtype=IndexEntry.TYPE_ORIG_ARTICLE,
+                      title=title.strip(),
+                      link=title.strip(),
+                      score=0)
 
 
-def abrev(result):
-    """Cut auto generated html title in 0 position."""
-    result = list(result)
-    if not result:
-        return result
-    return [(r.title, r.score) for r in result]
-
-
-class DataSet:
-    """Creates data lists to put in the index."""
-    fixtures = {}
-
-    @classmethod
-    def add_fixture(cls, key, data):
-        docs = [n.strip().split("/") + [0] for n in data.split(";")]
-        docs = [(n[0], int(n[1])) for n in docs]
-        info = []
-        for n in docs:
-            data = IndexEntry(link=None, title=n[0], score=n[1],
-                              rtype=IndexEntry.TYPE_ORIG_ARTICLE)
-            info.append((n[0].lower().split(" "), n[1], data))
-        cls.fixtures[key] = info
-
-    def __init__(self, key):
-        self.name = key
-        self.info = []
-        if key in self.fixtures:
-            self.info = self.fixtures[key]
-
-    def __eq__(self, other):
-        titles = [(inf[2][1], ) for inf in self.info]
-        return titles == other
-
-    def __repr__(self):
-        return "Fixture %s: %r" % (self.name, self.info)
-
-
-def test_auxiliary():
-    DataSet.add_fixture("one", "ala blanca/3")
-    data = IndexEntry(link=None, title="ala blanca", score=3, rtype=IndexEntry.TYPE_ORIG_ARTICLE)
-    assert DataSet("one").info == [(['ala', 'blanca'], 3, data)]
-
-
-DataSet.add_fixture("A", "ala blanca/3")
-DataSet.add_fixture("B", "ala blanca/3; conejo blanco/5; conejo negro/6")
-data = """\
-        aaa/0;
-        abc/0;
-        bcd/0;
-        abd/0;
-        bbd/0
-    """
-DataSet.add_fixture("E", data)
-
+def info(titles, function):
+    return [(tokenize(ttl), 0, function(ttl)) for ttl in titles]
 
 @pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
-def create_index(request):
+def create_index(request, tmpdir):
     """Create an index with given info in a temp dir, load it and return built index."""
-    tempdir = tempfile.mkdtemp()
 
     def f(info):
         # Create the index with the parametrized engine
         engine = request.param
         if engine is sqlite_index.Index:
             setattr(engine, "search", engine.partial_search)
-        engine.create(tempdir, info)
+        engine.create(tmpdir, info)
 
         # Load the index and give it to use
-        index = engine(tempdir)
+        index = engine(tmpdir)
         return index
 
-    try:
-        yield f
-    finally:
-        shutil.rmtree(tempdir)
+    yield f
 
 
 # --- Test the .items method.
@@ -123,42 +63,42 @@ def test_items_nothing(create_index):
 
 def test_one_item(create_index):
     """Only one item."""
-    idx = create_index(DataSet("A").info)
+    idx = create_index(info(["ala blanca"], IE))
     values = idx.values()
     # assert DataSet("A") == values
-    assert abrev(values) == decomp("ala blanca/3")
+    assert list(values) == [IE("ala blanca")]
 
 
 def test_several_items(create_index):
     """Several items stored."""
-    idx = create_index(DataSet("B").info)
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
     values = idx.values()
-    assert set(abrev(values)) == set(decomp("ala blanca/3; conejo blanco/5; conejo negro/6"))
-    tokens = set([str(k) for k in idx.keys()])
-    assert tokens == {"ala", "blanca", "blanco", "conejo", "negro"}
+    assert set(values) == {IE('ala blanca'), IE('conejo blanco'), IE('conejo negro')}
+    assert set(idx.keys()) == {"ala", "blanca", "blanco", "conejo", "negro"}
+
 
 # --- Test the .random method.
 
 
 def test_random_one_item(create_index):
     """Only one item."""
-    idx = create_index(DataSet("A").info)
+    idx = create_index(info(["ala blanca"], IE))
     value = idx.random()
-    assert abrev([value]) == decomp("ala blanca/3")
+    assert value == IE("ala blanca")
 
 
 def test_random_several_values(create_index):
     """Several values stored."""
-    idx = create_index(DataSet("B").info)
-    value = abrev([idx.random()])
-    assert value[0] in decomp("ala blanca/3; conejo blanco/5; conejo negro/6")
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
+    value = list([idx.random()])[0]
+    assert value in {IE('ala blanca'), IE('conejo blanco'), IE('conejo negro')}
 
 # --- Test the "in" functionality.
 
 
 def test_infunc_one_item(create_index):
     """Only one item."""
-    idx = create_index(DataSet("B").info)
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
     assert "ala" in idx
     assert "bote" not in idx
 
@@ -167,101 +107,95 @@ def test_infunc_one_item(create_index):
 
 def test_search_failed(create_index):
     """Several items stored."""
-    idx = create_index(DataSet("B").info)
-    res = searchidx(idx, ["botero"])
-    assert abrev(res) == []
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
+    res = list(idx.search(["botero"]))
+    assert res == []
 
 
 def test_search_unicode(create_index):
     """Several items stored."""
-    idx = create_index(DataSet("B").info)
-    res1 = searchidx(idx, ["Alá"])
-    res2 = searchidx(idx, ["ála"])
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
+    res1 = list(idx.search(["Alá"]))
+    res2 = list(idx.search(["ála"]))
     assert res1 == res2
 
 
 def test_search(create_index):
     """Several items stored."""
-    idx = create_index(DataSet("B").info)
-    res = searchidx(idx, ["ala"])
-    assert abrev(res) == decomp("ala blanca/3")
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
+    res = list(idx.search(["ala"]))
+    assert res == [IE("ala blanca")]
 
 
-def test_several_results(caplog, create_index):
+def test_several_results(create_index):
     """Several results for one key stored."""
-    caplog.set_level(logging.INFO)
-    idx = create_index(DataSet("B").info)
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
     # items = [a for a in idx.search(["conejo"])]
-    res = searchidx(idx, ["conejo"])
-    assert set(abrev(res)) == set(decomp("conejo negro/6; conejo blanco/5"))
+    res = idx.search(["conejo"])
+    assert set(res) == {IE('conejo blanco'), IE('conejo negro')}
 
 
-def test_several_keys(caplog, create_index):
+def test_several_keys(create_index):
     """Several item stored."""
-    caplog.set_level(logging.INFO)
-    idx = create_index(DataSet("B").info)
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
     # items = [a for a in idx.search(["conejo"])]
-    res = searchidx(idx, ["conejo", "negro"])
-    assert abrev(res) == decomp("conejo negro/6")
+    res = idx.search(["conejo", "negro"])
+    assert set(res) == {IE('conejo negro')}
 
 
-def test_many_results(caplog, create_index):
+def test_many_results(create_index):
     """Test with many pages of results."""
-    caplog.set_level(logging.INFO)
     data = """\
-        blanca ojeda/9000;
-        coneja blanca/9000;
-        gradaciones entre los colores de blanca/9000;
-        conejo blanca/9000;
-        caja blanca/9000;
-        limpieza de blanca/9000;
-        blanca casa/9000;
-        es blanca la paloma/9000;
-        Blanca gómez/9000;
-        recuerdos de blanca/9000;
-        blanca/9000
-    """
-    DataSet.add_fixture("D", data)
-    idx = create_index(DataSet("D").info)
-    assert len(DataSet("D").info) == len([v for v in idx.values()])
-    res = searchidx(idx, ["blanca"])
-    assert len(res) == len(DataSet("D").info)
-
-
-def searchidx(idx, keys):
-    res = list(idx.search(keys))
-    return res
+        blanca ojeda;
+        coneja blanca;
+        gradaciones entre los colores de blanca;
+        conejo blanca;
+        caja blanca;
+        limpieza de blanca;
+        blanca casa;
+        es blanca la paloma;
+        Blanca gómez;
+        recuerdos de blanca;
+        blanca
+    """.split(';')
+    idx = create_index(info(data, IE))
+    assert len(data) == len([v for v in idx.values()])
+    res = list(idx.search(["blanca"]))
+    assert len(res) == len(data)
 
 
 def test_search_prefix(create_index):
     """Match its prefix."""
-    idx = create_index(DataSet("B").info)
-    res = set(abrev(idx.partial_search(["blanc"])))
-    assert res == set(decomp("conejo blanco/5; ala blanca/3"))
+    idx = create_index(info(["ala blanca", "conejo blanco", "conejo negro"], IE))
+    res = idx.partial_search(["blanc"])
+    assert set(res) == {IE('ala blanca'), IE('conejo blanco')}
     res = idx.partial_search(["zz"])
     assert list(res) == []
 
 
 def test_search_several_values(create_index):
     """Several values stored."""
-    idx = create_index(DataSet("E").info)
+    data = ["aaa", "abc", "bcd", "abd", "bbd"]
+    idx = create_index(info(data, IE))
     res = idx.partial_search(["a"])
-    assert set(abrev(res)) == set(decomp("aaa;abc;abd"))
+    assert set(res) == {IE("aaa"), IE("abc"), IE("abd")}
     res = idx.partial_search(["b"])
-    assert set(abrev(res)) == set(decomp("abc;abd;bcd;bbd"))
+    assert set(res) == {IE("abc"), IE("abd"), IE("bcd"), IE("bbd")}
     res = idx.partial_search(["c"])
-    assert set(abrev(res)) == set(decomp("abc;bcd"))
+    assert set(res) == {IE("abc"), IE("bcd")}
     res = idx.partial_search(["d"])
-    assert set(abrev(res)) == set(decomp("bcd;abd;bbd"))
+    assert set(res) == {IE("bcd"), IE("abd"), IE("bbd")}
     res = idx.partial_search(["o"])
-    assert set(abrev(res)) == set()
+    assert set(res) == set()
 
 
 def test_search_and(create_index):
     """Check that AND is applied."""
-    idx = create_index(DataSet("E").info)
+    data = ["aaa", "abc", "bcd", "abd", "bbd"]
+    idx = create_index(info(data, IE))
     res = idx.partial_search(["a", "b"])
-    assert set(abrev(res)) == set(decomp("abc;abd"))
+    assert set(res) == {IE("abc"), IE("abd")}
     res = idx.partial_search(["b", "c"])
-    assert set(abrev(res)) == set(decomp("abc;bcd"))
+    assert set(res) == {IE("abc"), IE("bcd")}
     res = idx.partial_search(["a", "o"])
+    assert set(res) == set()
