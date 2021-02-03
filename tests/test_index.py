@@ -43,7 +43,7 @@ def create_index(request, tmpdir):
         engine = request.param
         if engine is sqlite_index.Index:
             setattr(engine, "search", engine.partial_search)
-        engine.create(tmpdir, info)
+        engine.create(str(tmpdir), info)
 
         # Load the index and give it to use
         index = engine(tmpdir)
