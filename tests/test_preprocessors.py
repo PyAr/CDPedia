@@ -65,7 +65,7 @@ def dummy_vip_decissor(mocker):
     target = 'src.preprocessing.preprocessors.vip_decissor'
 
     def vip_decissor(title):
-        return title.startswith('A')
+        return (title.startswith('A'), 1)
 
     mocker.patch(target, vip_decissor)
 

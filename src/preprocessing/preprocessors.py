@@ -36,7 +36,6 @@ None instead of the score.
 import base64
 import collections
 import logging
-import os
 from urllib.parse import unquote
 
 import bs4
@@ -133,6 +132,7 @@ class VIPDecissor:
 
     def __init__(self):
         self._vip_articles = None
+        self.multiplier = {'destacados': 1, 'vip': 2, 'portal': 2, 'infra': 3}
 
     def _load(self):
         """Load all needed special articles.
@@ -140,29 +140,35 @@ class VIPDecissor:
         This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
         """
-        viparts = self._vip_articles = set()
+        viparts = self._vip_articles = dict()
+        # must include according to the config
+        viparts['vip'] = config.langconf['include']
 
         # some manually curated pages
+        if config.VIP is not None:
+            # values must be list
+            viparts['vip'] += config.VIP
+
         if config.DESTACADOS is not None:
             with open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
-                for line in fh:
-                    viparts.add(line.strip())
+                viparts['destacados'] = [article.strip() for article in fh]
 
-        # must include according to the config
-        viparts.update(config.langconf['include'])
+        if config.PORTAL is not None:
+            viparts['portal'] = config.PORTAL
 
-        # portal articles from the front-page portal, itself included
-        viparts.add(config.langconf['portal_index'])
-        _path = os.path.join(config.DIR_TEMP, 'portal_pages.txt')
-        with open(_path, 'rt', encoding='utf-8') as fh:
-            viparts.update(line.strip() for line in fh)
+        if config.INFRA is not None:
+            viparts['infra'] = config.INFRA
 
-        logger.info("Loaded %d VIP articles", len(viparts))
+        total_vip_arts = sum(len(arts) for arts in viparts.values())
+        logger.info("Loaded %d VIP articles", total_vip_arts)
 
     def __call__(self, article):
         if self._vip_articles is None:
             self._load()
-        return article in self._vip_articles
+        for key, vips in self._vip_articles.items():
+            if article in vips:
+                return (True, self.multiplier[key])
+        return (False,)
 
 
 vip_decissor = VIPDecissor()
@@ -177,9 +183,10 @@ class VIPArticles(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        if vip_decissor(wikifile.url):
+        vip = vip_decissor(wikifile.url)
+        if vip[0]:
             self.stats['vip'] += 1
-            score = SCORE_VIP
+            score = SCORE_VIP * vip[1]
         else:
             self.stats['normal'] += 1
             score = 0
@@ -217,7 +224,7 @@ class OmitRedirects(_Processor):
 
         # if redirect was very important, transmit this feature
         # to destination article
-        if vip_decissor(wikifile.url):
+        if vip_decissor(wikifile.url)[0]:
             trans = [(url_redirect, SCORE_VIP)]
         else:
             trans = []

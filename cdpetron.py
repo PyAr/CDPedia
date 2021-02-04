@@ -238,6 +238,7 @@ def scrap_portal(language, lang_config):
     """Get the portal index and scrap it."""
     # get the portal url, get out if don't have it
     portal_index_title = lang_config.get('portal_index')
+    config.PORTAL = [portal_index_title]
     if portal_index_title is None:
         logger.info("Not scraping portals, url not configured.")
         return
@@ -261,6 +262,7 @@ def scrap_portal(language, lang_config):
         for page in preprocessors.extract_pages(soup):
             cnt += 1
             fh.write(page + '\n')
+            config.PORTAL.append(to3dirs._quote(page))
 
     logger.info("Scraping portal sub pages (total=%d)", cnt)
     _call_scraper(language, _path)
