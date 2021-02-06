@@ -144,22 +144,15 @@ def generate_from_html(dirbase, verbose):
                 description=description)
             orig_words = tuple(tokenize(title))
             check_already_seen(data)
-            yield orig_words, score, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
             if arch_orig in redirs:
                 redirs[arch_orig].discard(orig_words)
-                for redir_words in redirs[arch_orig]:
-                    data = IndexEntry(
-                        link=link,
-                        title=title,
-                        subtitle=' '.join(redir_words),
-                        score=score,
-                        rtype=IndexEntry.TYPE_REDIRECT)
-                    check_already_seen(data)
-                    yield redir_words, score, data
+                yield orig_words, score, data, redirs[arch_orig]
+            else:
+                yield orig_words, score, data, set()
 
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):

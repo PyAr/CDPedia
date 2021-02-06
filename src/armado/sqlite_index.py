@@ -39,20 +39,21 @@ MAX_RESULTS = 500
 class IndexEntry:
     """Article or redir index entry data structure."""
 
-    __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle')
+    __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle', 'orig_docid')
 
     # types of records
     TYPE_ORIG_ARTICLE = 0  # original article (may be target of possible redirects)
     TYPE_ORIG_SIMPLE_LINK = 1  # original article whose link can be calculated from the title
     TYPE_REDIRECT = 2  # a redirect to some original title
 
-    def __init__(self, rtype, link, title, score=0, description="", subtitle=""):
+    def __init__(self, rtype, link, title, score=0, description="", subtitle="", orig_docid=0):
         self.rtype = rtype
         self.link = link
         self.title = title
         self.score = score
         self.description = description
         self.subtitle = subtitle
+        self.orig_docid = orig_docid
 
     def __repr__(self):
         values = ["{}:{!r}".format(attr, getattr(self, attr)) for attr in self.__slots__]
@@ -417,19 +418,32 @@ class Index:
             return decomp_data
         return None
 
-    def get_doc(self, docid):
-        """Return one stored document item."""
+    def _get_raw_doc(self, docid):
+        """Return one stored document item, no redirect compute."""
         page_id, rel_position = divmod(docid, PAGE_SIZE)
         data = self._get_page(page_id)
         if not data:
             raise IndexError("Non existing docid")
         idx_entry = data[rel_position]
-        # if the html filename is marked as computable
-        # do it and store in position 0.
-        # idx_entry = Indexentry(*row)
-        if idx_entry.link is None:
+        if idx_entry.rtype == IndexEntry.TYPE_ORIG_SIMPLE_LINK:
             idx_entry.link = to_filename(idx_entry.title)
         return idx_entry
+
+    def get_doc(self, docid):
+        """Return one stored document item."""
+        idx_entry = self._get_raw_doc(docid)
+        if idx_entry.rtype == IndexEntry.TYPE_REDIRECT:
+            orig_entry = self._get_raw_doc(idx_entry.orig_docid)
+            entry = IndexEntry(
+                link=orig_entry.link,
+                title=orig_entry.title,
+                score=orig_entry.score,
+                rtype=idx_entry.rtype,
+                description=orig_entry.description,
+                subtitle=idx_entry.subtitle)
+            return entry
+        else:
+            return idx_entry
 
     def search(self, keys):
         """Not implemented, just added for API compatibility.
@@ -541,13 +555,24 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, idx_entry in source:
+            for words, page_score, idx_entry, redirs in source:
                 if idx_entry.link == to_filename(idx_entry.title):
                     idx_entry.link = None
                     idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
-                docid = docs_table.append((len(words), idx_entry))
+                orig_docid = docs_table.append((len(words), idx_entry))
                 for idx, word in enumerate(words):
-                    idx_dict[word].append(docid, idx)
+                    idx_dict[word].append(orig_docid, idx)
+                for redir_words in redirs:
+                    redir_entry = IndexEntry(
+                        link=None,
+                        title=None,
+                        subtitle=' '.join(redir_words),
+                        score=0,
+                        rtype=IndexEntry.TYPE_REDIRECT,
+                        orig_docid=orig_docid)
+                    redir_docid = docs_table.append((len(redir_words), redir_entry))
+                    for idx, word in enumerate(redir_words):
+                        idx_dict[word].append(redir_docid, idx)
 
             docs_table.finish()
             return idx_dict

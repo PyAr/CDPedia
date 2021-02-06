@@ -33,7 +33,7 @@ def get_ie(title):
 
 def to_idx_data(titles, function):
     """Generate a list of data prepared for create index."""
-    return [(tokenize(ttl), 0, function(ttl)) for ttl in titles]
+    return [(tokenize(ttl), 0, function(ttl), set()) for ttl in titles]
 
 
 @pytest.fixture(params=[easy_index.Index, sqlite_index.Index])

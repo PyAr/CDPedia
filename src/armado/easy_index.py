@@ -23,6 +23,8 @@ import random
 from functools import lru_cache, reduce
 from lzma import LZMAFile as CompressedFile
 
+from sqlite_index import IndexEntry
+
 
 class Index(object):
     '''Handles the index.'''
@@ -185,7 +187,7 @@ class Index(object):
         indexed_counter = 0
 
         # fill them
-        for keys, ptje, data in source:
+        for keys, ptje, data, redirs in source:
             checkme = all([isinstance(keys, list),
                           isinstance(ptje, int)])
             if not checkme:
@@ -196,7 +198,6 @@ class Index(object):
                 raise ValueError("Keys cannot contain newlines")
             indexed_counter += len(keys)
             value = data
-
             # docid -> info final
             # don't add to tmp_reverse_id or ids_shelf if the value is repeated
             docid = ids_cnter
@@ -207,6 +208,21 @@ class Index(object):
             # keys -> docid
             for key in keys:
                 key_shelf.setdefault(key, set()).add(docid)
+            for redir in redirs:
+                redir_entry = IndexEntry(
+                    link=None,
+                    title=None,
+                    subtitle=' '.join(redir_words),
+                    score=page_score,
+                    rtype=IndexEntry.TYPE_REDIRECT,
+                    orig_docid=orig_docid)
+                redir_docid = ids_cnter
+                ids_cnter += 1
+                ids_shelf[redir_docid] = redir_entry
+
+                for key in redir:
+                    key_shelf.setdefault(key, set()).add(redir_docid)
+
 
         if ids_cnter == 0:
             raise ValueError("No data to index")
