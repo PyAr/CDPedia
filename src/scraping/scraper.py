@@ -441,7 +441,6 @@ def main(articles_path, language, dest_dir, test_limit=None, pool_size=20):
     css_link_extractor.setup(language_dump_dir=os.path.dirname(dest_dir))
 
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
-
     func = functools.partial(fetch, language)
     utiles.pooled_exec(func, data_urls, pool_size, known_errors=[ScraperError])
 

@@ -217,6 +217,7 @@ def _call_scraper(language, articles_file, test=False):
 
 def scrap_pages(language, test):
     """Get the pages from wikipedia."""
+    logger.info("Scraping all pages")
     all_articles = os.path.join(location.langdir, ART_ALL)
     _call_scraper(language, all_articles, test)
 
@@ -264,7 +265,7 @@ def scrap_portal(language, lang_config):
             fh.write(page + '\n')
             config.PORTAL.append(to3dirs._quote(page))
 
-    logger.info("Scraping portal sub pages (total=%d)", cnt)
+    logger.info("Scraping portal pages(total=%d)", cnt)
     _call_scraper(language, _path)
 
     logger.info("Portal scraping done")

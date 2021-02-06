@@ -140,6 +140,13 @@ LOG_IMAGES_REQUIRED = DIR_TEMP + '/images_required.txt'
 EMBED_IMAGES = True
 LOG_IMAGES_EMBEDDED = DIR_TEMP + '/images_embed.txt'
 
+# save download progress
+LOG_PROGRESS = 'status_board_progress.log'
+
+# save scraper exec
+COUNT_POOLED_EXEC_CALL = 1
+LOG_POOLED_EXEC = 'pooled_exec.log'
+
 # Directory name for saving CSS stylesheets and associated resources
 CSS_DIRNAME = 'css'
 
