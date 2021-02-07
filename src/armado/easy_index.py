@@ -23,7 +23,7 @@ import random
 from functools import lru_cache, reduce
 from lzma import LZMAFile as CompressedFile
 
-from sqlite_index import IndexEntry
+from src.armado.sqlite_index import IndexEntry
 
 
 class Index(object):
