@@ -66,8 +66,8 @@ def create_app_client(mocker, tmp_path):
     mocker.patch('config.DIR_INDICE', str(tmp_path))
     entry1 = IndexEntry(link='p/a/g/page1', title='Page1', rtype=IndexEntry.TYPE_ORIG_ARTICLE)
     entry2 = IndexEntry(link='p/a/g/page2', title='Page2', rtype=IndexEntry.TYPE_ORIG_ARTICLE)
-    fake_content = [(['key1'], 7, entry1),
-                    (['key2'], 8, entry2)]
+    fake_content = [(['key1'], 7, entry1, set()),
+                    (['key2'], 8, entry2, set())]
     cdpindex.Index.create(str(tmp_path), fake_content)
 
     app = web_app.create_app(watchdog=None, with_static=False)

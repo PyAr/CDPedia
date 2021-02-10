@@ -208,21 +208,20 @@ class Index(object):
             # keys -> docid
             for key in keys:
                 key_shelf.setdefault(key, set()).add(docid)
-            for redir in redirs:
+            for redir_words in redirs:
                 redir_entry = IndexEntry(
                     link=None,
                     title=None,
                     subtitle=' '.join(redir_words),
-                    score=page_score,
+                    score=data.page_score,
                     rtype=IndexEntry.TYPE_REDIRECT,
-                    orig_docid=orig_docid)
+                    orig_docid=docid)
                 redir_docid = ids_cnter
                 ids_cnter += 1
                 ids_shelf[redir_docid] = redir_entry
 
-                for key in redir:
+                for key in redir_words:
                     key_shelf.setdefault(key, set()).add(redir_docid)
-
 
         if ids_cnter == 0:
             raise ValueError("No data to index")
