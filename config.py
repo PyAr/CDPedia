@@ -67,14 +67,8 @@ if EDICION_ESPECIAL is not None:
 # Si no hay destacados debe ser None
 DESTACADOS = None
 
-# set articles in test-infra to add all images
-INFRA = None
-
-# configure portal pages with vip score
-PORTAL = None
-
-# pages to add vip score
-VIP = None
+# enable special features in test mode
+TEST_MODE = None
 
 # Tiempo de espera máxima, en segundos, para actualización del browser_watchdog.
 # Usar BROWSER_WD_SECONDS = 0 para desactivar el watchdog.

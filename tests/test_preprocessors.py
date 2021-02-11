@@ -63,10 +63,11 @@ def article_3(request):
 def dummy_vip_decissor(mocker):
     """Dummy VIP decissor."""
     target = 'src.preprocessing.preprocessors.vip_decissor'
-
-    def vip_decissor(title):
-        return (title.startswith('A'), 1)
-
+    vip_decissor = VIPDecissor()
+    vip_decissor._vip_articles = {'Argentina': 1,
+                                  'Americano': 1,
+                                  'Portal:Portada': 2,
+                                  'Sol': 3}
     mocker.patch(target, vip_decissor)
 
 
@@ -185,11 +186,25 @@ class TestVIPArticles:
         """Create a test VIPArticles."""
         return VIPArticles()
 
-    def test_article_vip(self, viparticles):
+    def test_article_vip_single(self, viparticles):
         """Test score assigned to a VIP article."""
         wikifile = FakeWikiFile('', url='Argentina')
         result = viparticles(wikifile)
         assert result == (SCORE_VIP, [])
+        assert viparticles.stats['vip'] == 1
+
+    def test_article_vip_double(self, viparticles):
+        """Test score assigned to a VIP article."""
+        wikifile = FakeWikiFile('', url='Portal:Portada')
+        result = viparticles(wikifile)
+        assert result == (SCORE_VIP * 2, [])
+        assert viparticles.stats['vip'] == 1
+
+    def test_article_vip_triple(self, viparticles):
+        """Test score assigned to a VIP article."""
+        wikifile = FakeWikiFile('', url='Sol')
+        result = viparticles(wikifile)
+        assert result == (SCORE_VIP * 3, [])
         assert viparticles.stats['vip'] == 1
 
     def test_article_normal(self, viparticles):

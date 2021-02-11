@@ -36,11 +36,13 @@ None instead of the score.
 import base64
 import collections
 import logging
+import os
 from urllib.parse import unquote
 
 import bs4
 
 import config
+from src.armado import to3dirs
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
@@ -132,7 +134,6 @@ class VIPDecissor:
 
     def __init__(self):
         self._vip_articles = None
-        self.multiplier = {'destacados': 1, 'vip': 2, 'portal': 2, 'infra': 3}
 
     def _load(self):
         """Load all needed special articles.
@@ -141,34 +142,32 @@ class VIPDecissor:
         generated files, so doesn't need to happen at import time.
         """
         viparts = self._vip_articles = dict()
-        # must include according to the config
-        viparts['vip'] = config.langconf['include']
 
         # some manually curated pages
-        if config.VIP is not None:
-            # values must be list
-            viparts['vip'] += config.VIP
-
         if config.DESTACADOS is not None:
             with open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
-                viparts['destacados'] = [article.strip() for article in fh]
+                viparts.update({to3dirs._quote(line.strip()): 1 for line in fh})
 
-        if config.PORTAL is not None:
-            viparts['portal'] = config.PORTAL
+        # must include according to the config
+        viparts.update({include: 2 for include in config.langconf['include']})
 
-        if config.INFRA is not None:
-            viparts['infra'] = config.INFRA
+        # portal articles from the front-page portal, itself included
+        viparts.update({config.langconf['portal_index']: 2})
+        _path = os.path.join(config.DIR_TEMP, 'portal_pages.txt')
+        with open(_path, 'rt', encoding='utf-8') as fh:
+            viparts.update({to3dirs._quote(line.split()): 2 for line in fh})
 
-        total_vip_arts = sum(len(arts) for arts in viparts.values())
-        logger.info("Loaded %d VIP articles", total_vip_arts)
+        # add test-infra articles if test mode is enable.
+        if config.TEST_MODE is not None:
+            with open('test_infra.txt', 'rt', encoding='utf8') as fh:
+                viparts.update({to3dirs._quote(line.split()[0]): 3 for line in fh})
+
+        logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
         if self._vip_articles is None:
             self._load()
-        for key, vips in self._vip_articles.items():
-            if article in vips:
-                return (True, self.multiplier[key])
-        return (False,)
+        return self._vip_articles[article] if article in self._vip_articles else None
 
 
 vip_decissor = VIPDecissor()
@@ -183,10 +182,9 @@ class VIPArticles(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        vip = vip_decissor(wikifile.url)
-        if vip[0]:
+        if vip_decissor(wikifile.url) is not None:
             self.stats['vip'] += 1
-            score = SCORE_VIP * vip[1]
+            score = SCORE_VIP * vip_decissor(wikifile.url)
         else:
             self.stats['normal'] += 1
             score = 0
@@ -224,7 +222,7 @@ class OmitRedirects(_Processor):
 
         # if redirect was very important, transmit this feature
         # to destination article
-        if vip_decissor(wikifile.url)[0]:
+        if vip_decissor(wikifile.url):
             trans = [(url_redirect, SCORE_VIP)]
         else:
             trans = []
