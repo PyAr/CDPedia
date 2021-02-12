@@ -33,7 +33,7 @@ def get_ie(title):
 
 def to_idx_data(titles):
     """Generate a list of data prepared for create index."""
-    return [(tokenize(ttl), 0, get_ie(ttl), set()) for ttl in titles]
+    return [[tokenize(ttl), 0, get_ie(ttl), set()] for ttl in titles]
 
 
 @pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
@@ -201,3 +201,18 @@ def test_search_and(create_index):
     assert set(res) == {get_ie("abc"), get_ie("bcd")}
     res = idx.partial_search(["a", "o"])
     assert set(res) == set()
+
+# --- Test the .search method.
+
+
+def test_redir(create_index):
+    data = to_idx_data(["aaa", "abc", "bcd", "abd", "bbd"])
+    data[0][-1] = {("zzz", "xxx")}
+    data[1][-1] = {("111",), ("000",)}
+    idx = create_index(data)
+    res = idx.partial_search(["z"])
+    idx_entry = get_ie("aaa")
+    idx_entry.rtype = IndexEntry.TYPE_REDIRECT
+    idx_entry.subtitle = "zzz xxx"
+    assert set(res) == {idx_entry}
+

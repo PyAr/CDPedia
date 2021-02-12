@@ -213,7 +213,7 @@ class Index(object):
                     link=None,
                     title=None,
                     subtitle=' '.join(redir_words),
-                    score=data.page_score,
+                    score=data.score,
                     rtype=IndexEntry.TYPE_REDIRECT,
                     orig_docid=docid)
                 redir_docid = ids_cnter
