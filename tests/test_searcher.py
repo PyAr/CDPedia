@@ -30,18 +30,11 @@ class FakeIndex(object):
     def __init__(self):
         self.ready = threading.Event()
         self.fake_full = []
-        self.fake_partial = []
 
     def search(self, _):
         """Fake full search."""
         self.ready.wait()
         for item in self.fake_full:
-            yield item
-
-    def partial_search(self, _):
-        """Fake partial search."""
-        self.ready.wait()
-        for item in self.fake_partial:
             yield item
 
 
@@ -147,8 +140,7 @@ class SearcherTestCase(unittest.TestCase):
     def test_get_across_types(self):
         """Get from complete and partial."""
         # prepare the index
-        self.index.fake_full.extend([1, 2, 3, 4])
-        self.index.fake_partial.extend([5, 6, 7, 8])
+        self.index.fake_full.extend([1, 2, 3, 4, 5, 6, 7, 8])
         self.index.ready.set()
 
         # check
@@ -163,8 +155,7 @@ class SearcherTestCase(unittest.TestCase):
     def test_get_repeated(self):
         """Get same info several times."""
         # prepare the index
-        self.index.fake_full.extend([1, 2, 3, 4])
-        self.index.fake_partial.extend([5, 6, 7, 8])
+        self.index.fake_full.extend([1, 2, 3, 4, 5, 6, 7, 8])
         self.index.ready.set()
 
         # check
