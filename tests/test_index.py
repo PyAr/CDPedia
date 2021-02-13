@@ -206,9 +206,8 @@ def test_redir(create_index):
     data[0][-1] = {("zzz", "xxx")}
     data[1][-1] = {("111",), ("000",)}
     idx = create_index(data)
-    res = idx.partial_search(["z"])
+    res = idx.search(["z"])
     idx_entry = get_ie("aaa")
     idx_entry.rtype = IndexEntry.TYPE_REDIRECT
     idx_entry.subtitle = "zzz xxx"
     assert set(res) == {idx_entry}
-
