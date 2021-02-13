@@ -26,7 +26,6 @@ import threading
 import urllib.parse
 from collections import defaultdict
 
-# from .easy_index import Index
 from .sqlite_index import Index, normalize_words, IndexEntry
 
 
@@ -76,11 +75,6 @@ class IndexInterface(threading.Thread):
         """Search whole words in the index."""
         self.ready.wait()
         return self.index.search(words)
-
-    def partial_search(self, words):
-        """Search partial words inside the index."""
-        self.ready.wait()
-        return self.index.partial_search(words)
 
 
 def tokenize(title):
