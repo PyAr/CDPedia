@@ -220,8 +220,7 @@ class CDPedia:
         results = []
         for link, title, ptje, original, text in raw_results:
             # remove 3 dirs from link and add the proper base url
-            link = "wiki/{}".format(to3dirs.from_path(link))
-            link = urllib.parse.quote(link)
+            link = "wiki/{}".format(urllib.parse.quote(to3dirs.from_path(link), safe=()))
             results.append((link, title, text))
         return results
 
@@ -234,7 +233,6 @@ class CDPedia:
 
         results = self._search(search_string)
         return self.render_template('search.html', search_string=search_string, results=results)
-
 
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)

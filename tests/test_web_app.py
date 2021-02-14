@@ -164,66 +164,53 @@ def test_watchdog_on(create_app_client):
     assert b"watchdog" in response.data
 
 
-def test_index_ready(create_app_client):
-    app, client = create_app_client()
+def test_search_endpoint_ok(create_app_client):
+    _, client = create_app_client()
+    with patch.object(web_app.CDPedia, '_search') as mock:
+        mock.return_value = [('testlink', 'testtitle', 'testtext')]
+        response = client.post("/search", data={"keywords": "foo bar"})
+    assert response.status_code == 200
+    mock.assert_called_once_with('foo bar')
+    assert b'testlink' in response.data
+    assert b'testtitle' in response.data
+    assert b'testtext' in response.data
+
+
+def test_search_endpoint_empty(create_app_client):
+    _, client = create_app_client()
+    response = client.post("/search", data={"keywords": ""})
+    assert response.status_code == 302
+    assert "http://localhost/" == response.location
+
+
+def test_search_real_search(create_app_client):
     app = web_app.create_app(watchdog=None, with_static=False)
-    client = Client(app, Response)
 
-    class FakeIndex(object):
-        def __init__(self):
-            self.ready = False
-
-        def is_ready(self):
-            return self.ready
-
-    app.index = FakeIndex()
-    response = client.get("/search_index/ready")
-    assert response.data == b"false"
-
-    app.index.ready = True
-    response = client.get("/search_index/ready")
-    assert response.data == b"true"
-
-
-def test_search_get(create_app_client):
-    _, client = create_app_client()
-    response = client.get("/search")
-    assert response.status_code == 200
-
-
-def test_search_post_url(create_app_client):
-    _, client = create_app_client()
-    response = client.post("/search")
-    assert response.status_code == 302
-
-
-def test_search_post(create_app_client):
-    _, client = create_app_client()
-    response = client.post("/search", data={"keywords": "a"})
-    assert response.status_code == 302
-    assert "/search/" in response.location
-    response = client.post("/search", data={"keywords": "a"}, follow_redirects=True)
-    assert response.status_code == 200
-
-
-def test_search_term_url(create_app_client):
-    _, client = create_app_client()
-    words = ("foo", "bar")
-    response = client.post("/search", data={"keywords": " ".join(words)})
-
-    assert response.status_code == 302
-    assert "/search/%s" % "+".join(words) in response.location
-
-    response = client.post(
-        "/search", data={"keywords": " ".join(words)}, follow_redirects=True)
-    assert response.status_code == 200
+    with patch.object(app.index, 'partial_search') as index_mock:
+        index_mock.return_value = [
+            ('t/e/s/testlink1', 'testtitle1', 123, True, 'testtext1'),
+            ('t/e/s/testlink moño', 'testtitle2', 567, False, 'testtext2'),
+        ]
+        result = app._search("foo bar Moño")
+    index_mock.assert_called_once_with(['foo', 'bar', 'mono'])
+    assert result == [
+        ('wiki/testlink1', 'testtitle1', 'testtext1'),
+        ('wiki/testlink%20mo%C3%B1o', 'testtitle2', 'testtext2'),
+    ]
 
 
 def test_search_term_with_slash(create_app_client):
-    _, client = create_app_client()
-    data = {"keywords": "foo/bar"}
-    response = client.post("/search", data=data, follow_redirects=True)
-    assert response.status_code == 200
+    app = web_app.create_app(watchdog=None, with_static=False)
+
+    with patch.object(app.index, 'partial_search') as index_mock:
+        index_mock.return_value = [
+            ('f/o/o/foo/bar', 'testtitle', 567, False, 'testtext'),
+        ]
+        result = app._search("foo/bar")
+    index_mock.assert_called_once_with(['foo/bar'])
+    assert result == [
+        ('wiki/foo%2Fbar', 'testtitle', 'testtext'),
+    ]
 
 
 def test_on_tutorial(create_app_client):

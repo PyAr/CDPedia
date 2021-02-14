@@ -1,21 +1,21 @@
-# Translations template for CDPedia.
-# Copyright (C) 2020 CDPedistas (see AUTHORS.txt)
-# This file is distributed under the same license as the CDPedia project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+# Translations template for PROJECT.
+# Copyright (C) 2021 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: CDPedia VERSION\n"
+"Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-08-05 22:13-0300\n"
+"POT-Creation-Date: 2021-02-11 19:46-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.6.0\n"
 
 #: src/web/translations.py:20
 msgid "January"
@@ -96,7 +96,7 @@ msgid ""
 "class=\"external\" href=\"%s\">updated original page</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:61
+#: src/web/templates/cdpedia_base.html:51
 msgid ""
 "<a href=\"/institucional/cdpedia.html\">CDPedia</a> is a project of <a "
 "href=\"/institucional/pyar.html\">Python Argentina</a>. Learn to program "
@@ -104,22 +104,22 @@ msgid ""
 "target=\"_blank\">tutorial</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:64
+#: src/web/templates/cdpedia_base.html:54
 msgid ""
-"Articles are shown here without any processing more than the "
-"strictly necessary for the correct user navigation. "
-"The original images contained in this article may have their "
-"own copyright, access the info on Wikipedia."
+"Articles are shown here without any processing more than the strictly "
+"necessary for the correct user navigation. The original images contained "
+"in this article may have their own copyright, access the info on "
+"Wikipedia."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:67
+#: src/web/templates/cdpedia_base.html:57
 #, python-format
 msgid ""
 "All the content from the articles come from the <a "
 "href=\"http://%s.wikipedia.org/\">Wikipedia online site</a>."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:72
+#: src/web/templates/cdpedia_base.html:62
 msgid ""
 "The text is released under the <a href=/institucional/cc-by-sa.html"
 ">Attribution-ShareAlike Creative Commons License</a>; additional terms "
@@ -130,11 +130,11 @@ msgid ""
 "non-profit organization."
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:75
+#: src/web/templates/cdpedia_base.html:65
 msgid "About Wikipedia"
 msgstr ""
 
-#: src/web/templates/cdpedia_base.html:78
+#: src/web/templates/cdpedia_base.html:68
 msgid "Disclaimers"
 msgstr ""
 
@@ -146,12 +146,12 @@ msgstr ""
 msgid "Welcome to the <a href=\"/institucional/cdpedia.html\">CDPedia</a>!"
 msgstr ""
 
-#: src/web/templates/main_page.html:12 src/web/templates/main_page.html:15
-#: src/web/templates/main_page.html:16
+#: src/web/templates/main_page.html:9 src/web/templates/main_page.html:12
+#: src/web/templates/main_page.html:13
 msgid "Featured article"
 msgstr ""
 
-#: src/web/templates/main_page.html:24
+#: src/web/templates/main_page.html:21
 msgid "Read more..."
 msgstr ""
 
@@ -159,27 +159,12 @@ msgstr ""
 msgid "No image"
 msgstr ""
 
-#: src/web/templates/search.html:5
+#: src/web/templates/search.html:6
 msgid "Results of the search for"
 msgstr ""
 
-#: src/web/templates/search.html:11
-msgid "Prev"
-msgstr ""
-
-#: src/web/templates/search.html:13
-msgid "Results"
-msgstr ""
-
-#: src/web/templates/search.html:14
-msgid "Next"
-msgstr ""
-
-#: src/web/templates/search.html:17
-msgid ""
-"Show <a href=\"?quantity=20\">20</a>, <a href=\"?quantity=50\">50</a>,\n"
-"        <a href=\"?quantity=100\">100</a> or <a "
-"href=\"?quantity=500\">500</a> results."
+#: src/web/templates/search.html:16
+msgid "Nothing found for"
 msgstr ""
 
 #: src/web/templates/sidebar.html:4 src/web/templates/sidebar.html:9
