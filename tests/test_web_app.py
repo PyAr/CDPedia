@@ -133,6 +133,26 @@ def test_wiki_article_with_special_chars(create_app_client):
     assert html.encode('utf-8') in response.data
 
 
+def test_wiki_article_uses_unquoted_title(create_app_client):
+    """Render article using unquoted original article name in title tag."""
+    app, client = create_app_client()
+    app.art_mngr.get_item = lambda x: 'Fake content'
+    html_part = '<title>AC/DC'  # not AC%2FDC
+    response = client.get("/wiki/AC/DC")
+    assert response.status_code == 200
+    assert html_part.encode('utf-8') in response.data
+
+
+def test_wiki_article_title_escaping(create_app_client):
+    """Article title should have the chars '<', '&' and '>' escaped in HTML source."""
+    app, client = create_app_client()
+    app.art_mngr.get_item = lambda x: 'Fake content'
+    html_part = '<title>foo&amp;&lt;bar&gt;'
+    response = client.get("/wiki/foo&<bar>")
+    assert response.status_code == 200
+    assert html_part.encode('utf-8') in response.data
+
+
 def test_wiki_random_article(create_app_client):
     _, client = create_app_client()
     response = client.get("/al_azar")
