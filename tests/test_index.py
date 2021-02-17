@@ -17,7 +17,6 @@
 
 import pytest
 
-from src.armado import easy_index
 from src.armado import sqlite_index
 from src.armado.cdpindex import tokenize
 from src.armado.sqlite_index import IndexEntry
@@ -36,19 +35,16 @@ def to_idx_data(titles):
     return [(tokenize(ttl), 0, get_ie(ttl)) for ttl in titles]
 
 
-@pytest.fixture(params=[easy_index.Index, sqlite_index.Index])
-def create_index(request, tmpdir):
+@pytest.fixture()
+def create_index(tmpdir):
     """Create an index with given info in a temp dir, load it and return built index."""
 
     def f(info):
         # Create the index with the parametrized engine
-        engine = request.param
-        if engine is sqlite_index.Index:
-            setattr(engine, "search", engine.partial_search)
-        engine.create(str(tmpdir), info)
+        sqlite_index.Index.create(str(tmpdir), info)
 
         # Load the index and give it to use
-        index = engine(str(tmpdir))
+        index = sqlite_index.Index(str(tmpdir))
         return index
 
     yield f
@@ -169,9 +165,9 @@ def test_many_results(create_index):
 def test_search_prefix(create_index):
     """Match its prefix."""
     idx = create_index(to_idx_data(["ala blanca", "conejo blanco", "conejo negro"]))
-    res = idx.partial_search(["blanc"])
+    res = idx.search(["blanc"])
     assert set(res) == {get_ie('ala blanca'), get_ie('conejo blanco')}
-    res = idx.partial_search(["zz"])
+    res = idx.search(["zz"])
     assert list(res) == []
 
 
@@ -179,15 +175,15 @@ def test_search_several_values(create_index):
     """Several values stored."""
     data = ["aaa", "abc", "bcd", "abd", "bbd"]
     idx = create_index(to_idx_data(data))
-    res = idx.partial_search(["a"])
+    res = idx.search(["a"])
     assert set(res) == {get_ie("aaa"), get_ie("abc"), get_ie("abd")}
-    res = idx.partial_search(["b"])
+    res = idx.search(["b"])
     assert set(res) == {get_ie("abc"), get_ie("abd"), get_ie("bcd"), get_ie("bbd")}
-    res = idx.partial_search(["c"])
+    res = idx.search(["c"])
     assert set(res) == {get_ie("abc"), get_ie("bcd")}
-    res = idx.partial_search(["d"])
+    res = idx.search(["d"])
     assert set(res) == {get_ie("bcd"), get_ie("abd"), get_ie("bbd")}
-    res = idx.partial_search(["o"])
+    res = idx.search(["o"])
     assert set(res) == set()
 
 
@@ -195,9 +191,9 @@ def test_search_and(create_index):
     """Check that AND is applied."""
     data = ["aaa", "abc", "bcd", "abd", "bbd"]
     idx = create_index(to_idx_data(data))
-    res = idx.partial_search(["a", "b"])
+    res = idx.search(["a", "b"])
     assert set(res) == {get_ie("abc"), get_ie("abd")}
-    res = idx.partial_search(["b", "c"])
+    res = idx.search(["b", "c"])
     assert set(res) == {get_ie("abc"), get_ie("bcd")}
-    res = idx.partial_search(["a", "o"])
+    res = idx.search(["a", "o"])
     assert set(res) == set()
