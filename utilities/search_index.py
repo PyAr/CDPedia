@@ -86,5 +86,5 @@ if __name__ == "__main__":
     delta_time = timeit.default_timer() - initial_time
     output("Open Time: ", delta_time * 100)
     initial_time = timeit.default_timer()
-    res = idx.partial_search(args.keys)
+    res = idx.search(args.keys)
     show_results(res)
