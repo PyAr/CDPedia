@@ -68,7 +68,6 @@ class ThreadedSearch(threading.Thread):
 
     def run(self):
         """Do the search."""
-        # full match
         result = self.index.search(self.words)
         if self.discarded:
             return
@@ -78,16 +77,6 @@ class ThreadedSearch(threading.Thread):
                 self.queue.put(r)
                 if self.discarded:
                     return
-        # partial
-        result = self.index.partial_search(self.words)
-        if self.discarded:
-            return
-
-        for r in result:
-            self.queue.put(r)
-            if self.discarded:
-                return
-
         # done
         self.queue.put(EOS)
 
