@@ -183,6 +183,9 @@ class WikiSite(object):
 
                 # with score or discarded, log it as processed
                 processed_before_log.write(page_path + "\n")
+                # display processing status
+                status = 'Processing: {} out of {} pages.\r'.format(count_processed, total_pages)
+                print(status, end='', flush=True)
 
         # all processing done for all the pages
         logger.info("Processed pages: %d new ok, %d discarded, %d already processed before",

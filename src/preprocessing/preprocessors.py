@@ -43,6 +43,7 @@ import bs4
 
 import config
 from src.armado import to3dirs
+from src.web import test_infra
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
@@ -130,7 +131,12 @@ class ContentExtractor(_Processor):
 
 
 class VIPDecissor:
-    """Hold those VIP articles that must be included."""
+    """Hold those VIP articles that must be included.
+
+    There are levels for high vip scores -> (1, 2, 3).
+    Each level multiplies the base SCORE_VIP, the levels are added
+    as values in a dict where the keys are the articles.
+    """
 
     def __init__(self):
         self._vip_articles = None
@@ -140,6 +146,13 @@ class VIPDecissor:
 
         This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
+
+        The set of articles and their levels.
+            DESTACADOS = 1
+            INCLUDE = 2
+            PORTAL = 2
+            Only in test-mode:
+                TEST_INFRA = 3
         """
         viparts = self._vip_articles = dict()
 
@@ -155,19 +168,20 @@ class VIPDecissor:
         viparts.update({config.langconf['portal_index']: 2})
         _path = os.path.join(config.DIR_TEMP, 'portal_pages.txt')
         with open(_path, 'rt', encoding='utf-8') as fh:
-            viparts.update({to3dirs._quote(line.split()): 2 for line in fh})
+            viparts.update({to3dirs._quote(line.strip()): 2 for line in fh})
 
         # add test-infra articles if test mode is enable.
-        if config.TEST_MODE is not None:
-            with open('test_infra.txt', 'rt', encoding='utf8') as fh:
-                viparts.update({to3dirs._quote(line.split()[0]): 3 for line in fh})
+        if config.TEST_MODE:
+            src = test_infra.TEST_INFRA_FILENAME
+            article_names = test_infra.parse_test_infra_file(src)
+            viparts.update({to3dirs._quote(line[0]): 3 for line in article_names})
 
         logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
         if self._vip_articles is None:
             self._load()
-        return self._vip_articles[article] if article in self._vip_articles else None
+        return article in self._vip_articles
 
 
 vip_decissor = VIPDecissor()
@@ -182,9 +196,9 @@ class VIPArticles(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        if vip_decissor(wikifile.url) is not None:
+        if vip_decissor(wikifile.url):
             self.stats['vip'] += 1
-            score = SCORE_VIP * vip_decissor(wikifile.url)
+            score = SCORE_VIP * vip_decissor._vip_articles[wikifile.url]
         else:
             self.stats['normal'] += 1
             score = 0
