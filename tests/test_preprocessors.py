@@ -275,6 +275,13 @@ class TestOmitRedirects:
         assert result == (None, [('América', SCORE_VIP)])
         assert omit_redirects.stats['redirect'] == 1
 
+    def test_broken_redirect(self, omit_redirects):
+        """Discard redirects without links (e.g. for having redlinks removed by HTMLCleaner)."""
+        html = '<div class="redirectMsg"><ul class="redirectText"><li>Broken</li></ul></div>'
+        broken_redirect = FakeWikiFile(html, url='Broken')
+        result = omit_redirects(broken_redirect)
+        assert result == (None, [])
+
 
 class TestLength:
     """Tests for Length preprocessor."""

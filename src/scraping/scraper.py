@@ -316,8 +316,8 @@ class CSSLinkExtractor:
 css_link_extractor = CSSLinkExtractor()
 
 regex = (
-    r'(<h1 id="firstHeading" class="firstHeading" '
-    r'lang=".+">.+</h1>)(.+)\s*<div class="printfooter">')
+    r'(<h1 id="firstHeading" class="firstHeading" >.+</h1>)'
+    r'(.+)\s*<div class="printfooter">')
 capture = re.compile(regex, re.MULTILINE | re.DOTALL).search
 
 
