@@ -136,6 +136,11 @@ class VIPDecissor:
     There are levels for high vip scores -> (1, 2, 3).
     Each level multiplies the base SCORE_VIP, the levels are added
     as values in a dict where the keys are the articles.
+
+    The levels are as follows:
+        3: all articles in test_infra.txt(only in test-mode), these must be included.
+        2: all in portal and langconfig, since without this the cdpedia is broken.
+        1: what is indicated in destacados.txt.
     """
 
     def __init__(self):
@@ -146,13 +151,6 @@ class VIPDecissor:
 
         This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
-
-        The set of articles and their levels.
-            DESTACADOS = 1
-            INCLUDE = 2
-            PORTAL = 2
-            Only in test-mode:
-                TEST_INFRA = 3
         """
         viparts = self._vip_articles = dict()
 
