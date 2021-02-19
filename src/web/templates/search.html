@@ -5,10 +5,10 @@
 {% if results %}
     <h1 class="firstHeading">{{ gettext('Results of the search for') }} <i>'{{ search_string }}'</i></h1>
     <ul>
-    {% for link, title, text in results %}
+    {% for result in results %}
       <li class="search-result">
-          <div class="search-result-title"><a href="/{{ link }}">{{ title }}</a></div>
-          {% if text %}<div class="search-result-text"> {{ text }} </div>{% endif %}
+          <div class="search-result-title"><a href="/{{ result.link }}">{{ result.title }}</a></div>
+          {% if result.description %}<div class="search-result-text"> {{ result.description }} </div>{% endif %}
       </li>
     {% endfor %}
     </ul>

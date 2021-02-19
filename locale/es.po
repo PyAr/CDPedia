@@ -1,7 +1,6 @@
 # Spanish translations for CDPedia.
-# Copyright (C) 2014-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2014-2020 CDPedistas (see AUTHORS.txt)
 # This file is distributed under the same license as the CDPedia project.
-# Facundo Batista <facundo@taniquetil.com.ar>, 2014.
 #
 msgid ""
 msgstr ""

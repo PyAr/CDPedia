@@ -167,7 +167,11 @@ def test_watchdog_on(create_app_client):
 def test_search_endpoint_ok(create_app_client):
     _, client = create_app_client()
     with patch.object(web_app.CDPedia, '_search') as mock:
-        mock.return_value = [('testlink', 'testtitle', 'testtext')]
+        mock.return_value = [
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE,
+                link='t/e/s/testlink', title='testtitle', description='testtext'),
+        ]
         response = client.post("/search", data={"keywords": "foo bar"})
     assert response.status_code == 200
     mock.assert_called_once_with('foo bar')
@@ -186,31 +190,37 @@ def test_search_endpoint_empty(create_app_client):
 def test_search_real_search(create_app_client):
     app = web_app.create_app(watchdog=None, with_static=False)
 
-    with patch.object(app.index, 'partial_search') as index_mock:
+    with patch.object(app.index, 'search') as index_mock:
         index_mock.return_value = [
-            ('t/e/s/testlink1', 'testtitle1', 123, True, 'testtext1'),
-            ('t/e/s/testlink moño', 'testtitle2', 567, False, 'testtext2'),
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE, link='t/e/s/testlink1',
+                title='testtitle1', score=123, description='testtext1'),
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE, link='t/e/s/testlink moño',
+                title='testtitle2', score=456, description='testtext2'),
         ]
-        result = app._search("foo bar Moño")
+        results = app._search("foo bar Moño")
     index_mock.assert_called_once_with(['foo', 'bar', 'mono'])
-    assert result == [
-        ('wiki/testlink1', 'testtitle1', 'testtext1'),
-        ('wiki/testlink%20mo%C3%B1o', 'testtitle2', 'testtext2'),
-    ]
+
+    result1, result2 = results
+    assert result1.link == 'wiki/testlink1'
+    assert result1.title == 'testtitle1'
+    assert result1.description == 'testtext1'
+    assert result2.link == 'wiki/testlink%20mo%C3%B1o'
+    assert result2.title == 'testtitle2'
+    assert result2.description == 'testtext2'
 
 
 def test_search_term_with_slash(create_app_client):
     app = web_app.create_app(watchdog=None, with_static=False)
 
-    with patch.object(app.index, 'partial_search') as index_mock:
+    with patch.object(app.index, 'search') as index_mock:
         index_mock.return_value = [
-            ('f/o/o/foo/bar', 'testtitle', 567, False, 'testtext'),
+            IndexEntry(IndexEntry.TYPE_ORIG_ARTICLE, link='f/o/o/foo/bar', title='testtitle')
         ]
-        result = app._search("foo/bar")
+        results = app._search("foo/bar")
     index_mock.assert_called_once_with(['foo/bar'])
-    assert result == [
-        ('wiki/foo%2Fbar', 'testtitle', 'testtext'),
-    ]
+    assert results[0].link == 'wiki/foo%2Fbar'
 
 
 def test_on_tutorial(create_app_client):

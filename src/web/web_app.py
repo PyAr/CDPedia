@@ -215,13 +215,13 @@ class CDPedia:
         """Really do the search."""
         search_string_norm = normalize_words(search_string)
         words = search_string_norm.split()
-        raw_results = self.index.partial_search(words)
+        results = list(self.index.search(words))
 
-        results = []
-        for link, title, ptje, original, text in raw_results:
-            # remove 3 dirs from link and add the proper base url
-            link = "wiki/{}".format(urllib.parse.quote(to3dirs.from_path(link), safe=()))
-            results.append((link, title, text))
+        # remove 3 dirs from link and add the proper base url
+        for result in results:
+            result.link = "wiki/{}".format(
+                urllib.parse.quote(to3dirs.from_path(result.link), safe=()))
+
         return results
 
     def on_search(self, request):
