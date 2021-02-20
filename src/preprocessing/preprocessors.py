@@ -202,10 +202,17 @@ class OmitRedirects(_Processor):
             self.stats['simplefile'] += 1
             return (0, [])
 
+        link_node = node.find('a')
+        if link_node is None:
+            # link removed by HTMLCleaner (redirect to non-existent page)
+            self.stats['broken_redirection'] += 1
+            # discard broken redirection
+            return (None, [])
+
         # store the redirect in corresponding file
         self.stats['redirect'] += 1
         # extract target from href not from text
-        url_redirect = node.find('a').attrs['href']
+        url_redirect = link_node.attrs['href']
         # remove path prefix
         if url_redirect.startswith(PAGES_PREFIX):
             url_redirect = url_redirect[len(PAGES_PREFIX):]
