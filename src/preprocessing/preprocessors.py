@@ -152,7 +152,7 @@ class VIPDecissor:
         This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
         """
-        viparts = self._vip_articles = dict()
+        viparts = self._vip_articles = {}
 
         # some manually curated pages
         if config.DESTACADOS is not None:
@@ -179,7 +179,7 @@ class VIPDecissor:
     def __call__(self, article):
         if self._vip_articles is None:
             self._load()
-        return article in self._vip_articles
+        return self._vip_articles.get(article)
 
 
 vip_decissor = VIPDecissor()
@@ -194,9 +194,10 @@ class VIPArticles(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        if vip_decissor(wikifile.url):
+        vip_multiplier = vip_decissor(wikifile.url)
+        if vip_multiplier is not None:
             self.stats['vip'] += 1
-            score = SCORE_VIP * vip_decissor._vip_articles[wikifile.url]
+            score = SCORE_VIP * vip_multiplier
         else:
             self.stats['normal'] += 1
             score = 0
