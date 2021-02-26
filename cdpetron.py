@@ -343,6 +343,7 @@ def main(language, lang_config, imag_config,
 
     if test:
         enable_test_infra()
+        config.TEST_MODE = test
 
     # scrap css after article scraping is finished
     if not noscrap or extra_pages:
