@@ -2,29 +2,17 @@
 {% block title %}Search{% endblock %}
 {% block content %}
 
-<h1 class="firstHeading">{{ gettext('Results of the search for') }} <i>'{{ search_words|join(', ') }}'</i></h1>
-
 {% if results %}
-  <div class="paging-results">
-    <div style="float:left;">
-      {% if start - quantity >= 0 %}
-      <a href="?start={{start - quantity}}&quantity={{quantity}}">{{ gettext('Prev') }} | </a>
-      {% endif %}
-      {{ gettext('Results') }} <b>{{start + 1}}-{{start + quantity}}</b>
-      <a href="?start={{start + quantity}}&quantity={{quantity}}"> | {{ gettext('Next') }}</a>
-    </div>
-    <div style="float:right;">
-        {{ gettext('Show <a href="?quantity=20">20</a>, <a href="?quantity=50">50</a>,
-        <a href="?quantity=100">100</a> or <a href="?quantity=500">500</a> results.') }}
-    </div>
-  </div>
+    <h1 class="firstHeading">{{ gettext('Results of the search for') }} <i>'{{ search_string }}'</i></h1>
+    <ul>
+    {% for result in results %}
+      <li class="search-result">
+          <div class="search-result-title"><a href="/{{ result.link }}">{{ result.title }}</a></div>
+          {% if result.description %}<div class="search-result-text"> {{ result.description }} </div>{% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <h1 class="firstHeading">{{ gettext('Nothing found for') }} <i>'{{ search_string }}'</i></h1>
 {% endif %}
-  <ul>
-  {% for result in results %}
-    <li class="search-result">
-        <div class="search-result-title"><a href="/{{ result.link }}">{{ result.title }}</a></div>
-        {% if text %}<div class="search-result-text"> {{ result.description }} </div>{% endif %}
-    </li>
-  {% endfor %}
-  </ul>
 {% endblock %}
