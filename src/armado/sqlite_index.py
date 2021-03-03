@@ -547,23 +547,29 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, idx_entry, redirs in source:
+            for title, link, score, description, orig_words, redir_words in source:
+                idx_entry = IndexEntry(
+                    link=link,
+                    title=title,
+                    score=score,
+                    rtype=IndexEntry.TYPE_ORIG_ARTICLE,
+                    description=description)
                 if idx_entry.link == to_filename(idx_entry.title):
                     idx_entry.link = None
                     idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
-                orig_docid = docs_table.append((len(words), idx_entry))
-                for idx, word in enumerate(words):
+                orig_docid = docs_table.append((len(orig_words), idx_entry))
+                for idx, word in enumerate(orig_words):
                     idx_dict[word].append(orig_docid, idx)
-                for redir_words in redirs:
+                for word_set in redir_words:
                     redir_entry = IndexEntry(
                         link=None,
                         title=None,
-                        subtitle=' '.join(redir_words),
+                        subtitle=' '.join(word_set),
                         score=0,
                         rtype=IndexEntry.TYPE_REDIRECT,
                         orig_docid=orig_docid)
-                    redir_docid = docs_table.append((len(redir_words), redir_entry))
-                    for idx, word in enumerate(redir_words):
+                    redir_docid = docs_table.append((len(word_set), redir_entry))
+                    for idx, word in enumerate(word_set):
                         idx_dict[word].append(redir_docid, idx)
 
             docs_table.finish()
@@ -592,7 +598,7 @@ class Index:
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        ordered_source = sorted(source, reverse=True, key=operator.itemgetter(1))
+        ordered_source = sorted(source, reverse=True, key=operator.itemgetter(2))
         if not ordered_source:
             raise ValueError("No data to index")
         idx_dict = add_docs_keys(ordered_source)

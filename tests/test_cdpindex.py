@@ -18,7 +18,6 @@
 
 import config
 from src.armado import cdpindex, to3dirs
-from src.armado.sqlite_index import IndexEntry
 
 import pytest
 
@@ -123,10 +122,9 @@ def test_repeated_entry_redirects(index, data, mocker):
     assert len(entries) == 1
 
     # the first one for sure must be the original
-    words, _, entry, redirs = entries[0]
-    assert words == ('foo', 'bar')
-    assert entry.link == 'f/o/o_bar/foo_bar'
-    assert entry.rtype == IndexEntry.TYPE_ORIG_ARTICLE
+    title, link, score, description, orig_words, redirs = entries[0]
+    assert orig_words == ('foo', 'bar')
+    assert link == 'f/o/o_bar/foo_bar'
     assert len(redirs) == 2
     assert redirs == {('foo', 'bazzz'), ('bazzz', 'foo')}
 

@@ -32,7 +32,8 @@ def get_ie(title):
 
 def to_idx_data(titles):
     """Generate a list of data prepared for create index."""
-    return [[tokenize(ttl), 0, get_ie(ttl), set()] for ttl in titles]
+    # title, link, score, description, orig_words, redir_words
+    return [[ttl.strip(), ttl.strip(), 0, '', tokenize(ttl), set()] for ttl in titles]
 
 
 @pytest.fixture()
