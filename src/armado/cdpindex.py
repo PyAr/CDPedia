@@ -26,7 +26,7 @@ import threading
 import urllib.parse
 from collections import defaultdict
 
-from .sqlite_index import Index, normalize_words, IndexEntry
+from .sqlite_index import Index, normalize_words
 
 
 logger = logging.getLogger(__name__)
@@ -125,36 +125,22 @@ def generate_from_html(dirbase, verbose):
             # auxiliar info
             link = os.path.join(dir3, arch)
             title, description = titles_texts[arch]
+            check_already_seen((title, link))
             logger.debug("Adding to index: [%r]  (%r)", title, link)
 
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
             score = 50 + pagerank // 1000
-            data = IndexEntry(
-                link=link,
-                title=title,
-                score=score,
-                rtype=IndexEntry.TYPE_ORIG_ARTICLE,
-                description=description)
             orig_words = tuple(tokenize(title))
-            check_already_seen(data)
-            yield orig_words, score, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
+            redir_words = set()
             if arch_orig in redirs:
                 redirs[arch_orig].discard(orig_words)
-                for redir_words in redirs[arch_orig]:
-                    data = IndexEntry(
-                        link=link,
-                        title=title,
-                        subtitle=' '.join(redir_words),
-                        score=score,
-                        rtype=IndexEntry.TYPE_REDIRECT)
-                    check_already_seen(data)
-                    yield redir_words, score, data
-
+                redir_words = redirs[arch_orig]
+            yield title, link, score, description, orig_words, redir_words
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
         shutil.rmtree(config.DIR_INDICE)
