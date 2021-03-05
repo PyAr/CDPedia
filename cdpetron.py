@@ -210,7 +210,6 @@ def load_creation_date():
 
 def _call_scraper(language, articles_file, test=False):
     """Prepare the command and run scraper.py."""
-    logger.info("Let's scrap (with limit=%s)", test)
     limit = TEST_LIMIT_SCRAP if test else None
     scraper.main(articles_file, language, location.articles, test_limit=limit)
 
@@ -263,7 +262,7 @@ def scrap_portal(language, lang_config):
             cnt += 1
             fh.write(page + '\n')
 
-    logger.info("Scraping portal pages(total=%d)", cnt)
+    logger.info("Scraping portal sub pages (total=%d)", cnt)
     _call_scraper(language, _path)
 
     logger.info("Portal scraping done")
