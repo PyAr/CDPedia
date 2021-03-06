@@ -407,7 +407,6 @@ def main(lang, src_info, version, lang_config, gendate, images_dump_dir,
     else:
         raise ValueError("Unrecognized image type")
 
-    os.remove(config.LOG_POOLED_EXEC)
     logger.info("All done!")
 
 
