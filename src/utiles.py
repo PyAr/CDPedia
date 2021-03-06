@@ -17,7 +17,6 @@
 """Some small utilities."""
 
 import concurrent.futures
-import itertools
 import logging
 import queue
 import os
@@ -110,11 +109,6 @@ class _StatusBoard:
         self.init_time = time.time()
         self.func = func
         self.known_errors = known_errors
-        self.progress = False
-        if os.path.isfile(config.LOG_PROGRESS):
-            self.progress = self.read_progress()
-            self.ok = self.progress
-            self.total = self.progress
 
     def process(self, payload):
         try:
@@ -133,44 +127,13 @@ class _StatusBoard:
             self.total += 1
             self.ok += 1
 
-        # count balancer
-        total = self.total - self.progress if self.progress else self.total
-        speed = total / (time.time() - self.init_time)
+        speed = self.total / (time.time() - self.init_time)
 
         # this is done through standard `print` to show progress nicely (if used logging it
         # will be too cumbersome to have one line per stat)
         stat = "Total={}  ok={}  bad={}  speed={:.2f} items/s\r".format(
             self.total, self.ok, self.bad, speed)
         print(stat, end='', flush=True)
-        self.save_progress()
-
-    def save_progress(self):
-        """Save the number of processes performed successfully."""
-        with open(config.LOG_PROGRESS, 'w', encoding='utf8') as fh:
-            fh.write(str(self.ok))
-
-    def read_progress(self):
-        """Extract last status board progress."""
-        with open(config.LOG_PROGRESS, 'r', encoding='utf8') as fh:
-            progress = int(fh.read())
-        return progress
-
-    def save_status_log(self, access_mode='a', done=''):
-        """Add info about exec."""
-        with open(config.LOG_POOLED_EXEC, access_mode, encoding='utf8') as fh:
-            fh.write(str(config.COUNT_POOLED_EXEC_CALL) + '|' + done + '\n')
-
-    def read_status_log(self):
-        """Extract pooled_exec last digit."""
-        with open(config.LOG_POOLED_EXEC, 'r', encoding='utf8') as fh:
-            log_status_board = [line.strip().split('|') for line in fh][-1]
-        return log_status_board
-
-    def reset(self):
-        """Display final stats and reset progress."""
-        self.finish()
-        self.ok = 0
-        self.save_progress()
 
     def finish(self):
         """Show final stats."""
@@ -185,30 +148,23 @@ class _NotGreedyThreadPoolExecutor(concurrent.futures.ThreadPoolExecutor):
         self._work_queue = queue.Queue(maxsize=kwargs['max_workers'] * 2)
 
 
-def pooled_exec(func, payloads, pool_size, known_errors=()):
+def pooled_exec(func, previous_count, payloads, pool_size, known_errors=()):
     """Call func on each of the payloads, in a thread pool of indicated size.
 
     Present the progress nicely, counting also if function ended properly or not (if
     the error is known, log it in debug, else present the crash).
     """
     board = _StatusBoard(func, tuple(known_errors))
-    if not os.path.isfile(config.LOG_POOLED_EXEC):
-        board.save_status_log(access_mode='w')
-    log_status_board = board.read_status_log()
-    if 'Done!' in log_status_board:
-        board.save_status_log()
-    if not int(log_status_board[0]) > config.COUNT_POOLED_EXEC_CALL:
-        if board.progress:
-            total_payload, payloads = itertools.tee(payloads, 2)
-            logger.info("Restart scraper!! %r items done! - %r items left",
-                        board.progress, len(list(total_payload)))
-        with _NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
-            # need to cosume the generator, but don't care about the results (board.process always
-            # return None
-            list(executor.map(board.process, payloads))
-        board.save_status_log(done='Done!')
-        board.reset()
-    config.COUNT_POOLED_EXEC_CALL += 1
+    if previous_count:
+        logger.info('Starting pooled exec! done before: %i,  total: %i',
+                    previous_count, previous_count + len(payloads))
+        board.total = previous_count
+        board.ok = previous_count
+    with _NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
+        # need to cosume the generator, but don't care about the results (board.process always
+        # return None
+        list(executor.map(board.process, payloads))
+    board.finish()
 
 
 def set_locale(second_language=None, record=False):
