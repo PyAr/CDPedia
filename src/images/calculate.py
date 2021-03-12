@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -29,33 +27,36 @@ from src.preprocessing import preprocess
 
 logger = logging.getLogger("images.calculate")
 
-SCALES = (100, 75, 50, 0)
+SCALES = (100, 75, 50)
 
 
 class Scaler:
     """Compute values for image scaling."""
 
     def __init__(self, total_items):
-        # prepare the limits generator
+        # prepare the limits generator.
         vals = []
-        base = 0
-        reduction = config.imageconf['image_reduction']
-        logger.info("Reduction: %s", reduction)
+        reduction = config.imageconf['image_reduction'][:-1]
+        # total images in percentage to incorporate
+        add_images = sum(reduction)
+        # number of images of the required percentage to process
+        # more elements can be added and dimensions changed in subsequent processes
+        self.total_items = 0
         for (percentage, scale) in zip(reduction, SCALES):
-            if percentage == 0:
-                continue
-            quantity = total_items * percentage / 100
-            vals.append((quantity + base, scale))
-            base += quantity
-        logger.info("Scales: %s", vals)
+            quantity = total_items * percentage // 100
+            self.total_items += quantity
+            vals.append((quantity, scale))
+        logger.info("Add images: %i%% - %i total | Scales: %i at %i%% - %i at %i%% - %i at %i%%",
+                    add_images, self.total_items, *vals[0], *vals[1], *vals[2])
 
         self.limit = 0
-        self.gen_pairs = (x for x in vals)
+        self.gen_pairs = iter(vals)
 
-    def __call__(self, num):
-        if num >= self.limit:
+    def __call__(self):
+        while not self.limit:
             # continue with next values
             (self.limit, self.scale) = next(self.gen_pairs)
+        self.limit -= 1
         return self.scale
 
 
@@ -124,20 +125,15 @@ def run():
 
     # sort optional images by assigned priority
     images_optional = sorted(images_optional.items(), key=operator.itemgetter(1))
-
     scaler = Scaler(len(images_optional))
-    selected_opt = 0  # number of selected optional images
-    for dskurl, _ in images_optional:
-        scale = scaler(selected_opt)
-        if scale == 0:
-            # done, do not include more images
-            break
-
+    for image_idx in range(scaler.total_items):
+        dskurl, _ = images_optional[image_idx]
+        scale = scaler()
         weburl = dskweb[dskurl]
         info = (str(int(scale)), dskurl, weburl)
         log_reduction.write(separator.join(info) + "\n")
-        selected_opt += 1
 
     log_reduction.close()
     selected_req = len(images_required)
-    logger.info("Images selected: required=%d optional=%d", selected_req, selected_opt)
+    logger.info("Add %i at 100%% SVG images required - Total images to add: %i",
+                selected_req, (selected_req + scaler.total_items))
