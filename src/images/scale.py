@@ -20,6 +20,7 @@ import config
 import logging
 import os
 import shutil
+from collections import Counter
 
 from PIL import Image
 
@@ -118,6 +119,10 @@ def run(verbose, src):
                 except Exception:
                     logger.exception("Error processing %s", frompath)
 
+    resize = done_now.values()
+    rescale = {str(k): v for k, v in Counter(resize).items()}
+    logger.info("Resize done! | Final scales: %(100)s at 100%% - %(75)s at 75%% - %(50)s at 50%%",
+                rescale)
     # save images processed now
     with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
         for dskurl, scale in done_now.items():
