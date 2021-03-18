@@ -121,8 +121,16 @@ def run(verbose, src):
 
     resize = done_now.values()
     rescale = {str(k): v for k, v in Counter(resize).items()}
-    logger.info("Resize done! | Final scales: %(100)s at 100%% - %(75)s at 75%% - %(50)s at 50%%",
+    logger.info("Resize done! | Final scales: %(100)i at 100%% - %(75)i at 75%% - %(50)i at 50%%",
                 rescale)
+    # extract extensions
+    exts = [os.path.splitext(x)[1].lower().replace('.jpeg', '.jpg') for x in done_now]
+    # exts logging
+    exts_template = 'Formats and quantities -> '
+    exts_template += ' - '.join(': '.join((ext[1:], str(items)))
+                                for ext, items in Counter(exts).items())
+    logger.info(exts_template)
+
     # save images processed now
     with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
         for dskurl, scale in done_now.items():
