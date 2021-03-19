@@ -126,10 +126,9 @@ def run(verbose, src):
     # extract extensions
     exts = [os.path.splitext(x)[1].lower().replace('.jpeg', '.jpg') for x in done_now]
     # exts logging
-    exts_template = 'Formats and quantities -> '
-    exts_template += ' - '.join(': '.join((ext[1:], str(items)))
-                                for ext, items in Counter(exts).items())
-    logger.info(exts_template)
+    exts_template = ' '.join('='.join((ext[1:], str(items)))
+                             for ext, items in Counter(exts).items())
+    logger.info('Formats and quantities: %s', exts_template)
 
     # save images processed now
     with open(config.LOG_REDUCDONE, "wt", encoding="utf-8") as fh:
