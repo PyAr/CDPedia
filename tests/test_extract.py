@@ -86,6 +86,7 @@ class ReplaceImageParserTestCase(unittest.TestCase):
         should_dsk = "magnify-clip.png"
         self._check(url, should_web, should_dsk)
 
+    @unittest.mock.patch('config.LANGUAGE', 'es')
     def test_replace_timeline(self):
         url = (
             "//upload.wikimedia.org/wikipedia/es/"
@@ -98,13 +99,14 @@ class ReplaceImageParserTestCase(unittest.TestCase):
         should_dsk = "timeline/cc707d3b957628b5e432d7242096abc5.png"
         self._check(url, should_web, should_dsk)
 
+    @unittest.mock.patch('config.LANGUAGE', 'pt')
     def test_replace_math(self):
         url = (
-            "//upload.wikimedia.org/wikipedia/es/"
+            "//upload.wikimedia.org/wikipedia/pt/"
             "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         )
         should_web = (
-            "http://upload.wikimedia.org/wikipedia/es/"
+            "http://upload.wikimedia.org/wikipedia/pt/"
             "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
         )
         should_dsk = "math/6/7/e/67ed4566dba0caae24ec4cf25133f200.png"
