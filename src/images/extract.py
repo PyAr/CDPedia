@@ -216,7 +216,7 @@ class ImageParser:
         elif img_src.startswith("//bits.wikimedia.org/"):
             dsk_url = img_src[46:]
 
-        elif img_src.startswith(f"//upload.wikimedia.org/wikipedia/{config.LANGUAGE}/"):
+        elif img_src.startswith("//upload.wikimedia.org/wikipedia/%s/" % config.LANGUAGE):
             dsk_url = img_src[36:]
 
         elif img_src.startswith("//upload.wikimedia.org/"):
