@@ -38,9 +38,9 @@ from src.preprocessing import preprocess
 
 IMG_URL_PREFIX = config.IMAGES_URL_PREFIX
 
-WIKIPEDIA_URL = "https://%s.wikipedia.org" % config.LANGUAGE
+WIKIPEDIA_URL = "https://{}.wikipedia.org".format(config.LANGUAGE)
 
-MEDIAWIKI_URL_PREFIX_LANG = "//upload.wikimedia.org/wikipedia/%s/" % config.LANGUAGE
+MEDIAWIKI_URL_PREFIX_LANG = "//upload.wikimedia.org/wikipedia/{}/".format(config.LANGUAGE)
 
 # we plainly don't want some images
 IMAGES_TO_REMOVE = [
