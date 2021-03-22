@@ -126,7 +126,7 @@ class _CSSScraper:
         # download missing media resources
         os.makedirs(self.resdir, exist_ok=True)
         previous_count = 0
-        del items[:]
+        items = []
         for i in self.resources.values():
             if i['is_file']:
                 previous_count += 1

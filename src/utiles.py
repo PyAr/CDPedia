@@ -102,9 +102,9 @@ class TimingLogger:
 class _StatusBoard:
     """Present the progress of the pooled executions."""
 
-    def __init__(self, func, known_errors):
-        self.total = 0
-        self.ok = 0
+    def __init__(self, func, previous_count, known_errors):
+        self.total = previous_count
+        self.ok = previous_count
         self.bad = 0
         self.init_time = time.time()
         self.func = func
@@ -154,12 +154,9 @@ def pooled_exec(func, previous_count, payloads, pool_size, known_errors=()):
     Present the progress nicely, counting also if function ended properly or not (if
     the error is known, log it in debug, else present the crash).
     """
-    board = _StatusBoard(func, tuple(known_errors))
-    if previous_count:
-        logger.info('Starting pooled exec! done before: %i,  total: %i',
-                    previous_count, previous_count + len(payloads))
-        board.total = previous_count
-        board.ok = previous_count
+    board = _StatusBoard(func, previous_count, tuple(known_errors))
+    logger.info('Starting pooled exec! done before: %i,  total: %i',
+                previous_count, previous_count + len(payloads))
     with _NotGreedyThreadPoolExecutor(max_workers=pool_size) as executor:
         # need to cosume the generator, but don't care about the results (board.process always
         # return None
