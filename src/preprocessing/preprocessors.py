@@ -42,6 +42,8 @@ from urllib.parse import unquote
 import bs4
 
 import config
+from src.armado import to3dirs
+from src.web import test_infra
 
 SCORE_VIP = 100000000  # 1e8
 SCORE_PEISHRANC = 5000
@@ -129,7 +131,17 @@ class ContentExtractor(_Processor):
 
 
 class VIPDecissor:
-    """Hold those VIP articles that must be included."""
+    """Hold those VIP articles that must be included.
+
+    There are levels for high vip scores -> (1, 2, 3).
+    Each level multiplies the base SCORE_VIP, the levels are added
+    as values in a dict where the keys are the articles.
+
+    The levels are as follows:
+        3: all articles in test_infra.txt(only in test-mode), these must be included.
+        2: all in portal and langconfig, since without this the cdpedia is broken.
+        1: what is indicated in destacados.txt.
+    """
 
     def __init__(self):
         self._vip_articles = None
@@ -140,29 +152,34 @@ class VIPDecissor:
         This is done not at __init__ time because some of this are dynamically
         generated files, so doesn't need to happen at import time.
         """
-        viparts = self._vip_articles = set()
+        viparts = self._vip_articles = {}
 
         # some manually curated pages
         if config.DESTACADOS is not None:
             with open(config.DESTACADOS, 'rt', encoding='utf8') as fh:
-                for line in fh:
-                    viparts.add(line.strip())
+                viparts.update({to3dirs._quote(line.strip()): 1 for line in fh})
 
         # must include according to the config
-        viparts.update(config.langconf['include'])
+        viparts.update({include: 2 for include in config.langconf['include']})
 
         # portal articles from the front-page portal, itself included
-        viparts.add(config.langconf['portal_index'])
+        viparts.update({config.langconf['portal_index']: 2})
         _path = os.path.join(config.DIR_TEMP, 'portal_pages.txt')
         with open(_path, 'rt', encoding='utf-8') as fh:
-            viparts.update(line.strip() for line in fh)
+            viparts.update({to3dirs._quote(line.strip()): 2 for line in fh})
+
+        # add test-infra articles if test mode is enable.
+        if config.TEST_MODE:
+            src = test_infra.TEST_INFRA_FILENAME
+            article_names = test_infra.parse_test_infra_file(src)
+            viparts.update({to3dirs._quote(line[0]): 3 for line in article_names})
 
         logger.info("Loaded %d VIP articles", len(viparts))
 
     def __call__(self, article):
         if self._vip_articles is None:
             self._load()
-        return article in self._vip_articles
+        return self._vip_articles.get(article)
 
 
 vip_decissor = VIPDecissor()
@@ -177,9 +194,10 @@ class VIPArticles(_Processor):
         self.stats = collections.Counter()
 
     def __call__(self, wikifile):
-        if vip_decissor(wikifile.url):
+        vip_multiplier = vip_decissor(wikifile.url)
+        if vip_multiplier is not None:
             self.stats['vip'] += 1
-            score = SCORE_VIP
+            score = SCORE_VIP * vip_multiplier
         else:
             self.stats['normal'] += 1
             score = 0
@@ -202,10 +220,17 @@ class OmitRedirects(_Processor):
             self.stats['simplefile'] += 1
             return (0, [])
 
+        link_node = node.find('a')
+        if link_node is None:
+            # link removed by HTMLCleaner (redirect to non-existent page)
+            self.stats['broken_redirection'] += 1
+            # discard broken redirection
+            return (None, [])
+
         # store the redirect in corresponding file
         self.stats['redirect'] += 1
         # extract target from href not from text
-        url_redirect = node.find('a').attrs['href']
+        url_redirect = link_node.attrs['href']
         # remove path prefix
         if url_redirect.startswith(PAGES_PREFIX):
             url_redirect = url_redirect[len(PAGES_PREFIX):]

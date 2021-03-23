@@ -119,19 +119,14 @@ def test_repeated_entry_redirects(index, data, mocker):
     #  - YES: the next redirect, that even having same words, they are in different order (the
     #         score of the selected results are order dependant!)
     #  - NO: the last redirect, again having "same words same order" of other one already included
-    assert len(entries) == 3
+    assert len(entries) == 1
 
     # the first one for sure must be the original
-    words, _, (html, _, _, is_original, _) = entries[0]
-    assert words == ('foo', 'bar')
-    assert html == 'f/o/o_bar/foo_bar'
-    assert is_original
-
-    # the rest must be redirects, point to same html, and with specific words
-    # (comparing like this because order may change)
-    assert {e[2][3] for e in entries[1:]} == {False}
-    assert {e[2][0] for e in entries[1:]} == {'f/o/o_bar/foo_bar'}
-    assert {e[0] for e in entries[1:]} == {('foo', 'bazzz'), ('bazzz', 'foo')}
+    title, link, score, description, orig_words, redirs = entries[0]
+    assert orig_words == ('foo', 'bar')
+    assert link == 'f/o/o_bar/foo_bar'
+    assert len(redirs) == 2
+    assert redirs == {('foo', 'bazzz'), ('bazzz', 'foo')}
 
 
 @pytest.mark.parametrize('title', ('foo/bar', 'foo.bar', 'foo%bar'))
@@ -149,7 +144,7 @@ def test_redirects_with_special_chars(index, data, mocker, title):
     cdpindex.generate_from_html(None, None)
     assert index.create.call_count == 1
     entries = list(index.create.call_args[0][1])
-    assert len(entries) == 2
+    assert len(entries) == 1
 
 
 @pytest.mark.parametrize('title, expected_tokens', (

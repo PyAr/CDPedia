@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2008-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -16,6 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
+import functools
 import gettext
 import itertools
 import logging
@@ -36,7 +37,6 @@ from jinja2 import Environment, FileSystemLoader
 import config
 from . import utils
 from .destacados import Destacados
-from .searcher import Searcher
 from src.armado import cdpindex
 from src.armado.cdpindex import normalize_words
 from src.armado import compresor
@@ -45,6 +45,7 @@ from .test_infra import load_test_infra_data
 from .utils import TemplateManager
 
 ARTICLES_BASE_URL = "wiki"
+SEARCH_CACHE_SIZE = 100
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +61,7 @@ class ArticleNotFound(HTTPException):
 
 class CDPedia:
 
-    def __init__(self, watchdog=None, verbose=False, search_cache_size=100):
-        self.search_cache_size = search_cache_size
+    def __init__(self, watchdog=None, verbose=False):
         self.watchdog = watchdog
         self.verbose = verbose
 
@@ -87,18 +87,16 @@ class CDPedia:
         self.index = cdpindex.IndexInterface(config.DIR_INDICE)
         self.index.start()
 
-        self.searcher = Searcher(self.index, self.search_cache_size)
         self.tmpdir = os.path.join(tempfile.gettempdir(), "cdpedia")
         self.url_map = Map([
             Rule('/', endpoint='main_page'),
             Rule('/%s/<path:name>' % ARTICLES_BASE_URL, endpoint='article'),
             Rule('/al_azar', endpoint='random'),
-            Rule('/search', endpoint='search'),
+            Rule('/search', endpoint='search', methods=['POST']),
             Rule('/search/<path:key>', endpoint='search_results'),
             Rule('/images/<path:name>', endpoint='image'),
             Rule('/institucional/<path:path>', endpoint='institutional'),
             Rule('/watchdog/update', endpoint='watchdog_update'),
-            Rule('/search_index/ready', endpoint='index_ready'),
             Rule('/tutorial', endpoint='tutorial'),
             Rule('/favicon.ico', endpoint='favicon'),
             Rule('/test_infra', endpoint='test_infra')
@@ -127,9 +125,9 @@ class CDPedia:
     def on_article(self, request, name):
         orig_link = utils.get_orig_link(name)
         # compressed article name contains special filesystem chars quoted
-        name = to3dirs.to_filename(name)
+        filename = to3dirs.to_filename(name)
         try:
-            data = self.art_mngr.get_item(name)
+            data = self.art_mngr.get_item(filename)
         except Exception as err:
             raise InternalServerError("Error interno al buscar contenido: %s" % err)
 
@@ -206,40 +204,35 @@ class CDPedia:
         p = self.render_template('institucional.html', title=title, asset=data)
         return p
 
-    # @ei.espera_indice # TODO
     def on_random(self, request):
-        link, tit = self.index.get_random()
-        link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(link))
+        """Redirect to a random article."""
+        idx_entry = self.index.get_random()
+        link = "%s/%s" % (ARTICLES_BASE_URL, to3dirs.from_path(idx_entry.link))
         return redirect(urllib.parse.quote(link.encode("utf-8")))
 
-    # @ei.espera_indice # TODO
+    @functools.lru_cache(SEARCH_CACHE_SIZE)
+    def _search(self, search_string):
+        """Really do the search."""
+        search_string_norm = normalize_words(search_string)
+        words = search_string_norm.split()
+        results = list(self.index.search(words))
+
+        # remove 3 dirs from link and add the proper base url
+        for result in results:
+            result.link = "wiki/{}".format(
+                urllib.parse.quote(to3dirs.from_path(result.link), safe=()))
+
+        return results
+
     def on_search(self, request):
-        if request.method == "GET":
-            return self.render_template('search.html')
-        elif request.method == "POST":
-            search_string = request.form.get("keywords", '')
-            search_string = urllib.parse.unquote_plus(search_string)
-            if search_string:
-                search_string_norm = normalize_words(search_string)
-                words = search_string_norm.split()
-                self.searcher.start_search(words)
-                return redirect("/search/" + "+".join(words))
+        """Search he received keywords in the POST request in the index."""
+        search_string = request.form.get("keywords", '')
+        search_string = urllib.parse.unquote_plus(search_string)
+        if not search_string:
             return redirect("/")
 
-    def on_search_results(self, request, key):
-        search_string_norm = urllib.parse.unquote_plus(normalize_words(key))
-        words = search_string_norm.split()
-        start = int(request.args.get("start", 0))
-        quantity = int(request.args.get("quantity", config.SEARCH_RESULTS))
-        id_ = self.searcher.start_search(words)
-        sorted_results = self.searcher.get_grouped(id_, start, quantity)
-
-        return self.render_template('search.html',
-                                    search_words=words,
-                                    results=sorted_results,
-                                    start=start,
-                                    quantity=quantity,
-                                    )
+        results = self._search(search_string)
+        return self.render_template('search.html', search_string=search_string, results=results)
 
     def on_tutorial(self, request):
         tmpdir = os.path.join(self.tmpdir)
@@ -266,12 +259,6 @@ class CDPedia:
                 seconds,))
         resp = Response(html, mimetype="text/html")
         return resp
-
-    def on_index_ready(self, request):
-        r = 'false'
-        if self.index.is_ready():
-            r = 'true'
-        return Response(r, mimetype="application/json")
 
     def render_template(self, template_name, **context):
         t = self.jinja_env.get_template(template_name)

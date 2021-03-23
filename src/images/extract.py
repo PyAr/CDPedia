@@ -40,6 +40,8 @@ IMG_URL_PREFIX = config.IMAGES_URL_PREFIX
 
 WIKIPEDIA_URL = "https://{}.wikipedia.org".format(config.LANGUAGE)
 
+MEDIAWIKI_URL_PREFIX_LANG = "//upload.wikimedia.org/wikipedia/{}/".format(config.LANGUAGE)
+
 # we plainly don't want some images
 IMAGES_TO_REMOVE = [
     'Special:CentralAutoLogin',
@@ -216,8 +218,8 @@ class ImageParser:
         elif img_src.startswith("//bits.wikimedia.org/"):
             dsk_url = img_src[46:]
 
-        elif img_src.startswith("//upload.wikimedia.org/wikipedia/es/"):
-            dsk_url = img_src[36:]
+        elif img_src.startswith(MEDIAWIKI_URL_PREFIX_LANG):
+            dsk_url = img_src[len(MEDIAWIKI_URL_PREFIX_LANG):]
 
         elif img_src.startswith("//upload.wikimedia.org/"):
             dsk_url = img_src[23:]

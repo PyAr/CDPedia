@@ -26,6 +26,7 @@ from werkzeug.wrappers import Response
 
 import config
 from src.armado import cdpindex
+from src.armado.sqlite_index import IndexEntry
 from src.web import web_app, utils
 from src.web.test_infra import TEST_INFRA_FILENAME
 
@@ -63,8 +64,9 @@ def create_app_client(mocker, tmp_path):
 
     # a bogus index with a couple of items (so it behaves properly for get_random and similar)
     mocker.patch('config.DIR_INDICE', str(tmp_path))
-    fake_content = [(['key1'], 7, ('p/a/g/page1', 'Page1')),
-                    (['key2'], 8, ('p/a/g/page2', 'Page2'))]
+    # title, link, score, description, orig_words, redir_words
+    fake_content = [('Page1', 'p/a/g/page1', 7, ' ', ['key1'], set()),
+                    ('Page2', 'p/a/g/page2', 8, ' ', ['key2'], set())]
     cdpindex.Index.create(str(tmp_path), fake_content)
 
     app = web_app.create_app(watchdog=None, with_static=False)
@@ -130,6 +132,26 @@ def test_wiki_article_with_special_chars(create_app_client):
     assert html.encode('utf-8') in response.data
 
 
+def test_wiki_article_uses_unquoted_title(create_app_client):
+    """Render article using unquoted original article name in title tag."""
+    app, client = create_app_client()
+    app.art_mngr.get_item = lambda x: 'Fake content'
+    html_part = '<title>AC/DC'  # not AC%2FDC
+    response = client.get("/wiki/AC/DC")
+    assert response.status_code == 200
+    assert html_part.encode('utf-8') in response.data
+
+
+def test_wiki_article_title_escaping(create_app_client):
+    """Article title should have the chars '<', '&' and '>' escaped in HTML source."""
+    app, client = create_app_client()
+    app.art_mngr.get_item = lambda x: 'Fake content'
+    html_part = '<title>foo&amp;&lt;bar&gt;'
+    response = client.get("/wiki/foo&<bar>")
+    assert response.status_code == 200
+    assert html_part.encode('utf-8') in response.data
+
+
 def test_wiki_random_article(create_app_client):
     _, client = create_app_client()
     response = client.get("/al_azar")
@@ -161,66 +183,63 @@ def test_watchdog_on(create_app_client):
     assert b"watchdog" in response.data
 
 
-def test_index_ready(create_app_client):
-    app, client = create_app_client()
+def test_search_endpoint_ok(create_app_client):
+    _, client = create_app_client()
+    with patch.object(web_app.CDPedia, '_search') as mock:
+        mock.return_value = [
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE,
+                link='t/e/s/testlink', title='testtitle', description='testtext'),
+        ]
+        response = client.post("/search", data={"keywords": "foo bar"})
+    assert response.status_code == 200
+    mock.assert_called_once_with('foo bar')
+    assert b'testlink' in response.data
+    assert b'testtitle' in response.data
+    assert b'testtext' in response.data
+
+
+def test_search_endpoint_empty(create_app_client):
+    _, client = create_app_client()
+    response = client.post("/search", data={"keywords": ""})
+    assert response.status_code == 302
+    assert "http://localhost/" == response.location
+
+
+def test_search_real_search(create_app_client):
     app = web_app.create_app(watchdog=None, with_static=False)
-    client = Client(app, Response)
 
-    class FakeIndex(object):
-        def __init__(self):
-            self.ready = False
+    with patch.object(app.index, 'search') as index_mock:
+        index_mock.return_value = [
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE, link='t/e/s/testlink1',
+                title='testtitle1', score=123, description='testtext1'),
+            IndexEntry(
+                IndexEntry.TYPE_ORIG_ARTICLE, link='t/e/s/testlink moño',
+                title='testtitle2', score=456, description='testtext2'),
+        ]
+        results = app._search("foo bar Moño")
+    index_mock.assert_called_once_with(['foo', 'bar', 'mono'])
 
-        def is_ready(self):
-            return self.ready
-
-    app.index = FakeIndex()
-    response = client.get("/search_index/ready")
-    assert response.data == b"false"
-
-    app.index.ready = True
-    response = client.get("/search_index/ready")
-    assert response.data == b"true"
-
-
-def test_search_get(create_app_client):
-    _, client = create_app_client()
-    response = client.get("/search")
-    assert response.status_code == 200
-
-
-def test_search_post_url(create_app_client):
-    _, client = create_app_client()
-    response = client.post("/search")
-    assert response.status_code == 302
-
-
-def test_search_post(create_app_client):
-    _, client = create_app_client()
-    response = client.post("/search", data={"keywords": "a"})
-    assert response.status_code == 302
-    assert "/search/" in response.location
-    response = client.post("/search", data={"keywords": "a"}, follow_redirects=True)
-    assert response.status_code == 200
-
-
-def test_search_term_url(create_app_client):
-    _, client = create_app_client()
-    words = ("foo", "bar")
-    response = client.post("/search", data={"keywords": " ".join(words)})
-
-    assert response.status_code == 302
-    assert "/search/%s" % "+".join(words) in response.location
-
-    response = client.post(
-        "/search", data={"keywords": " ".join(words)}, follow_redirects=True)
-    assert response.status_code == 200
+    result1, result2 = results
+    assert result1.link == 'wiki/testlink1'
+    assert result1.title == 'testtitle1'
+    assert result1.description == 'testtext1'
+    assert result2.link == 'wiki/testlink%20mo%C3%B1o'
+    assert result2.title == 'testtitle2'
+    assert result2.description == 'testtext2'
 
 
 def test_search_term_with_slash(create_app_client):
-    _, client = create_app_client()
-    data = {"keywords": "foo/bar"}
-    response = client.post("/search", data=data, follow_redirects=True)
-    assert response.status_code == 200
+    app = web_app.create_app(watchdog=None, with_static=False)
+
+    with patch.object(app.index, 'search') as index_mock:
+        index_mock.return_value = [
+            IndexEntry(IndexEntry.TYPE_ORIG_ARTICLE, link='f/o/o/foo/bar', title='testtitle')
+        ]
+        results = app._search("foo/bar")
+    index_mock.assert_called_once_with(['foo/bar'])
+    assert results[0].link == 'wiki/foo%2Fbar'
 
 
 def test_on_tutorial(create_app_client):

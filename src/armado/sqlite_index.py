@@ -35,6 +35,37 @@ logger = logging.getLogger(__name__)
 PAGE_SIZE = 512
 MAX_RESULTS = 500
 
+
+class IndexEntry:
+    """Article or redir index entry data structure."""
+
+    __slots__ = ('rtype', 'link', 'title', 'score', 'description', 'subtitle', 'orig_docid')
+
+    # types of records
+    TYPE_ORIG_ARTICLE = 0  # original article (may be target of possible redirects)
+    TYPE_ORIG_SIMPLE_LINK = 1  # original article whose link can be calculated from the title
+    TYPE_REDIRECT = 2  # a redirect to some original title
+
+    def __init__(self, rtype, link, title, score=0, description="", subtitle="", orig_docid=0):
+        self.rtype = rtype
+        self.link = link
+        self.title = title
+        self.score = score
+        self.description = description
+        self.subtitle = subtitle
+        self.orig_docid = orig_docid
+
+    def __repr__(self):
+        values = ["{}:{!r}".format(attr, getattr(self, attr)) for attr in self.__slots__]
+        return 'IndexEntry: ' + ','.join(values)
+
+    def __eq__(self, other):
+        return all(getattr(self, attr) == getattr(other, attr) for attr in self.__slots__)
+
+    def __hash__(self):
+        return hash(tuple(getattr(self, attr) for attr in self.__slots__))
+
+
 # cache for normalized chars
 _normalized_chars = {}
 
@@ -387,28 +418,34 @@ class Index:
             return decomp_data
         return None
 
-    def get_doc(self, docid):
-        """Return one stored document item."""
+    def _get_raw_doc(self, docid):
+        """Return one stored document item, no redirect compute."""
         page_id, rel_position = divmod(docid, PAGE_SIZE)
         data = self._get_page(page_id)
         if not data:
             raise IndexError("Non existing docid")
-        row = data[rel_position]
-        # if the html filename is marked as computable
-        # do it and store in position 0.
-        if row[0] is None:
-            row[0] = to_filename(row[1])
-        return row
+        idx_entry = data[rel_position]
+        if idx_entry.rtype == IndexEntry.TYPE_ORIG_SIMPLE_LINK:
+            idx_entry.link = to_filename(idx_entry.title)
+        return idx_entry
+
+    def get_doc(self, docid):
+        """Return one stored document item."""
+        idx_entry = self._get_raw_doc(docid)
+        if idx_entry.rtype == IndexEntry.TYPE_REDIRECT:
+            orig_entry = self._get_raw_doc(idx_entry.orig_docid)
+            entry = IndexEntry(
+                link=orig_entry.link,
+                title=orig_entry.title,
+                score=orig_entry.score,
+                rtype=idx_entry.rtype,
+                description=orig_entry.description,
+                subtitle=idx_entry.subtitle)
+            return entry
+        else:
+            return idx_entry
 
     def search(self, keys):
-        """Not implemented, just added for API compatibility.
-
-        As partial_search is fast enough, there is no need
-        to split the search in two different functions.
-        Just use partial_search instead."""
-        pass
-
-    def partial_search(self, keys):
         """Return all the values that are found for those keys.
 
         The AND boolean operation is applied to the keys.
@@ -419,8 +456,8 @@ class Index:
         for score, ndoc in docset.ordered:
             doc_data = self.get_doc(ndoc)
             # Do not return more than one index result to the same file.
-            if not doc_data[0] in files_yielded:
-                files_yielded.add(doc_data[0])
+            if doc_data.link not in files_yielded:
+                files_yielded.add(doc_data.link)
                 yield doc_data
             if len(files_yielded) >= MAX_RESULTS:
                 break
@@ -510,13 +547,30 @@ class Index:
             sql = "INSERT INTO docs (pageid, word_quants, data) VALUES (?, ?, ?)"
             docs_table = Compressed("Documents", sql, len(source))
 
-            for words, page_score, data in source:
-                data = list(data)
-                if data[0] == to_filename(data[1]):
-                    data[0] = None
-                docid = docs_table.append((len(words), data))
-                for idx, word in enumerate(words):
-                    idx_dict[word].append(docid, idx)
+            for title, link, score, description, orig_words, redir_words in source:
+                idx_entry = IndexEntry(
+                    link=link,
+                    title=title,
+                    score=score,
+                    rtype=IndexEntry.TYPE_ORIG_ARTICLE,
+                    description=description)
+                if idx_entry.link == to_filename(idx_entry.title):
+                    idx_entry.link = None
+                    idx_entry.rtype = IndexEntry.TYPE_ORIG_SIMPLE_LINK
+                orig_docid = docs_table.append((len(orig_words), idx_entry))
+                for idx, word in enumerate(orig_words):
+                    idx_dict[word].append(orig_docid, idx)
+                for word_set in redir_words:
+                    redir_entry = IndexEntry(
+                        link=None,
+                        title=None,
+                        subtitle=' '.join(word_set),
+                        score=0,
+                        rtype=IndexEntry.TYPE_REDIRECT,
+                        orig_docid=orig_docid)
+                    redir_docid = docs_table.append((len(word_set), redir_entry))
+                    for idx, word in enumerate(word_set):
+                        idx_dict[word].append(redir_docid, idx)
 
             docs_table.finish()
             return idx_dict
@@ -544,7 +598,7 @@ class Index:
         keyfilename = os.path.join(directory, "index.sqlite")
         database = open_connection(keyfilename)
         create_database()
-        ordered_source = sorted(source, reverse=True, key=operator.itemgetter(1))
+        ordered_source = sorted(source, reverse=True, key=operator.itemgetter(2))
         if not ordered_source:
             raise ValueError("No data to index")
         idx_dict = add_docs_keys(ordered_source)

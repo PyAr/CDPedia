@@ -67,6 +67,9 @@ if EDICION_ESPECIAL is not None:
 # Si no hay destacados debe ser None
 DESTACADOS = None
 
+# enable special features in test mode
+TEST_MODE = False
+
 # Tiempo de espera máxima, en segundos, para actualización del browser_watchdog.
 # Usar BROWSER_WD_SECONDS = 0 para desactivar el watchdog.
 BROWSER_WD_SECONDS = 120

@@ -26,8 +26,8 @@ import threading
 import urllib.parse
 from collections import defaultdict
 
-# from .easy_index import Index
 from .sqlite_index import Index, normalize_words
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class IndexInterface(threading.Thread):
 
     In association with every word will be saved
 
-     - namhtml: the path to the file
+     - link: the path to the file
      - title: the article's title
      - score: to weight the relative importance of each article
     """
@@ -63,23 +63,18 @@ class IndexInterface(threading.Thread):
     def listado_valores(self):
         """Returns every article information."""
         self.ready.wait()
-        return sorted(set(x[:2] for x in self.index.values()))
+        return self.index.values()
 
     def get_random(self):
         """Returns a random article."""
         self.ready.wait()
         value = self.index.random()
-        return value[:2]
+        return value
 
     def search(self, words):
         """Search whole words in the index."""
         self.ready.wait()
         return self.index.search(words)
-
-    def partial_search(self, words):
-        """Search partial words inside the index."""
-        self.ready.wait()
-        return self.index.partial_search(words)
 
 
 def tokenize(title):
@@ -126,38 +121,31 @@ def generate_from_html(dirbase, verbose):
         already_seen.add(data)
 
     def gen():
-        for dir3, arch, score in top_pages:
+        for dir3, arch, pagerank in top_pages:
             # auxiliar info
-            namhtml = os.path.join(dir3, arch)
-            title, primtext = titles_texts[arch]
-            logger.info("Adding to index: [%r]  (%r)" % (title, namhtml))
+            link = os.path.join(dir3, arch)
+            title, description = titles_texts[arch]
+            check_already_seen((title, link))
+            logger.debug("Adding to index: [%r]  (%r)", title, link)
 
             # give the title's words great score: 50 plus
             # the original score divided by 1000, to tie-break
-            ptje = 50 + score // 1000
-            data = (namhtml, title, ptje, True, primtext)
-            check_already_seen(data)
+            score = 50 + pagerank // 1000
             orig_words = tuple(tokenize(title))
-            yield orig_words, ptje, data
 
             # pass words to the redirects which points to
             # this html file, using the same score
             arch_orig = urllib.parse.unquote(arch)  # special filesystem chars
+            redir_words = set()
             if arch_orig in redirs:
-                # get redirect words (excluding the ones already used in the original article)
-                all_redir_words = redirs[arch_orig] - {orig_words}
-                for redir_words in all_redir_words:
-                    # the title is missing in the original article so we use the words found in
-                    # the filename (it isn't the optimal solution, but works)
-                    title = " ".join(redir_words)
-                    data = (namhtml, title, ptje, False, "")
-                    check_already_seen(data)
-                    yield redir_words, ptje, data
-
+                redirs[arch_orig].discard(orig_words)
+                redir_words = redirs[arch_orig]
+            yield title, link, score, description, orig_words, redir_words
     # ensures an empty directory
     if os.path.exists(config.DIR_INDICE):
         shutil.rmtree(config.DIR_INDICE)
     os.mkdir(config.DIR_INDICE)
 
     Index.create(config.DIR_INDICE, gen())
+    logger.info("Index created at %s", config.DIR_INDICE)
     return len(top_pages)
