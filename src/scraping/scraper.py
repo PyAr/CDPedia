@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2010-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -19,7 +17,6 @@
 """Download the whole wikipedia."""
 
 import io
-import codecs
 import collections
 import datetime
 import functools
@@ -58,7 +55,7 @@ REQUEST_HEADERS = {
     'User-Agent': "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0",
 }
 
-DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name, basename")
+DataURLs = collections.namedtuple("DataURLs", "url temp_dir disk_name basename")
 
 
 class ScraperError(Exception):
@@ -87,38 +84,39 @@ class URLAlizer(object):
         self.temp_dir = dest_dir + ".tmp"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
-        self.fh = codecs.open(listado_nombres, 'r', encoding='utf-8')
+        self.fh = open(listado_nombres, 'rt', encoding='utf-8')
         self.test_limit = test_limit
+        self.data_urls_list = []
+        self.previous_count = 0
 
-    def __next__(self):
-        while True:
+    def process(self):
+        logger.info('Generando DataURLs')
+        for line in self.fh:
             if self.test_limit is not None:
                 self.test_limit -= 1
                 if self.test_limit <= 0:
-                    raise StopIteration
-            line = self.fh.readline().strip()
-            if line == "":
-                raise StopIteration
+                    break
+            line = line.strip()
             if line == "page_title":
                 continue
             basename = line.strip()
             three_dirs, filename = to3dirs.get_path_file(basename)
             path = os.path.join(self.dest_dir, three_dirs)
             disk_name = os.path.join(path, filename)
-            if not os.path.exists(disk_name.encode('utf-8')):
-                if not os.path.exists(path.encode('utf-8')):
-                    os.makedirs(path.encode('utf-8'))
-
+            if os.path.exists(disk_name):
+                self.previous_count += 1
+            else:
+                if not os.path.exists(path):
+                    os.makedirs(path)
                 quoted_url = urllib.parse.quote(basename)
                 # Skip wikipedia automatic redirect
                 wiki = WIKI % dict(lang=self.language)
                 url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
                 data = DataURLs(url=url, temp_dir=self.temp_dir,
                                 disk_name=disk_name, basename=basename)
-                return data
-
-    def __iter__(self):
-        return self
+                self.data_urls_list.append(data)
+        self.fh.close()
+        return (self.previous_count, self.data_urls_list)
 
 
 def fetch_html(url):
@@ -441,8 +439,9 @@ def main(articles_path, language, dest_dir, test_limit=None, pool_size=20):
     css_link_extractor.setup(language_dump_dir=os.path.dirname(dest_dir))
 
     data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
+    previous_count, payloads = data_urls.process()
 
     func = functools.partial(fetch, language)
-    utiles.pooled_exec(func, data_urls, pool_size, known_errors=[ScraperError])
+    utiles.pooled_exec(func, previous_count, payloads, pool_size, known_errors=[ScraperError])
 
     css_link_extractor.close()
