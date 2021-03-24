@@ -52,11 +52,12 @@ class Scaler:
                     add_images, self.total_items, vals_tplt)
 
     def get_items(self):
-        limit = 0
+        """Give image index to incorporate and its theoretical resizing."""
+        idx = 0
         for quant, scale in self.scale_vals:
             for _ in range(quant):
-                yield (limit, scale)
-                limit += 1
+                yield (idx, scale)
+                idx += 1
 
 
 def image_is_required(url):
