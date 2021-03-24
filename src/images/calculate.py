@@ -35,7 +35,7 @@ class Scaler:
 
     def __init__(self, total_items):
         # prepare the limits generator.
-        vals = []
+        self.scale_vals = []
         reduction = config.imageconf['image_reduction'][:-1]
         # total images in percentage to incorporate
         add_images = sum(reduction)
@@ -44,20 +44,19 @@ class Scaler:
         self.total_items = 0
         for (percentage, scale) in zip(reduction, SCALES):
             quantity = total_items * percentage // 100
+            self.scale_vals.append((quantity, scale))
             self.total_items += quantity
-            vals.append((quantity, scale))
-        logger.info("Add images: %i%% - %i total | Scales: %i at %i%% - %i at %i%% - %i at %i%%",
-                    add_images, self.total_items, *vals[0], *vals[1], *vals[2])
+        vals_tplt = ' - '.join('{} at {}%'.format(quant, scale)
+                               for quant, scale in self.scale_vals)
+        logger.info("Add images: %i%% - %i total | Scales: %s",
+                    add_images, self.total_items, vals_tplt)
 
-        self.limit = 0
-        self.gen_pairs = iter(vals)
-
-    def __call__(self):
-        while not self.limit:
-            # continue with next values
-            (self.limit, self.scale) = next(self.gen_pairs)
-        self.limit -= 1
-        return self.scale
+    def get_items(self):
+        limit = 0
+        for quant, scale in self.scale_vals:
+            for _ in range(quant):
+                yield (limit, scale)
+                limit += 1
 
 
 def image_is_required(url):
@@ -126,14 +125,13 @@ def run():
     # sort optional images by assigned priority
     images_optional = sorted(images_optional.items(), key=operator.itemgetter(1))
     scaler = Scaler(len(images_optional))
-    for image_idx in range(scaler.total_items):
-        dskurl, _ = images_optional[image_idx]
-        scale = scaler()
+    for idx, scale in scaler.get_items():
+        dskurl, _ = images_optional[idx]
         weburl = dskweb[dskurl]
-        info = (str(int(scale)), dskurl, weburl)
+        info = (str(scale), dskurl, weburl)
         log_reduction.write(separator.join(info) + "\n")
 
     log_reduction.close()
     selected_req = len(images_required)
-    logger.info("Add %i at 100%% SVG images required - Total images to add: %i",
+    logger.info("Images to add: %i required, %i in total including scalables",
                 selected_req, (selected_req + scaler.total_items))
