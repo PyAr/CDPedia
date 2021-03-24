@@ -23,7 +23,7 @@ import logging
 import operator
 import os
 
-import config
+import urllib
 from src.preprocessing import preprocess
 
 
