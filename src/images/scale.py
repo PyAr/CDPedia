@@ -120,13 +120,13 @@ def run(verbose, src):
                     logger.exception("Error processing %s", frompath)
 
     resize = done_now.values()
-    rescale = {str(k): v for k, v in Counter(resize).items()}
-    logger.info("Resize done! | Final scales: %(100)i at 100%% - %(75)i at 75%% - %(50)i at 50%%",
-                rescale)
+    rescale_tplt = ' - '.join('{} at {}%'.format(quant, scale)
+                              for scale, quant in sorted(Counter(resize).items(), reverse=True))
+    logger.info("Resize done! | Final scales: %s", rescale_tplt)
     # extract extensions
     exts = [os.path.splitext(x)[1].lower().replace('.jpeg', '.jpg') for x in done_now]
     # exts logging
-    exts_template = ' '.join('='.join((ext[1:], str(items)))
+    exts_template = ' '.join('{}={}'.format(ext[1:], items)
                              for ext, items in Counter(exts).items())
     logger.info('Formats and quantities: %s', exts_template)
 
