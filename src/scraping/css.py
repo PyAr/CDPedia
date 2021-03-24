@@ -111,18 +111,30 @@ class _CSSScraper:
     def download_all(self):
         """Download required css files and associated resources."""
         self._load_modules_info()
-
+        previous_count, items = 0, []
         # download missing css modules
-        items = [i for i in self.modules.values() if not i['is_file']]
+        for i in self.modules.values():
+            if i['is_file']:
+                previous_count += 1
+            else:
+                items.append(i)
+
         logger.info('Scraping %i CSS modules', len(items))
-        utiles.pooled_exec(self._download_css, items, pool_size=20,
+        utiles.pooled_exec(self._download_css, previous_count, items, pool_size=20,
                            known_errors=self.known_errors)
 
         # download missing media resources
         os.makedirs(self.resdir, exist_ok=True)
-        items = [i for i in self.resources.values() if not i['is_file']]
+        previous_count = 0
+        items = []
+        for i in self.resources.values():
+            if i['is_file']:
+                previous_count += 1
+            else:
+                items.append(i)
+
         logger.info('Scraping %i CSS media resources', len(items))
-        utiles.pooled_exec(self._download_resource, items, pool_size=20,
+        utiles.pooled_exec(self._download_resource, previous_count, items, pool_size=20,
                            known_errors=self.known_errors)
 
     def _load_modules_info(self):

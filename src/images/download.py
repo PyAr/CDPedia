@@ -112,7 +112,7 @@ def download(data):
 def retrieve(images_dump_dir):
     """Download the images from the net."""
     download_list = []
-
+    previous_count = 0
     # load images that couldn't be downloaded previously
     log_errors = os.path.join(config.DIR_TEMP, "images_neterror.txt")
     if os.path.exists(log_errors):
@@ -129,7 +129,11 @@ def retrieve(images_dump_dir):
         _, arch, url = line.split(config.SEPARADOR_COLUMNAS)
         fullpath = os.path.join(images_dump_dir, arch)
 
-        if url not in imgs_problems and not os.path.exists(fullpath):
+        if os.path.exists(fullpath):
+            previous_count += 1
+
+        elif url not in imgs_problems:
             download_list.append((url, fullpath))
 
-    utiles.pooled_exec(download, download_list, pool_size=5, known_errors=[FetchingError])
+    utiles.pooled_exec(download, previous_count, download_list,
+                       pool_size=5, known_errors=[FetchingError])

@@ -210,13 +210,13 @@ def load_creation_date():
 
 def _call_scraper(language, articles_file, test=False):
     """Prepare the command and run scraper.py."""
-    logger.info("Let's scrap (with limit=%s)", test)
     limit = TEST_LIMIT_SCRAP if test else None
     scraper.main(articles_file, language, location.articles, test_limit=limit)
 
 
 def scrap_pages(language, test):
     """Get the pages from wikipedia."""
+    logger.info("Scraping all pages")
     all_articles = os.path.join(location.langdir, ART_ALL)
     _call_scraper(language, all_articles, test)
 

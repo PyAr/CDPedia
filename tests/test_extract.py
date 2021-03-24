@@ -86,18 +86,22 @@ class ReplaceImageParserTestCase(unittest.TestCase):
         should_dsk = "magnify-clip.png"
         self._check(url, should_web, should_dsk)
 
+    @unittest.mock.patch('src.images.extract.MEDIAWIKI_URL_PREFIX_LANG',
+                         '//upload.wikimedia.org/wikipedia/zh-min-nan/')
     def test_replace_timeline(self):
         url = (
-            "//upload.wikimedia.org/wikipedia/es/"
+            "//upload.wikimedia.org/wikipedia/zh-min-nan/"
             "timeline/cc707d3b957628b5e432d7242096abc5.png"
         )
         should_web = (
-            "http://upload.wikimedia.org/wikipedia/es/"
+            "http://upload.wikimedia.org/wikipedia/zh-min-nan/"
             "timeline/cc707d3b957628b5e432d7242096abc5.png"
         )
         should_dsk = "timeline/cc707d3b957628b5e432d7242096abc5.png"
         self._check(url, should_web, should_dsk)
 
+    @unittest.mock.patch('src.images.extract.MEDIAWIKI_URL_PREFIX_LANG',
+                         '//upload.wikimedia.org/wikipedia/es/')
     def test_replace_math(self):
         url = (
             "//upload.wikimedia.org/wikipedia/es/"

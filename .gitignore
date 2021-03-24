@@ -3,4 +3,5 @@ temp/
 cdpedia-es*
 cdpetron.log
 scraper.log
+venv
 .idea
