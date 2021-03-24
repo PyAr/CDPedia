@@ -1,4 +1,4 @@
-# Copyright 2010-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2010-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -38,7 +38,7 @@ from src.armado import to3dirs
 
 logger = logging.getLogger(__name__)
 
-WIKI = 'http://%(lang)s.wikipedia.org/'
+WIKI = 'http://{language}.wikipedia.org'
 
 HISTORY_BASE = (
     'http://%(lang)s.wikipedia.org/w/api.php?action=query&prop=revisions'
@@ -77,46 +77,44 @@ class BadHTMLError(ScraperError):
     """Error in the HTML format."""
 
 
-class URLAlizer(object):
-    def __init__(self, listado_nombres, dest_dir, language, test_limit):
-        self.language = language
-        self.dest_dir = dest_dir
-        self.temp_dir = dest_dir + ".tmp"
-        if not os.path.exists(self.temp_dir):
-            os.makedirs(self.temp_dir)
-        self.fh = open(listado_nombres, 'rt', encoding='utf-8')
-        self.test_limit = test_limit
-        self.data_urls_list = []
-        self.previous_count = 0
+def get_data_urls(listado_nombres, dest_dir, language, test_limit=None):
+    """Get a list of DataURLs to download (verifying which are already downloaded)."""
+    logger.info('Generando DataURLs')
+    wiki_base = WIKI.format(language=language)
 
-    def process(self):
-        logger.info('Generando DataURLs')
-        for line in self.fh:
-            if self.test_limit is not None:
-                self.test_limit -= 1
-                if self.test_limit <= 0:
+    temp_dir = dest_dir + ".tmp"
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+
+    data_urls_list = []
+    previous_count = 0
+
+    with open(listado_nombres, 'rt', encoding='utf-8') as fh:
+        for line in fh:
+            if test_limit is not None:
+                test_limit -= 1
+                if test_limit <= 0:
                     break
             line = line.strip()
             if line == "page_title":
                 continue
             basename = line.strip()
             three_dirs, filename = to3dirs.get_path_file(basename)
-            path = os.path.join(self.dest_dir, three_dirs)
+            path = os.path.join(dest_dir, three_dirs)
             disk_name = os.path.join(path, filename)
             if os.path.exists(disk_name):
-                self.previous_count += 1
-            else:
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                quoted_url = urllib.parse.quote(basename)
-                # Skip wikipedia automatic redirect
-                wiki = WIKI % dict(lang=self.language)
-                url = wiki + "w/index.php?title=%s&redirect=no" % (quoted_url,)
-                data = DataURLs(url=url, temp_dir=self.temp_dir,
-                                disk_name=disk_name, basename=basename)
-                self.data_urls_list.append(data)
-        self.fh.close()
-        return (self.previous_count, self.data_urls_list)
+                previous_count += 1
+                continue
+
+            if not os.path.exists(path):
+                os.makedirs(path)
+            quoted_url = urllib.parse.quote(basename)
+            # Skip wikipedia automatic redirect
+            url = "{}/w/index.php?title={}&redirect=no".format(wiki_base, quoted_url)
+            data = DataURLs(url=url, temp_dir=temp_dir, disk_name=disk_name, basename=basename)
+            data_urls_list.append(data)
+
+        return (previous_count, data_urls_list)
 
 
 def fetch_html(url):
@@ -342,7 +340,7 @@ def obtener_link_200_siguientes(html):
     links = re.findall('<a href="([^"]+)[^>]+>200 siguientes</a>', html)
     if links == []:
         return
-    return '%s%s' % (WIKI[:-1], links[0])
+    return '%s%s' % (WIKI, links[0])
 
 
 def reemplazar_links_paginado(html, n):
@@ -438,8 +436,7 @@ def main(articles_path, language, dest_dir, test_limit=None, pool_size=20):
     # setup css link extractor before scraping
     css_link_extractor.setup(language_dump_dir=os.path.dirname(dest_dir))
 
-    data_urls = URLAlizer(articles_path, dest_dir, language, test_limit)
-    previous_count, payloads = data_urls.process()
+    previous_count, payloads = get_data_urls(articles_path, dest_dir, language, test_limit)
 
     func = functools.partial(fetch, language)
     utiles.pooled_exec(func, previous_count, payloads, pool_size, known_errors=[ScraperError])
