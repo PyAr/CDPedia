@@ -70,7 +70,7 @@ def test_scaler(image_config):
     p = config.imageconf['image_reduction']
     expect = [x for i in range(len(s)) for x in [s[i]] * p[i]]
     scaler = calculate.Scaler(images)
-    result = [scaler(i) for i in range(images)]
+    result = [scale for _, scale in scaler.get_items()]
     assert expect == result
 
 
@@ -89,7 +89,7 @@ def test_is_not_required(image_url, expected_result):
 
 @pytest.mark.parametrize('reduction', (
     (0, 0, 0, 100),
-    (10, 20, 30, 50),
+    (10, 10, 30, 50),
     (20, 30, 50, 0),
     (100, 0, 0, 0),
 ))
@@ -129,7 +129,7 @@ def test_no_images(mocker, image_data):
 def test_no_repeated_images(mocker, image_data):
     """Image with same name should be included only once."""
     mocker.patch('config.IMAGES_REQUIRED', True)
-    mocker.patch('config.imageconf', {'image_reduction': [30, 30, 40, 0]})
+    mocker.patch('config.imageconf', {'image_reduction': [100, 0, 0, 0]})
     calculate.run()
     with open(config.LOG_REDUCCION, 'rt', encoding='utf-8') as fh:
         images = fh.read()

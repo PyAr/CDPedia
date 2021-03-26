@@ -481,7 +481,7 @@ class Index:
                 self.name = name
                 self.count = 0
                 self.buffer = []
-                self.progress_bar = Bar(name, max=quantity)
+                self.progress_bar = Bar(name, max=quantity, suffix='%(index)d/%(max)d\r')
 
             def append(self, data):
                 """Append one data set to persist on db."""
