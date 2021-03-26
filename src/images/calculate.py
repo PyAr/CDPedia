@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright 2008-2020 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -29,34 +27,37 @@ from src.preprocessing import preprocess
 
 logger = logging.getLogger("images.calculate")
 
-SCALES = (100, 75, 50, 0)
+SCALES = (100, 75, 50)
 
 
 class Scaler:
     """Compute values for image scaling."""
 
     def __init__(self, total_items):
-        # prepare the limits generator
-        vals = []
-        base = 0
-        reduction = config.imageconf['image_reduction']
-        logger.info("Reduction: %s", reduction)
+        # prepare the limits generator.
+        self.scale_vals = []
+        reduction = config.imageconf['image_reduction'][:-1]
+        # total images in percentage to incorporate
+        add_images = sum(reduction)
+        # number of images of the required percentage to process
+        # more elements can be added and dimensions changed in subsequent processes
+        self.total_items = 0
         for (percentage, scale) in zip(reduction, SCALES):
-            if percentage == 0:
-                continue
-            quantity = total_items * percentage / 100
-            vals.append((quantity + base, scale))
-            base += quantity
-        logger.info("Scales: %s", vals)
+            quantity = total_items * percentage // 100
+            self.scale_vals.append((quantity, scale))
+            self.total_items += quantity
+        vals_tplt = ' - '.join('{} at {}%'.format(quant, scale)
+                               for quant, scale in self.scale_vals)
+        logger.info("Add images: %i%% - %i total | Scales: %s",
+                    add_images, self.total_items, vals_tplt)
 
-        self.limit = 0
-        self.gen_pairs = (x for x in vals)
-
-    def __call__(self, num):
-        if num >= self.limit:
-            # continue with next values
-            (self.limit, self.scale) = next(self.gen_pairs)
-        return self.scale
+    def get_items(self):
+        """Give image index to incorporate and its theoretical resizing."""
+        idx = 0
+        for quant, scale in self.scale_vals:
+            for _ in range(quant):
+                yield (idx, scale)
+                idx += 1
 
 
 def image_is_required(url):
@@ -124,20 +125,14 @@ def run():
 
     # sort optional images by assigned priority
     images_optional = sorted(images_optional.items(), key=operator.itemgetter(1))
-
     scaler = Scaler(len(images_optional))
-    selected_opt = 0  # number of selected optional images
-    for dskurl, _ in images_optional:
-        scale = scaler(selected_opt)
-        if scale == 0:
-            # done, do not include more images
-            break
-
+    for idx, scale in scaler.get_items():
+        dskurl, _ = images_optional[idx]
         weburl = dskweb[dskurl]
-        info = (str(int(scale)), dskurl, weburl)
+        info = (str(scale), dskurl, weburl)
         log_reduction.write(separator.join(info) + "\n")
-        selected_opt += 1
 
     log_reduction.close()
     selected_req = len(images_required)
-    logger.info("Images selected: required=%d optional=%d", selected_req, selected_opt)
+    logger.info("Images to add: %i required, %i in total including scalables",
+                selected_req, (selected_req + scaler.total_items))
