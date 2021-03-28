@@ -17,7 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """
-Descarga las imágenes cuyas URLs se extrajeron de las páginas
+Download the images whose URLs were extracted from the pages
 """
 
 import os

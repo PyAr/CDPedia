@@ -37,8 +37,7 @@ from src.images import extract, download, scale, calculate, embed
 from src.scraping import pydocs
 from src.utiles import set_locale
 
-
-# para poder hacer generar.py > log.txt
+# to be able to do generar.py > log.txt
 if sys.stdout.encoding is None:
     importlib.reload(sys)
     sys.setdefaultencoding('utf8')
@@ -227,7 +226,7 @@ def prepare_temporary_dirs(process_articles):
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
         if not process_articles:
-            # preparamos paths y vemos que todo esté ok
+            # we prepare paths and verify that everything is ok
             src_indices = path.join(config.DIR_CDBASE, "indice")
             src_bloques = config.DIR_BLOQUES
             if not os.path.exists(src_indices):
@@ -241,7 +240,7 @@ def prepare_temporary_dirs(process_articles):
             tmp_indices = path.join(dtemp, "indices_backup")
             tmp_bloques = path.join(dtemp, "bloques_backup")
 
-            # movemos a backup, borramos todo, y restablecemos
+            # we move to backup, delete everything, and restore
             os.rename(src_indices, tmp_indices)
             os.rename(src_bloques, tmp_bloques)
             shutil.rmtree(path.join(dtemp, "cdroot"), ignore_errors=True)
@@ -344,7 +343,7 @@ def main(lang, src_info, version, lang_config, gendate, images_dump_dir,
         embed.run(images_dump_dir)
 
     logger.info("Putting the reduced images into blocks")
-    # agrupamos las imagenes en bloques
+    # we group the images in blocks
     q_blocks, q_images = ImageManager.generar_bloques(verbose)
     logger.info("Got %d blocks with %d images", q_blocks, q_images)
 
@@ -436,13 +435,19 @@ To update an image with the code and assets changes  in this working copy:
     parser = optparse.OptionParser()
     parser.set_usage(msg)
     parser.add_option("-v", "--verbose", action="store_true",
-                      dest="verbose", help="muestra info de lo que va haciendo")
+                      dest="verbose",
+                      help="shows information about what is done")
+
     parser.add_option("-d", "--desconectado", action="store_true",
-                      dest="desconectado", help="trabaja desconectado de la red")
+                      dest="desconectado",
+                      help="works disconnected from the network")
+
     parser.add_option("-a", "--no-articles", action="store_true",
-                      dest="noarticles", help="no reprocesa todo lo relacionado con articulos")
+                      dest="noarticles",
+                      help="does not reprocess everything related to articles")
+
     parser.add_option("-g", "--guppy", action="store_true",
-                      dest="guppy", help="arranca con guppy/heapy prendido")
+                      dest="guppy", help="run with guppy / heapy on")
 
     (options, args) = parser.parse_args()
 

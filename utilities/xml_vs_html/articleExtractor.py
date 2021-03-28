@@ -20,9 +20,9 @@ import codecs
 import sys
 import xml.sax
 
-usage = """Usar: %s [-x] filename title outfile
+usage = """Use: %s [-x] filename title outfile
 
--x significa "exacto"
+-x means "exact"
 """
 
 

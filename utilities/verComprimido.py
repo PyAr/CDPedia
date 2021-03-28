@@ -17,7 +17,7 @@
 # For further info, check  https://github.com/PyAr/CDPedia/
 
 """
-Muestra info del archivo comprimido.
+Show info of the compressed file.
 """
 
 from __future__ import division, with_statement, print_function
@@ -31,15 +31,15 @@ from src.armado.compresor import Comprimido, BloqueImagenes  # NOQA import after
 
 def main(fname, a_extraer):
     fsize = os.stat(fname).st_size
-    print("Mostrando info del archivo %r (tamaño: %d bytes)" % (fname, fsize))
+    print("Showing info of the file %r (size: %d bytes)" % (fname, fsize))
     if fname.endswith('.cdi'):
         c = BloqueImagenes(fname)
     else:
         c = Comprimido(fname)
-    print("Del header (%d bytes): %d archivos en total" % (c.header_size, len(c.header)))
+    print("The header (%d bytes): %d files in total" % (c.header_size, len(c.header)))
 
-    # header: dict con k -> filename
-    #                  v -> (seek, size) o el nombre del apuntado
+    # header: dict with k -> filename
+    #                  v -> (seek, size) or the name of the target
     archivos = []
     redirects = 0
     for name, info in c.header.items():
@@ -53,17 +53,17 @@ def main(fname, a_extraer):
     size_archs = archivos[-1][1] + archivos[-1][2]  # del último, posic + largo
 
     print("Overhead header: %.1f%%" % (100 * (4 + c.header_size) / size_archs))
-    print("Compresión neta: al %.2f%%" % (100 * fsize / size_archs))
+    print("Net compression: at %.2f%%" % (100 * fsize / size_archs))
 
     if not a_extraer:
-        # mostramos los archivos que hay adentro
-        print("Archivos:")
+        # showing the files inside
+        print("Files:")
         for name, seek, size in archivos:
             print("  ", name.encode("utf8"))
     else:
-        # extraemos los archivos indicados
+        # extract the indicated files
         for arch in a_extraer:
-            print("Extrayendo", arch.encode("utf8"))
+            print("Extracting", arch.encode("utf8"))
             data = c.get_item(arch)
             with open(os.path.basename(arch), "wb") as fdest:
                 fdest.write(data)
@@ -71,9 +71,9 @@ def main(fname, a_extraer):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  verComprimido.py <comprimido> [archivo [...]]")
-        print("           donde el archivo comprimido es un .cdp / .cdi")
-        print("           opcionalmente, se pueden pasar archivos a extraer")
+        print("Use:  verComprimido.py <compressed> [file [...]]")
+        print("           where the compressed file is a .cdp / .cdi")
+        print("           optionally, can pass files to extract")
         sys.exit()
 
     main(sys.argv[1], sys.argv[2:])
