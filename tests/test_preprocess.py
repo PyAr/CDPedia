@@ -1,4 +1,4 @@
-# Copyright 2013-2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2013-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -198,6 +198,28 @@ class TestWikiSite(object):
         ws.process()
         ws.commit()
         assert os.path.getsize(config.LOG_PREPROCESADO) == 0
+
+    def test_transmit_redirection_score_to_destination(self, mocker, tmp_path, wikisite):
+        """Test that extra scores produced while processing a redirection are not discarded."""
+        ws = wikisite(str(tmp_path))
+
+        # mock preprocessor that discards the redirection and transmits the score to destination
+        omit_redirects = mocker.Mock(return_value=(None, [('destination', 1234)]))
+        mocker.patch.object(ws, 'preprocessors', [omit_redirects])
+
+        # dummy redirection article that will be discarded
+        article = tmp_path.joinpath('r', 'e', 'd', 'redirection')
+        article.parent.mkdir(parents=True)
+        article.touch()
+
+        ws.process()
+        ws.commit()
+
+        with open(preprocess.LOG_SCORES_ACCUM, 'rt', encoding='utf-8') as fh:
+            scores = fh.read()
+
+        # real score of redirection is discarded, extra score of destination is saved
+        assert scores == 'destination|E|1234\n'
 
 
 class TestPagesSelector(object):
