@@ -19,7 +19,7 @@ import os
 import yaml
 
 # Versión de la CDPedia
-VERSION = '0.8.4'
+VERSION = '0.9.0'
 
 # This should be set to the hostname or address of the server.
 # Eg: "localhost", "192.168.1.1", "cdpedia.myserver.org"
