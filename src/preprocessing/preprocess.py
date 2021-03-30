@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright 2020 CDPedistas (see AUTHORS.txt)
+# Copyright 2020-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -177,9 +177,10 @@ class WikiSite(object):
                     scores_log.write("{}|R|{:d}\n".format(
                         to3dirs.to_pagina(page_path), this_total_score))
 
-                    # save the extra pages score (that may exist or not in the dump)
-                    for extra_page, extra_score in other_pages_scores:
-                        scores_log.write("{}|E|{:d}\n".format(extra_page, extra_score))
+                # save the extra pages score (that may exist or not in the dump) even if page
+                # is discarded (e.g. for transfering score from redirect pages to its targets)
+                for extra_page, extra_score in other_pages_scores:
+                    scores_log.write("{}|E|{:d}\n".format(extra_page, extra_score))
 
                 # with score or discarded, log it as processed
                 processed_before_log.write(page_path + "\n")
