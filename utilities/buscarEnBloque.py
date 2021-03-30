@@ -31,7 +31,7 @@ def main(manager, nom_item, verbose):
     if info is None:
         print("Item not found")
     else:
-        print("Long item returned", len(info))
+        print("Returned item length", len(info))
         if verbose:
             print("Article:\n", repr(info))
 

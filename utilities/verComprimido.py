@@ -36,7 +36,7 @@ def main(fname, a_extraer):
         c = BloqueImagenes(fname)
     else:
         c = Comprimido(fname)
-    print("The header (%d bytes): %d files in total" % (c.header_size, len(c.header)))
+    print("From the header (%d bytes): %d files in total" % (c.header_size, len(c.header)))
 
     # header: dict with k -> filename
     #                  v -> (seek, size) or the name of the target
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Use:  verComprimido.py <compressed> [file [...]]")
         print("           where the compressed file is a .cdp / .cdi")
-        print("           optionally, can pass files to extract")
+        print("           optionally, files to extract can be indicated")
         sys.exit()
 
     main(sys.argv[1], sys.argv[2:])

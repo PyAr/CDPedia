@@ -24,7 +24,7 @@ import sys
 usage = """
 Use: makeLista.py <directory>
 
-    whose directory is where is decompressed the wikipedia
+    directory where the wikipedia is decompressed
 
     example: "makeLista.py wikipedia-es-html.7z"
 
