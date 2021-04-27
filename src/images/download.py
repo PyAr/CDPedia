@@ -64,19 +64,17 @@ def optimize_image(img_path):
 
 def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
-    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
+    temp_fpath = img_path + ".temp"
+    subprocess.run(["pngquant", "--quality=40-70", "--output={}".format(temp_fpath), img_path])
     final_size = os.stat(img_path).st_size
     logger.debug("Metadata removed from %r: %d(bytes) removed"
                  " · PNG, Extra clean-up: %d(bytes) removed",
                  img_path, original_size - current_size, current_size - final_size)
+    os.rename(temp_fpath, img_path)
 
 
 def _download(url, fullpath):
     """Download image from url and save it to disk."""
-    basedir, _ = os.path.split(fullpath)
-    if not os.path.exists(basedir):
-        os.makedirs(basedir)
-
     req = urllib.request.Request(url, headers=HEADERS)
     u = urllib.request.urlopen(req)
 
@@ -84,14 +82,14 @@ def _download(url, fullpath):
     with open(fullpath, "wb") as fh:
         fh.write(img)
 
-    # run optimize_image if images are not .svg or .gif
-    if not fullpath.lower().endswith(('.svg', '.gif')):
-        optimize_image(fullpath)
-
 
 def download(data):
     """Download image from url, retry on error."""
     url, fullpath = data
+
+    basedir, _ = os.path.split(fullpath)
+    if not os.path.exists(basedir):
+        os.makedirs(basedir)
 
     # seconds to sleep before each retrial (starting from the end)
     retries = [5, 1, .3]
@@ -107,6 +105,10 @@ def download(data):
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
+
+    # run optimize_image if images are not .svg or .gif
+    if not fullpath.lower().endswith(('.svg', '.gif')):
+        optimize_image(fullpath)
 
 
 def retrieve(images_dump_dir):
