@@ -88,8 +88,10 @@ def download(data):
     url, fullpath = data
 
     basedir, _ = os.path.split(fullpath)
-    if not os.path.exists(basedir):
-        os.makedirs(basedir)
+    # call it directly with exist_ok=True; it's better than verify if it exists
+    # and then create, as if it's done in two lines a race condition may happen
+    # (this function internally just catches the error)
+    os.makedirs(basedir, exist_ok=True)
 
     # seconds to sleep before each retrial (starting from the end)
     retries = [5, 1, .3]
@@ -97,14 +99,15 @@ def download(data):
     while True:
         try:
             _download(url, fullpath)
-            # download OK
-            return
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
                 raise FetchingError("Failed with HTTPError 404 on url %r", url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
+        else:
+            # download OK
+            break
 
     # run optimize_image if images are not .svg or .gif
     if not fullpath.lower().endswith(('.svg', '.gif')):
