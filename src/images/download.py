@@ -36,6 +36,9 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+# seconds to sleep before each retrial when downloading (starting from the end)
+RETRIES = [5, 1, .3]
+
 # Turning off the PIL debug logs as are too noisy.
 logging.getLogger("PIL").setLevel(logging.INFO)
 
@@ -86,15 +89,13 @@ def _download(url, fullpath):
 def download(data):
     """Download image from url, retry on error."""
     url, fullpath = data
+    retries = RETRIES.copy()
 
     basedir, _ = os.path.split(fullpath)
     # call it directly with exist_ok=True; it's better than verify if it exists
     # and then create, as if it's done in two lines a race condition may happen
     # (this function internally just catches the error)
     os.makedirs(basedir, exist_ok=True)
-
-    # seconds to sleep before each retrial (starting from the end)
-    retries = [5, 1, .3]
 
     while True:
         try:
