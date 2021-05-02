@@ -109,6 +109,6 @@ def get_path_file(page):
 
 
 def from_path(path):
-    """Remove the 3 directories of the path"""
+    """Remove the 3 directories of the path."""
     path = to_pagina(path)
     return path[6:]

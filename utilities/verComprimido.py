@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Show info of the compressed file.
-"""
+"""Show info of the compressed file."""
 
 from __future__ import division, with_statement, print_function
 
@@ -31,7 +29,7 @@ from src.armado.compresor import Comprimido, BloqueImagenes  # NOQA import after
 
 def main(fname, a_extraer):
     fsize = os.stat(fname).st_size
-    print("Showing info of the file %r (size: %d bytes)" % (fname, fsize))
+    print("Showing file info %r (size: %d bytes)" % (fname, fsize))
     if fname.endswith('.cdi'):
         c = BloqueImagenes(fname)
     else:

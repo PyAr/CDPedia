@@ -226,7 +226,7 @@ def prepare_temporary_dirs(process_articles):
     dtemp = config.DIR_TEMP
     if os.path.exists(dtemp):
         if not process_articles:
-            # we prepare paths and verify that everything is ok
+            # prepare paths and verify that everything is ok
             src_indices = path.join(config.DIR_CDBASE, "indice")
             src_bloques = config.DIR_BLOQUES
             if not os.path.exists(src_indices):

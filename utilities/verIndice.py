@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Show index info.
-"""
+"""Show index info."""
 
 from __future__ import print_function
 

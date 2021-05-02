@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     parser.add_option(
         "-i", "--image", action="store_true", dest="image",
-        help=u"search in images (search for articles by default)")
+        help=u"searches in images (shows articles by default)")
 
     (options, args) = parser.parse_args()
 

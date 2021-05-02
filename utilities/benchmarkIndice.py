@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Show index info.
-"""
+"""Show index info."""
 
 from __future__ import division, with_statement, print_function
 
@@ -71,7 +69,7 @@ def main(direct):
 
     with Timer("Full list of words"):
         palabras = [x.decode("utf8") for x in indice.listado_palabras()]
-    print("               cant words:", len(palabras))
+    print("               numbers of words:", len(palabras))
 
     # complete words
     azar = functools.partial(random.choice, palabras)
@@ -82,21 +80,21 @@ def main(direct):
         for p in pals:
             list(indice.search(p))
 
-    # complete words, from to one
+    # complete words, one by one
     pals = [azar() for i in range(BLOQUE)]
-    with Timer("Complete words, from to one", BLOQUE):
+    with Timer("Complete words, one by one", BLOQUE):
         for p in pals:
             indice.search(p)
 
-    # complete words, from to 2
+    # complete words, two by two
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
-    with Timer("Complete words, from to 2", BLOQUE):
+    with Timer("Complete words, two by two", BLOQUE):
         for p in pals:
             indice.search(p)
 
-    # complete words, from to 5
+    # complete words, five by five
     pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
-    with Timer("Complete words, from to 5", BLOQUE):
+    with Timer("Complete words, five by five", BLOQUE):
         for p in pals:
             indice.search(p)
 
@@ -111,21 +109,21 @@ def main(direct):
             pal = pal[desde:hasta]
         return pal
 
-    # partial words, from to one
+    # partial words, one by one
     pals = [azar() for i in range(BLOQUE)]
-    with Timer("Partial words, from to one", BLOQUE):
+    with Timer("Partial words, one by one", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
-    # partial words, from to 2
+    # partial words, two by two
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
-    with Timer("Partial words, from to 2", BLOQUE):
+    with Timer("Partial words, two by two", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
-    # partial words, from to 5
+    # partial words, five by five
     pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
-    with Timer("Partial words, from to 5", BLOQUE):
+    with Timer("Partial words, five by five", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 

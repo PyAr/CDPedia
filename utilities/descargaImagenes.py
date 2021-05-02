@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Download the images whose URLs were extracted from the pages
-"""
+"""Download the images whose URLs were extracted from the pages."""
 
 import os
 import sys

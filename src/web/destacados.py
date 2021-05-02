@@ -45,8 +45,7 @@ class Destacados(object):
         self._iter = itertools.cycle(self.destacados)
 
     def get_destacado(self):
-        """Return a destacado randomly... eventually"""
-        """Devuelve un destacado al azar... eventualmente."""
+        """Return a destacado randomly... eventually."""
 
         data = None
 
@@ -78,7 +77,7 @@ class Destacados(object):
         m = re.search(destacado_re, data)
 
         if not m:
-            logger.warning("This article breaks the regexp to destacado: %s", link)
+            logger.warning("This article breaks the regexp for destacado: %s", link)
             return None
         titulo, primeros_parrafos = m.groups()
         return link, titulo, primeros_parrafos

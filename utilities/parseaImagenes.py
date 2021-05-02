@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Show info of the compressed file.
-"""
+"""Show info of the compressed file."""
 
 from __future__ import print_function
 
