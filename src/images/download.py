@@ -36,6 +36,9 @@ HEADERS = {
         'Ubuntu/8.10 (intrepid) Firefox/3.0.5')
 }
 
+# seconds to sleep before each retrial when downloading (starting from the end)
+RETRIES = [5, 1, .3]
+
 # Turning off the PIL debug logs as are too noisy.
 logging.getLogger("PIL").setLevel(logging.INFO)
 
@@ -64,7 +67,9 @@ def optimize_image(img_path):
 
 def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
-    subprocess.run(["pngquant", "-f", "--ext", ".png", "--quality=40-70", img_path])
+    temp_fpath = img_path + ".temp"
+    subprocess.run(["pngquant", "--quality=40-70", "--output={}".format(temp_fpath), img_path])
+    os.rename(temp_fpath, img_path)
     final_size = os.stat(img_path).st_size
     logger.debug("Metadata removed from %r: %d(bytes) removed"
                  " · PNG, Extra clean-up: %d(bytes) removed",
@@ -73,10 +78,6 @@ def optimize_png(img_path, original_size, current_size):
 
 def _download(url, fullpath):
     """Download image from url and save it to disk."""
-    basedir, _ = os.path.split(fullpath)
-    if not os.path.exists(basedir):
-        os.makedirs(basedir)
-
     req = urllib.request.Request(url, headers=HEADERS)
     u = urllib.request.urlopen(req)
 
@@ -84,29 +85,34 @@ def _download(url, fullpath):
     with open(fullpath, "wb") as fh:
         fh.write(img)
 
-    # run optimize_image if images are not .svg or .gif
-    if not fullpath.lower().endswith(('.svg', '.gif')):
-        optimize_image(fullpath)
-
 
 def download(data):
     """Download image from url, retry on error."""
     url, fullpath = data
+    retries = RETRIES.copy()
 
-    # seconds to sleep before each retrial (starting from the end)
-    retries = [5, 1, .3]
+    basedir, _ = os.path.split(fullpath)
+    # call it directly with exist_ok=True; it's better than verify if it exists
+    # and then create, as if it's done in two lines a race condition may happen
+    # (this function internally just catches the error)
+    os.makedirs(basedir, exist_ok=True)
 
     while True:
         try:
             _download(url, fullpath)
-            # download OK
-            return
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
                 raise FetchingError("Failed with HTTPError 404 on url %r", url)
             if not retries:
                 raise FetchingError("Giving up retries after %r on url %r", err, url)
             time.sleep(retries.pop())
+        else:
+            # download OK
+            break
+
+    # run optimize_image if images are not .svg or .gif
+    if not fullpath.lower().endswith(('.svg', '.gif')):
+        optimize_image(fullpath)
 
 
 def retrieve(images_dump_dir):
