@@ -61,14 +61,18 @@ def optimize_image(img_path):
     if img_path.lower().endswith('.png'):
         optimize_png(img_path, size, final_size)
     else:
-        logger.debug("Metadata removed from %r: %d(bytes) removed",
-                     img_path, size - final_size)
+        logger.debug("Metadata removed from %r: %d(bytes) removed", img_path, size - final_size)
 
 
 def optimize_png(img_path, original_size, current_size):
     """Run pngquant to optimize PNG format."""
     temp_fpath = img_path + ".temp"
-    subprocess.run(["pngquant", "--quality=40-70", "--output={}".format(temp_fpath), img_path])
+    cmd = ["pngquant", "--quality=40-70", "--output={}".format(temp_fpath), img_path]
+    proc = subprocess.run(cmd)
+    if proc.returncode != 0:
+        # pngquant failed, remove the temp path if it exists and just use the original one
+        logger.debug("pngquant failed with %s on %r", proc.returncode, img_path)
+        return
     os.rename(temp_fpath, img_path)
     final_size = os.stat(img_path).st_size
     logger.debug("Metadata removed from %r: %d(bytes) removed"

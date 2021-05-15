@@ -17,7 +17,6 @@
 """Tests for the 'preprocess' module."""
 
 import codecs
-import logging
 import os
 
 import config
@@ -339,12 +338,11 @@ class TestPagesSelector(object):
 class TestRun(object):
     """Tests for the `run` function."""
 
-    def test_skip(self, mocker, caplog):
-        mocker.patch('os.path.exists', mocker.Mock(return_value=True))
+    def test_skip(self, mocker, logs):
         """Skip preprocessing if final scores file exists."""
-        with caplog.at_level(logging.INFO):
-            preprocess.run('foo')
-        assert 'Skipping the whole processing stage' in caplog.text
+        mocker.patch('os.path.exists', mocker.Mock(return_value=True))
+        preprocess.run('foo')
+        assert 'Skipping the whole processing stage' in logs.info
 
     def test_run(self, mocker):
         """Start articles preprocessing."""
