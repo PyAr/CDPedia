@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Muestra info del archivo comprimido.
-"""
+"""Show info of the compressed file."""
 
 from __future__ import print_function
 
@@ -35,7 +33,7 @@ def main(fname):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  parseaImagenes.py <arch.html>")
+        print("Use:  parseaImagenes.py <file.html>")
         sys.exit()
 
     main(sys.argv[1])

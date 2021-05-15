@@ -29,27 +29,27 @@ from src.armado.compresor import ArticleManager, ImageManager  # NOQA import aft
 def main(manager, nom_item, verbose):
     info = manager.get_item(nom_item)
     if info is None:
-        print("No se encontró el item")
+        print("Item not found")
     else:
-        print("Largo item devuelto", len(info))
+        print("Returned item length", len(info))
         if verbose:
-            print("Artículo:\n", repr(info))
+            print("Article:\n", repr(info))
 
 
 if __name__ == "__main__":
     msg = u"""
-  buscarEnBloque.py [-v] [-i] nombre_item
+  buscarEnBloque.py [-v] [-i] item_name
 """
 
     parser = optparse.OptionParser()
     parser.set_usage(msg)
     parser.add_option(
         "-v", "--verbose", action="store_true", dest="verbose",
-        help="muestra info de lo que va haciendo")
+        help="shows info of what it is doing")
 
     parser.add_option(
         "-i", "--image", action="store_true", dest="image",
-        help=u"busca en imagenes (busca artículos por default)")
+        help=u"searches in images (shows articles by default)")
 
     (options, args) = parser.parse_args()
 

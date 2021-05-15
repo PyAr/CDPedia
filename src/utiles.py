@@ -31,14 +31,14 @@ logger = logging.getLogger(__name__)
 
 
 class WatchDog(threading.Thread):
-    """Implementa un watchdog usando un thread.
+    """Implement a watchdog using a thread.
 
-    Una vez iniciado el watchdog se debe llamar al método update periódicamente a
-    intervalos menores a sleep segundos para prevenir que el watchdog termine y
-    llame al callback.
+    Once the watchdog has started, the update method must be called periodically
+    at intervals of less than sleep seconds to prevent that watchdog finish and
+    calling the callback.
 
-    En esta simple implementación el callback puede tardar hasta 2 veces sleep
-    segundos en ser llamado.
+    In this simple implementation the callback can take up to 2 times sleep
+    seconds to be called.
     """
     def __init__(self, callback, sleep):
         threading.Thread.__init__(self)

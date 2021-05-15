@@ -22,13 +22,13 @@ import os
 import sys
 
 usage = """
-Usar: makeLista.py <directorio>
+Use: makeLista.py <directory>
 
-   donde el directorio es donde está descomprimida la wikipedia
+    directory where the wikipedia is decompressed
 
-      ej: "makeLista.py wikipedia-es-html.7z"
+    example: "makeLista.py wikipedia-es-html.7z"
 
-   El programa tira la lista y porcentajes a stdout
+    The program shows the list and percentages using stdout
 """
 
 PASOSHOW = 1000
@@ -39,7 +39,7 @@ def main(nomdir):
     acum = {}
     pasoant = 0
 
-    print("Analizando %r..." % nomdir)
+    print("Analyzing %r..." % nomdir)
     for cwd, directorios, archivos in os.walk(nomdir):
         for fname in archivos:
             fullpath = os.path.join(cwd, fname)
@@ -63,10 +63,10 @@ def main(nomdir):
                 sys.stdout.flush()
                 pasoant = total // PASOSHOW
 
-    print("\nMostrando los resultados para un total de %d archivos que ocupan %.2f MB:\n" % (
+    print("\nShowing the results for a total of %d files that occupy %.2f MB:\n" % (
         total, tamtotal / 1048576.0))
     maslargo = max([len(x) for x in acum.keys()])
-    print("  %s    Cant      Cant%%  Tamaño   Tamaño%%" % "Raiz".ljust(maslargo))
+    print("  %s    Cant      Cant%%  Size   Size%%" % "Root".ljust(maslargo))
     for (raiz, (cant, tam)) in sorted(acum.items(), key=lambda x: x[1][1], reverse=True):
         tammb = tam / 1048576.0
         if tammb < 1:
