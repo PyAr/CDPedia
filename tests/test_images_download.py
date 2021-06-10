@@ -39,11 +39,23 @@ def image_config(tmp_path):
     'moño.png',  # unicode
     'the image.png',  # spaces
 ])
-def test_pngquant_optimize(image_config, filename):
+def test_pngquant_optimize_ok(image_config, filename):
     img_path, init_size = image_config(filename)
     optimize_png(str(img_path), init_size, init_size)
     final_size = img_path.stat().st_size
     assert init_size > final_size
+
+
+def test_pngquant_optimize_problem(tmp_path, logs):
+    # create something that pngquant will not understand
+    img_path = tmp_path / 'weird.png'
+    weird_content = "this is not really a png"
+    img_path.write_text(weird_content)
+
+    # it should not crash, and leave the original content untouched
+    optimize_png(str(img_path), 23, 23)
+    assert img_path.read_text() == weird_content
+    assert "pngquant failed with 25 on '{}'".format(img_path) in logs.debug
 
 
 def test_download_ok(tmp_path):
