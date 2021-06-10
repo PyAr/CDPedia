@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Muestra info del índice.
-"""
+"""Show index info."""
 
 from __future__ import print_function
 
@@ -29,27 +27,27 @@ sys.path.append(os.path.abspath("."))
 from src.armado.cdpindex import IndexInterface  # NOQA import after fixing the path
 
 
-def main(direct, palabras):
-    indice = IndexInterface(direct)
-    indice.run()
-    indice.ready.wait()
+def main(direct, words):
+    index = IndexInterface(direct)
+    index.run()
+    index.ready.wait()
 
-    if not palabras:
-        for palabra, data in indice.listar():
-            print("%s: %s" % (palabra.encode("utf8"), data))
+    if not words:
+        for word, data in index.listar():
+            print("%s: %s" % (word.encode("utf8"), data))
     else:
-        encontrado = indice.search(" ".join(palabras))
+        encontrado = index.search(" ".join(words))
         for it in encontrado:
             print(it)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usar:  verIndice.py <dir_indice> [palabra [...]]")
-        print("           dir_indice es el dir donde está el índice")
-        print("           las palabras opcionales son buscadas en el índice")
+        print("Use:  verIndice.py <index_dir> [word [...]]")
+        print("           index_dir is the directory where is the index")
+        print("           optional words are searched in the index")
         sys.exit()
 
     base = sys.argv[1]
-    palabras = [x.decode("utf8") for x in sys.argv[2:]]
-    main(base, palabras)
+    words = [x.decode("utf8") for x in sys.argv[2:]]
+    main(base, words)

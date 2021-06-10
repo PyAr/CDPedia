@@ -16,9 +16,7 @@
 #
 # For further info, check  https://github.com/PyAr/CDPedia/
 
-"""
-Muestra info del índice.
-"""
+"""Show index info."""
 
 from __future__ import division, with_statement, print_function
 
@@ -50,7 +48,7 @@ class Timer(object):
         self.t = tnow
 
 
-def usoMemoria():
+def memoryUsage():
     pid = os.getpid()
     cmd = "ps -o vsize=,rss= -p " + str(pid)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
@@ -60,47 +58,47 @@ def usoMemoria():
 
 
 def main(direct):
-    memant = usoMemoria()
+    memant = memoryUsage()
     with Timer("Start up"):
         indice = IndexInterface(direct)
         indice.run()
         indice.ready.wait()
-    memdesp = usoMemoria()
+    memdesp = memoryUsage()
 
-    print("               ocupa memoria:  %d KB" % (memdesp - memant))
+    print("               occupy memory:  %d KB" % (memdesp - memant))
 
-    with Timer("Listado completo palabras"):
+    with Timer("Full list of words"):
         palabras = [x.decode("utf8") for x in indice.listado_palabras()]
-    print("               cant palabras:", len(palabras))
+    print("               numbers of words:", len(palabras))
 
-    # palabras completas
+    # complete words
     azar = functools.partial(random.choice, palabras)
 
-    # levantar los resultados
+    # get the results
     pals = [azar() for i in range(BLOQUE)]
-    with Timer("Buscar palabras completas, y obtener el resultado", BLOQUE):
+    with Timer("Search for complete words, and get the result", BLOQUE):
         for p in pals:
             list(indice.search(p))
 
-    # palabras completas, de a una
+    # complete words, one by one
     pals = [azar() for i in range(BLOQUE)]
-    with Timer("Palabras completas, de a una", BLOQUE):
+    with Timer("Complete words, one by one", BLOQUE):
         for p in pals:
             indice.search(p)
 
-    # palabras completas de a 2
+    # complete words, two by two
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
-    with Timer("Palabras completas, de a 2", BLOQUE):
+    with Timer("Complete words, two by two", BLOQUE):
         for p in pals:
             indice.search(p)
 
-    # palabras completas de a 5
+    # complete words, five by five
     pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
-    with Timer("Palabras completas, de a 5", BLOQUE):
+    with Timer("Complete words, five by five", BLOQUE):
         for p in pals:
             indice.search(p)
 
-    # palabras parciales
+    # partial words
     def azar():
         pal = None
         while not pal:
@@ -111,32 +109,32 @@ def main(direct):
             pal = pal[desde:hasta]
         return pal
 
-    # palabras parciales, de a una
+    # partial words, one by one
     pals = [azar() for i in range(BLOQUE)]
-    with Timer("Palabras parciales, de a una", BLOQUE):
+    with Timer("Partial words, one by one", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
-    # palabras parciales, de a 2
+    # partial words, two by two
     pals = ["%s %s" % (azar(), azar()) for i in range(BLOQUE)]
-    with Timer("Palabras parciales, de a 2", BLOQUE):
+    with Timer("Partial words, two by two", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
-    # palabras parciales, de a 5
+    # partial words, five by five
     pals = [("%s " * 5) % tuple(azar() for j in range(5)) for i in range(BLOQUE)]
-    with Timer("Palabras parciales, de a 5", BLOQUE):
+    with Timer("Partial words, five by five", BLOQUE):
         for p in pals:
             indice.partial_search(p)
 
-    memdesp = usoMemoria()
-    print("\nNuevo consumo de memoria:  %d KB" % (memdesp - memant))
+    memdesp = memoryUsage()
+    print("\nNew memory usage:  %d KB" % (memdesp - memant))
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usar:  benchmarkIndice.py <dir_indice>")
-        print("           dir_indice es el directorio donde está el índice")
+        print("Use:  benchmarkIndice.py <dir_index>")
+        print("           dir_index is the directory where is the index")
         sys.exit()
 
     base = sys.argv[1]
