@@ -1,0 +1,14 @@
+# Information for the available templates
+#
+# Several items (one per template), each including:
+# - the filepath for the template
+# - the two-letters language indication
+# - the full language name for the human to choose
+
+- filename: index_template.es.html
+  lang_id: es
+  lang_name: Castellano
+
+- filename: index_template.en.html
+  lang_id: en
+  lang_name: English

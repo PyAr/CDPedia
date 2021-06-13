@@ -1,3 +1,70 @@
+/*new*/
+.select-lang {
+  display: flex;
+  justify-content: center;
+}
+
+/*Dropdown Button*/
+.dropdown-btn {
+ background-color: rgba(198, 223, 248, 1);
+  color: black;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdonw content */
+.dropdown {
+  position: relative;
+  display:  inline-block;
+}
+
+/* Dropdown Content (hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  right: 10%;
+}
+
+/* Create box menu */
+.dropdown-content a {
+  color: black;
+  padding: 12px 12px;
+  text-align: right;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #b3e6ff;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-b:hover .dropdown-content-b {
+  display: block;
+
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropodown:hover .dropdown-btn {
+  background-color: #3e8e41;
+}
+
+header {
+    padding: 2em 0;
+    background-color: rgba(198, 223, 248, 1);
+}
+
 .container-dark, footer{
  background-color: rgba(198, 223, 248, 1);
 }
