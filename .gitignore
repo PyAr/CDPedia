@@ -1,6 +1,5 @@
 *.pyc
 temp/
-cdpedia-*
 cdpetron.log
 scraper.log
 venv
