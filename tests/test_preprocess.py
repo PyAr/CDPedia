@@ -298,6 +298,28 @@ class TestPagesSelector(object):
             lines = fh.readlines()
         assert lines == should_stored
 
+    def test_calculate_top_htmls_everything(self, pages_selector):
+        """Calculate top htmls, special case to include everything."""
+        config.imageconf['page_limit'] = None
+        ps = pages_selector()
+        ps.calculate()
+        should_pages = [
+            ('f/o/o', 'fooarch1', 8),
+            ('b/a/r', 'bararch2', 7),
+            ('f/o/o', 'fooarch3', 5),
+            ('b/a/r', 'bararch4', 4),
+            ('f/o/o', 'fooarch5', 4),
+            ('b/a/r', 'bararch6', 2),
+        ]
+        assert ps.top_pages == should_pages
+
+        # check info is stored ok in disk
+        should_stored = [config.SEPARADOR_COLUMNAS.join(map(str, p)) + '\n'
+                         for p in should_pages]
+        with open(config.PAG_ELEGIDAS, 'r', encoding="utf-8") as fh:
+            lines = fh.readlines()
+        assert lines == should_stored
+
     def test_sameinfo_noprevious(self, pages_selector):
         """Check 'same info than before', no previous info."""
         ps = pages_selector()

@@ -20,18 +20,22 @@
           <button class="dropdown-btn">Idioma de la página</button>
             <div class="dropdown-content">
               <!-- these depend on how many templates we have in the project -->
-              {% for index_filepath, language in pages_info %}
-              <a href="{{ index_filepath }}">{{ language }}</a>
-              {% endfor %}
+              
+              <a href="index.es.es.html">Castellano</a>
+              
+              <a href="index.en.es.html">English</a>
+              
             </div>
         </div>
         <div class="dropdown">
           <button class="dropdown-btn">Idioma de CDPedia</button>
             <div class="dropdown-content">
               <!-- these depend on the available generated images -->
-              {% for index_filepath, language in cdpedias_info %}
-              <a href="{{ index_filepath }}">{{ language }}</a>
-              {% endfor %}
+              
+              <a href="index.es.ay.html">Aimara</a>
+              
+              <a href="index.es.es.html">Castellano</a>
+              
             </div>
         </div>
       </div>
@@ -94,7 +98,7 @@
   <div class="container">
     <h2 name="download">Descargala</h2>
 
-    <p>La última versión es la {{ version }}, con contenido al {{ image_date }}, y
+    <p>La última versión es la 0.9.0, con contenido al 16 de abril de 2021, y
     se puede descargar de las siguientes formas (si tenés la posibilidad, agradecemos 
     que bajes y compartas los archivos vía BitTorrent):</p>
 
@@ -109,20 +113,44 @@
         </tr>
       </thead>
       <tbody>
-        {% for image_info in produced_formats_info %}
+        
         <tr>
-          <td>{{ image_info.format }}</td>
-          <td>{{ image_info.size }}</td>
-          <td><a href="{{ image_info.md5 }}">md5</a> - <a href="{{ image_info.sha1 }}">sha1</a></td>
-          <td><a href="{{ image_info.torrent }}">Torrent</a></td>
-          <td>Páginas: {{ image_info.pages|default('todas', true) }}; imágenes: {{ image_info.included_images_ratio }}%</td>
+          <td>CD</td>
+          <td>716.9 MB</td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-cd.iso.md5">md5</a> - <a href="images/es/current/cdpedia-es-0.9.0-20210416-cd.iso.sha1">sha1</a></td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-cd.iso.torrent">Torrent</a></td>
+          <td>Páginas: 50,000; imágenes: 5%</td>
         </tr>
-        {% endfor %}
+        
+        <tr>
+          <td>Tarball</td>
+          <td>2.4 GB</td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-tarmed.tar.xz.md5">md5</a> - <a href="images/es/current/cdpedia-es-0.9.0-20210416-tarmed.tar.xz.sha1">sha1</a></td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-tarmed.tar.xz.torrent">Torrent</a></td>
+          <td>Páginas: 300,000; imágenes: 8%</td>
+        </tr>
+        
+        <tr>
+          <td>DVD</td>
+          <td>4.6 GB</td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-dvd5.iso.md5">md5</a> - <a href="images/es/current/cdpedia-es-0.9.0-20210416-dvd5.iso.sha1">sha1</a></td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-dvd5.iso.torrent">Torrent</a></td>
+          <td>Páginas: 1,000,000; imágenes: 8%</td>
+        </tr>
+        
+        <tr>
+          <td>Super Tarball</td>
+          <td>14.8 GB</td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-tarbig.tar.xz.md5">md5</a> - <a href="images/es/current/cdpedia-es-0.9.0-20210416-tarbig.tar.xz.sha1">sha1</a></td>
+          <td><a href="images/es/current/cdpedia-es-0.9.0-20210416-tarbig.tar.xz.torrent">Torrent</a></td>
+          <td>Páginas: todas; imágenes: 85%</td>
+        </tr>
+        
 
       </tbody>
     </table>
 
-   <p>Todos los archivos (torrentes, checksums, etc) los podés ver <a href="{{ all_images_url }}">acá</a>.</p>
+   <p>Todos los archivos (torrentes, checksums, etc) los podés ver <a href="http://cdpedia.python.org.ar/images/es/current/">acá</a>.</p>
    <p>Si necesitás ayuda, te invitamos a ver las FAQ's o a hacer nuevas preguntas en el <a href="https://pyar.discourse.group/c/cdpedia/">foro</a></p>
 
   </div>

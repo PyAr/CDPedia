@@ -5,6 +5,8 @@
 #  - portal_index: the title of the main "portals" index (optional)
 #  - second_language: alternative language for missing translations (optional)
 #  - python_docs: URL of the python documentation tarball to be included in final image
+#  - language_name: how the selected language is written in the HTML template for 
+#    each template language (options in each case must match HTML templates)
 
 es:
     include: [
@@ -19,6 +21,9 @@ es:
     ]
     portal_index: Portal:Portada
     python_docs: https://docs.python.org/es/3.8/archives/python-3.8.5-docs-html.tar.bz2
+    language_name: 
+        es: Castellano
+        en: Spanish
 
 ay:
     include: [
@@ -28,6 +33,9 @@ ay:
     portal_index: Nayriri_uñstawi
     second_language: es
     python_docs: https://docs.python.org/es/3.8/archives/python-3.8.5-docs-html.tar.bz2
+    language_name: 
+        es: Aimara
+        en: Aymara
 
 pt:
     include: [

@@ -16,58 +16,67 @@ es:
     tarbig:  # we aim for 10-20 GB
         type: tarball
         windows: True
-        page_limit: 5000000
+        page_limit: null  # all of them
         image_reduction: [5, 20, 60, 15]
+        name: Super Tarball
 
     dvd9:  # size max: DVD-R DL, 12cm:  8,543,666,176 bytes
         type: iso
         windows: True
-        page_limit: 5000000   # very big number, we want them all!
+        page_limit: null  # all of them
         image_reduction: [10, 25, 65, 0]
+        name: DVD-9
 
     dvd5:  # size: DVD-R SL, 12cm:  4,700,319,808 bytes
         type: iso
         windows: True
         page_limit: 1000000
         image_reduction: [2, 2, 4, 92]
+        name: DVD
 
     tarmed:  # we aim for 2 to 3 GB
         type: tarball
         windows: True
         page_limit: 300000
         image_reduction: [2, 2, 4, 92]
+        name: Tarball
 
     cd:  # size max: 12cm, 80min:  737,280,000 bytes
         type: iso
         windows: True
         page_limit: 50000
         image_reduction: [1, 2, 2, 95]
+        name: CD
 
     xo:
         type: tarball
         windows: False
         page_limit: 5000
         image_reduction: [0, 0, 5, 95]
+        name: XO
 
     beta:
         type: tarball
         windows: True
         page_limit: 8000   # sample version to distribute for others to QA
         image_reduction: [5, 5, 10, 80]
+        name: Beta
 
 # Aymar
 ay:
     tarbig:
         type: tarball
         windows: True
-        page_limit: 5000000   # very big number, we want them all!
+        page_limit: null  # all of them
         image_reduction: [100, 0, 0, 0]
+        name: Super Tarball
 
     beta:
         type: tarball
         windows: True
         page_limit: 8000
         image_reduction: [5, 5, 10, 80]
+        name: Beta
 
 # Portuguese
 pt:
@@ -76,6 +85,7 @@ pt:
         windows: True
         page_limit: 8000
         image_reduction: [5, 5, 10, 80]
+        name: Beta
 
 # French
 fr:
@@ -84,3 +94,4 @@ fr:
         windows: True
         page_limit: 8000
         image_reduction: [5, 5, 10, 80]
+        name: Tarball

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 # Copyright 2020-2021 CDPedistas (see AUTHORS.txt)
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -282,13 +279,16 @@ class PagesSelector(object):
         # order by score, and get top N
         all_pages.sort(key=operator.itemgetter(2), reverse=True)
         page_limit = config.imageconf['page_limit']
-        self._top_pages = all_pages[:page_limit]
+        if page_limit is None:
+            self._top_pages = all_pages
+        else:
+            self._top_pages = all_pages[:page_limit]
 
-        # get all items after N that still has the same score that last one
-        last_score = self._top_pages[-1][2]
-        for more_info in all_pages[page_limit:]:
-            if more_info[2] == last_score:
-                self._top_pages.append(more_info)
+            # get all items after N that still has the same score that last one
+            last_score = self._top_pages[-1][2]
+            for more_info in all_pages[page_limit:]:
+                if more_info[2] == last_score:
+                    self._top_pages.append(more_info)
 
         separator = config.SEPARADOR_COLUMNAS
         if os.path.exists(config.PAG_ELEGIDAS):
