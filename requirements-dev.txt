@@ -3,6 +3,7 @@ Babel
 bs4
 flake8
 futures
+logassert
 pillow
 progress
 pytest
