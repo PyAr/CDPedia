@@ -10,7 +10,7 @@
   color: black;
   padding: 12px;
   font-size: 16px;
-  width: 165px;
+  width: 185px;
   border: none;
   cursor: pointer;
   border-radius: 1em;
@@ -28,7 +28,7 @@
   display: none;
   position: absolute;
   top: 100%;
-  left: 5%;
+  left: 10%;
   background-color: white;
   width: 150px;
   border-radius: 1em;
