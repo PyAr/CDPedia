@@ -23,7 +23,7 @@ import urllib.request
 import urllib.error
 import time
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 import config
 
@@ -55,8 +55,15 @@ class FetchingError(Exception):
 def optimize_image(img_path):
     """Open and Close image to remove metadata with pillow."""
     size = os.stat(img_path).st_size
-    with Image.open(img_path) as img:
-        img.save(img_path)
+    try:
+        with Image.open(img_path) as img:
+            img.save(img_path)
+    except UnidentifiedImageError as err:
+        # this error already includes the path
+        logger.debug("PIL UnidentifiedImageError: %s", err)
+    except Exception as err:
+        logger.debug("PIL optimization failed: %r when processing %r", err, img_path)
+
     final_size = os.stat(img_path).st_size
     if img_path.lower().endswith('.png'):
         optimize_png(img_path, size, final_size)

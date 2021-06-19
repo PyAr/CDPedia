@@ -17,9 +17,9 @@
 import shutil
 from unittest.mock import patch
 
-from src.images.download import optimize_png, download, FetchingError
-
 import pytest
+
+from src.images.download import optimize_png, download, FetchingError, optimize_image
 
 
 @pytest.fixture
@@ -137,3 +137,21 @@ def test_download_problems(tmp_path):
 
     # download was called twice
     assert _download_mock.call_count == 2
+
+
+def test_optimize_pil_error_open(tmp_path, logs):
+    tmp_image = tmp_path / "foo.png"
+    tmp_image.write_text("not really a PNG, this will cause PIL to crash on open")
+
+    optimize_image(str(tmp_image))
+    msg = "PIL UnidentifiedImageError: cannot identify image file '.*/foo.png'"
+    assert msg in logs.debug
+
+
+def test_optimize_pil_error_save(logs, image_config):
+    img_path, _ = image_config("foo.png")
+    with patch('PIL.PngImagePlugin.PngImageFile.save') as mock:
+        mock.side_effect = ValueError("pumba")
+        optimize_image(str(img_path))
+    msg = r"PIL optimization failed: ValueError\('pumba'\) when processing '.*/foo.png'"
+    assert msg in logs.debug
