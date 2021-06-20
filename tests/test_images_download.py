@@ -150,7 +150,7 @@ def test_optimize_pil_error_open(tmp_path, logs):
 
 def test_optimize_pil_error_save(logs, image_config):
     img_path, _ = image_config("foo.png")
-    with patch('PIL.PngImagePlugin.PngImageFile.save') as mock:
+    with patch('PIL.Image.open') as mock:
         mock.side_effect = ValueError("pumba")
         optimize_image(str(img_path))
     msg = r"PIL optimization failed: ValueError\('pumba'\) when processing '.*/foo.png'"
