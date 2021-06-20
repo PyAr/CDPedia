@@ -80,6 +80,12 @@ ay:
 
 # Portuguese
 pt:
+    tarbig:  # we aim for 10-20 GB
+        type: tarball
+        windows: True
+        page_limit: 5000000
+        image_reduction: [10, 20, 60, 10]
+
     beta:
         type: tarball
         windows: True
