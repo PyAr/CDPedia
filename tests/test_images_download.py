@@ -155,5 +155,5 @@ def test_optimize_pil_error_generic(tmp_path, logs):
     with patch.object(Image, 'open') as mock:
         mock.side_effect = ValueError("pumba")
         optimize_image(str(tmp_image))
-    msg = r"PIL optimization failed: ValueError\('pumba'\) when processing '.*foo.png'"
+    msg = r"PIL optimization failed: ValueError\('pumba'.*\) when processing '.*foo.png'"
     assert msg in logs.debug
