@@ -56,6 +56,7 @@ def optimize_image(img_path):
     """Open and Close image to remove metadata with pillow."""
     size = os.stat(img_path).st_size
     try:
+        print("=========", Image.open)
         with Image.open(img_path) as img:
             img.save(img_path)
     except UnidentifiedImageError as err:
