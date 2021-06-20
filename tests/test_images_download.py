@@ -18,6 +18,7 @@ import shutil
 from unittest.mock import patch
 
 import pytest
+from PIL import Image
 
 from src.images.download import optimize_png, download, FetchingError, optimize_image
 
@@ -151,7 +152,7 @@ def test_optimize_pil_error_unidentified(tmp_path, logs):
 def test_optimize_pil_error_generic(tmp_path, logs):
     tmp_image = tmp_path / "foo.png"
     tmp_image.write_text("stuff")
-    with patch('PIL.Image.open') as mock:
+    with patch.object(Image, 'open') as mock:
         mock.side_effect = ValueError("pumba")
         optimize_image(str(tmp_image))
     msg = r"PIL optimization failed: ValueError\('pumba'\) when processing '.*foo.png'"
