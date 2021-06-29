@@ -50,6 +50,9 @@ pt:
     ]
     portal_index: Portal:Índice
     python_docs: https://docs.python.org/pt-br/3.8/archives/python-3.8.5-docs-html.tar.bz2
+    language_name: 
+        es: Portugués
+        en: Portuguese
 
 fr:
     include: [
