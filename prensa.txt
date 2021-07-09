@@ -1,19 +1,21 @@
-Python Argentina (PyAr) se enorgullece de anunciar la versión 0.8.4 de la CDPedia.
+Python Argentina (PyAr) se enorgullece de anunciar la versión 0.9.0 de la CDPedia.
 
     http://cdpedia.python.org.ar/
 
-Esta versión trae las siguientes novedades:
+Esta versión trae no sólo una actualización del contenido al 2021, sino una CDPedia totalmente renovada luego de que estuvimos todo un equipo trabajando un año en la misma, lo cual incluye una búsqueda más rápida y exacta, mejoras en la experiencia de les usuaries finales, y grandes cambios internos en el proyecto para modernizarlo y hacerlo más robusto. El detalle de todos los cambios está acá: 
 
- - Actualizamos el contenido a Junio 2017
- - El contenido de la página de inicio está renovado
- - Varias mejoras a la hora de la generación de discos y tarballs, así como también en la calidad del código.
+    FIXME(url a TODO el changelog, tenía idea de que eso esté como "release" en github)
 
-Si tenés discos disponibles, hacé algunas copias de CDPedia para regalar a tus familiares y amigos, a la biblioteca de tu barrio, o a la escuela de tus hijos. O directamente llevala en un pendrive. ¡Difundí CDPedia!
+Pero quizás la novedad más importante de esta versión es que completamos algunos cambios y ajustamos todos los detalles para poder empezar a generar CDPedias en distintos idiomas. Por eso si van al sitio arriba mencionado van a ver que podrán elegir la CDPedia no sólo en Castellano sino también en Aimara y Portugués. 
+
+Bajala, usala, disfrutala. Y si tenés discos disponibles, hacé algunas copias de CDPedia para regalar a tus familiares y amigues, a la biblioteca de tu barrio, o a la escuela de tus hijes. O directamente llevala en un pendrive. 
+
+¡Difundí CDPedia!
 
 
 Acerca de la CDPedia
 
-La CDPedia es un proyecto del grupo de usuarios de Python Argentina que permite acceder a la información de la Wikipedia en castellano sin necesidad de una conexión a Internet.
+La CDPedia es un proyecto del grupo de usuaries de Python Argentina que permite acceder a la información de la Wikipedia en castellano sin necesidad de una conexión a Internet.
 
 Se puede descargar libremente de la red y grabar a CDs, DVDs o memorias USB para repartirlos sin restricciones. La CDPedia funciona en cualquier computadora, ya sea que tenga Linux, MacOS o Windows como sistema operativo.
 
@@ -34,4 +36,3 @@ Python es un lenguaje de programación dinámico y orientado a objetos que puede
 Está disponible en múltiples plataformas, desde una PC con Windows o Linux hasta teléfonos celulares, y muchos sitios de Internet utilizan Python como soporte de sus servicios. Para más información, visitar:
 
     http://python.org/
-
