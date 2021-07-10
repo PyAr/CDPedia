@@ -828,9 +828,9 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="0.24985361"
-     inkscape:cx="252.80902"
-     inkscape:cy="1753.9467"
+     inkscape:zoom="0.35334636"
+     inkscape:cx="-14.719255"
+     inkscape:cy="2253.5238"
      inkscape:window-x="0"
      inkscape:window-y="36"
      inkscape:window-maximized="1"
@@ -3273,7 +3273,7 @@
        id="tspan3545"
        x="422.07632"
        y="2650.658"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:453.057px;line-height:1.25;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">CDPedia</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:453.057px;line-height:1.25;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O, Normal';font-variant-ligatures:normal;font-variant-caps:small-caps;font-variant-numeric:normal;font-variant-east-asian:normal">CDPedia</tspan></text>
   <text
      xml:space="preserve"
      style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:eufm10;-inkscape-font-specification:'eufm10 Italic';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
@@ -3284,16 +3284,11 @@
        x="368.11163"
        y="3819.6125"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:87.075px;line-height:125%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:start;writing-mode:lr-tb;text-anchor:start"
-       id="tspan3551">Fonts: sudo apt-get install ttf-linux-libertine </tspan><tspan
-       sodipodi:role="line"
-       x="368.11163"
-       y="3928.4563"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:87.075px;line-height:125%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:start;writing-mode:lr-tb;text-anchor:start"
-       id="tspan1397">                                    ...o fonts-linuxlibertine</tspan></text>
+       id="tspan1397">Fonts: sudo apt-get install fonts-linuxlibertine</tspan></text>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;"
-     x="1009.9811"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+     x="1000.8204"
      y="2821.8098"
      id="text3543-0"
      inkscape:export-filename="logo-esquina-articulos.png"
@@ -3301,7 +3296,7 @@
      inkscape:export-ydpi="6.9899998"><tspan
        sodipodi:role="line"
        id="tspan3545-6"
-       x="1009.9811"
+       x="1000.8204"
        y="2821.8098"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:136.377px;line-height:1.25;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">La Wikipedia offline</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:136.377px;line-height:1.25;font-family:'Linux Libertine O';-inkscape-font-specification:'Linux Libertine O, Normal';font-variant-ligatures:no-common-ligatures discretionary-ligatures;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">La Wikipedia offline</tspan></text>
 </svg>
