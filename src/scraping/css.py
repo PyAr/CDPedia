@@ -35,6 +35,7 @@ modules into a single file that will be loaded by all CDPedia pages.
 Reference: https://www.mediawiki.org/wiki/API:Styling_content
 """
 
+import html
 import logging
 import functools
 import os
@@ -163,7 +164,7 @@ class _CSSScraper:
 
         unique_names = set()
         for link in raw_links:
-            url = urllib.parse.urlparse(link)
+            url = urllib.parse.urlparse(html.unescape(link))
             query = dict(urllib.parse.parse_qsl(url.query))
             names = query.get('modules')
             if not names:
