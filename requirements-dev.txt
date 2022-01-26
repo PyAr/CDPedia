@@ -9,3 +9,4 @@ progress
 pytest
 pytest-mock
 lxml
+python-magic

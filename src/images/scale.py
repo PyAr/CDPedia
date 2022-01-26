@@ -105,7 +105,7 @@ def run(verbose, src):
                 logger.debug("Rescaling to %d%% image %s", scale, dskurl)
             if scale == 100:
                 done_now[dskurl] = 100
-                if embed_enabled and image_is_embeddable(dskurl, imgsize):
+                if embed_enabled and image_is_embeddable(frompath, imgsize):
                     # don't copy image, leave it out of image blocks, it will
                     # be embedded from original location (without any reduction)
                     images_embed.add(dskurl)

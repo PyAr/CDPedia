@@ -17,6 +17,7 @@
 """Embed pre-selected images in HTML source."""
 
 import logging
+import magic
 import os
 
 import bs4
@@ -24,12 +25,20 @@ import bs4
 import config
 
 logger = logging.getLogger('images.embed')
+mimetype = magic.Magic(mime=True)
 
 
 def image_is_embeddable(imgpath, imgsize):
     """Decide if given image will be embedded in HTML source."""
+    result = False
     _, ext = os.path.splitext(imgpath)
-    return ext.lower() == '.svg' and imgsize < 40960
+    if ext.lower() == '.svg' and imgsize < 40960:
+        # Do not assume an image is an SVG based only in file extension
+        if os.path.exists(imgpath):
+            mt = mimetype.from_file(imgpath)
+            if mt.startswith('image/svg'):
+                result = True
+    return result
 
 
 class _EmbedImages:
