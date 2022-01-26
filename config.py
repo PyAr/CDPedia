@@ -123,6 +123,9 @@ LOG_REDUCDONE = DIR_TEMP + "/reduc_done.txt"
 LOG_TITLES = DIR_TEMP + "/titles.txt"
 LOG_LOCALE = DIR_TEMP + "/locale.txt"
 
+# Maximum filename length
+IMG_MAX_NAME_LEN = 240
+
 # prefix for URL of local images
 IMAGES_URL_PREFIX = "/images/"
 
