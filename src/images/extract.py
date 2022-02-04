@@ -256,21 +256,20 @@ class ImageParser:
         limit = config.IMG_MAX_NAME_LEN
         basedir, filename = os.path.split(dsk_url)
         name, ext = os.path.splitext(filename)
-        if len(name) > limit:
+        if len(filename) > limit:
             # We cannot simply get the [:limit] part of the name, since we
             # cannot know if we will have conflicts with other image names,
             # so we'll split the filename into subfolders.
             # superbigfilename.png would be super/bigfi/lename.png
             logger.debug("Filename too long for %r", dsk_url)
-            new_split_name = list()
-            for i in range(int(len(name)/limit)+1):
+            new_split_name = []
+            for i in range((len(name)//limit)+1):
                 new_part = name[i*limit:(i+1)*limit]
                 new_part.replace('.', '').replace('-', '').replace('/', '')
                 new_split_name.append(new_part)
             new_dir = os.path.join(*new_split_name)
             dsk_url = os.path.join(basedir,new_dir)
-            if ext:
-                dsk_url += ext
+            dsk_url += ext
 
         logger.debug("web url: %r, dsk_url %r", web_url, dsk_url)
 
