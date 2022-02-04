@@ -130,10 +130,15 @@ def fetch_html(url):
         try:
             req = urllib.request.Request(url, headers=REQUEST_HEADERS)
             resp = urllib.request.urlopen(req, timeout=60)
-            compressedstream = io.BytesIO(resp.read())
+            resp_content = resp.read()
+            compressedstream = io.BytesIO(resp_content)
             gzipper = gzip.GzipFile(fileobj=compressedstream)
             html = gzipper.read().decode('utf-8')
             return html
+
+        except gzip.BadGzipFile:
+            # response content is uncompressed
+            return resp_content.decode('utf-8')
 
         except Exception as err:
             if isinstance(err, urllib.error.HTTPError) and err.code == 404:
